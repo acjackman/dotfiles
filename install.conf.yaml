@@ -1,0 +1,17 @@
+- defaults:
+    link:
+      create: true
+      relink: true
+
+- clean: ['~', '~/.config']
+
+- link:
+    ~/.hammerspoon:
+      if: '[ `uname` = Darwin ]'
+      path: src/hammerspoon
+    ~/.zshrc:
+      force: true
+      path: src/.zshrc
+
+- shell:
+  - git submodule sync --recursive

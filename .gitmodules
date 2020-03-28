@@ -1,0 +1,9 @@
+[submodule "tools/dotbot"]
+	path = tools/dotbot
+	url = https://github.com/anishathalye/dotbot
+[submodule "tools/dotbot-plugins/dotbot-brew"]
+	path = tools/dotbot-plugins/dotbot-brew
+	url = https://github.com/d12frosted/dotbot-brew.git
+[submodule "tools/dotbot-plugins/dotbot-duti"]
+	path = tools/dotbot-plugins/dotbot-duti
+	url = https://github.com/andrejreznik/dotbot-duti.git

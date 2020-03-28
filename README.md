@@ -1,17 +1,20 @@
-# Jackman Does Dotfiles
+# Dotfiles
 
-These are my dotfiles, massively easier system configuration. I'm using kody[https://github.com/jh3y/kody] to do all the hard work
+These are my dotfiles, massively easier system configuration.
 
-## Usage
-1. Install Homebrew
-2. Install Git & Node
-3. Install Kody
-4. Clone this repo
-5. Let Kody do the rest
 
+Configured with [Dotbot](https://github.com/anishathalye/dotbot).
+
+## Updating dotfiles
+
+```sh
+cd ~
+.dotfiles/install
 ```
-/usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
-brew install git node
-npm install -g kody
-git clone git@github.com:acjackman/dotfiles.git
+
+
+## Bootstrapping
+
+```sh
+/bin/sh -c "$(curl -fsSL https://raw.github.com/acjackman/dotfiles/master/tools/bootstrap.sh)"
 ```
