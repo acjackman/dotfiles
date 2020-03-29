@@ -5,6 +5,9 @@
 
 - clean: ['~', '~/.config']
 
+- shell:
+  - git submodule sync --recursive
+
 - link:
     ~/.hammerspoon:
       if: '[ `uname` = Darwin ]'
@@ -13,5 +16,3 @@
       force: true
       path: src/.zshrc
 
-- shell:
-  - git submodule sync --recursive

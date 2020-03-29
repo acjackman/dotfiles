@@ -53,9 +53,17 @@ end
 function nexttrack()
   hs.osascript.applescript('tell application "Music" to next track')
 end
+function musicvolup()
+  hs.osascript.applescript('tell application "Music" to set sound volume to ((get sound volume) + 3)')
+end
+function musicvoldown()
+  hs.osascript.applescript('tell application "Music" to set sound volume to ((get sound volume) - 3)')
+end
 k:bind({}, 'p', nil, playpause)
 k:bind({}, '[', nil, backtrack)
 k:bind({}, ']', nil, nexttrack)
+k:bind({}, 'up', nil, musicvolup)
+k:bind({}, 'down', nil, musicvoldown)
 
 
 -- Single keybinding for app launch
@@ -100,7 +108,7 @@ end
 --   hs.alert.show("Config loaded")
 --   k.triggered = true
 -- end
--- k:bind({}, 'p', nil, pfun)
+-- k:bind({}, '=', nil, pfun)
 
 
 -- Enter Hyper Mode when F18 (Hyper/Capslock) is pressed
