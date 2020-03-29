@@ -3,18 +3,21 @@
       create: true
       relink: true
 
-- brewfile:
-  - src/BrewFile
 
 - clean: ['~', '~/.config']
 
+- link:
+    ~/.zshrc: src/.zshrc
+
 - shell:
   - git submodule sync --recursive
+
+- brewfile:
+  - src/BrewFile
 
 - link:
     ~/.hammerspoon:
       if: '[ `uname` = Darwin ]'
       path: src/hammerspoon
-    ~/.zshrc: src/.zshrc
     ~/.gitconfig: src/gitconfig
     ~/.gitignore: src/gitignore
