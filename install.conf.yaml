@@ -3,6 +3,9 @@
       create: true
       relink: true
 
+- brewfile:
+  - src/BrewFile
+
 - clean: ['~', '~/.config']
 
 - shell:
@@ -12,12 +15,6 @@
     ~/.hammerspoon:
       if: '[ `uname` = Darwin ]'
       path: src/hammerspoon
-    ~/.zshrc:
-      force: true
-      path: src/.zshrc
-    ~/.gitconfig:
-      force: true
-      path: src/gitconfig
-    ~/.gitignore:
-      force: true
-      path: src/gitignore
+    ~/.zshrc: src/.zshrc
+    ~/.gitconfig: src/gitconfig
+    ~/.gitignore: src/gitignore

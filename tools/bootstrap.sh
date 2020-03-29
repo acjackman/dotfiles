@@ -1,5 +1,5 @@
 #!/bin/bash
-
+cd $HOME
 OMZDIR="$HOME/.oh-my-zsh"
 DOTFILES_DIR="$HOME/.dotfiles"
 
@@ -11,6 +11,7 @@ else
   echo 'homebrew already installed'
 fi
 brew tap homebrew/bundle  # Install Homebrew Bundle
+brew install mas
 
 # Check if oh-my-zsh is installed
 if [ ! -d "$OMZDIR" ]; then
@@ -21,7 +22,7 @@ else
 fi
 
 # Change default shell
-if [ ! $0 = "-zsh"]; then
+if [ ! $0 = "-zsh" ]; then
   echo 'Changing default shell to zsh'
   chsh -s /bin/zsh
 else
