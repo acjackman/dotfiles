@@ -1,1 +1,6 @@
 BrewFile.lock.json
+/src/sublime/User/Package Control.user-ca-bundle
+/src/sublime/User/Package Control.merged-ca-bundle
+/src/sublime/User/Package Control.last-run
+*.crt
+src/sublime/User/Package Control.cache/

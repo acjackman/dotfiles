@@ -1,0 +1,99 @@
+[
+    // UI
+    { "keys": ["super+k", "super+k"], "command": "set_mark" },
+    { "keys": ["super+shift+t"], "command": "reopen_last_file" },
+    { "keys": ["super+alt+s"], "command": "toggle_side_bar" },
+    { "keys": ["super+k", "super+p"], "command": "toggle_minimap"},
+
+    // Delete & Close Curent
+    { "keys": ["super+shift+delete"], "command": "side_bar_delete"},
+
+    // Typing
+    { "keys": ["super+k", "super+t"], "command": "title_case"},
+    { "keys": ["super+shift+k", "super+shift+i"], "command": "toggle_overwrite"},
+    { "keys": ["super+shift+k", "super+shift+u"], "command": "permute_lines", "args": {"operation": "unique"}},
+
+    // Key shortcut to key-bindings
+    { "keys": ["super+shift+,"], "command": "open_file", "args": {"file": "${packages}/User/Default (OSX).sublime-keymap"} },
+    { "keys": ["super+shift+,"], "command": "open_file", "args": {"file": "${packages}/User/Default (OSX).sublime-keymap"} },
+
+    {
+      "keys": ["ctrl+u", "ctrl+\\"],
+      "command": "show_scope_name_enhanced",
+      "context": [
+        {"key": "setting.sublime_enhanced_keybindings", "operator": "equal", "operand": true},
+      ]
+    },
+
+    {
+      "keys": ["ctrl+u", "ctrl+y"],
+      "command": "toggle_default_status",
+      "context": [
+        {"key": "setting.sublime_enhanced_keybindings", "operator": "equal", "operand": true},
+      ]
+    },
+
+    // Terminal
+    { "keys": ["super+ctrl+t"], "command": "open_terminal" },
+
+    // Git commands:
+    { "keys": ["ctrl+shift+g","ctrl+shift+i"], "command": "git_init" },
+    { "keys": ["ctrl+shift+g","ctrl+shift+n"], "command": "git_new_branch" },
+    { "keys": ["ctrl+shift+g","ctrl+shift+t"], "command": "git_new_tag" },
+    { "keys": ["ctrl+shift+g","ctrl+shift+d"], "command": "git_raw",
+        "args": {"command": "git difftool", "may_change_files": false} },
+    { "keys": ["ctrl+shift+g","ctrl+shift+c"], "command": "git_commit" },
+    { "keys": ["ctrl+shift+g","ctrl+shift+q"], "command": "git_commit_amend" },
+    { "keys": ["ctrl+shift+g","ctrl+shift+s"], "command": "git_status" },
+    { "keys": ["ctrl+shift+g","ctrl+shift+m"], "command": "git_merge" },
+    { "keys": ["ctrl+shift+g","ctrl+shift+r"], "command": "git_stash" },
+    { "keys": ["ctrl+shift+g","ctrl+shift+a"], "command": "git_add_choice" },
+    { "keys": ["ctrl+shift+g","ctrl+shift+l"], "command": "git_log_all" },
+    { "keys": ["ctrl+shift+g","ctrl+shift+b"], "command": "git_branch" },
+    { "keys": ["ctrl+shift+g","ctrl+shift+p"], "command": "git_push_current_branch", },
+    { "keys": ["ctrl+shift+g","ctrl+shift+u"], "command": "git_raw",
+        "args": { "command": "git pull" } },
+    { "keys": ["ctrl+shift+g","ctrl+shift+h"], "command": "shell_command",
+        "args": { "command": "hub browse"}
+    },
+    { "keys": ["ctrl+shift+g","ctrl+shift+g"], "command": "show_overlay",
+        "args": {"overlay": "command_palette", "text": "Git: "}
+    },
+
+    // R Commands:
+    { "keys": ["ctrl+shift+r","ctrl+shift+t"], "command": "send_repl",
+        "args": {"cmd": "devtools::test(\"$project_path\")"}
+    },
+    { "keys": ["ctrl+shift+r","ctrl+shift+i"], "command": "send_repl",
+        "args": {"cmd": "devtools::install(\"$project_path\")"}
+    },
+    { "keys": ["ctrl+shift+r","ctrl+shift+c"], "command": "send_repl",
+        "args": {"cmd": "devtools::check(\"$project_path\")"}
+    },
+
+    // Sublime Linter:
+    { "keys": ["super+l"], "command": "sublime_linter_toggle_highlights" },
+
+    //Emmet
+    {
+        "keys": ["super+e"], "command": "run_emmet_action",
+        "args": {
+            "action": "expand_abbreviation"
+        },
+        "context": [
+            {
+                "key": "emmet_action_enabled.expand_abbreviation"
+            }
+        ]
+    },
+
+    // Quokka
+    { "keys": ["super+k", "q", "q"], "command": "quokka_run"},
+    { "keys": ["super+k", "q", "j"], "command": "quokka_create_javascript_file"},
+    { "keys": ["super+k", "q", "t"], "command": "quokka_create_typescript_file"},
+    { "keys": ["super+k", "q", "s"], "command": "quokka_stop_current"},
+    { "keys": ["super+k", "q", "l"], "command": "quokka_show_output"},
+    { "keys": ["super+k", "q", "v"], "command": "quokka_show_value"},
+    { "keys": ["super+k", "q", "x"], "command": "quokka_copy_value"},
+    { "keys": ["super+k", "q", "i"], "command": "quokka_install_missing_package_to_quokka"}
+]

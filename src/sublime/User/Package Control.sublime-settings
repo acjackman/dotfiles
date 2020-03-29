@@ -1,0 +1,46 @@
+{
+	"bootstrapped": true,
+	"in_process_packages":
+	[
+	],
+	"installed_packages":
+	[
+		"A File Icon",
+		"AdvancedNewFile",
+		"ayu",
+		"BracketHighlighter",
+		"Case Conversion",
+		"CForm",
+		"DashDoc",
+		"DotENV",
+		"EditorConfig",
+		"FileCommands",
+		"FileManager",
+		"Git",
+		"Git Config",
+		"GitGutter",
+		"GraphQL",
+		"gruvbox",
+		"Jedi - Python autocompletion",
+		"Lua Dev",
+		"Markdown Extended",
+		"Origami",
+		"Package Control",
+		"Pretty JSON",
+		"Pretty YAML",
+		"ProjectManager",
+		"Quokka",
+		"SendCode",
+		"SingleTrailingNewLine",
+		"sublack",
+		"SublimeLinter",
+		"SublimeLinter-contrib-mypy",
+		"SublimeLinter-flake8",
+		"Terminal",
+		"Terraform",
+		"Themes Menu Switcher",
+		"TOML",
+		"TrailingSpaces",
+		"ZSH"
+	]
+}
