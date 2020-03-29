@@ -120,6 +120,6 @@ test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell
 
 # Machine specific config
 ZSH_LOCAL="$HOME/.zshrc_local"
-if [[ -f ZSH_LOCAL ]]; then
+if [[ -f $ZSH_LOCAL ]]; then
     source $ZSH_LOCAL
 fi
