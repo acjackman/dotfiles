@@ -15,4 +15,9 @@
     ~/.zshrc:
       force: true
       path: src/.zshrc
-
+    ~/.gitconfig:
+      force: true
+      path: src/gitconfig
+    ~/.gitignore:
+      force: true
+      path: src/gitignore

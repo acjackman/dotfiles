@@ -1,0 +1,50 @@
+[alias]
+    a = add .
+    ci = commit -m
+    co = checkout
+    nb = checkout -b
+    ps = pus
+    psf = push --force-with-lease
+    pl = pull
+    psu = push --set-upstream
+    ff = merge --ff-only
+    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+    graph = lg
+    s = status -s
+    branch-name = "!git rev-parse --abbrev-ref HEAD"
+    publish = "!git push -u origin $(git branch-name)"
+    publishf = "publish --force-with-lease"
+    remotes = remote -v
+    renb = branch -m
+    rhh = reset --hard HEAD
+    rh = reset --hard
+    ignore = "!gi() { curl -sL https://www.gitignore.io/api/$@ ;}; gi"
+[mergetool "Kaleidoscope"]
+    cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
+    trustexitcode = true
+[merge]
+    tool = Kaleidoscope
+[difftool "Kaleidoscope"]
+    cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
+[difftool]
+    prompt = false
+[mergetool]
+    prompt = false
+[diff]
+    tool = Kaleidoscope
+    compactionHeuristic = true
+[user]
+    email = adam@acjackman.com
+    name = Adam Jackman
+[push]
+    default = simple
+[core]
+    excludesfile = ~/.gitignore
+    editor = subl -n -w
+[filter "lfs"]
+    required = true
+    clean = git-lfs clean -- %f
+    smudge = git-lfs smudge -- %f
+    process = git-lfs filter-process
+[credential]
+    helper = osxkeychain

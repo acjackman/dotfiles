@@ -1,0 +1,16 @@
+.DS_Store
+.VolumeIcon.icns
+.fseventsd
+*.swp
+.Trashes
+._.Trashes
+._.
+Thumbs.db
+.Spotlight-V100
+Desktop.ini
+node_modules
+.Rapp.history
+.Rhistory
+.atomignore
+.python-version
+.httr-oauth
