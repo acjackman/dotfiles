@@ -2,18 +2,23 @@
     a = add .
     ci = commit -m
     co = checkout
+    cb = checkout -b
     nb = checkout -b
-    ps = pus
+    ps = push
     psf = push --force-with-lease
     pl = pull
     psu = push --set-upstream
     ff = merge --ff-only
-    lg = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
-    graph = lg
+    lg = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+    lg5 = --no-pager lg -n 5
+    lg10 = --no-pager lg -n 10
+    graph = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
     s = status -s
     branch-name = "!git rev-parse --abbrev-ref HEAD"
     publish = "!git push -u origin $(git branch-name)"
     publishf = "publish --force-with-lease"
+    pb = "publish"
+    pbf = "publishf"
     remotes = remote -v
     renb = branch -m
     rhh = reset --hard HEAD

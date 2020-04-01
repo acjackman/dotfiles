@@ -2,6 +2,7 @@
 alias cdmp="cd $HOME/Dropbox/Dump"
 alias hconfig="subl -n ~/.hammerspoon ~/.hammerspoon/init.lua"
 alias zshconfig="subl -n ~/.dotfiles/src/oh-my-zsh/custom ~/.zshrc ~/.zshrc_local"
+alias dotfiles="subl -n ~/.dotfiles"
 
 # Command Shortcuts
 alias bi="brew install"

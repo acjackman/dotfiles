@@ -84,7 +84,7 @@ plugins=(
     python-poetry
     # virtualenvwrapper
     # pyenv-virtualenvwrapper
-    hub
+    zsh-autosuggestions
     z
 )
 
