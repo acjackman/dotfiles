@@ -31,7 +31,7 @@ fi
 
 # Clone Dotfiles repo
 if [[ ! -d "$DOTFILES_DIR" ]]; then
-    git clone https://github.com/acjackman/dotfiles $DOTFILES_DIR
+    git clone --recurse-submodules -j8 https://github.com/acjackman/dotfiles $DOTFILES_DIR
 else
     echo 'dotfiles already cloned'
 fi
