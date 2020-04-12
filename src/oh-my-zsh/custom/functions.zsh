@@ -39,3 +39,16 @@ function cfoutput() {
     --query "Stacks[0].Outputs[?OutputKey==\`$VAR\`].OutputValue | [0]" \
   | cat
 }
+
+function awslogout() {
+    export AWS_PROFILE=
+    export AWS_ACCESS_KEY_ID=
+    export AWS_SECRET_ACCESS_KEY=
+    export AWS_SESSION_TOKEN=
+}
+
+
+function awswho() {
+    echo AWS_PROFILE=${AWS_PROFILE}
+    awswhoami
+}

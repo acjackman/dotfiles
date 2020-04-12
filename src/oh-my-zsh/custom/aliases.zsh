@@ -1,8 +1,10 @@
 # Open/Edit
 alias cdmp="cd $HOME/Dropbox/Dump"
-alias hconfig="subl -n ~/.hammerspoon ~/.hammerspoon/init.lua"
-alias zshconfig="subl -n ~/.dotfiles/src/oh-my-zsh/custom ~/.zshrc ~/.zshrc_local"
-alias dotfiles="subl -n ~/.dotfiles"
+alias editor_new="subl -n"
+alias hconfig="editor_new ~/.hammerspoon ~/.hammerspoon/init.lua"
+alias zshconfig="editor_new ~/.dotfiles/src/oh-my-zsh/custom ~/.zshrc ~/.zshrc_local"
+alias dotfiles="editor_new ~/.dotfiles"
+alias awsconfig="editor_new ~/.aws ~/.aws/config"
 
 # Command Shortcuts
 alias bi="brew install"
