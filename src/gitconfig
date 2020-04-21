@@ -9,10 +9,11 @@
     pl = pull
     psu = push --set-upstream
     ff = merge --ff-only
-    lg = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
-    lg5 = --no-pager lg -n 5
-    lg10 = --no-pager lg -n 10
-    graph = log --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit --date=relative
+    lf = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+    lg = lf --abbrev-commit --date=relative
+    lg5 = "!git --no-pager lg -n 5"
+    lg10 = "!git --no-pager lg -n 10"
+    graph = lg --graph
     s = status -s
     branch-name = "!git rev-parse --abbrev-ref HEAD"
     publish = "!git push -u origin $(git branch-name)"
@@ -22,8 +23,9 @@
     remotes = remote -v
     renb = branch -m
     rhh = reset --hard HEAD
-    rh = reset --hard
+    rh = reset --hard[]
     ignore = "!gi() { curl -sL https://www.gitignore.io/api/$@ ;}; gi"
+    cfix = "commit --amend --no-edit"
 [mergetool "Kaleidoscope"]
     cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
     trustexitcode = true
