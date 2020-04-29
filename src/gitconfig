@@ -1,31 +1,43 @@
 [alias]
-    a = add .
-    ci = commit -m
-    co = checkout
-    cb = checkout -b
-    nb = checkout -b
-    ps = push
-    psf = push --force-with-lease
-    pl = pull
-    psu = push --set-upstream
-    ff = merge --ff-only
-    lf = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
-    lg = lf --abbrev-commit --date=relative
-    lg5 = "!git --no-pager lg -n 5"
-    lg10 = "!git --no-pager lg -n 10"
-    graph = lg --graph
+    # Status & Info
     s = status -s
     branch-name = "!git rev-parse --abbrev-ref HEAD"
+
+    # Commit control
+    a = add .
+    ci = commit  # Commit Interactive
+    cm = "commit -m"  # Commit with Message
+    cfix = "commit --amend --no-edit"
+    ff = merge --ff-only
+
+    # Branch control
+    co = checkout
+    rh = reset --hard
+    rhh = reset --hard HEAD
+    cb = checkout -b
+    nb = checkout -b
+    renb = branch -m
+
+    # Remotes
+    pl = pull
+    ps = push
+    psf = push --force-with-lease
+    psu = push --set-upstream
     publish = "!git push -u origin $(git branch-name)"
     publishf = "publish --force-with-lease"
     pb = "publish"
     pbf = "publishf"
     remotes = remote -v
-    renb = branch -m
-    rhh = reset --hard HEAD
-    rh = reset --hard[]
+
+    # Log and History
+    lf = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+    lg = lf --abbrev-commit --date=relative
+    lg5 = "!git --no-pager lg -n 5"
+    lg10 = "!git --no-pager lg -n 10"
+    graph = lg --graph
+
+    # Ignore templates
     ignore = "!gi() { curl -sL https://www.gitignore.io/api/$@ ;}; gi"
-    cfix = "commit --amend --no-edit"
 [mergetool "Kaleidoscope"]
     cmd = ksdiff --merge --output \"$MERGED\" --base \"$BASE\" -- \"$LOCAL\" --snapshot \"$REMOTE\" --snapshot
     trustexitcode = true
