@@ -46,18 +46,23 @@ k:bind({}, '\\', nil, new_inx)
 -- iTunes controls
 function playpause()
   hs.osascript.applescript('tell application "Music" to playpause')
+  k.triggered = true
 end
 function backtrack()
   hs.osascript.applescript('tell application "Music" to back track')
+  k.triggered = true
 end
 function nexttrack()
   hs.osascript.applescript('tell application "Music" to next track')
+  k.triggered = true
 end
 function musicvolup()
   hs.osascript.applescript('tell application "Music" to set sound volume to ((get sound volume) + 3)')
+  k.triggered = true
 end
 function musicvoldown()
   hs.osascript.applescript('tell application "Music" to set sound volume to ((get sound volume) - 3)')
+  k.triggered = true
 end
 k:bind({}, 'p', nil, playpause)
 k:bind({}, '[', nil, backtrack)
