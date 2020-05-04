@@ -4,3 +4,11 @@ BrewFile.lock.json
 /src/sublime/User/Package Control.last-run
 *.crt
 src/sublime/User/Package Control.cache/
+
+
+# Ignore ecerything in the default profile
+src/ipython/*/db
+src/ipython/*/log
+src/ipython/*/pid
+src/ipython/*/security
+src/ipython/*/history.sqlite

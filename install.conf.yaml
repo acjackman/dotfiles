@@ -12,8 +12,8 @@
 - shell:
   - git submodule sync --recursive
 
-- brewfile:
-  - src/BrewFile
+# - brewfile:
+#   - src/BrewFile
 
 - create:
   - "~/.sublime_projects"
@@ -24,5 +24,5 @@
       path: src/hammerspoon
     ~/.gitconfig: src/gitconfig
     ~/.gitignore: src/gitignore
-    ~/.gitignore: src/gitignore
     "~/Library/Application Support/Sublime Text 3/Packages/User": src/sublime/User
+    "~/.ipython": src/ipython
