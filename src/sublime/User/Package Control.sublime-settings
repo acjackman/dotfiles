@@ -35,6 +35,7 @@
 		"SingleTrailingNewLine",
 		"sublack",
 		"SublimeLinter",
+		"SublimeLinter-addon-black-for-flake",
 		"SublimeLinter-contrib-mypy",
 		"SublimeLinter-flake8",
 		"Terminal",
