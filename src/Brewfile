@@ -2,6 +2,9 @@ tap "github/gh"
 tap "homebrew/bundle"
 tap "homebrew/cask"
 tap "homebrew/core"
+brew "mas"
+
+# Dev/Data Tools:
 brew "awscli"
 brew "direnv"
 brew "duti"
@@ -9,8 +12,6 @@ brew "fzf"
 brew "git"
 brew "hub"
 brew "jq"
-brew "libusb"
-brew "mas"
 brew "noti"
 brew "pandoc"
 brew "pipx"
@@ -23,32 +24,38 @@ brew "tldr"
 brew "tree"
 brew "yq"
 brew "github/gh/gh"
-cask "1password"
-cask "alfred"
-cask "dash"
 cask "docker"
-cask "dropbox"
-cask "fantastical"
-cask "firefox"
-cask "google-chrome"
-cask "hammerspoon"
 cask "iterm2"
 cask "kaleidoscope"
-cask "karabiner-elements"
-cask "omnifocus"
-cask "rectangle"
-cask "setapp"
-cask "slack"
 cask "sublime-text"
-cask "textexpander"
 cask "tower"
 cask "transmit"
-mas "CARROT Weather", id: 993487541
-mas "Dark Mode for Safari", id: 1397180934
-mas "Drafts", id: 1435957248
+cask "tad"  # CSV Viewer
+cask "dash"
+mas "Patterns", id: 429449079
+cask "firefox"
+cask "google-chrome"
+
+# Organization
+cask "slack"
+cask "omnifocus"
+cask "textexpander"
+cask "dropbox"
+cask "1password"
+acask "fantastical"
 mas "GoodNotes", id: 1480793815
 mas "Healthier", id: 534953542
 mas "Instapaper", id: 1481302432
+mas "Drafts", id: 1435957248
+
+# Customization/Utilities
+cask "rectangle"
+cask "karabiner-elements"
+cask "alfred"
+cask "hammerspoon"
+mas "Dark Mode for Safari", id: 1397180934
 mas "Keys", id: 1494642810
-mas "Patterns", id: 429449079
 mas "Wipr", id: 1320666476
+cask "setapp"
+mas "CARROT Weather", id: 993487541
+brew "libusb" # used for Ergodox EZ keyboard flashing
