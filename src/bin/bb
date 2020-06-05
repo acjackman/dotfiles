@@ -74,7 +74,7 @@ class BitBucketClient:
             f"/addon/pipelines/home#!/results/{build_number}"
         )
 
-    def start_pipeline(self, pipeline_name, extras):
+    def start_pipeline(self, branch_name, pipeline_name, extras):
         # Create Build
         payload = {
             "target": {
@@ -87,24 +87,31 @@ class BitBucketClient:
         }
         return self._post(f"/pipelines/", json=payload).json()
 
-    def wait(self, pipeline: dict, sleep_time=15, watchdog_max=100) -> bool:
+    def wait(self, pipeline: dict, sleep_time=15, watchdog_max=100) -> Optional[bool]:
         """Wait on build to finish and return the result."""
         pipeline_id = pipeline["uuid"]
         state = pipeline["state"]
+        log.debug(f"{state=}")
 
         def running(state):
-            return state["name"] in {"IN_PROGRESS", "PENDING"}
+            if state["name"] not in {"IN_PROGRESS", "PENDING"}:
+                return False
 
-        def get_result(state):
+            if "result" in state:
+                return False
+
             try:
-                return get_path(state, ("result", "name"))
+                stage_name = get_path(state, ("stage", "name"))
+                if stage_name == "PAUSED":
+                    return False
             except PathAccessError:
-                return None
+                pass
+
+            return True
 
         watchdog_rounds = 0
-        while running(state) or get_result(state) is None:
+        while running(state):
             # Check watchdog counter for infinite loop
-            log.debug(f"{running(state)=} or {(get_result(state) is None)=}")
             watchdog_rounds += 1
             if watchdog_rounds >= watchdog_max:
                 raise Exception("Maximum waiting time exceeded")
@@ -117,12 +124,14 @@ class BitBucketClient:
             pipeline = self.get_pipeline(pipeline_id)
             state = pipeline["state"]
             log.debug(f"{state=}")
-        log.debug(f'Stop reason: {running(state)=} or {get_result(state)=}')
-        return get_result(state) == "SUCCESSFUL"
+        try:
+            return get_path(state, ["result", "name"]) == "SUCCESSFUL"
+        except PathAccessError:
+            return None  # None is paused, successful till now, but there are more steps
 
 
-def _start_cli(client, pipeline_name, extras) -> dict:
-    pipeline = client.start_pipeline(pipeline_name, vars)
+def _start_cli(client, branch_name, pipeline_name, extras) -> dict:
+    pipeline = client.start_pipeline(branch_name, pipeline_name, extras)
     build_number = pipeline["build_number"]
     build_url = client.build_url(pipeline)
     log.info(f"Build #{build_number} started. View build: {build_url}")
@@ -164,8 +173,8 @@ def cli(ctx, log_level, workspace, repo, user, password):
         # level=log_level.upper(),
     )
     log.setLevel(log_level.upper())
-    log.debug("running cli")
     # TODO: get user and password directly from the key-chain
+    log.debug(f"COnfiguring client with {workspace=} {repo=} {user=}")
     ctx.obj = BitBucketClient(workspace, repo, user, password)
 
 
@@ -184,38 +193,44 @@ def branch_callback():
 @click.option("--extras-json", nargs=1)
 @click.argument("pipeline", nargs=1)
 @click.pass_obj
-def start_command(client: BitBucketClient, pipeline: str, extras_json: str, wait: bool):
+def start_command(
+    client: BitBucketClient, branch: str, pipeline: str, extras_json: str, wait: bool
+):
     log.debug("running start")
 
     if extras_json:
         vars = json.loads(extras_json)
     else:
         vars = {}
-    log.info(f"Attempting to run '{pipeline}' on branch '{branch_name}' with {vars=}")
+    log.info(f"Attempting to run '{pipeline}' on branch '{branch}' with {vars=}")
 
-    pipeline: dict = _start_cli(client, pipeline, vars)
+    pipeline: dict = _start_cli(client, branch, pipeline, vars)
     _wait_cli(client, pipeline)
+
+
+def get_pipeline_branch(pipeline: dict):
+    target = pipeline["target"]
+    if target["ref_type"] == "branch":
+        return target["ref_name"]
 
 
 @cli.command(name="wait")
 @click.option("--branch", required=True, default=branch_callback())
 @click.pass_obj
 def wait_command(client: BitBucketClient, branch: str):
-    log.debug("running wait")
-
-    def for_current_branch(pipeline: dict):
-        target = pipeline["target"]
-        return target["ref_type"] == "branch" and target["ref_name"] == branch
-
-    for pipeline in client.recent_pipelines(initial_page_length=1):
-        if for_current_branch(pipeline):
+    log.debug(f"running wait on branch {branch}")
+    for pipeline in client.recent_pipelines(initial_page_length=3):
+        pipeline_branch = get_pipeline_branch(pipeline)
+        build_number = pipeline["build_number"]
+        log.debug(f"Checking #{build_number}: '{pipeline_branch}'")
+        if get_pipeline_branch(pipeline) == branch:
+            log.debug("identified")
             break
     else:
         log.critical(f"Unable to identify build for {branch=}")
         sys.exit(1)
 
     _wait_cli(client, pipeline)
-
 
 
 if __name__ == "__main__":
