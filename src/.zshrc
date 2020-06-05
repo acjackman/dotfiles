@@ -73,6 +73,7 @@ plugins=(
     colorize
     colored-man-pages
     # dotenv
+    direnv
     git
     gitfast
     iterm2

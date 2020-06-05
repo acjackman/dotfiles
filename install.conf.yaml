@@ -26,3 +26,4 @@
     ~/.gitignore: src/gitignore
     "~/Library/Application Support/Sublime Text 3/Packages/User": src/sublime/User
     "~/.ipython": src/ipython
+    "~/.bin": src/bin
