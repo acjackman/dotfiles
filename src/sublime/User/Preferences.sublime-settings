@@ -6,7 +6,9 @@
 		"Programmatically",
 		"deassignment",
 		"deassigned",
-		"podcast"
+		"podcast",
+		"dataclass",
+		"uuid"
 	],
 	"always_show_minimap_viewport": true,
 	"bold_folder_labels": true,
@@ -43,7 +45,6 @@
 	"ignored_packages":
 	[
 		"CSS",
-		"KeyboardSpellCheck",
 		"Markdown",
 		"SublimeLinter-pylint",
 		"Vintage",
@@ -51,6 +52,11 @@
 	],
 	"ignored_words":
 	[
+		"",
+		"classmethod",
+		"py",
+		"repo",
+		"str"
 	],
 	"line_padding_bottom": 1,
 	"line_padding_top": 1,
@@ -86,7 +92,7 @@
 	"scroll_past_end": true,
 	"shift_tab_unindent": true,
 	"spacegray_sidebar_tree_small": true,
-	"spell_check": false,
+	"spell_check": true,
 	"status_bar_brighter": true,
 	"syntax_docset_map":
 	{
