@@ -224,7 +224,8 @@ def wait_command(client: BitBucketClient, branch: str):
         build_number = pipeline["build_number"]
         log.debug(f"Checking #{build_number}: '{pipeline_branch}'")
         if get_pipeline_branch(pipeline) == branch:
-            log.debug("identified")
+            build_url = client.build_url(pipeline)
+            log.info(f"Waiting on build #{build_number}. View build: {build_url}")
             break
     else:
         log.critical(f"Unable to identify build for {branch=}")
