@@ -33,6 +33,7 @@
     lf = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
     lg = lf --abbrev-commit --date=relative
     lg5 = "!git --no-pager lg -n 5"
+    lgg = lg5
     lg10 = "!git --no-pager lg -n 10"
     graph = lg --graph
 

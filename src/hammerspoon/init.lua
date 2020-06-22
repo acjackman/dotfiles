@@ -16,7 +16,6 @@ old_hyper = {
   ';', -- Better Touch tool opens menu bar as dropdown
   'i', -- iTerm interactive
   'z', -- Alfred Clipboard
-  'n', -- nvAlt
   'k', -- Cardhop
   'h', -- Global Dash
   --'d', -- Show Toggl
@@ -85,6 +84,7 @@ singleapps = {
   {'r', 'Safari'},
   {'t', 'iTerm'},
   {'f', 'Finder'},
+  {'n', 'The Archive'},
 }
 for i, app in ipairs(singleapps) do
   k:bind({}, app[1], function() launch(app[2]); k:exit(); end)
