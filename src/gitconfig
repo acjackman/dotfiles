@@ -1,13 +1,16 @@
 [alias]
     # Status & Info
     s = status -s
+    home = rev-parse --show-toplevel
     branch-name = "!git rev-parse --abbrev-ref HEAD"
 
     # Commit control
     a = add .
     ci = commit  # Commit Interactive
     cm = "commit -m"  # Commit with Message
-    cfix = "commit --amend --no-edit"
+    fix = "commit --amend"
+    fixx = "commit --amend --no-edit"
+    cfix = fixx
     ff = merge --ff-only
 
     # Branch control
