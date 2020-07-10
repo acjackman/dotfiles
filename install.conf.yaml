@@ -16,21 +16,32 @@
   - "~/.sublime_projects"
 
 - link:
+    # Git
+    ~/.gitconfig: src/gitconfig
+    ~/.gitignore: src/gitignore
+
+    # ZSH config
+    ~/.zshrc:
+      path: src/.zshrc
+      force: true
+    ~/.oh-my-zsh/custom:
+      path: src/oh-my-zsh/custom
+      force: true
+
+    # Scripts
+    ~/.bin: src/bin
+
+    # shell apps config
+    ~/.ipython: src/ipython
+
+    # macOS & apps
+    "~/Library/Application Support/Sublime Text 3/Packages/User": src/sublime/User
+    ~/.Brewfile:
+      if: '[ `uname` = Darwin ]'
+      path: src/Brewfile
     ~/.hammerspoon:
       if: '[ `uname` = Darwin ]'
       path: src/hammerspoon
-    ~/.gitconfig: src/gitconfig
-    ~/.gitignore: src/gitignore
-    "~/Library/Application Support/Sublime Text 3/Packages/User": src/sublime/User
-    "~/.ipython": src/ipython
-    "~/.bin": src/bin
-    "~/.zshrc":
-      path: src/.zshrc
-      force: true
-    "~/.oh-my-zsh/custom":
-      path: src/oh-my-zsh/custom
-      force: true
-    "~/.Brewfile": src/Brewfile
     ~/Library/Preferences/com.knollsoft.Rectangle.plist:
       if: '[ `uname` = Darwin ]'
       path: src/rectangle/com.knollsoft.Rectangle.plist
