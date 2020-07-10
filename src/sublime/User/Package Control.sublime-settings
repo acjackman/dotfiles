@@ -37,6 +37,7 @@
 		"SendCode",
 		"SingleTrailingNewLine",
 		"sublack",
+		"SublimeCodeIntel",
 		"SublimeLinter",
 		"SublimeLinter-addon-black-for-flake",
 		"SublimeLinter-contrib-mypy",
