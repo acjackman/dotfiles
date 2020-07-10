@@ -12,9 +12,6 @@
 - shell:
   - git submodule sync --recursive
 
-# - brewfile:
-#   - src/BrewFile
-
 - create:
   - "~/.sublime_projects"
 
@@ -27,6 +24,10 @@
     "~/Library/Application Support/Sublime Text 3/Packages/User": src/sublime/User
     "~/.ipython": src/ipython
     "~/.bin": src/bin
+    "~/.zshrc":
+      path: src/.zshrc
+      force: true
+    "~/.Brewfile": src/Brewfile
     ~/Library/Preferences/com.knollsoft.Rectangle.plist:
       if: '[ `uname` = Darwin ]'
       path: src/rectangle/com.knollsoft.Rectangle.plist

@@ -38,3 +38,6 @@ fi
 
 # Install dotfiles
 .dotfiles/install
+
+# Install applications
+brew bundle install --global

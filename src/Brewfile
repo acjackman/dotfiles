@@ -1,7 +1,7 @@
-tap "github/gh"
-tap "homebrew/bundle"
 tap "homebrew/cask"
 tap "homebrew/core"
+tap "github/gh"
+tap "homebrew/bundle"
 brew "mas"
 
 # Dev/Data Tools:
@@ -42,7 +42,8 @@ cask "omnifocus"
 cask "textexpander"
 cask "dropbox"
 cask "1password"
-acask "fantastical"
+cask "fantastical"
+cask "hey"
 mas "GoodNotes", id: 1480793815
 mas "Healthier", id: 534953542
 mas "Instapaper", id: 1481302432
@@ -51,7 +52,8 @@ mas "Drafts", id: 1435957248
 # Customization/Utilities
 cask "rectangle"
 cask "karabiner-elements"
-cask "alfred"
+#cask "alfred"
+cask "launchbar"
 cask "hammerspoon"
 mas "Dark Mode for Safari", id: 1397180934
 mas "Keys", id: 1494642810
