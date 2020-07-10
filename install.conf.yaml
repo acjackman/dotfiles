@@ -27,6 +27,9 @@
     "~/.zshrc":
       path: src/.zshrc
       force: true
+    "~/.oh-my-zsh/custom":
+      path: src/oh-my-zsh/custom
+      force: true
     "~/.Brewfile": src/Brewfile
     ~/Library/Preferences/com.knollsoft.Rectangle.plist:
       if: '[ `uname` = Darwin ]'
