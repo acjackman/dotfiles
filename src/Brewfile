@@ -2,6 +2,8 @@ tap "homebrew/cask"
 tap "homebrew/core"
 tap "github/gh"
 tap "homebrew/bundle"
+tap "railwaycat/emacsmacport"
+
 brew "mas"
 
 # Dev/Data Tools:
@@ -28,6 +30,7 @@ cask "docker"
 cask "iterm2"
 cask "kaleidoscope"
 cask "sublime-text"
+cask "emacs-mac-spacemacs-icon"
 cask "tower"
 cask "transmit"
 cask "tad"  # CSV Viewer
@@ -35,6 +38,9 @@ cask "dash"
 mas "Patterns", id: 429449079
 cask "firefox"
 cask "google-chrome"
+cask "basictex"  # Core LaTeX distribution
+cask "skim"  # pdf viewer
+
 
 # Organization
 cask "slack"
