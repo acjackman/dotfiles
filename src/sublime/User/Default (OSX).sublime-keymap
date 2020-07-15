@@ -1,4 +1,8 @@
 [
+    // Standardize macOS window management
+    { "keys": ["super+alt+n"], "command": "new_window" },
+    { "keys": ["super+shift+n"], "command": "advanced_new_file_new"},
+
     // UI
     { "keys": ["super+k", "super+k"], "command": "set_mark" },
     { "keys": ["super+shift+t"], "command": "reopen_last_file" },
