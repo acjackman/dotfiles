@@ -5,7 +5,7 @@
     branch-name = "!git rev-parse --abbrev-ref HEAD"
 
     # Commit control
-    a = add .
+    a = "!git add $(git home)"
     ci = commit  # Commit Interactive
     cm = "commit -m"  # Commit with Message
     fix = "commit --amend"
