@@ -16,6 +16,7 @@ alias gtower='gittower git rev-parse --show-toplevel'
 # Actions
 alias o=open
 alias sn="subl -n"
+alias tower="gittower $(git home)"
 alias gitsweep="git branch --merged | egrep -v '(^\*|master|dev.*|stg|prod|develop|release/.*)' | xargs git branch -d && git remote | xargs git remote prune && echo 'Branches Remaining: ' && git --no-pager branch | head -n 20"
 alias gitoverwrite="git commit --amend --no-edit && git psf"
 alias awswhoami="aws sts get-caller-identity"
