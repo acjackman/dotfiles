@@ -28,3 +28,17 @@ alias sshfingerprint="ssh-keygen -l -E md5 -f"
 
 # Utilities
 alias count_unique='cut -f 1 | sort | uniq -c'
+
+# Navigation
+alias pd="popd"
+
+## Moving up
+alias x="clear && ls"
+alias ..="cd .. && clear && ls"
+alias ...="cd ../.. && clear && ls"
+alias ....="cd ../../.. && clear && ls"
+alias .....="cd ../../../.. && clear && ls"
+
+## Shortcuts to common directories
+alias dboxn="pushd ~/Dropbox/Notes && clear && ls -1 | tail -r | grep -v -E '(media|^Z.*|Notes & Settings|.*csv$)' | head -10 && echo '...'"
+alias dev="pushd ~/Development && clear && ls"

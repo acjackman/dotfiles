@@ -2,19 +2,20 @@ tap "homebrew/cask"
 tap "homebrew/core"
 tap "github/gh"
 tap "homebrew/bundle"
-tap "railwaycat/emacsmacport"
-
 brew "mas"
+
+# *Nix utils
+brew "direnv"
+brew "duti"
+brew "tldr"
+brew "tree"
+brew "fzf"
 
 # Dev/Data Tools:
 brew "awscli"
-brew "direnv"
-brew "duti"
-brew "fzf"
 brew "git"
 brew "hub"
 brew "jq"
-brew "noti"
 brew "pandoc"
 brew "pipx"
 brew "pyenv"
@@ -22,15 +23,12 @@ brew "pyenv-virtualenv"
 brew "r"
 brew "rsync"
 brew "terraform"
-brew "tldr"
-brew "tree"
 brew "yq"
 brew "github/gh/gh"
 cask "docker"
 cask "iterm2"
 cask "kaleidoscope"
 cask "sublime-text"
-cask "emacs-mac-spacemacs-icon"
 cask "tower"
 cask "transmit"
 cask "tad"  # CSV Viewer
@@ -38,9 +36,6 @@ cask "dash"
 mas "Patterns", id: 429449079
 cask "firefox"
 cask "google-chrome"
-cask "basictex"  # Core LaTeX distribution
-cask "skim"  # pdf viewer
-
 
 # Organization
 cask "slack"
@@ -50,6 +45,7 @@ cask "dropbox"
 cask "1password"
 cask "fantastical"
 cask "hey"
+# cask "the-archive"  # TODO: Make cask of the archive
 mas "GoodNotes", id: 1480793815
 mas "Healthier", id: 534953542
 mas "Instapaper", id: 1481302432
@@ -65,5 +61,7 @@ mas "Dark Mode for Safari", id: 1397180934
 mas "Keys", id: 1494642810
 mas "Wipr", id: 1320666476
 cask "setapp"
+cask "backblaze"
 mas "CARROT Weather", id: 993487541
 brew "libusb" # used for Ergodox EZ keyboard flashing
+brew "noti"

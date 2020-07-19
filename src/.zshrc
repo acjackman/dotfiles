@@ -87,7 +87,7 @@ plugins=(
     # virtualenvwrapper
     # pyenv-virtualenvwrapper
     zsh-autosuggestions
-    z
+    zoxide
 )
 
 source $ZSH/oh-my-zsh.sh
