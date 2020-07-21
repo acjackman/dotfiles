@@ -40,5 +40,6 @@ alias ....="cd ../../.. && clear && ls"
 alias .....="cd ../../../.. && clear && ls"
 
 ## Shortcuts to common directories
+alias dbox="pushd ~/Dropbox && clear && ls"
 alias dboxn="pushd ~/Dropbox/Notes && clear && ls -1 | tail -r | grep -v -E '(media|^Z.*|Notes & Settings|.*csv$)' | head -10 && echo '...'"
 alias dev="pushd ~/Development && clear && ls"
