@@ -2,7 +2,9 @@
     # Status & Info
     s = status -s
     home = rev-parse --show-toplevel
+    hash = "!git rev-parse HEAD"
     branch-name = "!git rev-parse --abbrev-ref HEAD"
+    bname = "branch-name"
 
     # Commit control
     a = "!git add $(git home)"
