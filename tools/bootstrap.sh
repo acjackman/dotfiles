@@ -41,3 +41,13 @@ fi
 
 # Install applications
 brew bundle install --global
+
+# Install Poetry;
+if [[ -f "$HOME/.poetry/bin/poetry" ]]; then
+  echo 'Poetry already installed'
+else
+  curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
+fi
+
+
+pipx install black
