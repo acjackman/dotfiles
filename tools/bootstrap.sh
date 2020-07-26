@@ -50,4 +50,4 @@ else
 fi
 
 
-pipx install black
+pipx install black nox
