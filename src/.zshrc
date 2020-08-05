@@ -113,10 +113,6 @@ source $ZSH/oh-my-zsh.sh
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
 # users are encouraged to define aliases within the ZSH_CUSTOM folder.
 # For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
 
 test -e "${HOME}/.iterm2_shell_integration.zsh" && source "${HOME}/.iterm2_shell_integration.zsh"
 
@@ -125,3 +121,6 @@ ZSH_LOCAL="$HOME/.zshrc_local"
 if [[ -f $ZSH_LOCAL ]]; then
     source $ZSH_LOCAL
 fi
+
+setopt noincappendhistory
+setopt nosharehistory
