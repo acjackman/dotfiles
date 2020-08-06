@@ -14,6 +14,7 @@
     fixx = "commit --amend --no-edit"
     cfix = fixx
     ff = merge --ff-only
+    patch = !git --no-pager diff --no-color
 
     # Branch control
     co = checkout
@@ -66,6 +67,7 @@
 [core]
     excludesfile = ~/.gitignore
     editor = subl -n -w
+	pager = diff-so-fancy | less --tabs=4 -RFX
 [filter "lfs"]
     required = true
     clean = git-lfs clean -- %f
@@ -75,3 +77,17 @@
     helper = osxkeychain
 [pull]
 	ff = only
+[color]
+	ui = true
+[color "diff-highlight"]
+	oldNormal = red bold
+	oldHighlight = red bold 52
+	newNormal = green bold
+	newHighlight = green bold 22
+[color "diff"]
+	meta = 11
+	frag = magenta bold
+	commit = yellow bold
+	old = red bold
+	new = green bold
+	whitespace = red reverse
