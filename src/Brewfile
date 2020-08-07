@@ -2,6 +2,7 @@ tap "homebrew/cask"
 tap "homebrew/core"
 tap "github/gh"
 tap "homebrew/bundle"
+tap "homebrew/cask-drivers"
 brew "mas"
 
 # *Nix utils
@@ -66,3 +67,4 @@ cask "backblaze"
 mas "CARROT Weather", id: 993487541
 brew "libusb" # used for Ergodox EZ keyboard flashing
 brew "noti"
+cask "qmk-toolbox"
