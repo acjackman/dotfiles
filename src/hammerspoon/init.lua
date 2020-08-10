@@ -64,8 +64,8 @@ function musicvoldown()
   k.triggered = true
 end
 k:bind({}, 'p', nil, playpause)
-k:bind({}, '[', nil, backtrack)
-k:bind({}, ']', nil, nexttrack)
+k:bind({}, 'left', nil, backtrack)
+k:bind({}, 'right', nil, nexttrack)
 k:bind({}, 'up', nil, musicvolup)
 k:bind({}, 'down', nil, musicvoldown)
 
