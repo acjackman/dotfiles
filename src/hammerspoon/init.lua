@@ -115,6 +115,27 @@ end
 -- end
 -- k:bind({}, '=', nil, pfun)
 
+-- Rotate secondary displays
+
+rotate_screen_clockwise = function()
+  screen = hs.screen.mainScreen()
+  current_rotation = screen:rotate()
+  new_rotation = (current_rotation + 90) % 360
+  screen:rotate(new_rotation)
+  k.triggered = true
+end
+
+rotate_screen_counterclockwise = function()
+  screen = hs.screen.mainScreen()
+  current_rotation = screen:rotate()
+  new_rotation = (current_rotation + 270) % 360
+  screen:rotate(new_rotation)
+  k.triggered = true
+end
+
+k:bind({}, ']', nil, rotate_screen_clockwise)
+k:bind({}, '[', nil, rotate_screen_counterclockwise)
+
 
 -- Enter Hyper Mode when F18 (Hyper/Capslock) is pressed
 pressedF19 = function()
