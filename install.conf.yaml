@@ -49,3 +49,6 @@
     ~/.config/karabiner:
       if: '[ `uname` = Darwin ]'
       path: src/karabiner
+    ~/Library/Application Support/qmk/qmk.ini:
+      if: '[ `uname` = Darwin ]'
+      path: src/qmk.ini
