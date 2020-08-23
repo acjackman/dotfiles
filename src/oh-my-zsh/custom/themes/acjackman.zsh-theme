@@ -116,6 +116,17 @@ acjackman_precmd () {
 }
 
 
+function virtualenv_prompt_info(){
+  [[ -n ${VIRTUAL_ENV} ]] || return
+
+  if [[ $VIRTUAL_ENV =~ /pypoetry/virtualenvs/ ]]; then
+    echo "${ZSH_THEME_VIRTUALENV_PREFIX:=[}poetry${ZSH_THEME_VIRTUALENV_SUFFIX:=]}"
+  else
+    echo "${ZSH_THEME_VIRTUALENV_PREFIX:=[}${VIRTUAL_ENV:t}${ZSH_THEME_VIRTUALENV_SUFFIX:=]}"
+  fi
+}
+
+
 
 ZSH_THEME_VIRTUALENV_PREFIX='{'
 ZSH_THEME_VIRTUALENV_SUFFIX='}'
