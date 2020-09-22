@@ -52,3 +52,55 @@ function awswho() {
     echo AWS_PROFILE=${AWS_PROFILE}
     awswhoami
 }
+
+
+function awsso() {
+    # Only login if credentials have timed out
+    # Usage: `awsso $AWS_PROFILE`
+    local PROFILE=$1
+
+    aws sts get-caller-identity --profile $PROFILE > /dev/null
+    if [ $? -ne 0 ]; then
+        # Login if unable to get caller identity
+        aws sso login --profile $PROFILE
+    fi
+
+    export AWS_PROFILE=$PROFILE
+}
+
+function export_sso_creds() (
+    # Export CLI credentials for boto+other apps to use SSO role
+    # Usage: `eval $(export_sso_creds $AWS_PROFILE)`
+    set -e -o pipefail
+    local PROFILE="$1"
+
+    [ -v "$PROFILE" ] && {
+        # Fallback on AWS_PROFILE
+        echo "# No profile provided falling back to AWS_PROFILE='$AWS_PROFILE'"
+        PROFILE=$AWS_PROFILE
+    }
+    [[ $PROFILE =~ ^[_A-z0-9-]+$ ]] || {
+        echo "Must specify an PROFILE with only [_A-z0-9-]. Got '$1'"
+        exit 1
+    }
+    echo "# Getting credentials for profile '$PROFILE'"
+
+    local CONFIG_SCRIPT='import configparser, json, os, sys; config = configparser.ConfigParser(); config.read(os.path.expanduser("~/.aws/config")); profile = config[f"profile {sys.argv[1]}"]; data = dict(account_id=profile["sso_account_id"],     role_name=profile["sso_role_name"]); print(json.dumps(data));'
+    config=$(python -c $CONFIG_SCRIPT $PROFILE) || { echo "# profile does not exist in aws config"; exit 1 }
+    echo "# Found in AWS config: $config"
+    local ACCOUNT_ID=$(echo $config | jq -r ".account_id")
+    local ROLE_NAME=$(echo $config | jq -r ".role_name")
+
+    # Borrow the access token from the aws cli rather than generating our own.
+    local ACCESS_TOKEN=$(cat $(ls -1d ~/.aws/sso/cache/* | grep -v botocore) |  jq -r "{accessToken} | .[]")
+
+    creds="$(aws sso get-role-credentials --role-name $ROLE_NAME --account-id $ACCOUNT_ID --access-token $ACCESS_TOKEN --query roleCredentials --output json)"
+    echo $creds | jq -r '"export AWS_ACCESS_KEY_ID=" + .accessKeyId'
+    echo $creds | jq -r '"export AWS_SECRET_ACCESS_KEY=" + .secretAccessKey'
+    echo $creds | jq -r '"export AWS_SESSION_TOKEN=" + .sessionToken'
+)
+
+# Usage
+# export AWS_PROFILE=fulcrum-dev
+# awssso $AWS_PROFILE  # logs into the AWS CLI with the specified profile
+# eval "$(export_sso_creds $AWS_PROFILE)"
