@@ -17,6 +17,7 @@
     patch = !git --no-pager diff --no-color
 
     # Branch control
+    sw = switch
     co = checkout
     rh = reset --hard
     rhh = reset --hard HEAD
