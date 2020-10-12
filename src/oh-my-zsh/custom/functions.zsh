@@ -85,7 +85,7 @@ function export_sso_creds() (
     }
     echo "# Getting credentials for profile '$PROFILE'"
 
-    local CONFIG_SCRIPT='import configparser, json, os, sys; config = configparser.ConfigParser(); config.read(os.path.expanduser("~/.aws/config")); profile = config[f"profile {sys.argv[1]}"]; data = dict(account_id=profile["sso_account_id"],     role_name=profile["sso_role_name"]); print(json.dumps(data));'
+    local CONFIG_SCRIPT='import configparser, json, os, sys; config = configparser.ConfigParser(); config.read(os.path.expanduser("~/.aws/config")); profile = config[f"profile {sys.argv[1]}"]; data = dict(account_id=profile["sso_account_id"], role_name=profile["sso_role_name"]); print(json.dumps(data));'
     config=$(python -c $CONFIG_SCRIPT $PROFILE) || { echo "# profile does not exist in aws config"; exit 1 }
     echo "# Found in AWS config: $config"
     local ACCOUNT_ID=$(echo $config | jq -r ".account_id")
@@ -101,6 +101,6 @@ function export_sso_creds() (
 )
 
 # Usage
-# export AWS_PROFILE=fulcrum-dev
+# export AWS_PROFILE=fulcrum-dev  # Or any profile from ~/.aws/config
 # awssso $AWS_PROFILE  # logs into the AWS CLI with the specified profile
 # eval "$(export_sso_creds $AWS_PROFILE)"
