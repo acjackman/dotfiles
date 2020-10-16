@@ -1,0 +1,63 @@
+#!/usr/bin/env python
+
+import docopt
+import codecs
+
+usage = '''Usage:
+run [options] <stop>
+run [options] <start> <stop>
+run [options] <start> <stop> <step>
+
+Generate a run of integers or characters. Similar to jot and seq.
+
+Options:
+  -f FFF   formatting string for number
+  -s SSS   separator string
+  -c       characters instead of integers
+  -r       reverse the run
+  -h       show this help message
+
+The run of numbers can be integers or reals, depending on the values of start, stop, and step. The defaults for both start and step are 1. If -c is used, then start and stop must both be given as characters and step (if given) is an integer.'''
+
+# The arguments for -f and -s come in as raw strings, but we
+# need to be able to interpret things like \t and \n as escape
+# sequences, not literals.
+def interpret(s):
+  if s:
+    return codecs.escape_decode(bytes(s, 'utf8'))[0].decode('utf8')
+  else:
+    return None
+
+# Handle the command line options and arguments.
+args = docopt.docopt(usage)
+fstring = interpret(args['-f']) or '{}'
+sep = interpret(args['-s']) or '\n'
+rev = args['-r']
+char = args['-c']
+step = int(args['<step>'] or 1)
+
+# The interpretation of start and stop depend on -c
+if char:
+  start = ord(args['<start>'])
+  stop = ord(args['<stop>'])
+else:
+  start = int(args['<start>'] or 1)
+  stop = int(args['<stop>'])
+
+# Generate the run as a list of integers.
+# Include stop if it fits the sequence.
+run = list(range(start, stop, step))
+if run[-1] + step == stop:
+  run += [stop]
+
+# Convert to text
+if char:
+  runText = [ fstring.format(chr(n)) for n in run ]
+else:
+  runText = [ fstring.format(n) for n in run ]
+
+# Reverse the list if asked.
+if rev:
+  runText.reverse()
+
+print(sep.join(runText))
