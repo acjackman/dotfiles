@@ -12,17 +12,16 @@ old_hyper = {
   'a', -- Zoom Global Mute Shortcut
   'SPACE', -- OmniFocus Quick Capture
   'c', -- Fantastical Keyboard Shortcutvh
-  'o', -- Better Touch tool Sends cmd-o to OmniFocus
-  ';', -- Better Touch tool opens menu bar as dropdown
   'i', -- iTerm interactive
   'z', -- Alfred Clipboard
   'k', -- Cardhop
   'h', -- Global Dash
-  --'d', -- Show Toggl
   '=', -- Numi
   ';', -- Text Expander
-  -- 'TAB', -- Contexts Tab Switcher
   'RETURN', -- Drafts
+  -- Keyboard Maestro
+  'v' -- Paste by typing
+  'o', -- Sends cmd-o to OmniFocus
   -- Rating Music with Alfred
   '`', -- Remove rating
   '1', -- one star
