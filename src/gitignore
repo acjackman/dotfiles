@@ -15,3 +15,5 @@ node_modules
 .python-version
 .httr-oauth
 .envrc
+**/.scratch/
+**/.tmp/
