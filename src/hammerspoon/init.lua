@@ -41,6 +41,13 @@ new_inx = function()
 end
 k:bind({}, '\\', nil, new_inx)
 
+-- Daily Log file
+new_inx = function()
+  hs.execute('/usr/local/bin/subl -n "~/Dropbox/Notes/$(date +\'%Y%m%d000000\').md"', false)
+  k.triggered = true
+end
+k:bind({}, '-', nil, new_inx)
+
 -- iTunes controls
 function playpause()
   hs.osascript.applescript('tell application "Music" to playpause')
