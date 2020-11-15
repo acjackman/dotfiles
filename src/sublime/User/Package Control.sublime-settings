@@ -34,7 +34,11 @@
 		"Pretty YAML",
 		"ProjectManager",
 		"Quokka",
+<<<<<<< Updated upstream
 		"requirementstxt",
+=======
+		"R-Box",
+>>>>>>> Stashed changes
 		"SendCode",
 		"SingleTrailingNewLine",
 		"sublack",
