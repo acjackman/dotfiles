@@ -20,7 +20,7 @@ old_hyper = {
   ';', -- Text Expander
   'RETURN', -- Drafts
   -- Keyboard Maestro
-  'v' -- Paste by typing
+  'v', -- Paste by typing
   'o', -- Sends cmd-o to OmniFocus
   -- Rating Music with Alfred
   '`', -- Remove rating
