@@ -3,10 +3,6 @@ k = hs.hotkey.modal.new({}, "F18")
 
 
 -- Old Application
-hyper_modifier_stroke = function(key)
-  k.triggered = true
-  hs.eventtap.keyStroke({"cmd","alt","shift","ctrl"}, 'SPACE')
-end
 
 old_hyper = {
   'a', -- Zoom Global Mute Shortcut
@@ -15,6 +11,7 @@ old_hyper = {
   'i', -- iTerm interactive
   'z', -- Alfred Clipboard
   'k', -- Cardhop
+  'l', -- Hook copy link
   'h', -- Global Dash
   '=', -- Numi
   ';', -- Text Expander
@@ -32,6 +29,15 @@ old_hyper = {
 }
 for i,key in ipairs(old_hyper) do
   k:bind({}, key, nil, function() k.triggered = true hs.eventtap.keyStroke({"cmd","alt","shift","ctrl"}, key) end)
+end
+
+-- Alternate hyper
+alt_hyper = {
+  'l', -- Hook Link
+  'm', -- Hook markdown Lonk
+}
+for i,key in ipairs(alt_hyper) do
+  k:bind({}, key, nil, function() k.triggered = true hs.eventtap.keyStroke({"cmd","shift","ctrl"}, key) end)
 end
 
 -- Reimplement new notes file
@@ -143,7 +149,7 @@ k:bind({}, ']', nil, rotate_screen_clockwise)
 k:bind({}, '[', nil, rotate_screen_counterclockwise)
 
 
--- Enter Hyper Mode when F18 (Hyper/Capslock) is pressed
+-- Enter Hyper Mode when F19 (Hyper/Capslock) is pressed
 pressedF19 = function()
   k.triggered = false
   k:enter()
