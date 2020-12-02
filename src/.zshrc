@@ -83,7 +83,7 @@ plugins=(
     sublime
     pyenv
     virtualenv
-    python-poetry
+    # python-poetry
     # virtualenvwrapper
     # pyenv-virtualenvwrapper
     zsh-autosuggestions
