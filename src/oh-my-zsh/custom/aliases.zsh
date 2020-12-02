@@ -12,7 +12,7 @@ alias bci="brew cask install"
 alias dcmp="docker-compose"
 alias dcud="docker-compose up -d"
 alias pwhich="pyenv which"
-alias gtower='gittower git rev-parse --show-toplevel'
+alias gtower='gittower $(git rev-parse --show-toplevel)'
 
 # Actions
 alias o=open
