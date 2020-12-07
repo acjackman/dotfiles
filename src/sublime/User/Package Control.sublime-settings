@@ -18,6 +18,7 @@
 		"EditorConfig",
 		"FileCommands",
 		"FileManager",
+		"FileSystem Autocompletion",
 		"Git",
 		"Git Config",
 		"GitGutter",
