@@ -104,3 +104,14 @@ function export_sso_creds() (
 # export AWS_PROFILE=fulcrum-dev  # Or any profile from ~/.aws/config
 # awssso $AWS_PROFILE  # logs into the AWS CLI with the specified profile
 # eval "$(export_sso_creds $AWS_PROFILE)"
+
+
+
+function pylv() {
+    DIRNAME=${PWD##*/}
+    LATEST_PY=$(pyenv versions --bare --skip-aliases | sed '/\//d' | tail -1)
+    PY_VERSION=${1:-$LATEST_PY}
+    ENV_NAME=${2:-$DIRNAME}
+    echo "pyenv virtualenv $PY_VERSION $ENV_NAME && pyenv local $ENV_NAME"
+    pyenv virtualenv $PY_VERSION $ENV_NAME  && pyenv local $ENV_NAME
+}
