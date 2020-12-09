@@ -1,3 +1,10 @@
+function op_value {
+    local ITEM_NAME=$1
+    local SECTION_TITLE=$2
+    local FIELD_TITLE=$3
+    op get item $ITEM_NAME | jq -e -r ".details.sections[] | select(.title==\"$SECTION_TITLE\") | .fields[] | select(.t==\"$FIELD_TITLE\") | .v"
+}
+
 function op_dburl() {
     # Usage op_dburl "<DB item name>"
 
