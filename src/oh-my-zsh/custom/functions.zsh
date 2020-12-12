@@ -1,3 +1,46 @@
+function op_item {
+    local ITEM_NAME=$1
+    local SECTION_TITLE=$2
+    local FIELD_TITLE=$3
+    op get item $1 | read ITEM
+ITEM=$ITEM SECTION_TITLE=$SECTION_TITLE FIELD_TITLE=$FIELD_TITLE python3 <<END_PYTHON
+import os
+import json
+import sys
+
+try:
+    item = json.loads(os.environ["ITEM"])
+except json.decoder.JSONDecodeError:
+    sys.exit(1)
+
+
+search_section = os.environ.get("SECTION_TITLE")
+search_item = os.environ.get("FIELD_TITLE")
+found_value = not bool(search_item)
+
+if search_item:
+    print(f"looking for '{search_section}' '{search_item}'")
+for section in sorted(item["details"]["sections"], key=lambda s: s["title"]):
+    title = section['title']
+    if title == "Related Items":
+        continue
+    print(f"- '{title}'")
+    for item in section.get("fields", []):
+        item_title = item['t']
+        print(f"    - '{item_title}'")
+        if search_item and (title == search_section and item_title == search_item):
+            found_value = True
+
+if search_item :
+    if found_value:
+        print(f"Found '{search_section}' '{search_item}' !")
+    else:
+        print(f"ERROR: Unable to find '{search_section}' '{search_item}'")
+        sys.exit(1)
+
+END_PYTHON
+}
+
 function op_value {
     local ITEM_NAME=$1
     local SECTION_TITLE=$2
