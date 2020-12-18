@@ -10,8 +10,8 @@ old_hyper = {
   'c', -- Fantastical Keyboard Shortcutvh
   'i', -- iTerm interactive
   'z', -- Alfred Clipboard
-  'k', -- Cardhop
-  'l', -- Hook copy link
+  'k', -- Keyboard Maestro
+  'b', -- Cardhop
   'h', -- Global Dash
   '=', -- Numi
   ';', -- Text Expander
@@ -49,7 +49,7 @@ k:bind({}, '\\', nil, new_inx)
 
 -- Daily Log file
 new_inx = function()
-  hs.execute('/usr/local/bin/subl -n "~/Dropbox/Notes/$(date +\'%Y%m%d000000\').md"', false)
+  hs.execute('/usr/local/bin/subl -n "~/Dropbox/Notes/$(date +\'%Y%m%d060000\').md"', false)
   k.triggered = true
 end
 k:bind({}, '-', nil, new_inx)
