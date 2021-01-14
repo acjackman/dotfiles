@@ -83,7 +83,7 @@ function op_dburl() {
 function cfoutput() {
   local STACK=$1
   local VAR=$2
-  aws cloudformation describe-stacks \
+  aws-cli cloudformation describe-stacks \
     --stack-name $STACK \
     --output text \
     --query "Stacks[0].Outputs[?OutputKey==\`$VAR\`].OutputValue | [0]" \
@@ -109,10 +109,10 @@ function awsso() {
     # Usage: `awsso $AWS_PROFILE`
     local PROFILE=$1
 
-    aws sts get-caller-identity --profile $PROFILE > /dev/null
+    aws-cli sts get-caller-identity --profile $PROFILE > /dev/null
     if [ $? -ne 0 ]; then
         # Login if unable to get caller identity
-        aws sso login --profile $PROFILE
+        aws-cli sso login --profile $PROFILE
     fi
 
     export AWS_PROFILE=$PROFILE
@@ -144,7 +144,7 @@ function export_sso_creds() (
     # Borrow the access token from the aws cli rather than generating our own.
     local ACCESS_TOKEN=$(cat $(ls -1d ~/.aws/sso/cache/* | grep -v botocore) |  jq -r "{accessToken} | .[]")
 
-    creds="$(aws sso get-role-credentials --role-name $ROLE_NAME --account-id $ACCOUNT_ID --access-token $ACCESS_TOKEN --query roleCredentials --output json)"
+    creds="$(aws-cli sso get-role-credentials --role-name $ROLE_NAME --account-id $ACCOUNT_ID --access-token $ACCESS_TOKEN --query roleCredentials --output json)"
     echo $creds | jq -r '"export AWS_ACCESS_KEY_ID=" + .accessKeyId'
     echo $creds | jq -r '"export AWS_SECRET_ACCESS_KEY=" + .secretAccessKey'
     echo $creds | jq -r '"export AWS_SESSION_TOKEN=" + .sessionToken'
