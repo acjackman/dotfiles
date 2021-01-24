@@ -26,6 +26,8 @@
     renb = branch -m
 
     # Remotes
+    l = pull
+    u = push
     pl = pull
     ps = push
     psf = push --force-with-lease
