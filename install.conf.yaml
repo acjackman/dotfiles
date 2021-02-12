@@ -31,6 +31,9 @@
     # shell apps config
     ~/.ipython: src/ipython
 
+    # Spacemacs
+    ~/.spacemacs: src/spacemacs/spacemacs
+
     # macOS & apps
     "~/Library/Application Support/Sublime Text 3/Packages/User": src/sublime/User
     ~/.Brewfile:
