@@ -68,3 +68,5 @@ mas "CARROT Weather", id: 993487541
 brew "libusb" # used for Ergodox EZ keyboard flashing
 brew "noti"
 cask "qmk-toolbox"
+cask "keybase"
+brew "topgrade"
