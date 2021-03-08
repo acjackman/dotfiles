@@ -250,3 +250,6 @@ end
 
 usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
 usbWatcher:start()
+
+hs.loadSpoon("ReloadConfiguration")
+spoon.ReloadConfiguration:start()
