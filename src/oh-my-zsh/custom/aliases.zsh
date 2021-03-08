@@ -29,6 +29,8 @@ alias flashkb='wally-cli "$(ls -t ~/Downloads/*.hex | head -1)"'
 alias lspath='tr ":" "\n" <<< "$PATH"'
 alias sublhost="sudo subl -nw /etc/hosts && sudo killall -HUP mDNSResponder"
 alias sshfingerprint="ssh-keygen -l -E md5 -f"
+alias bump-minor="poetry version minor"
+alias bump-patch="poetry version patch"
 
 # Utilities
 alias count_unique='cut -f 1 | sort | uniq -c'
