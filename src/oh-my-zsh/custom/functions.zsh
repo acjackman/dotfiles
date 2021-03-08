@@ -20,6 +20,16 @@ found_value = not bool(search_item)
 
 if search_item:
     print(f"looking for '{search_section}' '{search_item}'")
+
+
+fields = item["details"].get("fields", [])
+if fields:
+    print(f"- Fields")
+    for field in fields:
+        name = field['name']
+        if name:
+            print(f"    - '{name}'")
+
 for section in sorted(item["details"]["sections"], key=lambda s: s["title"]):
     title = section['title']
     if title == "Related Items":
@@ -42,10 +52,16 @@ END_PYTHON
 }
 
 function op_value {
-    local ITEM_NAME=$1
-    local SECTION_TITLE=$2
-    local FIELD_TITLE=$3
-    op get item $ITEM_NAME | jq -e -r ".details.sections[] | select(.title==\"$SECTION_TITLE\") | .fields[] | select(.t==\"$FIELD_TITLE\") | .v"
+    op get item $1 | read ITEM
+    if [[ $2 =~ ^(username|user)$ ]]; then
+        echo $ITEM | jq -e -r ".details.fields[] | select(.name==\"username\") | .value"
+    elif [[ $2 =~ ^(password|pwd)$ ]]; then
+        echo $ITEM | jq -e -r ".details.fields[] | select(.name==\"password\") | .value"
+    else
+        local SECTION_TITLE=$2
+        local FIELD_TITLE=$3
+        echo $ITEM | jq -e -r ".details.sections[] | select(.title==\"$SECTION_TITLE\") | .fields[] | select(.t==\"$FIELD_TITLE\") | .v"
+    fi
 }
 
 function op_dburl() {
@@ -95,6 +111,8 @@ function awslogout() {
     export AWS_ACCESS_KEY_ID=
     export AWS_SECRET_ACCESS_KEY=
     export AWS_SESSION_TOKEN=
+    rm -rf ~/.aws/cli
+    rm -rf ~/.aws/sso
 }
 
 
@@ -161,7 +179,15 @@ function pylv() {
     DIRNAME=${PWD##*/}
     LATEST_PY=$(pyenv versions --bare --skip-aliases | sed '/\//d' | tail -1)
     PY_VERSION=${1:-$LATEST_PY}
-    ENV_NAME=${2:-$DIRNAME}
+    DEFAULT_NAME=$DIRNAME$(echo $PY_VERSION | sed -E 's/([0-9]+).([0-9]+).([0-9]+)/\1.\2/')
+    ENV_NAME=${2:-$DEFAULT_NAME}
     echo "pyenv virtualenv $PY_VERSION $ENV_NAME && pyenv local $ENV_NAME"
     pyenv virtualenv $PY_VERSION $ENV_NAME  && pyenv local $ENV_NAME
+}
+
+function pydel() {
+    pyenv virtualenv-delete $(pyenv version-name)
+    [[ -f ".python-version" ]] && {
+        rm .python-version
+    }
 }
