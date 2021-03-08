@@ -34,6 +34,8 @@
     # Spacemacs
     ~/.spacemacs: src/spacemacs/spacemacs
 
+    ~/.config/topgrade.toml: src/topgrade/config.toml
+
     # macOS & apps
     "~/Library/Application Support/Sublime Text 3/Packages/User": src/sublime/User
     ~/.Brewfile:
