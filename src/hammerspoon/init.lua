@@ -13,7 +13,6 @@ old_hyper = {
   'k', -- Keyboard Maestro
   'b', -- Cardhop
   'h', -- Global Dash
-  '=', -- Numi
   ';', -- Text Expander
   'RETURN', -- Drafts
   -- Keyboard Maestro
@@ -97,6 +96,7 @@ singleapps = {
   {'t', 'iTerm'},
   {'f', 'Finder'},
   {'n', 'The Archive'},
+  {'=', 'Soulver 3'},
 }
 for i, app in ipairs(singleapps) do
   k:bind({}, app[1], function() launch(app[2]); k:exit(); end)
@@ -234,6 +234,8 @@ f19 = hs.hotkey.bind({}, 'F19', pressedF19, releasedF19)
 --     end
 --   end)
 -- end
+
+
 
 -- Launch and quit ScanSnap Manager
 -- usbWatcher = nil
