@@ -46,7 +46,8 @@ cask "textexpander"
 cask "dropbox"
 cask "1password"
 cask "fantastical"
-cask "hey"
+# cask "mimestream"  # TODO: Make cask of MIMEStream
+
 # cask "the-archive"  # TODO: Make cask of the archive
 mas "GoodNotes", id: 1480793815
 mas "Healthier", id: 534953542
@@ -70,3 +71,7 @@ brew "noti"
 cask "qmk-toolbox"
 cask "keybase"
 brew "topgrade"
+cask "bartender"
+cask "marked"
+cask "soulver"
+mas "ToothFairy", id: 1191449274
