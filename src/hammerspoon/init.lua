@@ -1,3 +1,6 @@
+-- Disable hide
+hs.hotkey.bind("cmd", 'H', function() end)
+
 -- -- A global variable for the Hyper Mode
 k = hs.hotkey.modal.new({}, "F18")
 
