@@ -50,11 +50,21 @@ end
 k:bind({}, '\\', nil, new_inx)
 
 -- Daily Log file
-new_inx = function()
+daily_file = function()
   hs.execute('/usr/local/bin/subl -n "~/Dropbox/Notes/$(date +\'%Y%m%d060000\').md"', false)
   k.triggered = true
 end
-k:bind({}, '-', nil, new_inx)
+k:bind({}, '-', nil, daily_file)
+-- Daily Log file
+
+weekly_plan = function()
+  local now = os.date("*t")
+  local plan_date = os.date("%Y%m%d", os.time(now) - ((now.wday + 5) % 7) * 86400)
+  local command = string.format('/usr/local/bin/subl -n "~/Dropbox/Notes/%s050000.md"', plan_date)
+  hs.execute(command, false)
+  k.triggered = true
+end
+k:bind({}, '0', nil, weekly_plan)
 
 -- iTunes controls
 function playpause()
@@ -258,3 +268,8 @@ usbWatcher:start()
 
 hs.loadSpoon("ReloadConfiguration")
 spoon.ReloadConfiguration:start()
+
+if (hs.host.localizedName() == "Frey") then
+  hs.loadSpoon("WheelOfSeasons")
+  spoon.WheelOfSeasons:start(os.getenv("HOME") .. "/Dropbox/Apps/WheelOfSeasons/", 60*60)
+end
