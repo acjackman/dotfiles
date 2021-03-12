@@ -44,10 +44,6 @@
     ~/.hammerspoon:
       if: '[ `uname` = Darwin ]'
       path: src/hammerspoon
-    ~/Library/Preferences/com.knollsoft.Rectangle.plist:
-      if: '[ `uname` = Darwin ]'
-      path: src/rectangle/com.knollsoft.Rectangle.plist
-      force: true
     ~/.config/karabiner:
       if: '[ `uname` = Darwin ]'
       path: src/karabiner
