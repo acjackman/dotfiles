@@ -7,7 +7,8 @@
     bname = "branch-name"
 
     # Commit control
-    a = "!git add $(git home)"
+    a = "add"
+    aa = "!git add $(git home)"
     ci = commit  # Commit Interactive
     cm = "commit -m"  # Commit with Message
     fix = "commit --amend"
