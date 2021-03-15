@@ -48,7 +48,7 @@ cask "1password"
 cask "fantastical"
 # cask "mimestream"  # TODO: Make cask of MIMEStream
 
-# cask "the-archive"  # TODO: Make cask of the archive
+cask "obsidian"
 mas "GoodNotes", id: 1480793815
 mas "Healthier", id: 534953542
 mas "Instapaper", id: 1481302432

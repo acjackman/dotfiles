@@ -108,7 +108,7 @@ singleapps = {
   {'r', 'Safari'},
   {'t', 'iTerm'},
   {'f', 'Finder'},
-  {'n', 'The Archive'},
+  {'n', 'Obsidian'},
   {'=', 'Soulver 3'},
 }
 for i, app in ipairs(singleapps) do
