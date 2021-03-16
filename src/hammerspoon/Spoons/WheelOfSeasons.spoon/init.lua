@@ -26,16 +26,25 @@ local function loadWallpapers()
     obj.n_wallpapers = n_wallpapers
 end
 
-function obj:shiftWallpapers()
-  -- print("obj.selected = " .. obj.selected)
+function obj:setWallpapers()
   for k, screen in pairs(hs.screen.allScreens()) do
     local selected = (obj.selected + k) % obj.n_wallpapers
     local pic = obj.wallpapers[selected]
     -- print(selected .. ": " .. pic)
     screen:desktopImageURL("file://" .. obj.wheeldir .. pic)
   end
-  obj.selected = (obj.selected + 1) % obj.n_wallpapers
 end
+
+function obj:shiftWallpapers()
+  -- print("obj.selected = " .. obj.selected)
+  obj.selected = (obj.selected + 1) % obj.n_wallpapers
+  obj:setWallpapers()
+end
+
+function screensChangedCallback(data)
+  obj:setWallpapers()
+end
+
 
 function obj:start(dir, interval)
   print(dir)
@@ -46,8 +55,13 @@ function obj:start(dir, interval)
   if obj.timer == nil then
       obj.timer = hs.timer.doEvery(obj.interval, function() obj:shiftWallpapers() end)
       obj.timer:setNextTrigger(5)
+
   else
       obj.timer:start()
+  end
+  if obj.spacewatch == nil then
+    obj.spacewatch = hs.spaces.watcher.new(screensChangedCallback)
+    obj.spacewatch:start()
   end
 end
 
