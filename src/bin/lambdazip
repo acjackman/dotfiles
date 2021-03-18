@@ -1,0 +1,74 @@
+#!/usr/bin/env python3
+
+import docopt
+import zipfile
+from pathlib import Path
+
+
+usage = '''Usage:
+lambdazip [options] <files>...
+
+Options:
+  -o FILE, --output FILE    specify output file  [default: lambda.zip]
+  -d, --dry                 show trees to be added without creating zip
+  -q, --quiet               quiet operations
+  -h, --help                show this help message
+
+Create a .'''
+
+
+args = docopt.docopt(usage)
+
+output = args['--output']
+dry = args['--dry']
+quiet = not args['--quiet']
+files = args['<files>']
+
+
+def devnull(*args):
+    pass
+
+echo = print if quiet else devnull
+
+
+def walk_trees(files):
+    for f in files:
+        root_file = Path(f)
+        basename = root_file.name
+        root_is_file = not root_file.is_dir()
+        for file in walk_tree(root_file):
+            yield str(file), str(file.relative_to(root_file.parent))
+
+
+def walk_tree(file):
+    if file.name == "__pycache__":
+        return
+    elif file.is_dir():
+        for dir_file in file.iterdir():
+            yield from walk_tree(dir_file)
+    elif file.is_file():
+        yield file
+    else:
+        echo(f"Skipping '{file}' because it does not exist")
+
+
+def print_file(original, zip_path):
+    echo(f"adding '{original}' as '{zip_path}'")
+
+def print_nothing(original, zip_path, root_is_file):
+    pass
+    # echo(f"adding '{original}' as {zip_path}")
+
+
+display = print_file
+if dry:
+    echo(f"Would create '{output}'")
+    for paths in walk_trees(files):
+        display(*paths)
+else:
+    echo(f"Creating '{output}'")
+    with zipfile.ZipFile(output, 'w', zipfile.ZIP_DEFLATED) as codezip:
+        for paths in walk_trees(files):
+            display(*paths)
+            src, dest = paths
+            codezip.write(src, dest)
