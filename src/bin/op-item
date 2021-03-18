@@ -1,0 +1,80 @@
+#!/usr/bin/env python3
+import docopt
+import os
+import json
+import sys
+import subprocess
+
+usage = '''Usage:
+op-item [options] <item>
+op-item [options] <item> <section>
+op-item [options] <item> <section> <field>
+
+Show the available fields for a  .
+
+Options:
+  -r       print the raw item
+  -h       show this help message
+
+.'''
+
+args = docopt.docopt(usage)
+
+
+item = args["<item>"]
+
+result = subprocess.run(["op", "get", "item", item], capture_output=True)
+
+if result.returncode != 0:
+    with os.fdopen(sys.stdout.fileno(), 'wb') as out:
+        out.write(result.stdout)
+    with os.fdopen(sys.stderr.fileno(), 'wb') as err:
+        err.write(result.stderr)
+    sys.exit(1)
+
+try:
+    item = json.loads(result.stdout)
+except json.decoder.JSONDecodeError:
+    sys.exit(2)
+
+
+raw = args['-r']
+if raw:
+    print(json.dumps(item, indent=2))
+    sys.exit(0)
+
+
+
+search_section = args["<section>"]
+search_item = args["<field>"]
+found_value = not bool(search_item)
+
+if search_item:
+    print(f"looking for '{search_section}' '{search_item}'")
+
+
+fields = item["details"].get("fields", [])
+if fields:
+    print(f"- Fields")
+    for field in fields:
+        id = field['name'] or field['designation']
+        if id:
+            print(f"    - '{field['name']}' ({field['designation']})")
+
+for section in sorted(item["details"]["sections"], key=lambda s: s["title"]):
+    title = section['title']
+    if title == "Related Items":
+        continue
+    print(f"- '{title}'")
+    for item in section.get("fields", []):
+        item_title = item['t']
+        print(f"    - '{item_title}'")
+        if search_item and (title == search_section and item_title == search_item):
+            found_value = True
+
+if search_item :
+    if found_value:
+        print(f"Found '{search_section}' '{search_item}' !")
+    else:
+        print(f"ERROR: Unable to find '{search_section}' '{search_item}'")
+        sys.exit(3)
