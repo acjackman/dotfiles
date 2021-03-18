@@ -2,7 +2,7 @@
 alias cdmp="cd $HOME/Dropbox/Dump"
 alias editor_new="subl -n"
 alias hconfig="editor_new ~/.hammerspoon ~/.hammerspoon/init.lua"
-alias zshconfig="editor_new ~/.dotfiles/src/oh-my-zsh/custom ~/.zshrc ~/.zshrc_local"
+alias zshconfig="editor_new ~/.dotfiles/src/oh-my-zsh/custom ~/.dotfiles/src/bin ~/.zshrc ~/.zshrc_local"
 alias dotfiles="editor_new ~/.dotfiles"
 alias awsconfig="editor_new ~/.aws ~/.aws/config"
 alias enw="emacs -nw"
@@ -13,7 +13,6 @@ alias bci="brew cask install"
 alias dcmp="docker-compose"
 alias dcud="docker-compose up -d"
 alias pwhich="pyenv which"
-alias gtower='gittower $(git rev-parse --show-toplevel)'
 alias aws2='/usr/local/bin/aws'
 alias aws-cli=aws2
 
