@@ -44,14 +44,14 @@ end
 
 -- Reimplement new notes file
 new_inx = function()
-  hs.execute('/usr/local/bin/subl -n "~/Dropbox/Notes/$(date +\'%Y%m%d%H%M%S\').md"', false)
+  hs.execute('/usr/local/bin/subl -n "~/Notes/$(date +\'%Y%m%d%H%M%S\').md"', false)
   k.triggered = true
 end
 k:bind({}, '\\', nil, new_inx)
 
 -- Daily Log file
 daily_file = function()
-  hs.execute('/usr/local/bin/subl -n "~/Dropbox/Notes/$(date +\'%Y%m%d060000\').md"', false)
+  hs.execute('/usr/local/bin/subl -n "~/Notes/$(date +\'%Y%m%d060000\').md"', false)
   k.triggered = true
 end
 k:bind({}, '-', nil, daily_file)
@@ -60,7 +60,7 @@ k:bind({}, '-', nil, daily_file)
 weekly_plan = function()
   local now = os.date("*t")
   local plan_date = os.date("%Y%m%d", os.time(now) - ((now.wday + 5) % 7) * 86400)
-  local command = string.format('/usr/local/bin/subl -n "~/Dropbox/Notes/%s050000.md"', plan_date)
+  local command = string.format('/usr/local/bin/subl -n "~/Notes/%s050000.md"', plan_date)
   hs.execute(command, false)
   k.triggered = true
 end
