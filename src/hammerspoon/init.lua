@@ -271,9 +271,17 @@ spoon.ReloadConfiguration:start()
 
 if (hs.host.localizedName() == "Frey") then
   hs.loadSpoon("WheelOfSeasons")
-  spoon.WheelOfSeasons:start(os.getenv("HOME") .. "/Dropbox/Apps/WheelOfSeasons/", 60*60)
+  spoon.WheelOfSeasons:start(
+    os.getenv("HOME") .. "/Dropbox/Apps/WheelOfSeasons/",
+    60*60,
+    true
+  )
 end
 if (hs.host.localizedName() == "Njord") then
   hs.loadSpoon("WheelOfSeasons")
-  spoon.WheelOfSeasons:start(os.getenv("HOME") .. "/Dropbox/Reference/Desktops/FunWallpapers/", 60*60)
+  spoon.WheelOfSeasons:start(
+    os.getenv("HOME") .. "/Dropbox/Reference/Desktops/FunWallpapers/",
+    60*60,
+    true
+  )
 end

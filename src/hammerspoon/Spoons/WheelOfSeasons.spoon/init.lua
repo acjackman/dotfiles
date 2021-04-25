@@ -13,6 +13,12 @@ obj.author = "Adam Jackman <adam@acjackman.com>"
 -- obj.homepage = "https://github.com/acjackman/wheelofseasons"
 obj.license = "MIT - https://opensource.org/licenses/MIT"
 
+local function shuffleInPlace(tbl)
+  for i = #tbl, 2, -1 do
+    local j = math.random(i)
+    tbl[i], tbl[j] = tbl[j], tbl[i]
+  end
+end
 
 local function loadWallpapers()
     obj.wallpapers = {}
@@ -23,6 +29,11 @@ local function loadWallpapers()
         n_wallpapers = n_wallpapers + 1
       end
     end
+
+    if (shuffle) then
+      shuffleInPlace(obj.wallpapers)
+    end
+
     obj.n_wallpapers = n_wallpapers
 end
 
@@ -46,11 +57,11 @@ function screensChangedCallback(data)
 end
 
 
-function obj:start(dir, interval)
+function obj:start(dir, interval, shuffle)
   print(dir)
   obj.wheeldir = dir
   obj.interval = interval
-  loadWallpapers()
+  loadWallpapers(shuffle)
   obj.selected = math.random(obj.n_wallpapers)
   if obj.timer == nil then
       obj.timer = hs.timer.doEvery(obj.interval, function() obj:shiftWallpapers() end)
