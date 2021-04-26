@@ -3,6 +3,7 @@
     s = status -s
     home = rev-parse --show-toplevel
     hash = "!git rev-parse HEAD"
+    hsh = "!git rev-parse --short HEAD"
     branch-name = "!git rev-parse --abbrev-ref HEAD"
     bname = "branch-name"
 
