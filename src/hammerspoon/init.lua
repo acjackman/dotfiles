@@ -20,7 +20,6 @@ old_hyper = {
   'RETURN', -- Drafts
   -- Keyboard Maestro
   'v', -- Paste by typing
-  'o', -- Sends cmd-o to OmniFocus
   -- Rating Music with Alfred
   '`', -- Remove rating
   '1', -- one star
@@ -109,6 +108,7 @@ singleapps = {
   {'t', 'iTerm'},
   {'f', 'Finder'},
   {'n', 'Obsidian'},
+  {'o', 'The Archive'},
   {'=', 'Soulver 3'},
 }
 for i, app in ipairs(singleapps) do
