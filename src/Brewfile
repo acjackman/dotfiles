@@ -58,12 +58,10 @@ mas "Drafts", id: 1435957248
 # Customization/Utilities
 cask "rectangle"
 cask "karabiner-elements"
-#cask "alfred"
 cask "launchbar"
 cask "hammerspoon"
 mas "Dark Mode for Safari", id: 1397180934
 mas "Keys", id: 1494642810
-mas "Wipr", id: 1320666476
 cask "setapp"
 cask "backblaze"
 mas "CARROT Weather", id: 993487541
