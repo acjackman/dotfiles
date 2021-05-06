@@ -29,7 +29,8 @@ alias lspath='tr ":" "\n" <<< "$PATH"'
 alias sublhost="sudo subl -nw /etc/hosts && sudo killall -HUP mDNSResponder"
 alias sshfingerprint="ssh-keygen -l -E md5 -f"
 alias pyv="poetry version | awk '{print \$2}'"
-alias pyv-major='[[ -z "$(git status --porcelain)" ]] && poetry version major && git add pyproject.toml && git commit -m "bump patch version"'
+alias pyv-master="git show master:pyproject.toml | yj -t | jq -r '.tool.poetry.version'"
+alias pyv-major='[[ -z "$(git status --porcelain)" ]] && poetry version major && git add pyproject.toml && git commit -m "bump major version"'
 alias pyv-minor='[[ -z "$(git status --porcelain)" ]] && poetry version minor && git add pyproject.toml && git commit -m "bump minor version"'
 alias pyv-patch='[[ -z "$(git status --porcelain)" ]] && poetry version patch && git add pyproject.toml && git commit -m "bump patch version"'
 
