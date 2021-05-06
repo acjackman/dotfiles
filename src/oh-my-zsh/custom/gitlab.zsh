@@ -1,5 +1,5 @@
 function glab-mr-release()(
-    # usage: lab-mr-release 0.0.0 --draft -m "MR Title"
+    # usage: glab-mr-release 0.0.0 --draft --title="MR Title"
     [[ -z "$(git status --porcelain)" ]] || exit 1
 
     VERSION=$1
@@ -23,7 +23,7 @@ function glab-mr-release()(
 )
 
 glab-mr-retarget()(
-    # usage: lab-mr-retarget 0.0.1
+    # usage: glab-mr-retarget 0.0.1
     [[ -z "$(git status --porcelain)" ]] || exit 1
 
     VERSION=$1
