@@ -3,6 +3,7 @@ tap "homebrew/core"
 tap "github/gh"
 tap "homebrew/bundle"
 tap "homebrew/cask-drivers"
+tap "homebrew/cask-fonts"
 brew "mas"
 
 # *Nix utils
@@ -74,3 +75,7 @@ cask "bartender"
 cask "marked"
 cask "soulver"
 mas "ToothFairy", id: 1191449274
+
+# Fonts
+cask "font-fira-code-nerd-font"
+cask "font-jetbrains-mono-nerd-font"
