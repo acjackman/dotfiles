@@ -19,7 +19,7 @@ function glab-mr-release()(
         echo $RELEASE_BRANCH already exists.
         exit 1
     fi
-    glab mr create --remove-source-branch --target-branch=$RELEASE_BRANCH $@
+    glab mr create --remove-source-branch --target-branch=$RELEASE_BRANCH --fill --yes $@
 )
 
 function glab-mr-wip()(
@@ -61,24 +61,43 @@ glab-mr-retarget()(
     glab mr update --target-branch $RELEASE_BRANCH
 )
 
-function glab-prune-merged(){
-    PAGE=${1:-1}
-    BRANCHES=($(
-        glab mr list --merged --per-page=50 --page=$PAGE \
-        | grep -E '^!' \
-        | sed 's/.*← (\(.*\))/\1/g' \
-        | sed '/^$/d' \
-        | sed '/(master)/d'
-    ))
-    for BRANCH in "${BRANCHES[@]}"; do
-        git rev-parse --quiet --verify "$BRANCH" && {
-            git branch -D "$BRANCH"
-        } || {
-            # pass
-        }
-    done
-}
+function glab-prune-merged()(
+    PROJECT_PATH=$(glab api graphql -F words=:fullpath -f query='
+    query($words: String!) {
+      echo(text: $words)
+    }' | jq -r '.data.echo' | sed 's/.*says: //' | sed 's|%2F|/|g')
 
+    CHECK_BRANCHES=($(git branch | cut -c3- | sed -e 's/\s+//g' | sed -E '/^(master|release)\/?.*$/d' | sed -e '/^$/d'))
+    # echo "branches=$CHECK_BRANCHES"
+
+    for BRANCH in "${CHECK_BRANCHES[@]}"; do
+        # echo "Checking \"$BRANCH\""
+        BRANCH_DATA=$(glab api graphql -f repo=$PROJECT_PATH -f branch=$BRANCH -f query='
+        query($repo: ID!, $branch: String!) {
+          project(fullPath: $repo) {
+            name
+            mergeRequests(sourceBranches: [$branch]){
+              nodes {
+                iid
+                title
+                sourceBranch
+                mergedAt
+              }
+            }
+          }
+        }')
+        MERGED_AT=$(echo $BRANCH_DATA | jq -r '.data.project.mergeRequests.nodes[0].mergedAt' | sed "s/null//")
+        if [[ "$MERGED_AT" != "" ]]; then
+            echo $BRANCH_DATA | jq -r '.data.project.mergeRequests.nodes[0] | "Branch \"" + .sourceBranch + "\" merged at " + .mergedAt + " with !" + .iid + " " + .title'
+            git branch -D "$BRANCH"
+        fi
+    done
+)
+
+
+function glab-prune-release(){
+    git branch  | cut -c3- | egrep "^(release|hotfix)/" | xargs git branch -D
+}
 
 alias glab-mr-browse="glab mr view --web"
 alias glab-mr-ready="lab mr update --ready"
