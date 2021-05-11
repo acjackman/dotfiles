@@ -14,12 +14,14 @@ function glab-mr-release()(
     git push -u $GITLAB_REMOTE $CURRENT_BRANCH
     local existed_in_remote=$(git ls-remote --heads origin ${RELEASE_BRANCH})
     if [[ -z ${existed_in_remote} ]]; then
+        echo "Creating '$RELEASE_BRANCH'"
         glab api --silent -X POST "projects/:fullpath/repository/branches?ref=master&branch=$RELEASE_BRANCH"
     else
-        echo $RELEASE_BRANCH already exists.
+        echo "Release branch '$RELEASE_BRANCH' already exists."
         exit 1
     fi
-    glab mr create --remove-source-branch --target-branch=$RELEASE_BRANCH --fill --yes $@
+    git fetch
+    glab mr create --assignee=$GITLAB_USER --remove-source-branch --target-branch="$RELEASE_BRANCH" --fill --yes $@
 )
 
 function glab-mr-wip()(
@@ -102,3 +104,65 @@ alias lab-browse="lab project browse"
 function glab-path(){
     git remote -v | awk '{ print $2 }' | sort | uniq | grep 'git@gitlab.com' | sed 's/git@gitlab\.com://' | sed 's/\.git//'
 }
+
+
+function check-versions(){
+    echo "master: $(pyv-master)"
+    echo "Open MRs:"
+    PROJECT_PATH=$(glab-path)
+    glab api graphql --paginate -f fullPath=$PROJECT_PATH -f state=opened -f query='
+    query ($fullPath: ID!, $state: MergeRequestState, $endCursor: String) {
+      project(fullPath: $fullPath) {
+        mergeRequests(state: $state, after: $endCursor) {
+          nodes {
+            targetBranch
+            sourceBranch
+            iid
+            title
+            assignees(first:10){
+              nodes {
+                username
+              }
+            }
+          }
+          pageInfo{
+            endCursor
+            hasNextPage
+          }
+        }
+      }
+    }'\
+    | jq -r '
+      .data.project.mergeRequests.nodes[]
+      | .assignee_mentions = (.assignees.nodes[0] | .username)
+      |.targetBranch + " ← " + .sourceBranch + "  @" + .assignee_mentions  + "  !" + .iid + " " + .title
+    ' \
+    | grep -E '^(release|hotfix)/.+' | cat
+    echo "Recently Merged:"
+    glab api graphql -f fullPath=$PROJECT_PATH -f state=merged -f sort=MERGED_AT_DESC -f query='
+    query ($fullPath: ID!, $state: MergeRequestState, $sort: MergeRequestSort) {
+      project(fullPath: $fullPath) {
+        mergeRequests(first: 20, state: $state, sort: $sort) {
+          nodes {
+            targetBranch
+            sourceBranch
+            iid
+            title
+            assignees(first:10){
+              nodes {
+                username
+              }
+            }
+          }
+        }
+      }
+    }'\
+    | jq -r '
+      .data.project.mergeRequests.nodes[]
+      | .assignee_mentions = (.assignees.nodes[0] | .username)
+      |.targetBranch + " ← " + .sourceBranch + "  @" + .assignee_mentions  + "  !" + .iid + " " + .title
+    ' \
+    | grep -E '^(release|hotfix)/.+' | head -3
+}
+alias gpw="git push && glab ci view"
+alias glab-mr-url="glab mr view | sed '/--/d' | yq eval '.url' -"
