@@ -62,10 +62,7 @@ glab-mr-retarget()(
 )
 
 function glab-prune-merged()(
-    PROJECT_PATH=$(glab api graphql -F words=:fullpath -f query='
-    query($words: String!) {
-      echo(text: $words)
-    }' | jq -r '.data.echo' | sed 's/.*says: //' | sed 's|%2F|/|g')
+    PROJECT_PATH=$(git remote -v | awk '{ print $2}' | sort | uniq | grep "git@gitlab.com" | sed 's/git@gitlab\.com://' | sed 's/\.git//')
 
     CHECK_BRANCHES=($(git branch | cut -c3- | sed -e 's/\s+//g' | sed -E '/^(master|release)\/?.*$/d' | sed -e '/^$/d'))
     # echo "branches=$CHECK_BRANCHES"
@@ -102,3 +99,6 @@ function glab-prune-release(){
 alias glab-mr-browse="glab mr view --web"
 alias glab-mr-ready="lab mr update --ready"
 alias lab-browse="lab project browse"
+function glab-path(){
+    git remote -v | awk '{ print $2 }' | sort | uniq | grep 'git@gitlab.com' | sed 's/git@gitlab\.com://' | sed 's/\.git//'
+}
