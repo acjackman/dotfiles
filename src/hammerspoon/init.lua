@@ -18,6 +18,7 @@ old_hyper = {
   'h', -- Global Dash
   ';', -- Text Expander
   'RETURN', -- Drafts
+  'y', -- Menuwhere
   -- Keyboard Maestro
   'v', -- Paste by typing
   -- Rating Music with Alfred
