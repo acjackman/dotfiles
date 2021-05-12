@@ -61,7 +61,7 @@ function glab-mr-wip()(
     RELEASE_BRANCH=release/$VERSION
 
     git push -u $GITLAB_REMOTE $CURRENT_BRANCH
-    glab mr create --remove-source-branch --target-branch=$GITLAB_TRUNK --draft -d '' --fill --yes $@
+    glab mr create --remove-source-branch --target-branch=wip --draft -d '' --fill --yes $@
 )
 
 glab-mr-retarget()(
