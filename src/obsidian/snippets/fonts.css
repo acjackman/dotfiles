@@ -1,0 +1,20 @@
+/*.markdown-source-view {
+    font-family: 'roboto mono', monospace;
+    color: white;
+}
+*/
+span.cm-inline-code{ {
+    font-family: "FiraCode Nerd Font Mono", "Courier New", monospace; !mportant;
+}
+
+span.cm-inline-code:not(.cm-formatting):not(.cm-hmd-indented-code),
+.markdown-preview-section code {
+    font-family: "FiraCode Nerd Font Mono", "Courier New", monospace;  !mportant;
+}
+
+
+.cm-s-obsidian .HyperMD-table-row {
+    color: red;
+    font-family: "FiraCode Nerd Font Mono", "Courier New", monospace;  !important;
+}
+
