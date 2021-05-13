@@ -124,6 +124,8 @@ function glab-prune-release(){
     git branch  | cut -c3- | egrep "^(release|hotfix)/" | xargs git branch -D
 }
 
+alias glab-prune="glab-prune-release && glab-prune-merged"
+
 alias glab-mr-browse="glab mr view --web"
 alias glab-mr-ready="lab mr update --ready"
 alias lab-browse="lab project browse"
