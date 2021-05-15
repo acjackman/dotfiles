@@ -58,10 +58,34 @@ function glab-mr-wip()(
     GITLAB_REMOTE=${GITLAB_REMOTE:-origin}
     GITLAB_TRUNK=${GITLAB_TRUNK:-master}
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    RELEASE_BRANCH=release/$VERSION
+
+    # check if there is already a open MR for this branch, and error if so
+    PROJECT_PATH=$(git remote -v | awk '{ print $2}' | sort | uniq | grep "git@gitlab.com" | sed 's/git@gitlab\.com://' | sed 's/\.git//')
+    OPEN_MR=$(glab api graphql -f repo=$PROJECT_PATH -f branch=$CURRENT_BRANCH -f state=opened -f query='
+        query($repo: ID!, $branch: String!, $state: MergeRequestState) {
+          project(fullPath: $repo) {
+            name
+            mergeRequests(sourceBranches: [$branch], state: $state){
+              nodes {
+                iid
+                title
+                sourceBranch
+                webUrl
+              }
+            }
+          }
+        }' | jq -c '.data.project.mergeRequests.nodes[]' | sed 's/}/}\n/g' | head -1)
+    if [[ $OPEN_MR != "" ]]; then
+        echo "Merge request already exists for '${CURRENT_BRANCH}': !$(echo $OPEN_MR | jq -r '.iid') $(echo $OPEN_MR | jq -r '.title') ($(echo $OPEN_MR | jq -r '.webUrl'))"
+        exit 1
+    fi
 
     git push -u $GITLAB_REMOTE $CURRENT_BRANCH
-    glab mr create --remove-source-branch --target-branch=wip --draft -d '' --fill --yes $@
+    if [[ $# -eq 0 ]]; then
+        glab mr create --assignee=$GITLAB_USER --remove-source-branch --target-branch=wip --draft -d '' --fill --yes
+    else
+        glab mr create --assignee=$GITLAB_USER --remove-source-branch --target-branch=wip --draft --yes $@
+    fi
 )
 
 glab-mr-retarget()(
