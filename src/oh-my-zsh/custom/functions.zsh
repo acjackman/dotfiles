@@ -129,7 +129,9 @@ function pylv() {
     DEFAULT_NAME=$DIRNAME$(echo $PY_VERSION | sed -E 's/([0-9]+).([0-9]+).([0-9]+)/\1.\2/')
     ENV_NAME=${2:-$DEFAULT_NAME}
     echo "pyenv virtualenv $PY_VERSION $ENV_NAME && pyenv local $ENV_NAME"
-    pyenv virtualenv $PY_VERSION $ENV_NAME  && pyenv local $ENV_NAME
+    pyenv virtualenv $PY_VERSION $ENV_NAME \
+      && pyenv local $ENV_NAME \
+      && pip install --upgrade pip
 }
 
 function pydel() {
