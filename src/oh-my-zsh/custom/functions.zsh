@@ -142,6 +142,13 @@ function pydel() {
 }
 
 
+function repo-setup(){
+    git config alias.pull-trunk 'fetch origin main:main'
+    pre-commit install
+}
+
+
+
 # fd - cd to selected directory
 fd() {
   local dir

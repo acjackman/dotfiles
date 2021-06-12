@@ -159,6 +159,7 @@ function glab-path(){
 
 
 function check-versions(){
+    echo "current: $(pyv)"
     echo "master: $(pyv-master)"
     echo "Open MRs:"
     PROJECT_PATH=$(glab-path)

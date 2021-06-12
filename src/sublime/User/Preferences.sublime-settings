@@ -79,7 +79,8 @@
 	{
 		"osx":
 		[
-			"/usr/local/var/pyenv/versions/3.6.5/bin/"
+			"/usr/local/var/pyenv/versions/3.6.5/bin/",
+			"/usr/local/bin/"
 		]
 	},
 	"projects_path":
