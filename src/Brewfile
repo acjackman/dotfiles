@@ -12,6 +12,7 @@ brew "duti"
 brew "tldr"
 brew "tree"
 brew "fzf"
+brew "svn"
 
 # Dev/Data Tools:
 brew "awscli"
@@ -27,7 +28,7 @@ brew "pyenv-virtualenv"
 brew "r"
 brew "rsync"
 brew "terraform"
-brew "github/gh/gh"
+brew "gh"
 brew "diff-so-fancy"
 cask "docker"
 cask "iterm2"
@@ -79,3 +80,6 @@ mas "ToothFairy", id: 1191449274
 # Fonts
 cask "font-fira-code-nerd-font"
 cask "font-jetbrains-mono-nerd-font"
+cask "font-source-sans-pro"
+cask "font-montserrat-alternates"
+cask "font-source-code-pro"
