@@ -32,7 +32,7 @@ This function should only modify configuration layer settings."
 
    ;; List of configuration layers to load.
    dotspacemacs-configuration-layers
-   '(yaml
+   '(
      ;; ----------------------------------------------------------------
      ;; Example of useful layers you may want to use right away.
      ;; Uncomment some layer names and press `SPC f e R' (Vim style) or
@@ -43,6 +43,10 @@ This function should only modify configuration layer settings."
      emacs-lisp
      git
      helm
+     python
+     html
+     yaml
+     lua
      lsp
      markdown
      org
@@ -52,7 +56,8 @@ This function should only modify configuration layer settings."
      spell-checking
      syntax-checking
      version-control
-     treemacs)
+     treemacs
+     osx)
 
 
    ;; List of additional packages that will be installed without being wrapped
@@ -63,7 +68,7 @@ This function should only modify configuration layer settings."
    ;; `dotspacemacs/user-config'. To use a local version of a package, use the
    ;; `:location' property: '(your-package :location "~/path/to/your-package/")
    ;; Also include the dependencies as they will not be resolved automatically.
-   dotspacemacs-additional-packages '()
+   dotspacemacs-additional-packages '(editorconfig)
 
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -541,7 +546,9 @@ dump.")
 This function is called at the very end of Spacemacs startup, after layer
 configuration.
 Put your configuration code here, except for variables that should be set
-before packages are loaded.")
+before packages are loaded."
+  (editorconfig-mode 1)
+)
 
 
 ;; Do not write anything past this comment. This is where Emacs will
@@ -569,8 +576,9 @@ This function is called at the very end of Spacemacs initialization."
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(evil-want-Y-yank-to-eol nil)
  '(package-selected-packages
-   '(yaml-mode xterm-color unfill smeargle shell-pop reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mwim multi-term mmm-mode markdown-toc markdown-mode magit-gitflow magit-popup magit magit-section launchctl htmlize helm-gitignore helm-company helm-c-yasnippet gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter git-commit with-editor transient gh-md fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck eshell-z eshell-prompt-extras esh-help diff-hl company-statistics company auto-yasnippet yasnippet auto-dictionary ac-ispell auto-complete which-key org-plus-contrib link-hint hl-todo helm-ag expand-region evil-surround evil-nerd-commenter dumb-jump auto-highlight-symbol ht auto-compile aggressive-indent iedit highlight evil projectile helm popup helm-core spinner s ws-butler winum volatile-highlights vi-tilde-fringe uuidgen use-package undo-tree toc-org spaceline restart-emacs request rainbow-delimiters popwin pkg-info persp-mode pcre2el paradox packed org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative indent-guide hungry-delete highlight-parentheses highlight-numbers highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds goto-chg google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-search-highlight-persist evil-numbers evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav diminish define-word column-enforce-mode clean-aindent-mode async adaptive-wrap ace-window ace-link ace-jump-helm-line)))
+   '(dap-mode bui company-lua lua-mode xterm-color unfill smeargle shell-pop reveal-in-osx-finder pbcopy osx-trash osx-dictionary orgit org-projectile org-category-capture org-present org-pomodoro alert log4e gntp org-mime org-download mwim multi-term mmm-mode markdown-toc markdown-mode magit-gitflow magit-popup magit magit-section launchctl htmlize helm-gitignore helm-company helm-c-yasnippet gnuplot gitignore-mode gitconfig-mode gitattributes-mode git-timemachine git-messenger git-link git-gutter-fringe+ git-gutter-fringe fringe-helper git-gutter+ git-gutter git-commit with-editor transient gh-md fuzzy flyspell-correct-helm flyspell-correct flycheck-pos-tip pos-tip flycheck eshell-z eshell-prompt-extras esh-help diff-hl company-statistics company auto-yasnippet yasnippet auto-dictionary ac-ispell auto-complete which-key org-plus-contrib link-hint hl-todo helm-ag expand-region evil-surround evil-nerd-commenter dumb-jump auto-highlight-symbol ht auto-compile aggressive-indent iedit highlight evil projectile helm popup helm-core spinner s ws-butler winum volatile-highlights vi-tilde-fringe uuidgen use-package undo-tree toc-org spaceline restart-emacs request rainbow-delimiters popwin pkg-info persp-mode pcre2el paradox packed org-bullets open-junk-file neotree move-text macrostep lorem-ipsum linum-relative indent-guide hungry-delete highlight-parentheses highlight-numbers highlight-indentation helm-themes helm-swoop helm-projectile helm-mode-manager helm-make helm-flx helm-descbinds goto-chg google-translate golden-ratio flx-ido fill-column-indicator fancy-battery eyebrowse exec-path-from-shell evil-visualstar evil-visual-mark-mode evil-unimpaired evil-tutor evil-search-highlight-persist evil-numbers evil-mc evil-matchit evil-lisp-state evil-indent-plus evil-iedit-state evil-exchange evil-escape evil-ediff evil-args evil-anzu eval-sexp-fu elisp-slime-nav diminish define-word column-enforce-mode clean-aindent-mode async adaptive-wrap ace-window ace-link ace-jump-helm-line)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
