@@ -132,7 +132,7 @@ ZSH_THEME_VIRTUALENV_PREFIX='{'
 ZSH_THEME_VIRTUALENV_SUFFIX='}'
 
 setopt prompt_subst
-PROMPT='> $_LIBERTY '
+PROMPT='λ $_LIBERTY '
 RPROMPT='%{$fg_bold[purple]%}$(nvm_prompt_info)%{$reset_color%}%{$fg_bold[green]%}$(virtualenv_prompt_info)%{$reset_color%}$(acjackman_git_prompt)'
 
 autoload -U add-zsh-hook
