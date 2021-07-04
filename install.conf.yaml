@@ -32,7 +32,8 @@
     ~/.ipython: src/ipython
 
     # Spacemacs
-    ~/.spacemacs: src/spacemacs/spacemacs
+    ~/.emacs.d: tools/spacemacs/
+    ~/.spacemacs.d: src/spacemacs/
 
     ~/.config/topgrade.toml: src/topgrade/config.toml
 
