@@ -43,10 +43,19 @@ This function should only modify configuration layer settings."
      emacs-lisp
      git
      helm
-     python
+     (python :variables
+         python-backend 'lsp
+         python-lsp-server 'pyright
+         python-test-runner 'pytest
+         python-formatter 'black
+         python-format-on-save t
+         python-sort-imports-on-save t
+         python-auto-set-local-pyenv-version 'on-project-switch
+      )
      html
      yaml
      lua
+     rust
      lsp
      markdown
      org

@@ -104,7 +104,7 @@ singleapps = {
   {'q', 'OmniFocus'},
   {'s', 'Slack'},
   {'d', 'Drafts'},
-  {'e', 'Sublime Text'},
+  {'e', 'Emacs'},
   {'r', 'Safari'},
   {'t', 'iTerm'},
   {'f', 'Finder'},
