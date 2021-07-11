@@ -57,7 +57,7 @@ This function should only modify configuration layer settings."
      lua
      rust
       (lsp :variables
-        lsp-lens--enable
+        lsp-lens-enable t
        )
      markdown
      org
@@ -79,7 +79,10 @@ This function should only modify configuration layer settings."
    ;; `dotspacemacs/user-config'. To use a local version of a package, use the
    ;; `:location' property: '(your-package :location "~/path/to/your-package/")
    ;; Also include the dependencies as they will not be resolved automatically.
-   dotspacemacs-additional-packages '(editorconfig)
+    dotspacemacs-additional-packages '(
+                                        editorconfig
+                                        exec-path-from-shell-initialize
+                                        )
 
    ;; A list of packages that cannot be updated.
    dotspacemacs-frozen-packages '()
@@ -535,7 +538,8 @@ This function defines the environment variables for your Emacs session. By
 default it calls `spacemacs/load-spacemacs-env' which loads the environment
 variables declared in `~/.spacemacs.env' or `~/.spacemacs.d/.spacemacs.env'.
 See the header of this file for more information."
-  (spacemacs/load-spacemacs-env))
+  (spacemacs/load-spacemacs-env)
+  )
 
 (defun dotspacemacs/user-init ()
   "Initialization for user code:
@@ -560,6 +564,12 @@ Put your configuration code here, except for variables that should be set
 before packages are loaded."
   (editorconfig-mode 1)
   (require 'poetry)
+  (with-eval-after-load 'lsp-mode
+    (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]__pycache__\\'")
+    (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.mypy_cache\\'")
+    (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.nox\\'")
+    (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.pytest_cache\\'")
+    )
 )
 
 
