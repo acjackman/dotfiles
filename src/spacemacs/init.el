@@ -50,13 +50,15 @@ This function should only modify configuration layer settings."
          python-formatter 'black
          python-format-on-save t
          python-sort-imports-on-save t
-         python-auto-set-local-pyenv-version 'on-project-switch
+         python-auto-set-local-pyenv-version 'on-visit
       )
      html
      yaml
      lua
      rust
-     lsp
+      (lsp :variables
+        lsp-lens--enable
+       )
      markdown
      org
      (shell :variables
@@ -557,6 +559,7 @@ configuration.
 Put your configuration code here, except for variables that should be set
 before packages are loaded."
   (editorconfig-mode 1)
+  (require 'poetry)
 )
 
 
