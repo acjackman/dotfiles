@@ -4,6 +4,7 @@ tap "github/gh"
 tap "homebrew/bundle"
 tap "homebrew/cask-drivers"
 tap "homebrew/cask-fonts"
+tap "railwaycat/emacsmacport"
 brew "mas"
 
 # *Nix utils
@@ -34,6 +35,7 @@ cask "docker"
 cask "iterm2"
 cask "kaleidoscope"
 cask "sublime-text"
+brew "emacs-mac-spacemacs-icon"
 cask "tower"
 cask "transmit"
 cask "tad"  # CSV Viewer
