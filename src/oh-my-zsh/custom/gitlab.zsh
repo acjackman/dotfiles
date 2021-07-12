@@ -1,15 +1,17 @@
-function glab-mr-release()(
-    # usage: glab-mr-release 0.0.0 --draft --title="MR Title"
+function glab-mr-release-prefix()(
+    # usage: glab-mr-release prefix 0.0.0 --draft --title="MR Title"
     [[ -z "$(git status --porcelain)" ]] || exit 1
 
-    VERSION=$1
+    PREFIX=$1
+    VERSION=$2
+    shift
     shift
     set -e
 
     GITLAB_REMOTE=${GITLAB_REMOTE:-origin}
     GITLAB_TRUNK=${GITLAB_TRUNK:-master}
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    RELEASE_BRANCH=release/$VERSION
+    RELEASE_BRANCH=${PREFIX}/${VERSION}
 
     # check if there is already a open MR for this branch, and error if so
     PROJECT_PATH=$(git remote -v | awk '{ print $2}' | sort | uniq | grep "git@gitlab.com" | sed 's/git@gitlab\.com://' | sed 's/\.git//')
@@ -50,9 +52,33 @@ function glab-mr-release()(
     glab mr create --assignee=$GITLAB_USER --remove-source-branch --target-branch="$RELEASE_BRANCH" --fill --yes $@
 )
 
+function glab-mr-release()(
+    # usage: glab-mr-release 0.0.0 --draft --title="MR Title"
+    set -e
+    glab-mr-release-prefix release $@
+)
+
+function glab-mr-major()(
+    # usage: glab-mr-major release-slug --draft --title="MR Title"
+    set -e
+    glab-mr-release-prefix major $@
+)
+
+function glab-mr-minor()(
+    # usage: glab-mr-minor release-slug --draft --title="MR Title"
+    set -e
+    glab-mr-release-prefix minor $@
+)
+
+function glab-mr-patch()(
+    # usage: glab-mr-patch release-slug --draft --title="MR Title"
+    set -e
+    glab-mr-release-prefix patch $@
+)
+
+
 function glab-mr-wip()(
     # usage: glab-mr-release --title="MR Title"
-    [[ -z "$(git status --porcelain)" ]] || exit 1
     set -e
 
     GITLAB_REMOTE=${GITLAB_REMOTE:-origin}
@@ -88,21 +114,24 @@ function glab-mr-wip()(
     fi
 )
 
-glab-mr-retarget()(
-    # usage: glab-mr-retarget 0.0.1
+glab-mr-retarget-prefix()(
+    # usage: glab-mr-retarget <PREFIX> 0.0.1
     [[ -z "$(git status --porcelain)" ]] || exit 1
 
-    VERSION=$1
+    PREFIX=$1
+    VERSION=$2
+    shift
     shift
     set -e
 
     GITLAB_REMOTE=${GITLAB_REMOTE:-origin}
     GITLAB_TRUNK=${GITLAB_TRUNK:-master}
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
-    RELEASE_BRANCH=release/$VERSION
+    RELEASE_BRANCH=${PREFIX}/${VERSION}
 
     git push -u $GITLAB_REMOTE $CURRENT_BRANCH
     git fetch
+    echo "Checking for '$RELEASE_BRANCH'"
     local existed_in_remote=$(git ls-remote --heads origin ${RELEASE_BRANCH})
     if [[ -z ${existed_in_remote} ]]; then
         glab api --silent -X POST "projects/:fullpath/repository/branches?ref=master&branch=$RELEASE_BRANCH"
@@ -112,6 +141,31 @@ glab-mr-retarget()(
     fi
     glab mr update --target-branch $RELEASE_BRANCH
 )
+
+function glab-mr-retarget-release()(
+    # usage: glab-mr-retarget-release 0.0.0
+    set -e
+    glab-mr-retarget-prefix release $@
+)
+
+function glab-mr-retarget-major()(
+    # usage: glab-mr-retarget-major 0.0.0
+    set -e
+    glab-mr-retarget-prefix major $@
+)
+
+function glab-mr-retarget-minor()(
+    # usage: glab-mr-retarget-minor 0.0.0
+    set -e
+    glab-mr-retarget-prefix minor $@
+)
+
+function glab-mr-retarget-patch()(
+    # usage: glab-mr-retarget-patch 0.0.0
+    set -e
+    glab-mr-retarget-prefix patch $@
+)
+
 
 function glab-prune-merged()(
     PROJECT_PATH=$(git remote -v | awk '{ print $2}' | sort | uniq | grep "git@gitlab.com" | sed 's/git@gitlab\.com://' | sed 's/\.git//')
@@ -215,7 +269,7 @@ function check-versions(){
       | .assignee_mentions = (.assignees.nodes[0] | .username)
       |.targetBranch + " ← " + .sourceBranch + "  @" + .assignee_mentions  + "  !" + .iid + " " + .title
     ' \
-    | grep -E '^(release|hotfix)/.+' | head -3
+    | grep -E '^(release|hotfix|major|minor|patch)/.+' | head -3
 }
 alias gpw="git push && glab ci view"
 alias glab-mr-url="glab mr view | sed '/--/d' | yq eval '.url' -"
