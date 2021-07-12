@@ -56,17 +56,19 @@ This function should only modify configuration layer settings."
      yaml
      lua
      rust
-      (lsp :variables
-        lsp-lens-enable t
-       )
+     (lsp :variables
+       lsp-lens-enable t
+     )
      markdown
      org
+     (multiple-cursors :variables multiple-cursors-backend 'evil-mc)
      (shell :variables
             shell-default-height 30
             shell-default-position 'bottom)
      spell-checking
      syntax-checking
      version-control
+     copy-as-format
      treemacs
      osx)
 
@@ -570,6 +572,7 @@ before packages are loaded."
     (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.nox\\'")
     (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.pytest_cache\\'")
     )
+  (setq copy-as-format-default "markdown")
 )
 
 
