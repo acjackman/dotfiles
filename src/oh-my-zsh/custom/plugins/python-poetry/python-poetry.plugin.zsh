@@ -1,5 +1,5 @@
 if [[ -f "$HOME/.poetry/bin/poetry" ]]; then
-    export PATH="$HOME/.poetry/bin:$PATH"
+    export PATH="$HOME/.poetry/bin:$HOME/.pyenv/shims:$PATH"
     # if [[ -f "$HOME/.zfunc/_poetry" ]]; then
     # else
     #     mkdir -p $HOME/.zfunc
