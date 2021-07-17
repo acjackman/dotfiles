@@ -1,0 +1,18 @@
+{
+    "python.linting.pylintEnabled": false,
+    "python.linting.flake8Enabled": true,
+    "python.linting.enabled": true,
+    "python.pythonPath": "/Users/acjackman/.pyenv/versions/fulcrum-api/bin/python",
+    "editor.formatOnSave": true,
+    "python.formatting.provider": "black",
+    "editor.fontFamily": "'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace",
+    "editor.fontSize": 15,
+    "workbench.editorAssociations": {
+        "*.ipynb": "jupyter.notebook.ipynb"
+    },
+    "editor.minimap.enabled": false,
+    "terminal.integrated.fontSize": 15,
+    "window.zoomLevel": 1,
+    "terminal.integrated.scrollback": 10000,
+    "peacock.vslsShareColor": "#61dafb"
+}

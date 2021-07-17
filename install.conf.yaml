@@ -37,7 +37,7 @@
 
     ~/.config/topgrade.toml: src/topgrade/config.toml
     ~/.editorconfig: src/editorconfig
-  
+
     # macOS & apps
     "~/Library/Application Support/Sublime Text 3/Packages/User": src/sublime/User
     ~/.Brewfile:
@@ -52,3 +52,12 @@
     ~/Library/Application Support/qmk/qmk.ini:
       if: '[ `uname` = Darwin ]'
       path: src/qmk.ini
+    ~/Library/Application Support/Code/User/settings.json:
+      if: '[ `uname` = Darwin ]'
+      path: src/vscode/settings.json
+    ~/Library/Application Support/Code/User/keybindings.json:
+      if: '[ `uname` = Darwin ]'
+      path: src/vscode/keybindings.json
+    ~/Library/Application Support/Code/User/snippets:
+      if: '[ `uname` = Darwin ]'
+      path: src/vscode/snippets
