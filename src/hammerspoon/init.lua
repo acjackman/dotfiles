@@ -104,9 +104,9 @@ singleapps = {
   {'q', 'OmniFocus'},
   {'s', 'Slack'},
   {'d', 'Drafts'},
-  {'e', 'Sublime Text'},
+  -- {'e', 'Sublime Text'},t
   {'r', 'Safari'},
-  {'t', 'iTerm'},
+  -- {'t', 'iTerm'},
   {'f', 'Finder'},
   {'n', 'Obsidian'},
   {'o', 'The Archive'},
@@ -114,6 +114,29 @@ singleapps = {
 }
 for i, app in ipairs(singleapps) do
   k:bind({}, app[1], function() launch(app[2]); k:exit(); end)
+end
+
+function terminalHyper()
+  local app = hs.application.frontmostApplication()
+  local appname = app:name()
+  local log = hs.logger.new('terminalHyper','debug')
+  log.df("name=%s", appname)
+
+  if (appname == "Code") then
+    hs.eventtap.keyStroke({"ctrl"}, "`")
+  else
+    launch("iTerm")
+  end
+  k.triggered = true
+  k:exit()
+end
+k:bind({}, "t", nil, terminalHyper)
+
+
+if (hs.host.localizedName() == "Frey") then
+  k:bind({}, "e", function() launch('Visual Studio Code'); k:exit(); end)
+else
+  k:bind({}, "e", function() launch('Emacs'); k:exit(); end)
 end
 
 -- -- Sequential keybindings, e.g. Hyper-a,f for Finder
@@ -168,8 +191,8 @@ k:bind({}, '[', nil, rotate_screen_counterclockwise)
 function setMuteLight(ad)
   local muted = ad:inputMuted()
 
-  local log = hs.logger.new('setMuteLight','debug')
-  log.df("muted=%s" , muted)
+  -- local log = hs.logger.new('setMuteLight','debug')
+  -- log.df("muted=%s" , muted)
 
   if (muted == nil) then
     hs.execute("blink1-shine --color black", true)
@@ -181,8 +204,8 @@ function setMuteLight(ad)
 end
 
 function muteLightCallback(uid, name, scope, element)
-  local log = hs.logger.new('muteLightCallback','debug')
-  log.df("name=%s scope=%s element=%s", name, scope, element)
+  -- local log = hs.logger.new('muteLightCallback','debug')
+  -- log.df("name=%s scope=%s element=%s", name, scope, element)
   if (name == "mute") then
     local ad = hs.audiodevice.findDeviceByUID(uid)
     setMuteLight(ad)
