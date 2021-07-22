@@ -9,7 +9,7 @@ function glab-mr-release-prefix()(
     set -e
 
     GITLAB_REMOTE=${GITLAB_REMOTE:-origin}
-    GITLAB_TRUNK=${GITLAB_TRUNK:-master}
+    GITLAB_TRUNK=${GITLAB_TRUNK:-main}
     CURRENT_BRANCH=$(git rev-parse --abbrev-ref HEAD)
     RELEASE_BRANCH=${PREFIX}/${VERSION}
 
@@ -41,7 +41,7 @@ function glab-mr-release-prefix()(
     local existed_in_remote=$(git ls-remote --heads origin ${RELEASE_BRANCH})
     if [[ -z ${existed_in_remote} ]]; then
         echo "Creating '$RELEASE_BRANCH'"
-        glab api --silent -X POST "projects/:fullpath/repository/branches?ref=master&branch=$RELEASE_BRANCH"
+        glab api --silent -X POST "projects/:fullpath/repository/branches?ref=${GITLAB_TRUNK}&branch=$RELEASE_BRANCH"
     else
         echo "Release branch '$RELEASE_BRANCH' already exists."
         exit 1
@@ -170,7 +170,7 @@ function glab-mr-retarget-patch()(
 function glab-prune-merged()(
     PROJECT_PATH=$(git remote -v | awk '{ print $2}' | sort | uniq | grep "git@gitlab.com" | sed 's/git@gitlab\.com://' | sed 's/\.git//')
 
-    CHECK_BRANCHES=($(git branch | cut -c3- | sed -e 's/\s+//g' | sed -E '/^(master|release)\/?.*$/d' | sed -e '/^$/d'))
+    CHECK_BRANCHES=($(git branch | cut -c3- | sed -e 's/\s+//g' | sed -E '/^(master|main|release)\/?.*$/d' | sed -e '/^$/d'))
     # echo "branches=$CHECK_BRANCHES"
 
     for BRANCH in "${CHECK_BRANCHES[@]}"; do

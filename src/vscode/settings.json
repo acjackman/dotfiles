@@ -1,18 +1,60 @@
 {
-    "python.linting.pylintEnabled": false,
-    "python.linting.flake8Enabled": true,
-    "python.linting.enabled": true,
-    "python.pythonPath": "/Users/acjackman/.pyenv/versions/fulcrum-api/bin/python",
-    "editor.formatOnSave": true,
-    "python.formatting.provider": "black",
-    "editor.fontFamily": "'JetBrains Mono', Menlo, Monaco, 'Courier New', monospace",
-    "editor.fontSize": 15,
-    "workbench.editorAssociations": {
-        "*.ipynb": "jupyter.notebook.ipynb"
-    },
-    "editor.minimap.enabled": false,
-    "terminal.integrated.fontSize": 15,
-    "window.zoomLevel": 1,
-    "terminal.integrated.scrollback": 10000,
-    "peacock.vslsShareColor": "#61dafb"
+  "python.linting.pylintEnabled": false,
+  "python.linting.flake8Enabled": true,
+  "python.linting.flake8Path": "flake8helled",
+  "python.linting.enabled": true,
+  "python.linting.lintOnSave": true,
+  "python.formatting.provider": "black",
+  "editor.fontFamily": "'JetBrainsMono Nerd Font Mono','FiraCode Nerd Font Mono','Hack Nerd font Mono','JetBrains Mono', 'Fira Code', 'Hack', Menlo, Monaco, 'Courier New', monospace",
+  "editor.fontSize": 16,
+  "editor.fontLigatures": true,
+  "workbench.editorAssociations": {
+    "*.ipynb": "jupyter-notebook"
+  },
+  "editor.minimap.enabled": false,
+  "terminal.integrated.fontSize": 16,
+  "terminal.integrated.scrollback": 10000,
+  "peacock.vslsShareColor": "#1857a4",
+  "workbench.iconTheme": "vscode-icons",
+  "terminal.integrated.allowChords": false,
+  "notebook.cellToolbarLocation": {
+    "default": "right",
+    "jupyter-notebook": "left"
+  },
+  "editor.autoIndent": "brackets",
+  "editor.inlineSuggest.enabled": true,
+  "editor.suggest.localityBonus": true,
+  "editor.rulers": [
+    88,
+  ],
+  "redhat.telemetry.enabled": false,
+  "gitlens.codeLens.enabled": false,
+  "gitlens.defaultDateFormat": "YYYY-MM-DD HH:mm",
+  "gitlens.defaultDateShortFormat": "YYYY-MM-DD",
+  "gitlens.defaultTimeFormat": "HH:mm",
+  "python.sortImports.path": "isort",
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.analysis.completeFunctionParens": true,
+  "cSpell.userWords": [
+    "isfunction",
+    "nobreak"
+  ],
+  "workbench.activityBar.visible": false,
+  "scm.countBadge": "focused",
+  "scm.inputFontSize": 15,
+  "markdown.preview.fontSize": 16,
+  "markdown.preview.lineHeight": 1.4,
+  "[python]": {
+    "gitlens.codeLens.symbolScopes": [
+      "!Module"
+    ],
+    "editor.wordBasedSuggestions": false,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": true
+    }
+  },
+  "editor.formatOnSave": true,
+  "editor.minimap.maxColumn": 100,
+  "workbench.editor.highlightModifiedTabs": true,
+  "workbench.editor.showTabs": false
 }

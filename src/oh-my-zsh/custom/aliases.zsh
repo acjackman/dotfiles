@@ -26,6 +26,7 @@ alias awswhoami="aws-cli sts get-caller-identity"
 alias pyclean="find . -name '*.py[c|o]' -o -name __pycache__ -exec rm -rf {} +"
 alias flashkb='wally-cli "$(ls -t ~/Downloads/*.hex | head -1)"'
 alias lspath='tr ":" "\n" <<< "$PATH"'
+alias lspathu='tr ":" "\n" <<< "$PATH" | awk "!seen[\$0]++"'
 alias sublhost="sudo subl -nw /etc/hosts && sudo killall -HUP mDNSResponder"
 alias sshfingerprint="ssh-keygen -l -E md5 -f"
 alias pyv="poetry version | awk '{print \$2}'"

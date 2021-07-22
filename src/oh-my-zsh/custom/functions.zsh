@@ -131,7 +131,8 @@ function pylv() {
     echo "pyenv virtualenv $PY_VERSION $ENV_NAME && pyenv local $ENV_NAME"
     pyenv virtualenv $PY_VERSION $ENV_NAME \
       && pyenv local $ENV_NAME \
-      && pip install --upgrade pip
+      && pip install --upgrade pip \
+      && pip install ipython importmagic epc
 }
 
 function pydel() {

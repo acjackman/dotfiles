@@ -25,6 +25,7 @@
     rh = reset --hard
     rhh = reset --hard HEAD
     cb = checkout -b
+    ct = "!git checkout main || git checkout master"
     nb = checkout -b
     renb = branch -m
 

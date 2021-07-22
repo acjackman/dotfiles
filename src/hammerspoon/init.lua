@@ -36,7 +36,7 @@ end
 -- Alternate hyper
 alt_hyper = {
   'l', -- Hook Link
-  'm', -- Hook markdown Lonk
+  -- 'm', -- Hook markdown Lonk
 }
 for i,key in ipairs(alt_hyper) do
   k:bind({}, key, nil, function() k.triggered = true hs.eventtap.keyStroke({"cmd","shift","ctrl"}, key) end)
@@ -161,6 +161,50 @@ end
 
 k:bind({}, ']', nil, rotate_screen_clockwise)
 k:bind({}, '[', nil, rotate_screen_counterclockwise)
+
+
+
+
+function setMuteLight(ad)
+  local muted = ad:inputMuted()
+
+  local log = hs.logger.new('setMuteLight','debug')
+  log.df("muted=%s" , muted)
+
+  if (muted == nil) then
+    hs.execute("blink1-shine --color black", true)
+  elseif (muted) then
+    hs.execute("blink1-shine --color red", true)
+  else
+    hs.execute("blink1-shine --color green", true)
+  end
+end
+
+function muteLightCallback(uid, name, scope, element)
+  local log = hs.logger.new('muteLightCallback','debug')
+  log.df("name=%s scope=%s element=%s", name, scope, element)
+  if (name == "mute") then
+    local ad = hs.audiodevice.findDeviceByUID(uid)
+    setMuteLight(ad)
+  end
+end
+
+jabra_headset = hs.audiodevice.findInputByName("Jabra Link 380")
+if (jabra_headset) then
+  jabra_headset:watcherCallback(muteLightCallback)
+  hs.execute("blink1-shine --color black", true)
+  function muteLightTrigger()
+    local running = jabra_headset:watcherIsRunning()
+    if running then
+      hs.execute("blink1-shine --color black", true)
+      jabra_headset:watcherStop()
+    else
+      jabra_headset:watcherStart()
+      setMuteLight(jabra_headset)
+    end
+  end
+  k:bind({}, 'm', nil, muteLightTrigger)
+end
 
 
 -- Enter Hyper Mode when F19 (Hyper/Capslock) is pressed

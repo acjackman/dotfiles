@@ -76,6 +76,7 @@ plugins=(
     direnv
     git
     gitfast
+    glab
     iterm2
     jira
     kubectl

@@ -13,3 +13,6 @@
 [submodule "tools/spacemacs"]
 	path = tools/spacemacs
 	url = https://github.com/syl20bnr/spacemacs
+[submodule "src/hammerspoon/Spoons/Zoom.spoon"]
+	path = src/hammerspoon/Spoons/Zoom.spoon
+	url = https://github.com/jpf/Zoom.spoon.git
