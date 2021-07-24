@@ -279,7 +279,7 @@
     "when": "inKeybindings"
   },
   {
-    "key": "alt+cmd+p",
+    "key": "ctrl+alt+p",
     "command": "workbench.action.quickOpenView"
   },
   {
@@ -365,5 +365,41 @@
   {
     "key": "ctrl+cmd+s",
     "command": "workbench.files.action.saveAllInGroup"
+  },
+  {
+    "key": "ctrl+cmd+]",
+    "command": "workbench.action.nextEditorInGroup"
+  },
+  {
+    "key": "cmd+k alt+cmd+right",
+    "command": "-workbench.action.nextEditorInGroup"
+  },
+  {
+    "key": "ctrl+cmd+[",
+    "command": "workbench.action.previousEditorInGroup"
+  },
+  {
+    "key": "cmd+k alt+cmd+left",
+    "command": "-workbench.action.previousEditorInGroup"
+  },
+  {
+    "key": "alt+cmd+p",
+    "command": "workbench.action.showEditorsInActiveGroup"
+  },
+  {
+    "key": "ctrl+cmd+p",
+    "command": "projectManager.listProjects"
+  },
+  {
+    "key": "alt+cmd+p",
+    "command": "-projectManager.listProjects"
+  },
+  {
+    "key": "alt+cmd+,",
+    "command": "workbench.action.openSettingsJson"
+  },
+  {
+    "key": "shift+alt+cmd+,",
+    "command": "workbench.action.openGlobalKeybindingsFile"
   }
 ]

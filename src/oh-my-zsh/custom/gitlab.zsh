@@ -1,3 +1,5 @@
+alias glab-mr-create='glab mr create --create-source-branch --remove-source-branch --assignee=$GITLAB_USER  --fill --yes'
+
 function glab-mr-release-prefix()(
     # usage: glab-mr-release prefix 0.0.0 --draft --title="MR Title"
     [[ -z "$(git status --porcelain)" ]] || exit 1

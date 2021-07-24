@@ -197,9 +197,9 @@ function setMuteLight(ad)
   if (muted == nil) then
     hs.execute("blink1-shine --color black", true)
   elseif (muted) then
-    hs.execute("blink1-shine --color red", true)
+    hs.execute("blink1-shine --color '#8b0000'", true)
   else
-    hs.execute("blink1-shine --color green", true)
+    hs.execute("blink1-shine --color '#013220'", true)
   end
 end
 
@@ -213,6 +213,7 @@ function muteLightCallback(uid, name, scope, element)
 end
 
 jabra_headset = hs.audiodevice.findInputByName("Jabra Link 380")
+
 if (jabra_headset) then
   jabra_headset:watcherCallback(muteLightCallback)
   hs.execute("blink1-shine --color black", true)

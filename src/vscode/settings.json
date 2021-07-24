@@ -14,7 +14,7 @@
   "editor.minimap.enabled": false,
   "terminal.integrated.fontSize": 16,
   "terminal.integrated.scrollback": 10000,
-  "peacock.vslsShareColor": "#1857a4",
+  "peacock.vslsShareColor": "#215732",
   "workbench.iconTheme": "vscode-icons",
   "terminal.integrated.allowChords": false,
   "notebook.cellToolbarLocation": {
@@ -36,8 +36,12 @@
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.analysis.completeFunctionParens": true,
   "cSpell.userWords": [
+    "boto",
+    "creds",
     "isfunction",
-    "nobreak"
+    "moto",
+    "nobreak",
+    "pytest"
   ],
   "workbench.activityBar.visible": false,
   "scm.countBadge": "focused",
@@ -48,13 +52,16 @@
     "gitlens.codeLens.symbolScopes": [
       "!Module"
     ],
-    "editor.wordBasedSuggestions": false,
-    "editor.codeActionsOnSave": {
-        "source.organizeImports": true
-    }
+    // "editor.codeActionsOnSave": {
+    //     "source.organizeImports": true
+    // }
+    "editor.wordBasedSuggestions": false
   },
   "editor.formatOnSave": true,
   "editor.minimap.maxColumn": 100,
   "workbench.editor.highlightModifiedTabs": true,
-  "workbench.editor.showTabs": false
+  "workbench.editor.showTabs": false,
+  "git.confirmSync": false,
+  "workspaceExplorer.workspaceStorageDirectory": "${env:HOME}/Development/",
+  "peacock.vslsJoinColor": "#215732"
 }
