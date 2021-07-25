@@ -1,0 +1,9 @@
+{
+  "enabledCssSnippets": [
+    "sidebar"
+  ],
+  "translucency": false,
+  "cssTheme": "Obsidian Nord",
+  "baseFontSize": 14,
+  "baseFontSizeAction": false
+}

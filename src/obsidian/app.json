@@ -1,0 +1,19 @@
+{
+  "fileSortOrder": "alphabeticalReverse",
+  "alwaysUpdateLinks": true,
+  "attachmentFolderPath": "media",
+  "showFrontmatter": true,
+  "spellcheck": true,
+  "foldHeading": false,
+  "foldIndent": false,
+  "useTab": false,
+  "spellcheckDictionary": [
+    "Signy",
+    "GitLab",
+    "repo",
+    "Webhooks",
+    "gitlab",
+    "Standup",
+    "Unprioritized"
+  ]
+}
