@@ -78,6 +78,10 @@ cask "bartender"
 cask "marked"
 cask "soulver"
 mas "ToothFairy", id: 1191449274
+mas "Shush - Microphone Manager", id: 496437906
+cask "logitech-camera-settings"
+cask "logitech-options"
+cask "TextSniper", id: 1528890965
 
 # Fonts
 cask "font-fira-code-nerd-font"
