@@ -573,6 +573,9 @@ before packages are loaded."
     (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.pytest_cache\\'")
     )
   (setq copy-as-format-default "markdown")
+  (with-eval-after-load 'flycheck
+    (flycheck-add-mode 'python-flake8 'python-mode)
+    (flycheck-add-mode 'python-pyright 'python-mode))
 )
 
 
