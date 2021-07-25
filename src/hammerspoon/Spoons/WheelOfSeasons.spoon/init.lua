@@ -1,4 +1,4 @@
---- === ReloadConfiguration ===
+--- === Wheel of Seasons ===
 ---
 --- Setup Rotating desktops
 ---
@@ -58,7 +58,7 @@ end
 
 
 function obj:start(dir, interval, shuffle)
-  print(dir)
+  -- print(dir)
   obj.wheeldir = dir
   obj.interval = interval
   loadWallpapers(shuffle)

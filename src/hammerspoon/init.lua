@@ -68,15 +68,15 @@ k:bind({}, '0', nil, weekly_plan)
 
 -- iTunes controls
 function playpause()
-  hs.osascript.applescript('tell application "Music" to playpause')
+  hs.itunes.playpause()
   k.triggered = true
 end
 function backtrack()
-  hs.osascript.applescript('tell application "Music" to back track')
+  hs.itunes.previous()
   k.triggered = true
 end
 function nexttrack()
-  hs.osascript.applescript('tell application "Music" to next track')
+  hs.itunes.next()
   k.triggered = true
 end
 function musicvolup()
@@ -128,7 +128,7 @@ function terminalHyper()
     launch("iTerm")
   end
   k.triggered = true
-  k:exit()
+  --k:exit()
 end
 k:bind({}, "t", nil, terminalHyper)
 
@@ -188,48 +188,10 @@ k:bind({}, '[', nil, rotate_screen_counterclockwise)
 
 
 
-function setMuteLight(ad)
-  local muted = ad:inputMuted()
+hs.loadSpoon("MuteLight")
+spoon.MuteLight:start("Jabra Link 380", false)
 
-  -- local log = hs.logger.new('setMuteLight','debug')
-  -- log.df("muted=%s" , muted)
-
-  if (muted == nil) then
-    hs.execute("blink1-shine --color black", true)
-  elseif (muted) then
-    hs.execute("blink1-shine --color '#8b0000'", true)
-  else
-    hs.execute("blink1-shine --color '#013220'", true)
-  end
-end
-
-function muteLightCallback(uid, name, scope, element)
-  -- local log = hs.logger.new('muteLightCallback','debug')
-  -- log.df("name=%s scope=%s element=%s", name, scope, element)
-  if (name == "mute") then
-    local ad = hs.audiodevice.findDeviceByUID(uid)
-    setMuteLight(ad)
-  end
-end
-
-jabra_headset = hs.audiodevice.findInputByName("Jabra Link 380")
-
-if (jabra_headset) then
-  jabra_headset:watcherCallback(muteLightCallback)
-  hs.execute("blink1-shine --color black", true)
-  function muteLightTrigger()
-    local running = jabra_headset:watcherIsRunning()
-    if running then
-      hs.execute("blink1-shine --color black", true)
-      jabra_headset:watcherStop()
-    else
-      jabra_headset:watcherStart()
-      setMuteLight(jabra_headset)
-    end
-  end
-  k:bind({}, 'm', nil, muteLightTrigger)
-end
-
+k:bind({}, 'm', nil, function() k.triggered = true spoon.MuteLight:togglLight() end)
 
 -- Enter Hyper Mode when F19 (Hyper/Capslock) is pressed
 pressedF19 = function()
@@ -242,6 +204,7 @@ end
 releasedF19 = function()
   k:exit()
   if not k.triggered then
+
     hs.eventtap.keyStroke({}, 'ESCAPE')
   end
 end
@@ -249,57 +212,6 @@ end
 -- Bind the Hyper key
 f19 = hs.hotkey.bind({}, 'F19', pressedF19, releasedF19)
 
-
--- directions = {"Left", "Right", "Up", "Down"}
--- -- Setup Window Movement (Spectacle replacement)
--- -- Window (1/2, 2/3, 1/3) for (←, →, ↑, ↓)
-
--- -- hs.window.animationDuration = 0
-
--- win_size = function(win_current, max)
---   half_screen = max / 2
---   two_thirds = max / 3 * 2
---   if win_current == half_screen then
---     return two_thirds
---   elseif win_current == two_thirds then
---     return max / 3
---   else
---      return half_screen
---   end
--- end
-
--- for i, direction in ipairs(directions) do
---   hs.hotkey.bind({"cmd", "alt", "ctrl"}, direction, function()
---     local win = hs.window.focusedWindow()
---     local f = win:frame()
---     local screen = win:screen()
---     local max = screen:frame()
-
---     if direction == "Left"  then
---       f.h = max.h
---       f.w = win_size(f.w, max.w)
---       f.x = max.x
---       f.y = max.y
---     elseif direction == "Right" then
---       f.h = max.h
---       f.w = win_size(f.w, max.w)
---       f.x = max.x + (max.w - f.w)
---       f.y = max.y
---     elseif direction == "Up" then
---       f.h = win_size(f.h, max.h)
---       f.w = max.w
---       f.x = max.x
---       f.y = max.y
---     elseif direction == "Down" then
---       f.h = win_size(f.h, max.h)
---       f.w = max.w
---       f.x = max.x
---       f.y = max.y + (max.y - f.h)
---     end
-
---     win:setFrame(f, 0)
---   end)
--- end
 
 -- for i, direction in ipairs(directions) do
 --   hs.hotkey.bind({"ctrl", "alt"}, direction, function()
