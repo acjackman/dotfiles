@@ -60,7 +60,7 @@ mas "Instapaper", id: 1481302432
 mas "Drafts", id: 1435957248
 
 # Customization/Utilities
-cask "rectangle"
+cask "amethyst"
 cask "karabiner-elements"
 cask "launchbar"
 cask "hammerspoon"
@@ -68,6 +68,7 @@ mas "Dark Mode for Safari", id: 1397180934
 mas "Keys", id: 1494642810
 cask "setapp"
 cask "backblaze"
+cask "iina"
 mas "CARROT Weather", id: 993487541
 brew "libusb" # used for Ergodox EZ keyboard flashing
 brew "noti"
@@ -81,7 +82,8 @@ mas "ToothFairy", id: 1191449274
 mas "Shush - Microphone Manager", id: 496437906
 cask "logitech-camera-settings"
 cask "logitech-options"
-cask "TextSniper", id: 1528890965
+mas "TextSniper", id: 1528890965
+
 
 # Fonts
 cask "font-fira-code-nerd-font"
