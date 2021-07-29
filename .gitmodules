@@ -16,3 +16,9 @@
 [submodule "src/hammerspoon/Spoons/Zoom.spoon"]
 	path = src/hammerspoon/Spoons/Zoom.spoon
 	url = https://github.com/jpf/Zoom.spoon.git
+[submodule "tools/ohmyzsh"]
+	path = tools/ohmyzsh
+	url = git://github.com/ohmyzsh/ohmyzsh.git
+[submodule "src/oh-my-zsh/custom/themes/powerlevel10k"]
+	path = src/oh-my-zsh/custom/themes/powerlevel10k
+	url = git://github.com/romkatv/powerlevel10k.git

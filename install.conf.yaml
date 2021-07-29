@@ -24,6 +24,12 @@
     ~/.zshrc:
       path: src/.zshrc
       force: true
+    ~/.oh-my-zsh:
+      path: tools/ohmyzsh/
+      force: true
+    ~/.p10k.zsh:
+      path: src/.p10k.zsh
+      force: true
 
     # Scripts
     ~/.bin: src/bin

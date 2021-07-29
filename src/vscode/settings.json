@@ -15,7 +15,6 @@
   "terminal.integrated.fontSize": 16,
   "terminal.integrated.scrollback": 10000,
   "peacock.vslsShareColor": "#215732",
-  "workbench.iconTheme": "vscode-icons",
   "terminal.integrated.allowChords": false,
   "notebook.cellToolbarLocation": {
     "default": "right",
@@ -37,13 +36,20 @@
   "python.analysis.completeFunctionParens": true,
   "cSpell.userWords": [
     "boto",
+    "botocore",
     "creds",
+    "delenv",
+    "gitlab",
+    "ipython",
     "isfunction",
+    "itertools",
     "moto",
     "nobreak",
-    "pytest"
+    "noqa",
+    "pytest",
+    "setenv",
+    "unallowed"
   ],
-  "workbench.activityBar.visible": false,
   "scm.countBadge": "focused",
   "scm.inputFontSize": 15,
   "markdown.preview.fontSize": 16,
@@ -63,5 +69,10 @@
   "workbench.editor.showTabs": false,
   "git.confirmSync": false,
   "workspaceExplorer.workspaceStorageDirectory": "${env:HOME}/Development/",
-  "peacock.vslsJoinColor": "#215732"
+  "peacock.vslsJoinColor": "#215732",
+  "workbench.preferredDarkColorTheme": "Visual Studio Dark",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorTheme": "Atom One Dark",
+  "security.workspace.trust.banner": "always",
+  "liveshare.connectionMode": "relay"
 }
