@@ -14,7 +14,7 @@ obj.author = "Adam Jackman <adam@acjackman.com>"
 obj.license = "MIT - https://opensource.org/licenses/MIT"
 
 
-local log = hs.logger.new('MuteLight','info')
+local log = hs.logger.new('MuteLight','debug')
 -- TODO: use https://github.com/profburke/luablink instead of `pipx blink1`
 
 function wait(seconds)

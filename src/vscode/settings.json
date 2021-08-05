@@ -35,17 +35,28 @@
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.analysis.completeFunctionParens": true,
   "cSpell.userWords": [
+    "ajackman",
     "boto",
     "botocore",
+    "cname",
+    "contentful",
     "creds",
     "delenv",
+    "fasr",
+    "fl",
+    "fulcrumlabs",
     "gitlab",
+    "infodns",
     "ipython",
+    "isclass",
     "isfunction",
     "itertools",
+    "kubernetes",
     "moto",
+    "mrowens",
     "nobreak",
     "noqa",
+    "pardot",
     "pytest",
     "setenv",
     "unallowed"
@@ -60,7 +71,7 @@
     ],
     // "editor.codeActionsOnSave": {
     //     "source.organizeImports": true
-    // }
+    // },
     "editor.wordBasedSuggestions": false
   },
   "editor.formatOnSave": true,
@@ -74,5 +85,8 @@
   "workbench.iconTheme": "material-icon-theme",
   "workbench.colorTheme": "Atom One Dark",
   "security.workspace.trust.banner": "always",
-  "liveshare.connectionMode": "relay"
+  "liveshare.connectionMode": "relay",
+  "security.workspace.trust.untrustedFiles": "open",
+  "vsicons.dontShowNewVersionMessage": true,
+  "explorer.confirmDelete": false
 }

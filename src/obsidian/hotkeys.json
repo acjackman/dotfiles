@@ -45,15 +45,6 @@
       "key": "Enter"
     }
   ],
-  "workspace:toggle-pin": [
-    {
-      "modifiers": [
-        "Mod",
-        "Shift"
-      ],
-      "key": "N"
-    }
-  ],
   "editor:follow-link": [
     {
       "modifiers": [
@@ -203,14 +194,8 @@
   "app:go-back": [
     {
       "modifiers": [
+        "Alt",
         "Mod"
-      ],
-      "key": "["
-    },
-    {
-      "modifiers": [
-        "Mod",
-        "Shift"
       ],
       "key": "["
     }
@@ -218,14 +203,8 @@
   "app:go-forward": [
     {
       "modifiers": [
+        "Alt",
         "Mod"
-      ],
-      "key": "]"
-    },
-    {
-      "modifiers": [
-        "Mod",
-        "Shift"
       ],
       "key": "]"
     }
