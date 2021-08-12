@@ -114,11 +114,44 @@ function export_sso_creds() (
     echo $creds | jq -r '"export AWS_SECRET_ACCESS_KEY=" + .secretAccessKey'
     echo $creds | jq -r '"export AWS_SESSION_TOKEN=" + .sessionToken'
 )
-
 # Usage
 # export AWS_PROFILE=fulcrum-dev  # Or any profile from ~/.aws/config
 # awssso $AWS_PROFILE  # logs into the AWS CLI with the specified profile
 # eval "$(export_sso_creds $AWS_PROFILE)"
+
+
+function okta_aws() (
+  # Usage: okta_aws c-networking
+
+  set -e -o pipefail
+
+  if [[ -z "$OP_ITEM_OKTA" ]]  then
+    echo "\$OP_ITEM_OKTA is not set"
+    exit 1
+  fi
+
+  if [ $# -eq 0 ]
+  then
+    echo "No profiles specified"
+  fi
+
+  while [[ $# -ne 0 ]]; do
+    local PROFILE_NAME=$1
+    shift
+
+    local MFA_CODE=$(op get totp "$OP_ITEM_OKTA")
+    if [[ $MFA_CODE =~ ^[0-9]{6}$ ]] then
+      gimme-aws-creds --mfa-code=$MFA_CODE --profile=$PROFILE_NAME
+    else
+      echo "Unable to fetch MFA code from '$OP_ITEM_OKTA'"
+      exit 2
+    fi
+
+    if [[ -z $@ ]] then
+      sleep 30
+    fi
+  done
+)
 
 
 

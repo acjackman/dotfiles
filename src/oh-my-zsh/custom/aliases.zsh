@@ -1,6 +1,6 @@
 # Open/Edit
 alias cdmp="cd $HOME/Dropbox/Dump"
-alias editor_new="subl -n"
+alias editor_new="code -n"
 alias hconfig="editor_new ~/.hammerspoon ~/.hammerspoon/init.lua"
 alias zshconfig="editor_new ~/.dotfiles/src/oh-my-zsh/custom ~/.dotfiles/src/bin ~/.zshrc ~/.zshrc_local"
 alias dotfiles="editor_new ~/.dotfiles"
@@ -18,7 +18,6 @@ alias aws-cli=aws2
 
 # Actions
 alias o=open
-alias sn="subl -n"
 alias tower='gittower $(git home)'
 alias gitsweep="git branch --merged | egrep -v '(^\*|master|dev.*|stg|prod|develop|release/.*)' | xargs git branch -d && git remote | xargs git remote prune && echo 'Branches Remaining: ' && git --no-pager branch | head -n 20"
 alias gitoverwrite="git commit --amend --no-edit && git psf"

@@ -26,6 +26,7 @@
   "editor.rulers": [
     88,
   ],
+  "explorer.autoReveal": false,
   "redhat.telemetry.enabled": false,
   "gitlens.codeLens.enabled": false,
   "gitlens.defaultDateFormat": "YYYY-MM-DD HH:mm",
@@ -59,7 +60,8 @@
     "pardot",
     "pytest",
     "setenv",
-    "unallowed"
+    "unallowed",
+    "venv"
   ],
   "scm.countBadge": "focused",
   "scm.inputFontSize": 15,
@@ -77,7 +79,6 @@
   "editor.formatOnSave": true,
   "editor.minimap.maxColumn": 100,
   "workbench.editor.highlightModifiedTabs": true,
-  "workbench.editor.showTabs": false,
   "git.confirmSync": false,
   "workspaceExplorer.workspaceStorageDirectory": "${env:HOME}/Development/",
   "peacock.vslsJoinColor": "#215732",
@@ -88,5 +89,9 @@
   "liveshare.connectionMode": "relay",
   "security.workspace.trust.untrustedFiles": "open",
   "vsicons.dontShowNewVersionMessage": true,
-  "explorer.confirmDelete": false
+  "explorer.confirmDelete": false,
+  "editor.accessibilitySupport": "off",
+  "workbench.editor.showTabs": false,
+  "window.zoomLevel": 1,
+  "workbench.activityBar.visible": false
 }

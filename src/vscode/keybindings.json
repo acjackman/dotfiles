@@ -423,7 +423,7 @@
     "when": "editorFocus"
   },
   {
-    "key": "shift+cmd+w",
+    "key": "alt+cmd+w",
     "command": "workbench.action.closeEditorsInGroup"
   },
   {
@@ -431,11 +431,27 @@
     "command": "-workbench.action.closeEditorsInGroup"
   },
   {
-    "key": "alt+cmd+w",
+    "key": "shift+cmd+w",
     "command": "workbench.action.closeWindow"
   },
   {
     "key": "shift+cmd+w",
     "command": "-workbench.action.closeWindow"
+  },
+  {
+    "key": "ctrl+cmd+t",
+    "command": "workbench.action.toggleTabsVisibility"
+  },
+  {
+    "key": "ctrl+cmd+w",
+    "command": "-workbench.action.toggleTabsVisibility"
+  },
+  {
+    "key": "ctrl+cmd+w",
+    "command": "workbench.action.closeUnmodifiedEditors"
+  },
+  {
+    "key": "cmd+k u",
+    "command": "-workbench.action.closeUnmodifiedEditors"
   }
 ]
