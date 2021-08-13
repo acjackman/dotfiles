@@ -141,13 +141,15 @@ function okta_aws() (
 
     local MFA_CODE=$(op get totp "$OP_ITEM_OKTA")
     if [[ $MFA_CODE =~ ^[0-9]{6}$ ]] then
+      echo "Authenticating for $PROFILE_NAME"
       gimme-aws-creds --mfa-code=$MFA_CODE --profile=$PROFILE_NAME
     else
       echo "Unable to fetch MFA code from '$OP_ITEM_OKTA'"
       exit 2
     fi
 
-    if [[ -z $@ ]] then
+    if [[ $# -ne 0 ]] then
+      echo "Waiting for next MFA code..."
       sleep 30
     fi
   done
