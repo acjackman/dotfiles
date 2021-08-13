@@ -150,7 +150,7 @@ function okta_aws() (
 
     if [[ $# -ne 0 ]] then
       echo "Waiting for next MFA code..."
-      sleep 30
+      sleep 32
     fi
   done
 )
