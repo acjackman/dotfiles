@@ -37,9 +37,14 @@
     # shell apps config
     ~/.ipython: src/ipython
 
-    # Spacemacs
-    ~/.emacs.d: tools/spacemacs/
-    ~/.spacemacs.d: src/spacemacs/
+    # Emacs
+    ~/.emacs.d:
+      path: tools/doom-emacs/
+      force: true
+    # ~/.spacemacs.d: src/spacemacs/
+    ~/.doom.d:
+      path: src/doom.d/
+      force: true
 
     ~/.config/topgrade.toml: src/topgrade/config.toml
     ~/.editorconfig: src/editorconfig

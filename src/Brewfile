@@ -43,6 +43,9 @@ cask "dash"
 mas "Patterns", id: 429449079
 cask "firefox"
 cask "google-chrome"
+brew "ripgrep"
+brew "coreutils"
+brew "fd"
 
 # Organization
 cask "slack"

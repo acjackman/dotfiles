@@ -1,0 +1,4 @@
+#! /bin/bash
+
+$@ &> $TMPDIR/previewrendertext.txt
+/usr/sbin/cupsfilter -i text/plain -D $TMPDIR/previewrendertext.txt 2> /dev/null | open -fa Preview
