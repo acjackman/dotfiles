@@ -33,6 +33,7 @@ alias pyv-master="git show master:pyproject.toml | yj -t | jq -r '.tool.poetry.v
 alias pyv-major='[[ -z "$(git status --porcelain)" ]] && poetry version major && git add pyproject.toml && git commit -m "bump major version to $(pyv)"'
 alias pyv-minor='[[ -z "$(git status --porcelain)" ]] && poetry version minor && git add pyproject.toml && git commit -m "bump minor version to $(pyv)"'
 alias pyv-patch='[[ -z "$(git status --porcelain)" ]] && poetry version patch && git add pyproject.toml && git commit -m "bump patch version to $(pyv)"'
+alias pysu='pyenv shell --unset'
 
 # Utilities
 alias count_unique='cut -f 1 | sort | uniq -c'

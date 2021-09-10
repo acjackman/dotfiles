@@ -36,6 +36,8 @@
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.analysis.completeFunctionParens": true,
   "cSpell.userWords": [
+    "Traceback",
+    "acjackman",
     "ajackman",
     "boto",
     "botocore",
@@ -51,6 +53,7 @@
     "ipython",
     "isclass",
     "isfunction",
+    "isort",
     "itertools",
     "kubernetes",
     "moto",
@@ -58,10 +61,12 @@
     "nobreak",
     "noqa",
     "pardot",
+    "pyenv",
     "pytest",
     "setenv",
     "unallowed",
-    "venv"
+    "venv",
+    "virtualenv"
   ],
   "scm.countBadge": "focused",
   "scm.inputFontSize": 15,
@@ -92,6 +97,35 @@
   "explorer.confirmDelete": false,
   "editor.accessibilitySupport": "off",
   "workbench.editor.showTabs": false,
-  "window.zoomLevel": 1,
-  "workbench.activityBar.visible": false
+  "workbench.activityBar.visible": false,
+  "todo-tree.general.tags": [
+    "BUG",
+    "HACK",
+    "FIXME",
+    "TODO",
+    "XXX",
+    "[ ]",
+    "[x]"
+  ],
+  "todo-tree.regex.regex": "(//|#|<!--|;|/\\*|^|^\\s*(-|\\d+.))\\s*($TAGS)",
+  "peacock.showColorInStatusBar": false,
+  "vim.statusBarColorControl": true,
+  "workbench.colorCustomizations": {
+    "statusBar.background": "#005f5f",
+    "statusBar.noFolderBackground": "#005f5f",
+    "statusBar.debuggingBackground": "#005f5f",
+    "activityBar.activeBackground": "#1f6fd0",
+    "activityBar.activeBorder": "#ee90bb",
+    "activityBar.background": "#1f6fd0",
+    "activityBar.foreground": "#e7e7e7",
+    "activityBar.inactiveForeground": "#e7e7e799",
+    "activityBarBadge.background": "#ee90bb",
+    "activityBarBadge.foreground": "#15202b",
+    "titleBar.activeBackground": "#1857a4",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#1857a499",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  "peacock.affectStatusBar": false,
+  "gitlens.mode.active": "zen"
 }

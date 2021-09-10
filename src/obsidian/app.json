@@ -15,5 +15,6 @@
     "gitlab",
     "Standup",
     "Unprioritized"
-  ]
+  ],
+  "autoConvertHtml": false
 }
