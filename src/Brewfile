@@ -35,7 +35,6 @@ cask "docker"
 cask "iterm2"
 cask "kaleidoscope"
 cask "sublime-text"
-brew "emacs-mac-spacemacs-icon"
 cask "tower"
 cask "transmit"
 cask "tad"  # CSV Viewer
