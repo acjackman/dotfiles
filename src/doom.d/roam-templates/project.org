@@ -1,0 +1,7 @@
+* Goals
+
+%?
+
+* Dates
+* Tasks
+** TODO Add initial tasks
