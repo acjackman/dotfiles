@@ -63,6 +63,7 @@ mas "Drafts", id: 1435957248
 
 # Customization/Utilities
 cask "amethyst"
+cask "contexts"
 cask "karabiner-elements"
 cask "launchbar"
 cask "hammerspoon"
