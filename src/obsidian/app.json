@@ -16,5 +16,6 @@
     "Standup",
     "Unprioritized"
   ],
-  "autoConvertHtml": false
+  "autoConvertHtml": false,
+  "promptDelete": false
 }
