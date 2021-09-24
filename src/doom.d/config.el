@@ -39,13 +39,19 @@
           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %U\n")
           :unnarrowed t)
          ("p" "project" plain  (file "~/.doom.d/roam-templates/project.org")
-          :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %U\n#+filetags: Project\n")
+          :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %U\n#+category: ${title}\n#+filetags: Project\n")
           :unnarrowed t)
         )
       org-roam-dailies-capture-templates
            ' (("d" "default" entry "* %<%H:%M>: %?"
                :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n")))
 )
+
+;;(map! :map org-mode-map "SPC n n" nil)
+(map! :leader "X" nil)
+(map! :leader "X" #'org-roam-dailies-capture-today)
+
+(map! "C-M-s-SPC" #'org-roam-dailies-goto-today)
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
