@@ -6,6 +6,10 @@
 ;; use 'M-x doom/reload'.
 
 
+(package! perfect-margin
+  :recipe (:host github :repo "mpwang/perfect-margin"))
+
+
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
 ;(package! some-package)
 
