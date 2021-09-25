@@ -58,6 +58,14 @@
 (setq display-line-numbers-type t)
 
 
+(use-package! iterm
+  :commands (iterm-send-text
+             iterm-cd)
+  )
+
+(map! "<C-s-return>" #'iterm-send-text
+      "C-s-/" #'iterm-cd)
+
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
 ;; - `load!' for loading external *.el files relative to this one

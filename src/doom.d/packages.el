@@ -9,6 +9,10 @@
 (package! perfect-margin
   :recipe (:host github :repo "mpwang/perfect-margin"))
 
+(package! iterm
+  :recipe (:host github :repo "haberdashPI/iterm.el"))
+
+
 
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
 ;(package! some-package)
