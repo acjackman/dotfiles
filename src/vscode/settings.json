@@ -97,7 +97,6 @@
   "explorer.confirmDelete": false,
   "editor.accessibilitySupport": "off",
   "workbench.editor.showTabs": false,
-  "workbench.activityBar.visible": false,
   "todo-tree.general.tags": [
     "BUG",
     "HACK",
@@ -111,9 +110,9 @@
   "peacock.showColorInStatusBar": false,
   "vim.statusBarColorControl": true,
   "workbench.colorCustomizations": {
-    "statusBar.background": "#005f5f",
-    "statusBar.noFolderBackground": "#005f5f",
-    "statusBar.debuggingBackground": "#005f5f",
+    "statusBar.background": "#5f0000",
+    "statusBar.noFolderBackground": "#5f0000",
+    "statusBar.debuggingBackground": "#5f0000",
     "activityBar.activeBackground": "#1f6fd0",
     "activityBar.activeBorder": "#ee90bb",
     "activityBar.background": "#1f6fd0",
@@ -124,8 +123,19 @@
     "titleBar.activeBackground": "#1857a4",
     "titleBar.activeForeground": "#e7e7e7",
     "titleBar.inactiveBackground": "#1857a499",
-    "titleBar.inactiveForeground": "#e7e7e799"
+    "titleBar.inactiveForeground": "#e7e7e799",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBarItem.hoverBackground": "#2f7c47"
   },
   "peacock.affectStatusBar": false,
-  "gitlens.mode.active": "zen"
+  "gitlens.mode.active": "zen",
+  "terminal.integrated.cursorStyle": "line",
+  "macros": {
+    "execCurLn": [
+      "expandLineSelection",
+      "workbench.action.terminal.runSelectedText",
+      "cancelSelection"
+    ]
+  },
+  "workbench.activityBar.visible": false
 }

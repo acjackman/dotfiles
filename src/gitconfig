@@ -12,9 +12,11 @@
     aa = "!git add $(git home)"
     ci = commit  # Commit Interactive
     cm = "commit -m"  # Commit with Message
+    cem = "commit --allow-empty -m"
     fix = "commit --amend"
     fixx = "commit --amend --no-edit"
     cfix = fixx
+    fixxa = "fixx --reset-author"
     ff = merge --ff-only
     patch = !git --no-pager diff --no-color
 
@@ -67,7 +69,7 @@
     tool = Kaleidoscope
     compactionHeuristic = true
 [user]
-    email = adam@acjackman.com
+	  email = adam@acjackman.com
     name = Adam Jackman
 [push]
     default = simple

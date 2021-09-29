@@ -307,11 +307,6 @@
     "when": "editorTextFocus && isWorkspaceTrusted && jupyter.hascodecells && !editorHasSelection && !jupyter.havenativecells && !notebookEditorFocused"
   },
   {
-    "key": "cmd+enter",
-    "command": "python.execSelectionInTerminal",
-    "when": "editorTextFocus && !findInputFocussed && !jupyter.ownsSelection && !notebookEditorFocused && !replaceInputFocussed && editorLangId == 'python'"
-  },
-  {
     "key": "shift+enter",
     "command": "-python.execSelectionInTerminal",
     "when": "editorTextFocus && !findInputFocussed && !jupyter.ownsSelection && !notebookEditorFocused && !replaceInputFocussed && editorLangId == 'python'"
@@ -453,5 +448,15 @@
   {
     "key": "cmd+k u",
     "command": "-workbench.action.closeUnmodifiedEditors"
-  }
+  },
+  {
+        "key": "ctrl+cmd+enter",
+          "command": "workbench.action.terminal.runSelectedText",
+            "when": "editorTextFocus && editorHasSelection"
+    },
+    {
+        "key": "ctrl+cmd+enter",
+          "command": "macros.execCurLn",
+            "when": "editorTextFocus && !editorHasSelection"
+    }
 ]
