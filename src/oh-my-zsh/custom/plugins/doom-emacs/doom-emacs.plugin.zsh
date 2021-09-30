@@ -1,4 +1,3 @@
-if [[ -f "$HOME/.doom.d/" ]]; then
-  export PATH="$HOME/.doom.d/bin:$PATH"
+if [[ -e "$HOME/.doom.d/" ]]; then
+  export PATH="$HOME/.emacs.d/bin:$PATH"
 fi
-
