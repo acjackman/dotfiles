@@ -1,4 +1,4 @@
-export EDITOR="/usr/local/bin/subl -n -w"
+export EDITOR="te"
 export PATH=$HOME/.local/bin:$PATH:$HOME/.bin
 export WORKON_HOME=$HOME/.virtualenvs
 export PYENV_VIRTUALENVWRAPPER_PREFER_PYVENV="true"

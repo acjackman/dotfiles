@@ -95,7 +95,7 @@ plugins=(
     kubectl
     osx
     sublime
-    emacs
+    # emacs
     doom-emacs
     pyenv
     virtualenv
