@@ -51,7 +51,10 @@
 (map! :leader "X" nil)
 (map! :leader "X" #'org-roam-dailies-capture-today)
 
-(map! "C-M-s-SPC" #'org-roam-dailies-goto-today)
+
+(map! "C-M-s-SPC" #'org-roam-dailies-goto-today
+  "<C-M-s-return>" #'org-roam-dailies-goto-today  ;; TODO: this should goto README or a root index
+  )
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
