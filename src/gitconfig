@@ -102,3 +102,6 @@
 	whitespace = red reverse
 [init]
 	defaultBranch = main
+
+# [includeIf "gitdir:~/Development/Fulcrum/"]
+# path = ~/.gitconfig-fulcrum

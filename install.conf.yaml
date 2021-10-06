@@ -19,6 +19,7 @@
     # Git
     ~/.gitconfig: src/gitconfig
     ~/.gitignore: src/gitignore
+    ~/.gitconfig-fulcrum: src/gitconfig-fulcrum
 
     # ZSH config
     ~/.zshrc:
