@@ -1,0 +1,14 @@
+#!/bin/zsh
+
+pushd ~/.dotfiles
+echo 'Updating dotfiles'
+git pull --recurse-submodules
+pushd ~
+.dotfiles/install
+popd
+popd
+
+pushd ~/brain
+echo 'Updating brain'
+git pull
+popd
