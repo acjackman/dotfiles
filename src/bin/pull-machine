@@ -5,6 +5,7 @@ echo 'Updating dotfiles'
 git pull --recurse-submodules
 pushd ~
 .dotfiles/install
+doom sync
 popd
 popd
 
