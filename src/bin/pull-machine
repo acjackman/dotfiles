@@ -2,7 +2,8 @@
 
 pushd ~/.dotfiles
 echo 'Updating dotfiles'
-git pull --recurse-submodules
+git pull
+git submodule update --init --recursive
 pushd ~
 .dotfiles/install
 doom sync
