@@ -43,13 +43,14 @@
           :unnarrowed t)
         )
       org-roam-dailies-capture-templates
-           ' (("d" "default" entry "* %<%H:%M>: %?"
-               :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n")))
-)
+           ' (("d" "default" entry "** %<%H:%M>: %?"
+                :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n")))
+  )
 
 ;;(map! :map org-mode-map "SPC n n" nil)
 (map! :leader "X" nil)
-(map! :leader "X" #'org-roam-dailies-capture-today)
+(map! :leader "x" nil)
+(map! :leader "x" #'org-roam-dailies-capture-today)
 
 
 (map! "C-M-s-SPC" #'org-roam-dailies-goto-today
