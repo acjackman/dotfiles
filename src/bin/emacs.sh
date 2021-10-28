@@ -8,7 +8,13 @@ BOLD=`tput bold`
 RESET=`tput sgr0`
 
 EMACS='/Applications/Emacs.app'
-EMACS_CLIENT='/usr/local/bin/emacsclient'
+
+if [ -f "/opt/homebrew/bin/emacsclient" ]; then
+  EMACS_CLIENT='/opt/homebrew/bin/emacsclient'
+else
+  EMACS_CLIENT='/usr/local/bin/emacsclient'
+fi
+
 
 DEFAULT_EVAL='(switch-to-buffer "*scratch*")'
 DEFAULT_ARGS="-e"

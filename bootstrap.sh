@@ -13,14 +13,6 @@ fi
 brew tap homebrew/bundle  # Install Homebrew Bundle
 brew install mas
 
-# Check if oh-my-zsh is installed
-if [ ! -d "$OMZDIR" ]; then
-  echo 'Installing oh-my-zsh'
-  /bin/sh -c "$(curl -fsSL https://raw.github.com/robbyrussell/oh-my-zsh/master/tools/install.sh)"
-else
-  echo 'oh-my-zsh already installed'
-fi
-
 # Change default shell
 if [ ! $0 = "-zsh" ]; then
   echo 'Changing default shell to zsh'
