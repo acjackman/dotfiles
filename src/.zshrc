@@ -76,7 +76,7 @@ ZSH_THEME="powerlevel10k/powerlevel10k"
 ZSH_CUSTOM="$HOME/.dotfiles/src/oh-my-zsh/custom"
 
 
-ZSH_PYENV_QUIET=true
+# ZSH_PYENV_QUIET=true
 
 # Which plugins would you like to load?
 # Standard plugins can be found in ~/.oh-my-zsh/plugins/*
@@ -133,7 +133,7 @@ source $ZSH/oh-my-zsh.sh
 # For a full list of active aliases, run `alias`.
 
 export PYENV_ROOT="$HOME/.pyenv"
-export PATH="$PYENV_ROOT/bin:$PATH"
+# export PATH="$PYENV_ROOT/bin:$PATH"
 
 
 if [[ $TERM_PROGRAM =~ ^iTerm.* ]]; then

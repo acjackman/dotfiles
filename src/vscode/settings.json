@@ -113,22 +113,25 @@
     "statusBar.background": "#5f0000",
     "statusBar.noFolderBackground": "#5f0000",
     "statusBar.debuggingBackground": "#5f0000",
-    "activityBar.activeBackground": "#1f6fd0",
-    "activityBar.activeBorder": "#ee90bb",
-    "activityBar.background": "#1f6fd0",
+    "activityBar.activeBackground": "#2f7c47",
+    "activityBar.activeBorder": "#422c74",
+    "activityBar.background": "#2f7c47",
     "activityBar.foreground": "#e7e7e7",
     "activityBar.inactiveForeground": "#e7e7e799",
-    "activityBarBadge.background": "#ee90bb",
-    "activityBarBadge.foreground": "#15202b",
-    "titleBar.activeBackground": "#1857a4",
+    "activityBarBadge.background": "#422c74",
+    "activityBarBadge.foreground": "#e7e7e7",
+    "titleBar.activeBackground": "#215732",
     "titleBar.activeForeground": "#e7e7e7",
-    "titleBar.inactiveBackground": "#1857a499",
+    "titleBar.inactiveBackground": "#21573299",
     "titleBar.inactiveForeground": "#e7e7e799",
     "statusBar.foreground": "#e7e7e7",
-    "statusBarItem.hoverBackground": "#2f7c47"
+    "statusBarItem.hoverBackground": "#2f7c47",
+    "editorGroup.border": "#2f7c47",
+    "panel.border": "#2f7c47",
+    "sash.hoverBorder": "#2f7c47",
+    "sideBar.border": "#2f7c47"
   },
   "peacock.affectStatusBar": false,
-  "gitlens.mode.active": "zen",
   "terminal.integrated.cursorStyle": "line",
   "macros": {
     "execCurLn": [
@@ -137,5 +140,8 @@
       "cancelSelection"
     ]
   },
-  "workbench.activityBar.visible": false
+  "workbench.activityBar.visible": false,
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  }
 }
