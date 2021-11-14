@@ -96,3 +96,6 @@
        (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.mypy_cache\\'")
        (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.nox\\'")
 )
+
+
+(setq calendar-week-start-day 1)
