@@ -95,7 +95,7 @@ plugins=(
     iterm2
     jira
     kubectl
-    osx
+    macos
     sublime
     # emacs
     doom-emacs
