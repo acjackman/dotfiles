@@ -61,6 +61,13 @@
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
 
+(use-package! super-save
+  :config
+  (super-save-mode +1)
+  (super-save-auto-save-when-idle t)
+)
+
+
 
 (use-package! iterm
   :commands (iterm-send-text
