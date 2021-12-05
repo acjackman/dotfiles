@@ -64,10 +64,9 @@
 (use-package! super-save
   :config
   (super-save-mode +1)
-  (super-save-auto-save-when-idle t)
 )
-
-
+(setq super-save-auto-save-when-idle t)
+(setq auto-save-default nil)
 
 (use-package! iterm
   :commands (iterm-send-text
