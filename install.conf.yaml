@@ -3,17 +3,16 @@
       create: true
       relink: true
 
-
-- clean: ['~', '~/.config']
+- clean: ["~", "~/.config"]
 
 - link:
     ~/.zshrc: src/.zshrc
 
 - shell:
-  - git submodule sync --recursive
+    - git submodule sync --recursive
 
 - create:
-  - "~/.sublime_projects"
+    - "~/.sublime_projects"
 
 - link:
     # Git
@@ -37,6 +36,7 @@
 
     # shell apps config
     ~/.ipython: src/ipython
+    ~/.myclirc: src/myclirc
 
     # Emacs
     ~/.emacs.d:
@@ -53,23 +53,23 @@
     # macOS & apps
     "~/Library/Application Support/Sublime Text 3/Packages/User": src/sublime/User
     ~/.Brewfile:
-      if: '[ `uname` = Darwin ]'
+      if: "[ `uname` = Darwin ]"
       path: src/Brewfile
     ~/.hammerspoon:
-      if: '[ `uname` = Darwin ]'
+      if: "[ `uname` = Darwin ]"
       path: src/hammerspoon
     ~/.config/karabiner:
-      if: '[ `uname` = Darwin ]'
+      if: "[ `uname` = Darwin ]"
       path: src/karabiner
     ~/Library/Application Support/qmk/qmk.ini:
-      if: '[ `uname` = Darwin ]'
+      if: "[ `uname` = Darwin ]"
       path: src/qmk.ini
     ~/Library/Application Support/Code/User/settings.json:
-      if: '[ `uname` = Darwin ]'
+      if: "[ `uname` = Darwin ]"
       path: src/vscode/settings.json
     ~/Library/Application Support/Code/User/keybindings.json:
-      if: '[ `uname` = Darwin ]'
+      if: "[ `uname` = Darwin ]"
       path: src/vscode/keybindings.json
     ~/Library/Application Support/Code/User/snippets:
-      if: '[ `uname` = Darwin ]'
+      if: "[ `uname` = Darwin ]"
       path: src/vscode/snippets
