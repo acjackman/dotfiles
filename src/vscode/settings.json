@@ -83,6 +83,8 @@
     "editor.wordBasedSuggestions": false
   },
   "editor.formatOnSave": true,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs":"active",
   "editor.minimap.maxColumn": 100,
   "workbench.editor.highlightModifiedTabs": true,
   "git.confirmSync": false,
@@ -143,6 +145,9 @@
   },
   "workbench.activityBar.visible": false,
   "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }
