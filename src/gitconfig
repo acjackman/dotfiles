@@ -74,8 +74,8 @@
 [push]
     default = simple
 [core]
-    excludesfile = ~/.gitignore
-    editor = subl -n -w
+  excludesfile = ~/.gitignore
+  editor = emacs.sh -nw
 	pager = diff-so-fancy | less --tabs=4 -RFX
 [filter "lfs"]
     required = true
