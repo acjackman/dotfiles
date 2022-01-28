@@ -204,6 +204,10 @@ function repo-setup(){
     pre-commit install
 }
 
+function headphones(){
+  SwitchAudioSource -t output -s "Adam’s AirPods Max"
+  SwitchAudioSource -t input -s "Adam’s AirPods Max"
+}
 
 
 # fd - cd to selected directory

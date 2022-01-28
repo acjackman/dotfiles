@@ -47,14 +47,28 @@
           :unnarrowed t)
         )
       org-roam-dailies-capture-templates
-           ' (("d" "default" entry "** %<%H:%M>: %?"
-                :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n")))
+        '(("d" "default" entry "** %<%H:%M>: %?"
+           :heading "Log"
+           :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n" ("Log")))
+        )
   )
 
 ;;(map! :map org-mode-map "SPC n n" nil)
 (map! :leader "X" nil)
 (map! :leader "x" nil)
 (map! :leader "x" #'org-roam-dailies-capture-today)
+
+
+;; Capture immediate (Source: https://systemcrafters.net/build-a-second-brain-in-emacs/5-org-roam-hacks/#fast-note-insertion-for-a-smoother-writing-flow)
+(defun org-roam-node-insert-immediate (arg &rest args)
+  (interactive "P")
+  (let ((args (cons arg args))
+        (org-roam-capture-templates (list (append (car org-roam-capture-templates)
+                                                  '(:immediate-finish t)))))
+    (apply #'org-roam-node-insert args)))
+
+(map! :leader "n r I" #'org-roam-node-insert-immediate)
+
 
 
 (map! "C-M-s-SPC" #'org-roam-dailies-goto-today

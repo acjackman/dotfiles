@@ -83,6 +83,8 @@
     "editor.wordBasedSuggestions": false
   },
   "editor.formatOnSave": true,
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs":"active",
   "editor.minimap.maxColumn": 100,
   "workbench.editor.highlightModifiedTabs": true,
   "git.confirmSync": false,
@@ -111,9 +113,9 @@
   "peacock.showColorInStatusBar": false,
   "vim.statusBarColorControl": true,
   "workbench.colorCustomizations": {
-    "statusBar.background": "#005f5f",
-    "statusBar.noFolderBackground": "#005f5f",
-    "statusBar.debuggingBackground": "#005f5f",
+    "statusBar.background": "#5f0000",
+    "statusBar.noFolderBackground": "#5f0000",
+    "statusBar.debuggingBackground": "#5f0000",
     "activityBar.activeBackground": "#2f7c47",
     "activityBar.activeBorder": "#422c74",
     "activityBar.background": "#2f7c47",
@@ -143,6 +145,9 @@
   },
   "workbench.activityBar.visible": false,
   "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   }
 }

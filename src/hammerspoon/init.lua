@@ -1,12 +1,15 @@
+-- Easy access variables:
+hostname = hs.host.localizedName()
+
+
 -- Disable hide
 hs.hotkey.bind("cmd", 'H', function() end)
 
--- -- A global variable for the Hyper Mode
+-- A global variable for the Hyper Mode
 k = hs.hotkey.modal.new({}, "F18")
 
 
 -- Old Application
-
 old_hyper = {
   'a', -- Zoom Global Mute Shortcut
   'SPACE', -- OmniFocus Quick Capture
@@ -188,10 +191,10 @@ k:bind({}, '[', nil, rotate_screen_counterclockwise)
 
 
 
-hs.loadSpoon("MuteLight")
-spoon.MuteLight:start("Jabra Link 380", false)
+-- hs.loadSpoon("MuteLight")
+-- spoon.MuteLight:start("Jabra Link 380", false)
 
-k:bind({}, 'm', nil, function() k.triggered = true; spoon.MuteLight:togglLight() end)
+-- k:bind({}, 'm', nil, function() k.triggered = true; spoon.MuteLight:togglLight() end)
 
 -- Enter Hyper Mode when F19 (Hyper/Capslock) is pressed
 pressedF19 = function()
@@ -250,7 +253,7 @@ usbWatcher:start()
 hs.loadSpoon("ReloadConfiguration")
 spoon.ReloadConfiguration:start()
 
-if (hs.host.localizedName() == "Frey") then
+if (hostname == "Frey") then
   hs.loadSpoon("WheelOfSeasons")
   spoon.WheelOfSeasons:start(
     os.getenv("HOME") .. "/Dropbox/Apps/WheelOfSeasons/",
@@ -258,7 +261,7 @@ if (hs.host.localizedName() == "Frey") then
     true
   )
 end
-if (hs.host.localizedName() == "Njord") then
+if (hostname == "Njord" or hostname == "Jormungandr") then
   hs.loadSpoon("WheelOfSeasons")
   spoon.WheelOfSeasons:start(
     os.getenv("HOME") .. "/Dropbox/Reference/Desktops/FunWallpapers/",

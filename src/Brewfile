@@ -83,7 +83,7 @@ cask "soulver"
 #cask "logitech-camera-settings"
 #cask "logitech-options"
 mas "TextSniper", id: 1528890965
-
+brew "switchaudio-osx"
 
 # Fonts
 cask "font-fira-code-nerd-font"
