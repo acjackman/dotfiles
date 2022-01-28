@@ -37,6 +37,10 @@
        '(("d" "default" plain
           "%?"
           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %U\n")
+           :unnarrowed t)
+         ("o" "obsidian" plain
+          "%?"
+          :if-new (file+head "%^{ObsidianId}-${slug}.org" "#+title: ${title}\n#+obsidianid: %{ObsidianId}\n#+created: %^{Created}\n")
           :unnarrowed t)
          ("p" "project" plain  (file "~/.doom.d/roam-templates/project.org")
           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %U\n#+category: ${title}\n#+filetags: Project\n")
