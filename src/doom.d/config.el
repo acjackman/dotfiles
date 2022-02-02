@@ -49,7 +49,7 @@
       org-roam-dailies-capture-templates
         '(("d" "default" entry "** %<%H:%M>: %?"
            :heading "Log"
-           :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n" ("Log")))
+           :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n" ("Log")))
         )
   )
 
