@@ -94,6 +94,40 @@
 (map! "<C-s-return>" #'iterm-send-text
       "C-s-/" #'iterm-cd)
 
+
+;; https://www.eigenbahn.com/2021/09/15/org-roam#fn:4
+;; (defun prf/org/file-path-org-p (f)
+;;   "Return t if file path F corresponds to an org file."
+;;   (let ((cleaned-f (s-chop-suffixes '("gpg" "bak") f)))
+;;     (equal (f-ext cleaned-f) "org")))
+
+;; (defvar prf/org/index-file-exclude-regexp "\\.gpg\\'")
+
+;; (defun prf/org/file-path-indexable-p (f)
+;;   "Return t if file path F corresponds to an indexable org file."
+;;   (and (prf/org/file-path-org-p f)
+;;        (f-descendant-of? f org-roam-directory)
+;;     (not (string-match-p prf/org/index-file-exclude-regexp f))
+;;   )
+;; )
+
+;; (defun prf/org-roam/rescan ()
+;;   "Force rescan of whole `prf/dir/notes'."
+;;   (interactive)
+;;   (prf/org/index-rescan-all)
+;;   (org-roam-db-sync))
+
+;; (defun prf/org/index-rescan-all ()
+;;   "Populate `org-id-locations' by rescaning recursively all files in `prf/dir/notes'."
+;;   (interactive)
+;;   (let ((buffs-snapshot (buffer-list)))
+;;     (org-id-update-id-locations
+;;     (f-files org-roam-directory #'prf/org/file-path-indexable-p t))
+;;     ;; NB: `org-id-update-id-locations' opens all matching files, we close them after processing
+;;     (mapc #'kill-buffer
+;;       (-difference (buffer-list) buffs-snapshot))))
+
+
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
 ;; - `load!' for loading external *.el files relative to this one
