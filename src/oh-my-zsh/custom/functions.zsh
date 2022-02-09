@@ -189,6 +189,9 @@ function pylv() {
       && pyenv local $ENV_NAME \
       && pip install --upgrade pip \
       && pip install ipython importmagic epc
+    if [[ -f "pyproject.toml" ]]; then
+      poetry install
+    fi
 }
 
 function pydel() {
