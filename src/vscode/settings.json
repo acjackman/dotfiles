@@ -14,7 +14,6 @@
   "editor.minimap.enabled": false,
   "terminal.integrated.fontSize": 16,
   "terminal.integrated.scrollback": 10000,
-  "peacock.vslsShareColor": "#215732",
   "terminal.integrated.allowChords": false,
   "notebook.cellToolbarLocation": {
     "default": "right",
@@ -84,12 +83,11 @@
   },
   "editor.formatOnSave": true,
   "editor.bracketPairColorization.enabled": true,
-  "editor.guides.bracketPairs":"active",
+  "editor.guides.bracketPairs": "active",
   "editor.minimap.maxColumn": 100,
   "workbench.editor.highlightModifiedTabs": true,
   "git.confirmSync": false,
   "workspaceExplorer.workspaceStorageDirectory": "${env:HOME}/Development/",
-  "peacock.vslsJoinColor": "#215732",
   "workbench.preferredDarkColorTheme": "Visual Studio Dark",
   "workbench.iconTheme": "material-icon-theme",
   "workbench.colorTheme": "Atom One Dark",
@@ -113,9 +111,9 @@
   "peacock.showColorInStatusBar": false,
   "vim.statusBarColorControl": true,
   "workbench.colorCustomizations": {
-    "statusBar.background": "#5f0000",
-    "statusBar.noFolderBackground": "#5f0000",
-    "statusBar.debuggingBackground": "#5f0000",
+    "statusBar.background": "#005f5f",
+    "statusBar.noFolderBackground": "#005f5f",
+    "statusBar.debuggingBackground": "#005f5f",
     "activityBar.activeBackground": "#2f7c47",
     "activityBar.activeBorder": "#422c74",
     "activityBar.background": "#2f7c47",
@@ -143,11 +141,24 @@
       "cancelSelection"
     ]
   },
-  "workbench.activityBar.visible": false,
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
-  }
+  },
+  "workbench.activityBar.visible": false,
+  "cSpell.customDictionaries": {
+    "custom-dictionary-user": {
+      "name": "custom-dictionary-user",
+      "path": "~/.cspell/custom-dictionary-user.txt",
+      "addWords": true,
+      "scope": "user"
+    }
+  },
+  "python.testing.pytestEnabled": true,
+  "python.terminal.activateEnvironment": false,
+  "settingsSync.ignoredSettings": [
+    "-python.linting.flake8Path"
+  ]
 }

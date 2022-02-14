@@ -202,7 +202,7 @@
     "when": "terminalFindFocused && terminalProcessSupported || terminalFocus && terminalProcessSupported"
   },
   {
-    "key": "shift+cmd+g",
+    "key": "ctrl+shift+cmd+g",
     "command": "workbench.view.scm",
     "when": "workbench.scm.active"
   },
@@ -212,7 +212,7 @@
     "when": "workbench.scm.active"
   },
   {
-    "key": "shift+cmd+g",
+    "key": "ctrl+shift+cmd+g",
     "command": "workbench.view.scm",
     "when": "workbench.scm.active && !gitlens:disabled && config.gitlens.keymap == 'chorded'"
   },
@@ -458,5 +458,9 @@
         "key": "ctrl+cmd+enter",
           "command": "macros.execCurLn",
             "when": "editorTextFocus && !editorHasSelection"
+    },
+    {
+      "key": "shift+cmd+g",
+      "command": "workbench.view.extension.gitlab-workflow"
     }
 ]

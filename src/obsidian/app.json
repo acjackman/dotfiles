@@ -17,5 +17,7 @@
     "Unprioritized"
   ],
   "autoConvertHtml": false,
-  "promptDelete": false
+  "promptDelete": false,
+  "legacyEditor": false,
+  "livePreview": true
 }
