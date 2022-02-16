@@ -8,7 +8,12 @@ fi
 # If you come from bash you might have to change your $PATH.
 # export PATH=$HOME/bin:/usr/local/bin:$PATH
 
-export PATH="/opt/homebrew/bin:$PATH"
+if [[ ":$PATH:" == *":/opt/homebrew/bin:"* ]]; then
+  #already has Homebrew
+else
+  export PATH="/opt/homebrew/bin:${PATH}"
+fi
+
 
 # Path to your oh-my-zsh installation.
 export ZSH="$HOME/.oh-my-zsh"
