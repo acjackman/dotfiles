@@ -1,3 +1,6 @@
+#+title: ${title}
+#+created: %Y-%m-%dT%H:%M:%S%z
+#+filetags: :Project:
 * Goals
 
 %?

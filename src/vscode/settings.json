@@ -22,9 +22,7 @@
   "editor.autoIndent": "brackets",
   "editor.inlineSuggest.enabled": true,
   "editor.suggest.localityBonus": true,
-  "editor.rulers": [
-    88,
-  ],
+  "editor.rulers": [88],
   "explorer.autoReveal": false,
   "redhat.telemetry.enabled": false,
   "gitlens.codeLens.enabled": false,
@@ -73,9 +71,7 @@
   "markdown.preview.fontSize": 16,
   "markdown.preview.lineHeight": 1.4,
   "[python]": {
-    "gitlens.codeLens.symbolScopes": [
-      "!Module"
-    ],
+    "gitlens.codeLens.symbolScopes": ["!Module"],
     // "editor.codeActionsOnSave": {
     //     "source.organizeImports": true
     // },
@@ -114,22 +110,22 @@
     "statusBar.background": "#005f5f",
     "statusBar.noFolderBackground": "#005f5f",
     "statusBar.debuggingBackground": "#005f5f",
-    "activityBar.activeBackground": "#2f7c47",
-    "activityBar.activeBorder": "#422c74",
-    "activityBar.background": "#2f7c47",
-    "activityBar.foreground": "#e7e7e7",
-    "activityBar.inactiveForeground": "#e7e7e799",
-    "activityBarBadge.background": "#422c74",
-    "activityBarBadge.foreground": "#e7e7e7",
-    "titleBar.activeBackground": "#215732",
+    "activityBar.activeBackground": "#ff6433",
+    "activityBar.activeBorder": "#00ff3d",
+    "activityBar.background": "#ff6433",
+    "activityBar.foreground": "#15202b",
+    "activityBar.inactiveForeground": "#15202b99",
+    "activityBarBadge.background": "#00ff3d",
+    "activityBarBadge.foreground": "#15202b",
+    "titleBar.activeBackground": "#ff3d00",
     "titleBar.activeForeground": "#e7e7e7",
-    "titleBar.inactiveBackground": "#21573299",
+    "titleBar.inactiveBackground": "#ff3d0099",
     "titleBar.inactiveForeground": "#e7e7e799",
     "statusBar.foreground": "#e7e7e7",
     "statusBarItem.hoverBackground": "#2f7c47",
     "editorGroup.border": "#2f7c47",
     "panel.border": "#2f7c47",
-    "sash.hoverBorder": "#2f7c47",
+    "sash.hoverBorder": "#ff6433",
     "sideBar.border": "#2f7c47"
   },
   "peacock.affectStatusBar": false,
@@ -158,7 +154,5 @@
   },
   "python.testing.pytestEnabled": true,
   "python.terminal.activateEnvironment": false,
-  "settingsSync.ignoredSettings": [
-    "-python.linting.flake8Path"
-  ]
+  "settingsSync.ignoredSettings": ["-python.linting.flake8Path"]
 }

@@ -1,0 +1,7 @@
+#+title: ${title}
+#+created: %Y-%m-%dT%H:%M:%S%z
+*Author:* %?
+
+* Recomendations
+* My Library
+* Reading Sessions

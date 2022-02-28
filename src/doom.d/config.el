@@ -44,6 +44,9 @@
           :unnarrowed t)
          ("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
           :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "")
+           :unnarrowed t)
+         ("b" "book" plain (file "~/.doom.d/roam-templates/book.org")
+          :if-new (file+head "resource/book/%<%Y%m%d%H%M%S>-${slug}.org" "")
           :unnarrowed t)
         )
       org-roam-dailies-capture-templates
