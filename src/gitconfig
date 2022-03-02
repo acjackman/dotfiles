@@ -103,7 +103,11 @@
 [init]
 	defaultBranch = main
 
-# [includeIf "gitdir:~/Development/Fulcrum/"]
-# path = ~/.gitconfig-fulcrum
+[includeIf "gitdir:~/Development/Fulcrum/"]
+  path = ~/.gitconfig-fulcrum
+
+[includeIf "gitdir:~/dev/Fulcrum/"]
+  path = ~/.gitconfig-fulcrum
+
 [hub]
 	protocol = ssh
