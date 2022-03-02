@@ -120,6 +120,26 @@ function export_sso_creds() (
 # eval "$(export_sso_creds $AWS_PROFILE)"
 
 
+
+function export-aws-assume-role() (
+  ROLE_ARN=${1}
+  PROFILE=${2}
+  REGION=${3:-us-east-1}
+
+  AWS_COMMAND=${AWS_COMMAND:-/usr/local/bin/aws}
+
+  # $AWS_COMMAND configure list-profiles
+  SESSION_NAME="$PROFILE-$(date -u +'%Y%m%dT%H%M%S')"
+
+  JSON=$($AWS_COMMAND --profile=$PROFILE --region=$REGION sts assume-role --role-arn $ROLE_ARN --role-session-name=$SESSION_NAME  --query Credentials --output json)
+
+  echo $JSON | jq -r '"export AWS_ACCESS_KEY_ID=" + .AccessKeyId'
+  echo $JSON | jq -r '"export AWS_SECRET_ACCESS_KEY=" + .SecretAccessKey'
+  echo $JSON | jq -r '"export AWS_SESSION_TOKEN=" + .SessionToken'
+
+)
+# eval "$(export-aws-assume-role $AWS_PROFILE)"
+
 function okta_aws() (
   # Usage: okta_aws c-networking
 

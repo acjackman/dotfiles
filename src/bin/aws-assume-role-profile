@@ -1,0 +1,26 @@
+# set -e -o pipefail # stop if any command fails
+
+ROLE_ARN=${1}
+PROFILE=${2}
+AS_PROFILE=${3}
+REGION=${4:-us-east-1}
+
+AWS_COMMAND=${AWS_COMMAND:-/usr/local/bin/aws}
+
+$AWS_COMMAND configure list-profiles
+SESSION_NAME="$PROFILE-$(date -u +'%Y%m%dT%H%M%S')"
+echo "Using '$PROFILE' to assume role '$ROLE_ARN' @ '$SESSION_NAME' under '$AS_PROFILE'"
+JSON=$($AWS_COMMAND --profile=$PROFILE --region=$REGION sts assume-role --role-arn $ROLE_ARN --role-session-name=$SESSION_NAME  --output json)
+
+AWS_ACCESS_KEY_ID=$(echo ${JSON} | jq --raw-output ".Credentials[\"AccessKeyId\"]")
+AWS_SECRET_ACCESS_KEY=$(echo ${JSON} | jq --raw-output ".Credentials[\"SecretAccessKey\"]")
+AWS_SESSION_TOKEN=$(echo ${JSON} | jq --raw-output ".Credentials[\"SessionToken\"]")
+
+mkdir -p ~/.aws
+cat >> ~/.aws/config <<EOF
+[profile ${AS_PROFILE}]
+aws_access_key_id = ${AWS_ACCESS_KEY_ID}
+aws_secret_access_key = ${AWS_SECRET_ACCESS_KEY}
+aws_session_token = ${AWS_SESSION_TOKEN}
+aws_default_region = ${REGION}
+EOF
