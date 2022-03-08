@@ -14,6 +14,7 @@
   :recipe (:host github :repo "haberdashPI/iterm.el"))
 
 
+(package! dirvish)
 
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
 ;(package! some-package)

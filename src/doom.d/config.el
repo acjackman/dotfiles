@@ -160,3 +160,8 @@
 
 
 (setq calendar-week-start-day 1)
+
+(use-package! dirvish
+  :config
+  ;; (dirvish-override-dired-mode 1)
+)
