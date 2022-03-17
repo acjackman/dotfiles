@@ -1,19 +1,102 @@
 -- Easy access variables:
 hostname = hs.host.localizedName()
 
+control     = {"ctrl"}
+option      = {"option"}
+hyper       = {"cmd","alt","ctrl"}
+shift_hyper = {"cmd","alt","ctrl","shift"}
+ctrl_cmd    = {"cmd","ctrl"}
 
 -- Disable hide
 hs.hotkey.bind("cmd", 'H', function() end)
 
+--
+ hs.loadSpoon("RecursiveBinder")
+
+launch_app = function(name)
+  return function()
+    hs.application.launchOrFocus(name)
+  end
+end
+
+global_binding = function(modifier, character)
+  return function()
+    hs.eventtap.keyStroke(modifier, character)
+  end
+end
+
+app_binding = function(modifiers, character, app)
+  return function()
+    local app = hs.application.get(app)
+    hs.eventtap.keyStroke(modifier, character, app)
+  end
+end
+
+rotate_screen_clockwise = function()
+  screen = hs.screen.mainScreen()
+  current_rotation = screen:rotate()
+  new_rotation = (current_rotation + 90) % 360
+  screen:rotate(new_rotation)
+  k.triggered = true
+end
+
+rotate_screen_counterclockwise = function()
+  screen = hs.screen.mainScreen()
+  current_rotation = screen:rotate()
+  new_rotation = (current_rotation + 270) % 360
+  screen:rotate(new_rotation)
+  k.triggered = true
+end
+
+
+-- spoon.RecursiveBinder.escapeKey = {{}, 'escape'}  -- Press escape to abort
+local singleKey = spoon.RecursiveBinder.singleKey
+local amethyst = hs.application.get("com.amethyst.Amethyst")
+
+print(amethyst:name())
+print(amethyst:bundleID())
+local keyMap = {
+  [singleKey('o', 'open')] = {
+    [singleKey('o', 'omnifocus')] = launch_app("OmniFocus"),
+    [singleKey('s', 'slack')] = launch_app("Slack"),
+    [singleKey('d', 'drafts')] = launch_app("Drafts"),
+    [singleKey('f', 'finder')] = launch_app("Finder"),
+    [singleKey('=', 'calc')] = launch_app("Soulver 3"),
+    [singleKey('t', 'terminal')] = launch_app("iTerm"),
+    [singleKey('b', 'browser')] = launch_app("Safari")
+  },
+  [singleKey('w', 'window+')] = {
+    [singleKey('f', 'focus')] = {
+      [singleKey('1', 'screen-1')] = global_binding({"shift", "alt"}, "1"),
+      [singleKey('2', 'screen-2')] = global_binding({"shift", "alt"}, "2"),
+      [singleKey('3', 'screen-3')] = global_binding({"shift", "alt"}, "3"),
+      [singleKey('4', 'screen-4')] = global_binding({"shift", "alt"}, "4")
+    },
+    [singleKey('l', 'layout+')] = {
+      [singleKey('d', 'default')] = global_binding({"shift", "alt"}, "a"),
+      [singleKey('w', 'wide')] = global_binding({"shift", "alt"}, "s"),
+      [singleKey('f', 'fullscreen')] = global_binding({"shift", "alt"}, "d"),
+      [singleKey('c', 'column')] = global_binding({"shift", "alt"}, "f"),
+      [singleKey('r', 'rows')] = global_binding({"shift", "alt"}, "g")
+    }
+  },
+  [singleKey('r', 'rotate-screen')] = {
+    [singleKey('[', "left")] = rotate_screen_counterclockwise,
+    [singleKey(']', "right")] = rotate_screen_clockwise
+
+  }
+}
+
+hs.hotkey.bind({'ctrl'}, 'space', spoon.RecursiveBinder.recursiveBind(keyMap))
+
 -- A global variable for the Hyper Mode
 k = hs.hotkey.modal.new({}, "F18")
-
 
 -- Old Application
 old_hyper = {
   'a', -- Zoom Global Mute Shortcut
   'SPACE', -- OmniFocus Quick Capture
-  'c', -- Fantastical Keyboard Shortcutvh
+  'c', -- Fantastical Keyboard Shortcut
   'i', -- iTerm interactive
   'z', -- Alfred Clipboard
   'k', -- Keyboard Maestro
@@ -44,30 +127,6 @@ alt_hyper = {
 for i,key in ipairs(alt_hyper) do
   k:bind({}, key, nil, function() k.triggered = true hs.eventtap.keyStroke({"cmd","shift","ctrl"}, key) end)
 end
-
--- Reimplement new notes file
-new_inx = function()
-  hs.execute('/usr/local/bin/subl -n "~/Notes/$(date +\'%Y%m%d%H%M%S\').md"', false)
-  k.triggered = true
-end
-k:bind({}, '\\', nil, new_inx)
-
--- Daily Log file
-daily_file = function()
-  hs.execute('/usr/local/bin/subl -n "~/Notes/$(date +\'%Y%m%d060000\').md"', false)
-  k.triggered = true
-end
-k:bind({}, '-', nil, daily_file)
--- Daily Log file
-
-weekly_plan = function()
-  local now = os.date("*t")
-  local plan_date = os.date("%Y%m%d", os.time(now) - ((now.wday + 5) % 7) * 86400)
-  local command = string.format('/usr/local/bin/subl -n "~/Notes/%s050000.md"', plan_date)
-  hs.execute(command, false)
-  k.triggered = true
-end
-k:bind({}, '0', nil, weekly_plan)
 
 -- iTunes controls
 function playpause()
@@ -142,54 +201,6 @@ else
   k:bind({}, "e", function() launch('Emacs'); end)
 end
 
--- -- Sequential keybindings, e.g. Hyper-a,f for Finder
--- a = hs.hotkey.modal.new({}, "F16")
--- apps = {
---   {'a', 'Messages'},
---   {'z', 'zoom.us'},
---   {'e', 'Boxy for Gmail'}
--- }
--- for i, app in ipairs(apps) do
---   a:bind({}, app[1], function() launch(app[2]); a:exit(); k.triggered = true; end)
--- end
--- a:bind({}, 'm', nil, function() hs.eventtap.keyStroke({"cmd","alt","shift","ctrl"}, 'm') end) -- New Email with Kiwi
-
--- pressedA = function() a:enter() end
--- releasedA = function() end
--- k:bind({}, 'a', nil, pressedA, releasedA)
-
-
--- Shortcut to reload config
--- pfun = function()t
---   hs.reload()
---   hs.alert.show("Config loaded")
---   k.triggered = true
--- end
--- k:bind({}, '=', nil, pfun)
-
--- Rotate secondary displays
-
-rotate_screen_clockwise = function()
-  screen = hs.screen.mainScreen()
-  current_rotation = screen:rotate()
-  new_rotation = (current_rotation + 90) % 360
-  screen:rotate(new_rotation)
-  k.triggered = true
-end
-
-rotate_screen_counterclockwise = function()
-  screen = hs.screen.mainScreen()
-  current_rotation = screen:rotate()
-  new_rotation = (current_rotation + 270) % 360
-  screen:rotate(new_rotation)
-  k.triggered = true
-end
-
-k:bind({}, ']', nil, rotate_screen_clockwise)
-k:bind({}, '[', nil, rotate_screen_counterclockwise)
-
-
-
 
 -- hs.loadSpoon("MuteLight")
 -- spoon.MuteLight:start("Jabra Link 380", false)
@@ -214,25 +225,6 @@ end
 
 -- Bind the Hyper key
 f19 = hs.hotkey.bind({}, 'F19', pressedF19, releasedF19)
-
-
--- for i, direction in ipairs(directions) do
---   hs.hotkey.bind({"ctrl", "alt"}, direction, function()
---     local win = hs.window.focusedWindow()
-
---     if direction == "Left" then
---       win:moveOneScreenWest(false, true, 0)
---     elseif direction == "Right" then
---       win:moveOneScreenEast(false, true, 0)
---     elseif direction == "Up" then
---       win:moveOneScreenNorth(false, true, 0)
---     elseif direction == "Down" then
---       win:moveOneScreenSouth(false, true, 0)
---     end
---   end)
--- end
-
-
 
 -- Launch and quit ScanSnap Manager
 -- usbWatcher = nil
