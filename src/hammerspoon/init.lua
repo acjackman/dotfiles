@@ -87,6 +87,18 @@ local keyMap = {
   }
 }
 
+spoon.RecursiveBinder.helperFormat = {
+    -- atScreenEdge = 2,  -- Bottom edge (default value)
+    strokeColor =  { white = 0, alpha = 0 },
+    textStyle = {  -- An hs.styledtext object
+        font = {
+            name = "Fira Code",
+            size = 18
+        }
+    }
+}
+
+
 hs.hotkey.bind({'ctrl'}, 'space', spoon.RecursiveBinder.recursiveBind(keyMap))
 
 -- A global variable for the Hyper Mode
