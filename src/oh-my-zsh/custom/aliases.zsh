@@ -45,6 +45,7 @@ alias yaml2json="yq eval --tojson"
 
 
 # Navigation
+alias sd="pushd"
 alias pd="popd"
 
 ## Moving up
@@ -56,5 +57,6 @@ alias .....="cd ../../../.. && clear && ls"
 
 ## Shortcuts to common directories
 alias dbox="pushd ~/Dropbox && clear && ls"
-alias notes="pushd ~/Notes && clear && ls -1 | tail -r | grep -v -E '(media|^Z.*|Notes & Settings|.*csv$)' | head -10 && echo '...'"
+alias notes="pushd ~/brain && clear && ls -1 | tail -r | grep -v -E '(media|^Z.*|Notes & Settings|.*csv$)' | head -10 && echo '...'"
 alias dev="pushd ~/Development && clear && echo */ | sed 's:/::g' "
+alias dwn="pushd ~/Downloads && clear && ls"
