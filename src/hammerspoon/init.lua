@@ -1,14 +1,30 @@
+-- hammerspoon console script
+-- require("hs.ipc")
+-- hs.ipc.cliInstall("/usr/local")
+
 -- Easy access variables:
 hostname = hs.host.localizedName()
 
 control     = {"ctrl"}
 option      = {"option"}
+meh         = {"alt", "ctrl", "shift"}
 hyper       = {"cmd","alt","ctrl"}
 shift_hyper = {"cmd","alt","ctrl","shift"}
 ctrl_cmd    = {"cmd","ctrl"}
 
 -- Disable hide
 hs.hotkey.bind("cmd", 'H', function() end)
+
+
+
+--
+hs.console.darkMode(true)
+if hs.console.darkMode() then
+  hs.console.outputBackgroundColor{ white = 0 }
+  hs.console.consolePrintColor({green = 1})
+  hs.console.consoleCommandColor{ white = 1 }
+  hs.console.alpha(1)
+end
 
 --
  hs.loadSpoon("RecursiveBinder")
@@ -32,6 +48,12 @@ app_binding = function(modifiers, character, app)
   end
 end
 
+run_shell = function(cmd)
+  return function()
+    hs.execute(cmd, true)
+  end
+end
+
 rotate_screen_clockwise = function()
   screen = hs.screen.mainScreen()
   current_rotation = screen:rotate()
@@ -49,12 +71,9 @@ rotate_screen_counterclockwise = function()
 end
 
 
+
 -- spoon.RecursiveBinder.escapeKey = {{}, 'escape'}  -- Press escape to abort
 local singleKey = spoon.RecursiveBinder.singleKey
-local amethyst = hs.application.get("com.amethyst.Amethyst")
-
-print(amethyst:name())
-print(amethyst:bundleID())
 local keyMap = {
   [singleKey('o', 'open')] = {
     [singleKey('o', 'omnifocus')] = launch_app("OmniFocus"),
@@ -66,19 +85,30 @@ local keyMap = {
     [singleKey('b', 'browser')] = launch_app("Safari")
   },
   [singleKey('w', 'window+')] = {
+    [singleKey('b', 'balance')] = run_shell("yabai -m space --balance"),
     [singleKey('f', 'focus')] = {
-      [singleKey('1', 'screen-1')] = global_binding({"shift", "alt"}, "1"),
-      [singleKey('2', 'screen-2')] = global_binding({"shift", "alt"}, "2"),
-      [singleKey('3', 'screen-3')] = global_binding({"shift", "alt"}, "3"),
-      [singleKey('4', 'screen-4')] = global_binding({"shift", "alt"}, "4")
+      [singleKey('1', 'screen-1')] = run_shell("yabai -m display --focus 1"),
+      [singleKey('2', 'screen-2')] = run_shell("yabai -m display --focus 2"),
+      [singleKey('3', 'screen-3')] = run_shell("yabai -m display --focus 3"),
+      [singleKey('4', 'screen-4')] = run_shell("yabai -m display --focus 4"),
+      [singleKey('h', 'west')] = run_shell("yabai -m display --focus west"),
+      [singleKey('j', 'south')] = run_shell("yabai -m display --focus south"),
+      [singleKey('k', 'north')] = run_shell("yabai -m display --focus north"),
+      [singleKey('l', 'east')] = run_shell("yabai -m display --focus east"),
     },
-    [singleKey('l', 'layout+')] = {
-      [singleKey('d', 'default')] = global_binding({"shift", "alt"}, "a"),
-      [singleKey('w', 'wide')] = global_binding({"shift", "alt"}, "s"),
-      [singleKey('f', 'fullscreen')] = global_binding({"shift", "alt"}, "d"),
-      [singleKey('c', 'column')] = global_binding({"shift", "alt"}, "f"),
-      [singleKey('r', 'rows')] = global_binding({"shift", "alt"}, "g")
-    }
+    [singleKey('m', 'move')] = {
+      [singleKey('1', 'screen-1')] = run_shell("yabai -m window --display 1"),
+      [singleKey('2', 'screen-2')] = run_shell("yabai -m window --display 2"),
+      [singleKey('3', 'screen-3')] = run_shell("yabai -m window --display 3"),
+      [singleKey('4', 'screen-4')] = run_shell("yabai -m window --display 4"),
+      [singleKey('m', 'first')] = run_shell("yabai -m window --swap first"),
+      [singleKey('n', 'last')] = run_shell("yabai -m window --swap last"),
+      [singleKey('h', 'west')] = run_shell("yabai -m window --swap west"),
+      [singleKey('j', 'south')] = run_shell("yabai -m window --swap south"),
+      [singleKey('k', 'north')] = run_shell("yabai -m window --swap north"),
+      [singleKey('l', 'east')] = run_shell("yabai -m window --swap east"),
+    },
+    [singleKey('n', 'new')] = run_shell("yabai -m space --create"),
   },
   [singleKey('r', 'rotate-screen')] = {
     [singleKey('[', "left")] = rotate_screen_counterclockwise,
@@ -273,3 +303,11 @@ if (hostname == "Njord" or hostname == "Jormungandr") then
     true
   )
 end
+
+
+function yabaiRestarter()
+  -- hs.notify.show("HS-> Yabai", "", "restarting yabai")
+  hs.execute("noti brew services restart yabai", true)
+end
+
+yabaiWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.config/yabai/", yabaiRestarter):start()

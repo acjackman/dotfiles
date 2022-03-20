@@ -55,6 +55,10 @@
     ~/.Brewfile:
       if: "[ `uname` = Darwin ]"
       path: src/Brewfile
+    ~/.config/yabai:
+      if: "[ `uname` = Darwin ]"
+      path: src/yabai
+      force: true
     ~/.hammerspoon:
       if: "[ `uname` = Darwin ]"
       path: src/hammerspoon
