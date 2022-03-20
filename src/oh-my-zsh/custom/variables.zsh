@@ -1,4 +1,4 @@
-export EDITOR="te"
+# export EDITOR="te"
 export PATH=$HOME/.local/bin:$PATH:$HOME/.bin
 
 export WORKON_HOME=$HOME/.virtualenvs
