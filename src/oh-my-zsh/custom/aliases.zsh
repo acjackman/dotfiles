@@ -17,6 +17,9 @@ alias pwhich="pyenv which"
 alias aws2='/usr/local/bin/aws'
 alias aws-cli=aws2
 
+
+alias opl="eval $(op signin)"
+
 # Actions
 alias o=open
 alias gitsweep="git branch --merged | egrep -v '(^\*|master|dev.*|stg|prod|develop|release/.*)' | xargs git branch -d && git remote | xargs git remote prune && echo 'Branches Remaining: ' && git --no-pager branch | head -n 20"

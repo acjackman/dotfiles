@@ -52,6 +52,7 @@ cask "omnifocus"
 cask "textexpander"
 cask "dropbox"
 cask "1password"
+cask "1password-cli"
 cask "fantastical"
 # cask "mimestream"  # TODO: Make cask of MIMEStream
 
