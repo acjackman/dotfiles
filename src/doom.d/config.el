@@ -163,5 +163,5 @@
 
 (use-package! dirvish
   :config
-  ;; (dirvish-override-dired-mode 1)
+  (dirvish-override-dired-mode 1)
 )
