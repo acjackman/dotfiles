@@ -34,25 +34,23 @@
       org-roam-dailies-directory "journal/"
       +org-roam-open-buffer-on-find-file nil
       org-roam-capture-templates
-       '(("d" "default" plain
-          "%?"
-          :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %U\n")
+       '(("d" "default" plain "%?"
+          :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
-         ("o" "obsidian" plain
-          "%?"
-          :if-new (file+head "%^{ObsidianId}-${slug}.org" "#+title: ${title}\n#+obsidianid: %{ObsidianId}\n#+created: %^{Created}\n")
+         ("o" "obsidian" plain "%?"
+          :target (file+head "%^{ObsidianId}-${slug}.org" "${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
           :unnarrowed t)
          ("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
-          :if-new (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "")
+          :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
            :unnarrowed t)
          ("b" "book" plain (file "~/.doom.d/roam-templates/book.org")
-          :if-new (file+head "resource/book/%<%Y%m%d%H%M%S>-${slug}.org" "")
+          :target (file+head "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
           :unnarrowed t)
         )
       org-roam-dailies-capture-templates
         '(("d" "default" entry "** %<%H:%M>: %?"
            :heading "Log"
-           :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n" ("Log")))
+           :if-new (file+head+olp "%<%Y-%m-%d>.org" "%<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n" ("Log")))
         )
   )
 
