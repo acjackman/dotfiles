@@ -453,6 +453,19 @@ sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator (
 # defaults write com.apple.dock wvous-bl-modifier -int 0
 
 ###############################################################################
+# Window Restore                                                              #
+###############################################################################
+
+# Prevent applications from being restored on reboot. Speeds up booting from crashes
+# https://apple.stackexchange.com/a/322787
+
+# clear the file if it isn't empty
+find ~/Library/Preferences/ByHost/ -name 'com.apple.loginwindow*' ! -size 0 -exec tee {} \; < /dev/null
+# set the user immutable flag
+find ~/Library/Preferences/ByHost/ -name 'com.apple.loginwindow*' -exec chflags uimmutable {} \;
+
+
+###############################################################################
 # Safari & WebKit                                                             #
 ###############################################################################
 
