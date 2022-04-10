@@ -47,9 +47,17 @@
            :target (file+head "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
            :unnarrowed t)
          ("s" "Book Series" plain "%?"
-          :target (file+head "r/book-series/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
-          :unnarrowed t)
-
+           :target (file+head "r/book-series/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :unnarrowed t)
+         ("g" "Video Game" plain "%?"
+           :target (file+head "r/video-game/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :unnarrowed t)
+         ("t" "TV Show" plain "%?"
+           :target (file+head "r/tv-show/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :unnarrowed t)
+         ("m" "Movie" plain "%?"
+           :target (file+head "r/movie/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :unnarrowed t)
         )
       org-roam-dailies-capture-templates
         '(("d" "default" entry "** %<%H:%M>: %?"
