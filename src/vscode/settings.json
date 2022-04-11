@@ -1,7 +1,7 @@
 {
   "python.linting.pylintEnabled": false,
   "python.linting.flake8Enabled": true,
-  "python.linting.flake8Path": "flake8helled",
+  "python.linting.flake8Path": "/Users/acjackman/.pyenv/shims/flake8helled",
   "python.linting.enabled": true,
   "python.linting.lintOnSave": true,
   "python.formatting.provider": "black",
@@ -104,12 +104,12 @@
     "[x]"
   ],
   "todo-tree.regex.regex": "(//|#|<!--|;|/\\*|^|^\\s*(-|\\d+.))\\s*($TAGS)",
-  "peacock.showColorInStatusBar": false,
-  "vim.statusBarColorControl": true,
+  "peacock.showColorInStatusBar": true,
+  "vim.statusBarColorControl": false,
   "workbench.colorCustomizations": {
-    "statusBar.background": "#005f5f",
-    "statusBar.noFolderBackground": "#005f5f",
-    "statusBar.debuggingBackground": "#005f5f",
+    "statusBar.background": "#5f0000",
+    "statusBar.noFolderBackground": "#5f0000",
+    "statusBar.debuggingBackground": "#5f0000",
     "activityBar.activeBackground": "#ab307e",
     "activityBar.activeBorder": "#25320e",
     "activityBar.background": "#ab307e",
@@ -128,7 +128,6 @@
     "sash.hoverBorder": "#ab307e",
     "sideBar.border": "#2f7c47"
   },
-  "peacock.affectStatusBar": false,
   "terminal.integrated.cursorStyle": "line",
   "macros": {
     "execCurLn": [
@@ -154,7 +153,15 @@
   },
   "python.testing.pytestEnabled": true,
   "python.terminal.activateEnvironment": false,
-  "settingsSync.ignoredSettings": [
-    "-python.linting.flake8Path"
-  ]
+  "settingsSync.ignoredSettings": ["-python.linting.flake8Path"],
+  "vim.overrideCopy": true,
+  "vim.useSystemClipboard": true,
+  "vim.history": 500,
+  "vim.camelCaseMotion.enable": true,
+  "vim.sneak": true,
+  "peacock.vslsJoinColor": "#215732",
+  "peacock.affectEditorGroupBorder": true,
+  "peacock.affectSideBarBorder": true,
+  "peacock.affectStatusAndTitleBorders": true,
+  "peacock.affectPanelBorder": true
 }

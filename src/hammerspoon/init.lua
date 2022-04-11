@@ -86,6 +86,10 @@ local keyMap = {
   },
   [singleKey('w', 'window+')] = {
     [singleKey('b', 'balance')] = run_shell("yabai -m space --balance"),
+    [singleKey(',', 'main+1')] = global_binding({"shift", "alt"}, ","),
+    [singleKey('.', 'main-1')] = global_binding({"shift", "alt"}, "."),
+    [singleKey('h', 'main+1')] = global_binding({"shift", "alt"}, ","),
+    [singleKey('l', 'main-1')] = global_binding({"shift", "alt"}, "."),
     [singleKey('f', 'focus')] = {
       [singleKey('1', 'screen-1')] = run_shell("yabai -m display --focus 1"),
       [singleKey('2', 'screen-2')] = run_shell("yabai -m display --focus 2"),
@@ -122,7 +126,7 @@ spoon.RecursiveBinder.helperFormat = {
     strokeColor =  { white = 0, alpha = 0 },
     textStyle = {  -- An hs.styledtext object
         font = {
-            name = "Fira Code",
+            name = "JetBrainsMono Nerd Font",
             size = 18
         }
     }
