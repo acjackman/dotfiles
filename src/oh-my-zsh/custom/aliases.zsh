@@ -18,7 +18,7 @@ alias aws2='/usr/local/bin/aws'
 alias aws-cli=aws2
 
 
-alias opl="eval $(op signin)"
+alias opl='eval $(op signin)'
 
 # Actions
 alias o=open
