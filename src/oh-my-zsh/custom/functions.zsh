@@ -198,12 +198,15 @@ function oktap_aws() (
 
 
 function pylv() {
+    # zparseopts -D -E -A opts -clean:
+
     DIRNAME=${PWD##*/}
     LATEST_PY=$(pyenv versions --bare --skip-aliases | sed '/\//d' | sort --version-sort | tail -1)
     PY_VERSION=${1:-$LATEST_PY}
     # DEFAULT_NAME=$DIRNAME$(echo $PY_VERSION | sed -E 's/([0-9]+).([0-9]+).([0-9]+)/\1.\2/')
     DEFAULT_NAME=$DIRNAME
     ENV_NAME=${2:-$DEFAULT_NAME}
+
 
     echo "pyenv virtualenv $PY_VERSION $ENV_NAME && pyenv local $ENV_NAME"
     pyenv virtualenv $PY_VERSION $ENV_NAME \
@@ -212,10 +215,10 @@ function pylv() {
     echo "pyenv virtualenv $PY_VERSION $ENV_NAME && pyenv local $ENV_NAME"
     $(pyenv which python) -m pip install --upgrade pip \
       && $(pyenv which python) -m pip install ipython importmagic epc
-    if [[ -f "pyproject.toml" ]]; then
-      echo "poetry install"
-      poetry install
-    fi
+    # if [[ -f "pyproject.toml" ]]; then
+    #   echo "poetry install"
+    #   poetry install
+    # fi
 }
 
 function pydel() {
