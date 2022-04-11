@@ -7,6 +7,7 @@ export PROJECT_HOME=$HOME/Development
 export AWS_PAGER=""
 
 export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_NO_ENV_HINTS=1
 
 export PYENV_VIRTUALENVWRAPPER_PREFER_PYVENV="true"
 export COOKIECUTTER_CONFIG=$HOME/.dotfiles/src/.cookiecutter.yaml
