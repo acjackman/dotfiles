@@ -66,6 +66,7 @@
         )
   )
 
+
 ;;(map! :map org-mode-map "SPC n n" nil)
 (map! :leader "X" nil)
 (map! :leader "x" nil)
@@ -81,6 +82,70 @@
     (apply #'org-roam-node-insert args)))
 
 (map! :leader "n r I" #'org-roam-node-insert-immediate)
+
+
+
+;; (defun my/org-roam-project-finalize-hook ()
+;;   "Adds the captured project file to `org-agenda-files' if the
+;; capture was not aborted."
+;;   ;; Remove the hook since it was added temporarily
+;;   (remove-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
+
+;;   ;; Add project file to the agenda list if the capture was confirmed
+;;   (unless org-note-abort
+;;     (with-current-buffer (org-capture-get :buffer)
+;;       (add-to-list 'org-agenda-files (buffer-file-name)))))
+
+
+;; From https://systemcrafters.net/build-a-second-brain-in-emacs/5-org-roam-hacks/
+(defun my/org-roam-filter-by-tag (tag-name)
+  (lambda (node)
+    (member tag-name (org-roam-node-tags node))))
+
+(defun my/org-roam-list-notes-by-tag (tag-name)
+  (mapcar #'org-roam-node-file
+          (seq-filter
+           (my/org-roam-filter-by-tag tag-name)
+           (org-roam-node-list))))
+
+(defun my/org-roam-find-role ()
+  (interactive)
+
+  ;; Select a project file to open, creating it if necessary
+  (org-roam-node-find
+   nil
+   nil
+   (my/org-roam-filter-by-tag "Role")
+   :templates
+   '(("d" "default" plain "%?"
+           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :unnarrowed t))))
+
+(add-to-list 'org-tags-exclude-from-inheritance "Project")
+
+(defun my/org-roam-find-project ()
+  (interactive)
+  ;; Add the project file to the agenda after capture is finished
+  ;; (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
+
+  ;; Select a project file to open, creating it if necessary
+  (org-roam-node-find
+   nil
+   nil
+   (my/org-roam-filter-by-tag "Project") ;; TODO: filter by only nodes at the top of a file
+   :templates
+   '(("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
+           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
+           :unnarrowed t))))
+
+
+(map! :leader
+       (:prefix-map ("n r SPC" . "Find node type")
+        :desc "Role" "r" #'my/org-roam-find-role
+        :desc "Project" "p" #'my/org-roam-find-project))
+
+
+
 
 
 
