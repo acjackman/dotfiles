@@ -38,34 +38,36 @@
            :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
          ("o" "obsidian" plain "%?"
-           :target (file+head "%^{ObsidianId}-${slug}.org" "${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
+           :target (file+head "%^{ObsidianId}-${slug}.org" "#+title: ${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
            :unnarrowed t)
          ("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
+           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
            :unnarrowed t)
          ("b" "book" plain (file "~/.doom.d/roam-templates/book.org")
-           :target (file+head "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
+           :target (file+head "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
            :unnarrowed t)
          ("s" "Book Series" plain "%?"
-           :target (file+head "r/book-series/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "r/book-series/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
          ("g" "Video Game" plain "%?"
-           :target (file+head "r/video-game/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "r/video-game/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
          ("t" "TV Show" plain "%?"
-           :target (file+head "r/tv-show/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "r/tv-show/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
          ("m" "Movie" plain "%?"
-           :target (file+head "r/movie/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "r/movie/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
         )
       org-roam-dailies-capture-templates
         '(("d" "default" entry "** %<%H:%M>: %?"
            :heading "Log"
-           :if-new (file+head+olp "%<%Y-%m-%d>.org" "%<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n" ("Log")))
+           :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n" ("Log")))
         )
   )
 
+;; Disalbe org mode tag inheritance for better org-roam compatability
+(setq! org-use-tag-inheritance nil)
 
 ;;(map! :map org-mode-map "SPC n n" nil)
 (map! :leader "X" nil)
@@ -102,6 +104,12 @@
   (lambda (node)
     (member tag-name (org-roam-node-tags node))))
 
+(defun my/org-roam-filter-by-missing-tag (tag-name)
+  (lambda (node)
+    (-not (member tag-name (org-roam-node-tags node)))))
+
+
+
 (defun my/org-roam-list-notes-by-tag (tag-name)
   (mapcar #'org-roam-node-file
           (seq-filter
@@ -118,10 +126,8 @@
    (my/org-roam-filter-by-tag "Role")
    :templates
    '(("d" "default" plain "%?"
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t))))
-
-(add-to-list 'org-tags-exclude-from-inheritance "Project")
 
 (defun my/org-roam-find-project ()
   (interactive)
