@@ -37,6 +37,7 @@ alias pyv-major='[[ -z "$(git status --porcelain)" ]] && poetry version major &&
 alias pyv-minor='[[ -z "$(git status --porcelain)" ]] && poetry version minor && git add pyproject.toml && git commit -m "bump minor version to $(pyv)"'
 alias pyv-patch='[[ -z "$(git status --porcelain)" ]] && poetry version patch && git add pyproject.toml && git commit -m "bump patch version to $(pyv)"'
 alias pysu='pyenv shell --unset'
+alias pypv='python -m pip index versions'
 
 # Utilities
 alias count_unique='cut -f 1 | sort | uniq -c'

@@ -69,10 +69,8 @@
 ;; Disalbe org mode tag inheritance for better org-roam compatability
 (setq! org-use-tag-inheritance nil)
 
-;;(map! :map org-mode-map "SPC n n" nil)
-(map! :leader "X" nil)
-(map! :leader "x" nil)
-(map! :leader "x" #'org-roam-dailies-capture-today)
+;; Log an item to daily file
+(map! :leader "l" #'org-roam-dailies-capture-today)
 
 
 ;; Capture immediate (Source: https://systemcrafters.net/build-a-second-brain-in-emacs/5-org-roam-hacks/#fast-note-insertion-for-a-smoother-writing-flow)
