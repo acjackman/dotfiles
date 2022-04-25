@@ -91,14 +91,10 @@ local keyMap = {
     [singleKey('h', 'main+1')] = global_binding({"shift", "alt"}, ","),
     [singleKey('l', 'main-1')] = global_binding({"shift", "alt"}, "."),
     [singleKey('f', 'focus')] = {
-      [singleKey('1', 'screen-1')] = run_shell("yabai -m display --focus 1"),
-      [singleKey('2', 'screen-2')] = run_shell("yabai -m display --focus 2"),
-      [singleKey('3', 'screen-3')] = run_shell("yabai -m display --focus 3"),
-      [singleKey('4', 'screen-4')] = run_shell("yabai -m display --focus 4"),
-      [singleKey('h', 'west')] = run_shell("yabai -m display --focus west"),
-      [singleKey('j', 'south')] = run_shell("yabai -m display --focus south"),
-      [singleKey('k', 'north')] = run_shell("yabai -m display --focus north"),
-      [singleKey('l', 'east')] = run_shell("yabai -m display --focus east"),
+      [singleKey('h', 'west')] = run_shell("yabai -m window --focus west"),
+      [singleKey('j', 'south')] = run_shell("yabai -m window --focus south"),
+      [singleKey('k', 'north')] = run_shell("yabai -m window --focus north"),
+      [singleKey('l', 'east')] = run_shell("yabai -m window --focus east"),
     },
     [singleKey('m', 'move')] = {
       [singleKey('1', 'screen-1')] = run_shell("yabai -m window --display 1"),
@@ -114,10 +110,22 @@ local keyMap = {
     },
     [singleKey('n', 'new')] = run_shell("yabai -m space --create"),
   },
-  [singleKey('r', 'rotate-screen')] = {
-    [singleKey('[', "left")] = rotate_screen_counterclockwise,
-    [singleKey(']', "right")] = rotate_screen_clockwise
+  [singleKey('s', 'screen')] = {
+    [singleKey('f', 'focus')] = {
+      [singleKey('1', 'screen-1')] = run_shell("yabai -m display --focus 1"),
+      [singleKey('2', 'screen-2')] = run_shell("yabai -m display --focus 2"),
+      [singleKey('3', 'screen-3')] = run_shell("yabai -m display --focus 3"),
+      [singleKey('4', 'screen-4')] = run_shell("yabai -m display --focus 4"),
+      [singleKey('h', 'west')] = run_shell("yabai -m display --focus west"),
+      [singleKey('j', 'south')] = run_shell("yabai -m display --focus south"),
+      [singleKey('k', 'north')] = run_shell("yabai -m display --focus north"),
+      [singleKey('l', 'east')] = run_shell("yabai -m display --focus east"),
+    },
+    [singleKey('r', 'rotate-screen')] = {
+      [singleKey('[', "left")] = rotate_screen_counterclockwise,
+      [singleKey(']', "right")] = rotate_screen_clockwise
 
+    }
   }
 }
 

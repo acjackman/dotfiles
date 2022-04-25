@@ -139,7 +139,7 @@
   (org-roam-node-find
    nil
    nil
-   (my/org-roam-filter-by-tag "Project") ;; TODO: filter by only nodes at the top of a file
+   (my/org-roam-filter-by-tag "Project")
    :templates
    '(("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
            :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
