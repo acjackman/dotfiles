@@ -14,3 +14,5 @@ src/ipython/*/security
 src/ipython/*/history.sqlite
 src/karabiner/automatic_backups/*
 .vscode
+
+**dask-worker-space/
