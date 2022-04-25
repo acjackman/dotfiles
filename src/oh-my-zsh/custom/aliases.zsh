@@ -5,6 +5,7 @@ alias hconfig="editor_new ~/.hammerspoon ~/.hammerspoon/init.lua"
 alias zshconfig="editor_new ~/.dotfiles/src/oh-my-zsh/custom ~/.dotfiles/src/bin ~/.zshrc ~/.zshrc_local"
 alias dotfiles="editor_new ~/.dotfiles"
 alias awsconfig="editor_new ~/.aws ~/.aws/config"
+alias enw="emacs -nw"
 alias te="emacs.sh -nw"
 alias e="emacs.sh"
 
