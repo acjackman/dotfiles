@@ -1,2 +1,5 @@
 [user]
   email = adam@fulcrumlabs.ai
+
+[alias]
+  cmr = '!commit-mr() { git commit -m "$2"; flgl mr create $1 --title="$2"}; commit-mr'
