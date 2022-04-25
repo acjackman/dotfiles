@@ -1,5 +1,5 @@
 # Fig pre block. Keep at the top of this file.
-if [[ -r "$HOME/.fig/shell/zshrc.pre.zsh" ]]; then
+if [[ -f "$HOME/.fig/shell/zshrc.pre.zsh" ]]; then
   . "$HOME/.fig/shell/zshrc.pre.zsh"
 fi
 # Enable Powerlevel10k instant prompt. Should stay close to the top of ~/.zshrc.
@@ -161,4 +161,6 @@ setopt nosharehistory
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
 
 # Fig post block. Keep at the bottom of this file.
-. "$HOME/.fig/shell/zshrc.post.zsh"
+if [[ -f "$HOME/.fig/shell/zshrc.post.zsh" ]]; then
+  . "$HOME/.fig/shell/zshrc.post.zsh"
+fi
