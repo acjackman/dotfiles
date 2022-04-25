@@ -70,7 +70,10 @@
 (setq! org-use-tag-inheritance nil)
 
 ;; Log an item to daily file
-(map! :leader "l" #'org-roam-dailies-capture-today)
+(map! :leader
+      (:prefix-map ("l" . "Log")
+        :desc "Daily Log" "l" #'org-roam-dailies-capture-today)
+)
 
 
 ;; Capture immediate (Source: https://systemcrafters.net/build-a-second-brain-in-emacs/5-org-roam-hacks/#fast-note-insertion-for-a-smoother-writing-flow)
