@@ -2,4 +2,4 @@
   email = adam@fulcrumlabs.ai
 
 [alias]
-  cmr = '!commit-mr() { git commit -m "$2"; flgl mr create $1 --title="$2"}; commit-mr'
+  cmr = "!commitmr() { git commit -m \"$2\" && g publish && flgl mr create $1 --title=\"$2\" ;}; commitmr"

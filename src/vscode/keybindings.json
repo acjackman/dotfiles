@@ -462,5 +462,19 @@
     {
       "key": "shift+cmd+g",
       "command": "workbench.view.extension.gitlab-workflow"
+    },
+    {
+      "key": "shift+alt+cmd+r",
+      "command": "revealFileInOS",
+      "when": "!editorFocus"
+    },
+    {
+      "key": "alt+cmd+r",
+      "command": "-revealFileInOS",
+      "when": "!editorFocus"
+    },
+    {
+      "key": "alt+cmd+r",
+      "command": "workbench.files.action.showActiveFileInExplorer"
     }
 ]
