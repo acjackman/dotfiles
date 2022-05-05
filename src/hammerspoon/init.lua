@@ -72,6 +72,8 @@ end
 
 
 
+
+
 -- spoon.RecursiveBinder.escapeKey = {{}, 'escape'}  -- Press escape to abort
 local singleKey = spoon.RecursiveBinder.singleKey
 local keyMap = {
@@ -123,8 +125,11 @@ local keyMap = {
     },
     [singleKey('r', 'rotate-screen')] = {
       [singleKey('[', "left")] = rotate_screen_counterclockwise,
-      [singleKey(']', "right")] = rotate_screen_clockwise
-
+      [singleKey(']', "right")] = rotate_screen_clockwise,
+      [singleKey('0', "0°")] = function() screen:rotate(0) end,
+      [singleKey('1', "90°")] = function() screen:rotate(90) end,
+      [singleKey('2', "180°")] = function() screen:rotate(180) end,
+      [singleKey('3', "270°")] = function() screen:rotate(270) end,
     }
   }
 }
