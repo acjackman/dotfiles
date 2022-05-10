@@ -130,6 +130,19 @@
            :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t))))
 
+(defun my/org-roam-find-question ()
+  (interactive)
+
+  ;; Select a project file to open, creating it if necessary
+  (org-roam-node-find
+   nil
+   nil
+   (my/org-roam-filter-by-tag "Question")
+   :templates
+   '(("d" "default" plain "%?"
+           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :unnarrowed t))))
+
 (defun my/org-roam-find-project ()
   (interactive)
   ;; Add the project file to the agenda after capture is finished
@@ -142,13 +155,15 @@
    (my/org-roam-filter-by-tag "Project")
    :templates
    '(("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
+           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+${title}")
            :unnarrowed t))))
 
 
 (map! :leader
-       (:prefix-map ("n r SPC" . "Find node type")
+       (:prefix-map ("N" . "Find node type")
+        :desc "Node" "N" #'org-roam-node-find
         :desc "Role" "r" #'my/org-roam-find-role
+        :desc "Question" "q" #'my/org-roam-find-question
         :desc "Project" "p" #'my/org-roam-find-project))
 
 
