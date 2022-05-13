@@ -88,10 +88,11 @@ local keyMap = {
   },
   [singleKey('w', 'window+')] = {
     [singleKey('b', 'balance')] = run_shell("yabai -m space --balance"),
-    [singleKey(',', 'main+1')] = global_binding({"shift", "alt"}, ","),
-    [singleKey('.', 'main-1')] = global_binding({"shift", "alt"}, "."),
-    [singleKey('h', 'main+1')] = global_binding({"shift", "alt"}, ","),
-    [singleKey('l', 'main-1')] = global_binding({"shift", "alt"}, "."),
+    -- [singleKey(',', 'main+1')] = global_binding({"shift", "alt"}, ","),
+    -- [singleKey('.', 'main-1')] = global_binding({"shift", "alt"}, "."),
+    -- [singleKey('h', 'main+1')] = global_binding({"shift", "alt"}, ","),
+    -- [singleKey('l', 'main-1')] = global_binding({"shift", "alt"}, "."),
+    [singleKey('l', 'float')] = run_shell("yabai -m window --toggle float"),
     [singleKey('f', 'focus')] = {
       [singleKey('h', 'west')] = run_shell("yabai -m window --focus west"),
       [singleKey('j', 'south')] = run_shell("yabai -m window --focus south"),

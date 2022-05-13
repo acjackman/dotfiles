@@ -13,6 +13,8 @@
 (package! iterm
   :recipe (:host github :repo "haberdashPI/iterm.el"))
 
+(package! elpher)
+
 
 ;(package! dirvish)
 

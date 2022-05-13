@@ -262,3 +262,6 @@
 ;;  :config
 ;;  (dirvish-override-dired-mode 1)
 ;;)
+
+
+(use-package! elpher)

@@ -91,6 +91,7 @@ ZSH_CUSTOM="$HOME/.dotfiles/src/oh-my-zsh/custom"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
+    atuin
     zsh-vi-mode
     aws
     colorize
@@ -164,3 +165,5 @@ setopt nosharehistory
 if [[ -f "$HOME/.fig/shell/zshrc.post.zsh" ]]; then
   . "$HOME/.fig/shell/zshrc.post.zsh"
 fi
+
+eval "$(atuin init zsh)"
