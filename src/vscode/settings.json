@@ -162,5 +162,6 @@
   "peacock.affectEditorGroupBorder": true,
   "peacock.affectSideBarBorder": true,
   "peacock.affectStatusAndTitleBorders": true,
-  "peacock.affectPanelBorder": true
+  "peacock.affectPanelBorder": true,
+  "workbench.startupEditor": "none"
 }
