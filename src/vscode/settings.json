@@ -164,4 +164,7 @@
   "peacock.affectStatusAndTitleBorders": true,
   "peacock.affectPanelBorder": true,
   "workbench.startupEditor": "none"
+  "workbench.activityBar.visible": false,
+  "workbench.startupEditor": "none"
 }
+>>>>>>> ce93b05 (2022-05-28T19:58:38-0600)
