@@ -1,37 +1,27 @@
 {
-  "python.linting.pylintEnabled": false,
-  "python.linting.flake8Enabled": true,
-  "python.linting.flake8Path": "/Users/acjackman/.pyenv/shims/flake8helled",
-  "python.linting.enabled": true,
-  "python.linting.lintOnSave": true,
-  "python.formatting.provider": "black",
-  "editor.fontFamily": "'JetBrainsMono Nerd Font Mono','FiraCode Nerd Font Mono','Hack Nerd font Mono','JetBrains Mono', 'Fira Code', 'Hack', Menlo, Monaco, 'Courier New', monospace",
-  "editor.fontSize": 16,
-  "editor.fontLigatures": true,
-  "workbench.editorAssociations": {
-    "*.ipynb": "jupyter-notebook"
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
-  "editor.minimap.enabled": false,
-  "terminal.integrated.fontSize": 16,
-  "terminal.integrated.scrollback": 10000,
-  "terminal.integrated.allowChords": false,
-  "notebook.cellToolbarLocation": {
-    "default": "right",
-    "jupyter-notebook": "left"
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": true
+    },
+    "editor.wordBasedSuggestions": false,
+    "gitlens.codeLens.symbolScopes": [
+      "!Module"
+    ]
   },
-  "editor.autoIndent": "brackets",
-  "editor.inlineSuggest.enabled": true,
-  "editor.suggest.localityBonus": true,
-  "editor.rulers": [88],
-  "explorer.autoReveal": false,
-  "redhat.telemetry.enabled": false,
-  "gitlens.codeLens.enabled": false,
-  "gitlens.defaultDateFormat": "YYYY-MM-DD HH:mm",
-  "gitlens.defaultDateShortFormat": "YYYY-MM-DD",
-  "gitlens.defaultTimeFormat": "HH:mm",
-  "python.sortImports.path": "isort",
-  "python.terminal.activateEnvInCurrentTerminal": true,
-  "python.analysis.completeFunctionParens": true,
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "cSpell.customDictionaries": {
+    "custom-dictionary-user": {
+      "addWords": true,
+      "name": "custom-dictionary-user",
+      "path": "~/.cspell/custom-dictionary-user.txt",
+      "scope": "user"
+    }
+  },
   "cSpell.userWords": [
     "acjackman",
     "ajackman",
@@ -66,34 +56,71 @@
     "venv",
     "virtualenv"
   ],
-  "scm.countBadge": "focused",
-  "scm.inputFontSize": 15,
+  "editor.accessibilitySupport": "off",
+  "editor.autoIndent": "brackets",
+  "editor.bracketPairColorization.enabled": true,
+  "editor.fontFamily": "'JetBrainsMono Nerd Font Mono','FiraCode Nerd Font Mono','Hack Nerd font Mono','JetBrains Mono', 'Fira Code', 'Hack', Menlo, Monaco, 'Courier New', monospace",
+  "editor.fontLigatures": true,
+  "editor.fontSize": 16,
+  "editor.formatOnSave": true,
+  "editor.guides.bracketPairs": "active",
+  "editor.inlineSuggest.enabled": true,
+  "editor.minimap.enabled": false,
+  "editor.minimap.maxColumn": 100,
+  "editor.rulers": [
+    88
+  ],
+  "editor.suggest.localityBonus": true,
+  "explorer.autoReveal": false,
+  "explorer.confirmDelete": false,
+  "git.confirmSync": false,
+  "gitlens.codeLens.enabled": false,
+  "gitlens.defaultDateFormat": "YYYY-MM-DD HH:mm",
+  "gitlens.defaultDateShortFormat": "YYYY-MM-DD",
+  "gitlens.defaultTimeFormat": "HH:mm",
+  "liveshare.connectionMode": "relay",
+  "macros": {
+    "execCurLn": [
+      "expandLineSelection",
+      "workbench.action.terminal.runSelectedText",
+      "cancelSelection"
+    ]
+  },
   "markdown.preview.fontSize": 16,
   "markdown.preview.lineHeight": 1.4,
-  "[python]": {
-    "gitlens.codeLens.symbolScopes": ["!Module"],
-    // "editor.codeActionsOnSave": {
-    //     "source.organizeImports": true
-    // },
-    "editor.wordBasedSuggestions": false
+  "notebook.cellToolbarLocation": {
+    "default": "right",
+    "jupyter-notebook": "left"
   },
-  "editor.formatOnSave": true,
-  "editor.bracketPairColorization.enabled": true,
-  "editor.guides.bracketPairs": "active",
-  "editor.minimap.maxColumn": 100,
-  "workbench.editor.highlightModifiedTabs": true,
-  "git.confirmSync": false,
-  "workspaceExplorer.workspaceStorageDirectory": "${env:HOME}/Development/",
-  "workbench.preferredDarkColorTheme": "Visual Studio Dark",
-  "workbench.iconTheme": "material-icon-theme",
-  "workbench.colorTheme": "Atom One Dark",
+  "peacock.affectEditorGroupBorder": true,
+  "peacock.affectPanelBorder": true,
+  "peacock.affectSideBarBorder": true,
+  "peacock.affectStatusAndTitleBorders": true,
+  "peacock.showColorInStatusBar": true,
+  "peacock.vslsJoinColor": "#215732",
+  "python.analysis.completeFunctionParens": true,
+  "python.formatting.provider": "black",
+  "python.linting.enabled": true,
+  "python.linting.flake8Enabled": true,
+  "python.linting.flake8Path": "/Users/acjackman/.pyenv/shims/flake8helled",
+  "python.linting.lintOnSave": true,
+  "python.linting.pylintEnabled": false,
+  "python.sortImports.path": "isort",
+  "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.terminal.activateEnvironment": false,
+  "python.testing.pytestEnabled": true,
+  "redhat.telemetry.enabled": false,
+  "scm.countBadge": "focused",
+  "scm.inputFontSize": 15,
   "security.workspace.trust.banner": "always",
-  "liveshare.connectionMode": "relay",
   "security.workspace.trust.untrustedFiles": "open",
-  "vsicons.dontShowNewVersionMessage": true,
-  "explorer.confirmDelete": false,
-  "editor.accessibilitySupport": "off",
-  "workbench.editor.showTabs": false,
+  "settingsSync.ignoredSettings": [
+    "-python.linting.flake8Path"
+  ],
+  "terminal.integrated.allowChords": false,
+  "terminal.integrated.cursorStyle": "line",
+  "terminal.integrated.fontSize": 16,
+  "terminal.integrated.scrollback": 10000,
   "todo-tree.general.tags": [
     "BUG",
     "HACK",
@@ -104,12 +131,15 @@
     "[x]"
   ],
   "todo-tree.regex.regex": "(//|#|<!--|;|/\\*|^|^\\s*(-|\\d+.))\\s*($TAGS)",
-  "peacock.showColorInStatusBar": true,
+  "vim.camelCaseMotion.enable": true,
+  "vim.history": 500,
+  "vim.overrideCopy": true,
+  "vim.sneak": true,
   "vim.statusBarColorControl": false,
+  "vim.useSystemClipboard": true,
+  "vsicons.dontShowNewVersionMessage": true,
+  "workbench.activityBar.visible": false,
   "workbench.colorCustomizations": {
-    "statusBar.background": "#5f0000",
-    "statusBar.noFolderBackground": "#5f0000",
-    "statusBar.debuggingBackground": "#5f0000",
     "activityBar.activeBackground": "#ab307e",
     "activityBar.activeBorder": "#25320e",
     "activityBar.background": "#ab307e",
@@ -117,54 +147,28 @@
     "activityBar.inactiveForeground": "#e7e7e799",
     "activityBarBadge.background": "#25320e",
     "activityBarBadge.foreground": "#e7e7e7",
-    "titleBar.activeBackground": "#832561",
-    "titleBar.activeForeground": "#e7e7e7",
-    "titleBar.inactiveBackground": "#83256199",
-    "titleBar.inactiveForeground": "#e7e7e799",
-    "statusBar.foreground": "#e7e7e7",
-    "statusBarItem.hoverBackground": "#2f7c47",
     "editorGroup.border": "#2f7c47",
     "panel.border": "#2f7c47",
     "sash.hoverBorder": "#ab307e",
-    "sideBar.border": "#2f7c47"
+    "sideBar.border": "#2f7c47",
+    "statusBar.background": "#5f0000",
+    "statusBar.debuggingBackground": "#5f0000",
+    "statusBar.foreground": "#e7e7e7",
+    "statusBar.noFolderBackground": "#5f0000",
+    "statusBarItem.hoverBackground": "#2f7c47",
+    "titleBar.activeBackground": "#832561",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#83256199",
+    "titleBar.inactiveForeground": "#e7e7e799"
   },
-  "terminal.integrated.cursorStyle": "line",
-  "macros": {
-    "execCurLn": [
-      "expandLineSelection",
-      "workbench.action.terminal.runSelectedText",
-      "cancelSelection"
-    ]
+  "workbench.colorTheme": "Atom One Dark",
+  "workbench.editor.highlightModifiedTabs": true,
+  "workbench.editor.showTabs": false,
+  "workbench.editorAssociations": {
+    "*.ipynb": "jupyter-notebook"
   },
-  "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "[yaml]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
-  },
-  "cSpell.customDictionaries": {
-    "custom-dictionary-user": {
-      "name": "custom-dictionary-user",
-      "path": "~/.cspell/custom-dictionary-user.txt",
-      "addWords": true,
-      "scope": "user"
-    }
-  },
-  "python.testing.pytestEnabled": true,
-  "python.terminal.activateEnvironment": false,
-  "settingsSync.ignoredSettings": ["-python.linting.flake8Path"],
-  "vim.overrideCopy": true,
-  "vim.useSystemClipboard": true,
-  "vim.history": 500,
-  "vim.camelCaseMotion.enable": true,
-  "vim.sneak": true,
-  "peacock.vslsJoinColor": "#215732",
-  "peacock.affectEditorGroupBorder": true,
-  "peacock.affectSideBarBorder": true,
-  "peacock.affectStatusAndTitleBorders": true,
-  "peacock.affectPanelBorder": true,
-  "workbench.startupEditor": "none"
-  "workbench.activityBar.visible": false,
-  "workbench.startupEditor": "none"
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.preferredDarkColorTheme": "Visual Studio Dark",
+  "workbench.startupEditor": "none",
+  "workspaceExplorer.workspaceStorageDirectory": "${env:HOME}/Development/"
 }
->>>>>>> ce93b05 (2022-05-28T19:58:38-0600)
