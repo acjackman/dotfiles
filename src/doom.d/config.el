@@ -44,20 +44,8 @@
          ("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
            :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
            :unnarrowed t)
-         ("b" "book" plain (file "~/.doom.d/roam-templates/book.org")
-           :target (file+head "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
-           :unnarrowed t)
          ("s" "Book Series" plain "%?"
            :target (file+head "r/book-series/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-           :unnarrowed t)
-         ("g" "Video Game" plain "%?"
-           :target (file+head "r/video-game/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-           :unnarrowed t)
-         ("t" "TV Show" plain "%?"
-           :target (file+head "r/tv-show/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-           :unnarrowed t)
-         ("m" "Movie" plain "%?"
-           :target (file+head "r/movie/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t))
 
       org-roam-dailies-capture-templates
@@ -142,7 +130,6 @@
 
 (defun my/org-roam-find-r-book ()
   (interactive)
-
   (org-roam-node-find
    nil
    nil
@@ -153,7 +140,47 @@
      :target (file+head "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
      :unnarrowed t)))
 
+(defun my/org-roam-find-r-movie ()
+  (interactive)
+  (org-roam-node-find
+   nil
+   nil
+   (my/org-roam-filter-by-folder (concat (expand-file-name org-roam-directory) "r/movie/"))
+   ;; (my/org-roam-filter-by-tag "book")
+   :templates
+   '("m" "Movie" plain "%?"
+      :target (file+head "r/movie/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+      :unnarrowed t
+         ("g" "Video Game" plain "%?"
+           :target (file+head "r/video-game/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :unnarrowed t)
+         ("t" "TV Show" plain "%?"
+           :target (file+head "r/tv-show/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :unnarrowed t))))
 
+(defun my/org-roam-find-r-tv-show ()
+  (interactive)
+  (org-roam-node-find
+   nil
+   nil
+   (my/org-roam-filter-by-folder (concat (expand-file-name org-roam-directory) "r/tv-show/"))
+   ;; (my/org-roam-filter-by-tag "book")
+   :templates
+   '("t" "TV Show" plain "%?"
+      :target (file+head "r/tv-show/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+      :unnarrowed t)))
+
+(defun my/org-roam-find-r-video-game ()
+  (interactive)
+  (org-roam-node-find
+   nil
+   nil
+   (my/org-roam-filter-by-folder (concat (expand-file-name org-roam-directory) "r/video-game/"))
+   ;; (my/org-roam-filter-by-tag "book")
+   :templates
+   '("g" "Video Game" plain "%?"
+      :target (file+head "r/video-game/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+      :unnarrowed t)))
 
 
 (map! :leader
@@ -165,18 +192,10 @@
   :desc "Project" "p" #'my/org-roam-find-project
 
   (:prefix ("SPC" . "Find reference node")
-    :desc "book" "b" #'my/org-roam-find-r-book))
-
-  
-
-
-
-       
-        
-         
-
-
-
+    :desc "book" "b" #'my/org-roam-find-r-book
+    :desc "video-game" "g" #'my/org-roam-find-r-video-game
+    :desc "movie" "m" #'my/org-roam-find-r-movie
+    :desc "tv-show" "t" #'my/org-roam-find-r-tv-show))
 
 
 
