@@ -36,36 +36,36 @@
       +org-roam-open-buffer-on-find-file nil
       org-roam-capture-templates
        '(("d" "default" plain "%?"
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
          ("o" "obsidian" plain "%?"
-           :target (file+head "%^{ObsidianId}-${slug}.org" "#+title: ${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
+           :target (file+head "%^{ObsidianId}-${slug}.org" "${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
            :unnarrowed t)
          ("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
+           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
            :unnarrowed t)
          ("b" "book" plain (file "~/.doom.d/roam-templates/book.org")
-           :target (file+head "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
+           :target (file+head "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
            :unnarrowed t)
          ("s" "Book Series" plain "%?"
-           :target (file+head "r/book-series/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "r/book-series/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
          ("g" "Video Game" plain "%?"
-           :target (file+head "r/video-game/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "r/video-game/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
          ("t" "TV Show" plain "%?"
-           :target (file+head "r/tv-show/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "r/tv-show/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
          ("m" "Movie" plain "%?"
-           :target (file+head "r/movie/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-           :unnarrowed t)
-        )
+           :target (file+head "r/movie/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :unnarrowed t))
+
       org-roam-dailies-capture-templates
         '(("d" "default" entry "** %<%H:%M>: %?"
            :heading "Log"
-           :if-new (file+head+olp "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n" ("Log")))
-        )
-  )
+           :if-new (file+head+olp "%<%Y-%m-%d>.org" "%<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n" ("Log")))))
+
+
 
 ;; Disalbe org mode tag inheritance for better org-roam compatability
 (setq! org-use-tag-inheritance nil)
@@ -110,45 +110,26 @@
   (lambda (node)
     (-not (member tag-name (org-roam-node-tags node)))))
 
+(defun my/org-roam-filter-by-folder (folder-name)
+  (lambda (node)
+    (string-prefix-p folder-name (org-roam-node-file node))))
 
-
-(defun my/org-roam-list-notes-by-tag (tag-name)
-  (mapcar #'org-roam-node-file
-          (seq-filter
-           (my/org-roam-filter-by-tag tag-name)
-           (org-roam-node-list))))
 
 (defun my/org-roam-find-role ()
   (interactive)
-
-  ;; Select a project file to open, creating it if necessary
   (org-roam-node-find
    nil
    nil
    (my/org-roam-filter-by-tag "Role")
    :templates
    '(("d" "default" plain "%?"
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-           :unnarrowed t))))
-
-(defun my/org-roam-find-question ()
-  (interactive)
-
-  ;; Select a project file to open, creating it if necessary
-  (org-roam-node-find
-   nil
-   nil
-   (my/org-roam-filter-by-tag "Question")
-   :templates
-   '(("d" "default" plain "%?"
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t))))
 
 (defun my/org-roam-find-project ()
   (interactive)
   ;; Add the project file to the agenda after capture is finished
   ;; (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
-
   ;; Select a project file to open, creating it if necessary
   (org-roam-node-find
    nil
@@ -156,16 +137,43 @@
    (my/org-roam-filter-by-tag "Project")
    :templates
    '(("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "#+${title}")
+           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org")
            :unnarrowed t))))
+
+(defun my/org-roam-find-r-book ()
+  (interactive)
+
+  (org-roam-node-find
+   nil
+   nil
+   (my/org-roam-filter-by-folder (concat (expand-file-name org-roam-directory) "r/book/"))
+   ;; (my/org-roam-filter-by-tag "book")
+   :templates
+   '("b" "book" plain (file "~/.doom.d/roam-templates/book.org")
+     :target (file+head "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
+     :unnarrowed t)))
+
+
 
 
 (map! :leader
-       (:prefix-map ("N" . "Find node type")
-        :desc "Node" "N" #'org-roam-node-find
-        :desc "Role" "r" #'my/org-roam-find-role
-        :desc "Question" "q" #'my/org-roam-find-question
-        :desc "Project" "p" #'my/org-roam-find-project))
+
+  :prefix ("N" . "Find node type")
+  ;; :desc "Node" "n" #'org-roam-node-find
+  :desc "Role" "r" #'my/org-roam-find-role
+  :desc "Question" "q" #'my/org-roam-find-question
+  :desc "Project" "p" #'my/org-roam-find-project
+
+  (:prefix ("SPC" . "Find reference node")
+    :desc "book" "b" #'my/org-roam-find-r-book))
+
+  
+
+
+
+       
+        
+         
 
 
 

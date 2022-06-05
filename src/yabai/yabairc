@@ -64,3 +64,8 @@ yabai -m config insert_feedback_color        0xffd75f5f
 # yabai -m config window_border_width          4
 # yabai -m config active_window_border_color   0xffff3050
 # yabai -m config normal_window_border_color   0xffaaaaaa
+
+
+# Rules
+
+yabai -m rule --add app="^Steam$" manage=off
