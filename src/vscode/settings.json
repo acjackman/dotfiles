@@ -2,14 +2,15 @@
   "[json]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
   "[python]": {
     "editor.codeActionsOnSave": {
       "source.organizeImports": true
     },
     "editor.wordBasedSuggestions": false,
-    "gitlens.codeLens.symbolScopes": [
-      "!Module"
-    ]
+    "gitlens.codeLens.symbolScopes": ["!Module"]
   },
   "[yaml]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -50,6 +51,7 @@
     "pardot",
     "pyenv",
     "pytest",
+    "pytrace",
     "setenv",
     "Traceback",
     "unallowed",
@@ -59,6 +61,7 @@
   "editor.accessibilitySupport": "off",
   "editor.autoIndent": "brackets",
   "editor.bracketPairColorization.enabled": true,
+  "editor.defaultFormatter": null,
   "editor.fontFamily": "'JetBrainsMono Nerd Font Mono','FiraCode Nerd Font Mono','Hack Nerd font Mono','JetBrains Mono', 'Fira Code', 'Hack', Menlo, Monaco, 'Courier New', monospace",
   "editor.fontLigatures": true,
   "editor.fontSize": 16,
@@ -67,9 +70,7 @@
   "editor.inlineSuggest.enabled": true,
   "editor.minimap.enabled": false,
   "editor.minimap.maxColumn": 100,
-  "editor.rulers": [
-    88
-  ],
+  "editor.rulers": [88],
   "editor.suggest.localityBonus": true,
   "explorer.autoReveal": false,
   "explorer.confirmDelete": false,
@@ -108,15 +109,12 @@
   "python.sortImports.path": "isort",
   "python.terminal.activateEnvInCurrentTerminal": true,
   "python.terminal.activateEnvironment": false,
-  "python.testing.pytestEnabled": true,
   "redhat.telemetry.enabled": false,
   "scm.countBadge": "focused",
   "scm.inputFontSize": 15,
   "security.workspace.trust.banner": "always",
   "security.workspace.trust.untrustedFiles": "open",
-  "settingsSync.ignoredSettings": [
-    "-python.linting.flake8Path"
-  ],
+  "settingsSync.ignoredSettings": ["-python.linting.flake8Path"],
   "terminal.integrated.allowChords": false,
   "terminal.integrated.cursorStyle": "line",
   "terminal.integrated.fontSize": 16,

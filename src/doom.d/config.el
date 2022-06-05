@@ -25,7 +25,8 @@
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
 ;; `load-theme' function. This is the default:
-(setq doom-theme 'doom-one)
+;; (setq doom-theme 'doom-one)
+(setq doom-theme 'doom-tokyo-night)
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
@@ -72,8 +73,8 @@
 ;; Log an item to daily file
 (map! :leader
       (:prefix-map ("l" . "Log")
-        :desc "Daily Log" "l" #'org-roam-dailies-capture-today)
-)
+        :desc "Daily Log" "l" #'org-roam-dailies-capture-today))
+
 
 
 ;; Capture immediate (Source: https://systemcrafters.net/build-a-second-brain-in-emacs/5-org-roam-hacks/#fast-note-insertion-for-a-smoother-writing-flow)
@@ -172,8 +173,8 @@
 
 
 (map! "C-M-s-SPC" #'org-roam-dailies-goto-today
-  "<C-M-s-return>" #'org-roam-dailies-goto-today  ;; TODO: this should goto README or a root index
-  )
+  "<C-M-s-return>" #'org-roam-dailies-goto-today)  ;; TODO: this should goto README or a root index
+
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
@@ -181,15 +182,15 @@
 
 (use-package! super-save
   :config
-  (super-save-mode +1)
-)
+  (super-save-mode +1))
+
 (setq super-save-auto-save-when-idle t)
 (setq auto-save-default nil)
 
 (use-package! iterm
   :commands (iterm-send-text
-             iterm-cd)
-  )
+             iterm-cd))
+
 
 (map! "<C-s-return>" #'iterm-send-text
       "C-s-/" #'iterm-cd)
@@ -252,8 +253,8 @@
 
 (after! lsp-mode
        (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.mypy_cache\\'")
-       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.nox\\'")
-)
+       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.nox\\'"))
+
 
 
 (setq calendar-week-start-day 1)
@@ -265,3 +266,7 @@
 
 
 (use-package! elpher)
+
+
+(use-package! nov)
+

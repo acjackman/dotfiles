@@ -100,10 +100,10 @@ local keyMap = {
       [singleKey('l', 'east')] = run_shell("yabai -m window --focus east"),
     },
     [singleKey('m', 'move')] = {
-      [singleKey('1', 'screen-1')] = run_shell("yabai -m window --display 1"),
-      [singleKey('2', 'screen-2')] = run_shell("yabai -m window --display 2"),
-      [singleKey('3', 'screen-3')] = run_shell("yabai -m window --display 3"),
-      [singleKey('4', 'screen-4')] = run_shell("yabai -m window --display 4"),
+      [singleKey('1', 'screen-1')] = run_shell("yabai -m window --display 1; yabai -m display --focus 1"),
+      [singleKey('2', 'screen-2')] = run_shell("yabai -m window --display 2; yabai -m display --focus 2"),
+      [singleKey('3', 'screen-3')] = run_shell("yabai -m window --display 3; yabai -m display --focus 3"),
+      [singleKey('4', 'screen-4')] = run_shell("yabai -m window --display 4; yabai -m display --focus 4"),
       [singleKey('m', 'first')] = run_shell("yabai -m window --warp first"),
       [singleKey('n', 'last')] = run_shell("yabai -m window --warp last"),
       [singleKey('h', 'west')] = run_shell("yabai -m window --warp west"),
@@ -123,6 +123,12 @@ local keyMap = {
       [singleKey('j', 'south')] = run_shell("yabai -m display --focus south"),
       [singleKey('k', 'north')] = run_shell("yabai -m display --focus north"),
       [singleKey('l', 'east')] = run_shell("yabai -m display --focus east"),
+    },
+    [singleKey('s', 'space')] = {
+      [singleKey('n', 'new')] = run_shell("yabai -m space --create"),
+      [singleKey('d', 'delete')] = run_shell("yabai -m space --destroy"),
+      [singleKey('h', 'previous')] = run_shell("yabai -m space --focus prev || yabai -m space --focus last"),
+      [singleKey('l', 'next')] = run_shell("yabai -m space --focus next || yabai -m space --focus first"),
     },
     [singleKey('r', 'rotate-screen')] = {
       [singleKey('[', "left")] = rotate_screen_counterclockwise,

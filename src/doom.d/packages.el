@@ -15,6 +15,7 @@
 
 (package! elpher)
 
+(package! nov)
 
 ;(package! dirvish)
 
