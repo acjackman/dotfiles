@@ -36,13 +36,13 @@
       +org-roam-open-buffer-on-find-file nil
       org-roam-capture-templates
        '(("d" "default" plain "%?"
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
          ("o" "obsidian" plain "%?"
-           :target (file+head "%^{ObsidianId}-${slug}.org" "${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
+           :target (file+head "inbox/%^{ObsidianId}-${slug}.org" "${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
            :unnarrowed t)
          ("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
+           :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
            :unnarrowed t)
          ("s" "Book Series" plain "%?"
            :target (file+head "r/book-series/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
