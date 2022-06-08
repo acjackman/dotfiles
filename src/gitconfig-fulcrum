@@ -3,3 +3,6 @@
 
 [alias]
   cmr = "!commitmr() { git commit -m \"$2\" && g publish && flgl mr create $1 --title=\"$2\" ;}; commitmr"
+
+[gitlab]
+	user = ajackman_fl

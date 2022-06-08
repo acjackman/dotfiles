@@ -297,3 +297,11 @@
 
 (use-package! nov)
 
+;; (setq! org-superstar-special-todo-items "hide")
+(setq! org-superstar-special-todo-items "hide")
+(setq! org-superstar-headline-bullets-list '("⁕" "⬣" "⁜" "➙" "▷" "▣" "◈"))
+
+
+(set-ligatures! 'org-mode
+  :src_block     "»"
+  :src_block_end "«")
