@@ -214,7 +214,7 @@ function pylv() {
 
     echo "pyenv virtualenv $PY_VERSION $ENV_NAME && pyenv local $ENV_NAME"
     $(pyenv which python) -m pip install --upgrade pip \
-      && $(pyenv which python) -m pip install ipython importmagic epc
+      && $(pyenv which python) -m pip install ipython importmagic epc 'devtools[pygments]'
     # if [[ -f "pyproject.toml" ]]; then
     #   echo "poetry install"
     #   poetry install
