@@ -79,6 +79,8 @@ COMPLETION_WAITING_DOTS="true"
 ZSH_CUSTOM="$HOME/.dotfiles/src/oh-my-zsh/custom"
 
 
+ZSH_DISABLE_COMPFIX=true
+
 # ZSH_PYENV_QUIET=true
 
 # Which plugins would you like to load?
