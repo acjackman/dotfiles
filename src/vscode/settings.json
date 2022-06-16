@@ -168,5 +168,6 @@
   "workbench.iconTheme": "material-icon-theme",
   "workbench.preferredDarkColorTheme": "Visual Studio Dark",
   "workbench.startupEditor": "none",
-  "workspaceExplorer.workspaceStorageDirectory": "${env:HOME}/Development/"
+  "workspaceExplorer.workspaceStorageDirectory": "${env:HOME}/Development/",
+  "files.autoSave": "onFocusChange"
 }
