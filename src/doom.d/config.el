@@ -305,3 +305,5 @@
 (set-ligatures! 'org-mode
   :src_block     "»"
   :src_block_end "«")
+
+(setq confirm-kill-emacs nil)
