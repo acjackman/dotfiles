@@ -74,6 +74,7 @@
     name = Adam Jackman
 [push]
     default = simple
+	autoSetupRemote = true
 [core]
   excludesfile = ~/.gitignore
   editor = vim
