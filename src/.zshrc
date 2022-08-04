@@ -95,6 +95,7 @@ plugins=(
     atuin
     zsh-vi-mode
     aws
+    terraform
     colorize
     colored-man-pages
     # dotenv
@@ -106,7 +107,6 @@ plugins=(
     jira
     kubectl
     macos
-    sublime
     # emacs
     doom-emacs
     pyenv
