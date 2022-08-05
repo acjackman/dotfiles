@@ -1,15 +1,25 @@
-#!/bin/bash
-cd $HOME
-OMZDIR="$HOME/.oh-my-zsh"
-DOTFILES_DIR="$HOME/.dotfiles"
+#!/usr/bin/env zsh
+
+cd "$HOME" || exit
+
+export OMZDIR="$HOME/.oh-my-zsh"
+export DOTFILES_DIR="$HOME/.dotfiles"
 
 # Check if Homebrew is installed
 if [ ! -f "`which brew`" ]; then
   echo 'Installing homebrew'
   /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
+
+  # Enable homebrew for the remainder of the script
+  if [[ -f "/opt/homebrew/bin/brew" ]]; then
+    eval "$(/opt/homebrew/bin/brew shellenv)"
+  elif [[ -f "/usr/local/bin/brew" ]]; then
+    eval "$(/usr/local/bin/brew shellenv)"
+  fi
 else
   echo 'homebrew already installed'
 fi
+
 brew tap homebrew/bundle  # Install Homebrew Bundle
 brew install mas
 
