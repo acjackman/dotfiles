@@ -42,4 +42,4 @@ else
 fi
 
 
-pipx install black nox
+pipx install black nox pls

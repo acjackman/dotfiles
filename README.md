@@ -16,5 +16,5 @@ cd ~
 ## Bootstrapping
 
 ```sh
-/bin/sh -c "$(curl -fsSL https://raw.github.com/acjackman/dotfiles/master/tools/bootstrap.sh)"
+/bin/sh -c "$(curl -fsSL https://raw.githubusercontent.com/acjackman/dotfiles/main/bootstrap.sh)"
 ```
