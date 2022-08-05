@@ -13,7 +13,7 @@ brew "duti"
 brew "tldr"
 brew "tree"
 brew "fzf"
-brew "svn"
+brew "svn"  # Fonts need
 
 # Dev/Data Tools:
 brew "awscli"
@@ -51,20 +51,21 @@ brew "fd"
 cask "slack"
 cask "omnifocus"
 cask "textexpander"
-cask "dropbox"
+cask "maestral"
 cask "1password"
 cask "1password-cli"
 cask "fantastical"
 # cask "mimestream"  # TODO: Make cask of MIMEStream
 
 cask "obsidian"
+cask "devonthink"
 mas "GoodNotes", id: 1480793815
 mas "Instapaper", id: 1481302432
 mas "Drafts", id: 1435957248
 
 # Customization/Utilities
-cask "amethyst"
-cask "contexts"
+# cask "amethyst"
+# cask "contexts"
 cask "karabiner-elements"
 cask "launchbar"
 cask "hammerspoon"
@@ -84,12 +85,12 @@ cask "timing"
 cask "marked"
 cask "soulver"
 #mas "ToothFairy", id: 1191449274
-#mas "Shush - Microphone Manager", id: 496437906
-#cask "logitech-camera-settings"
-#cask "logitech-options"
+# mas "Shush - Microphone Manager", id: 496437906
+# cask "logitech-camera-settings"
+# cask "logitech-options"
 mas "TextSniper", id: 1528890965
 brew "switchaudio-osx"
-
+mas  "Tailscale", id: 1475387142
 # Fonts
 cask "font-fira-code-nerd-font"
 cask "font-jetbrains-mono-nerd-font"
