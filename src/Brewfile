@@ -55,7 +55,7 @@ cask "maestral"
 cask "1password"
 cask "1password-cli"
 cask "fantastical"
-# cask "mimestream"  # TODO: Make cask of MIMEStream
+cask "mimestream" 
 
 cask "obsidian"
 cask "devonthink"
