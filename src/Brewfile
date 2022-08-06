@@ -14,6 +14,7 @@ brew "tldr"
 brew "tree"
 brew "fzf"
 brew "svn"  # Fonts need
+brew "ispell"
 
 # Dev/Data Tools:
 brew "awscli"
