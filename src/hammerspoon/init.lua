@@ -5,6 +5,11 @@
 -- Easy access variables:
 hostname = hs.host.localizedName()
 
+print(hostname)
+  -- local log = hs.logger.new('terminalHyper','debug')
+--   log.df("name=%s", appname)
+
+
 control     = {"ctrl"}
 option      = {"option"}
 meh         = {"alt", "ctrl", "shift"}
@@ -261,7 +266,7 @@ end
 -- k:bind({}, "t", nil, terminalHyper)
 
 
-if (hs.host.localizedName() == "Frey") then
+if (hs.host.localizedName() == "MacBook Pro") then
   k:bind({}, "e", function() launch('Visual Studio Code'); end)
 else
   k:bind({}, "e", function() launch('Emacs'); end)
@@ -305,21 +310,24 @@ function usbDeviceCallback(data)
     end
 end
 
-usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
-usbWatcher:start()
+if (hs.host.localizedName() == "Jormungandr") then
+  usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
+  usbWatcher:start()
+end
 
 hs.loadSpoon("ReloadConfiguration")
 spoon.ReloadConfiguration:start()
 
-if (hostname == "Frey") then
+if (hostname == "MacBook Pro") then
   hs.loadSpoon("WheelOfSeasons")
   spoon.WheelOfSeasons:start(
-    os.getenv("HOME") .. "/Dropbox/Apps/WheelOfSeasons/",
+    os.getenv("HOME") .. "/WheelOfSeasons/",
     60*60,
     true
   )
 end
-if (hostname == "Njord" or hostname == "Jormungandr") then
+
+if (hostname == "Ingvar" or hostname == "Jormungandr") then
   hs.loadSpoon("WheelOfSeasons")
   spoon.WheelOfSeasons:start(
     os.getenv("HOME") .. "/Dropbox/Reference/Desktops/FunWallpapers/",

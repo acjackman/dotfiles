@@ -125,16 +125,16 @@
 [init]
 	defaultBranch = main
 
-[includeIf "gitdir:~/Development/Fulcrum/"]
-  path = ~/.gitconfig-fulcrum
-
-[includeIf "gitdir:~/dev/Fulcrum/"]
-  path = ~/.gitconfig-fulcrum
-
 [includeIf "gitdir:~/Development/Moov/"]
   path = ~/.gitconfig-moov
 
 [includeIf "gitdir:~/dev/Moov/"]
+  path = ~/.gitconfig-moov
+
+[includeIf "gitdir:~/github.com/moovfinancial/"]
+  path = ~/.gitconfig-moov
+
+[includeIf "gitdir:~/github.com/moov-io/"]
   path = ~/.gitconfig-moov
 
 [hub]

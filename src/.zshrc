@@ -98,13 +98,11 @@ plugins=(
     terraform
     colorize
     colored-man-pages
-    # dotenv
     direnv
     git
     gitfast
-    glab
+    # go
     iterm2
-    jira
     kubectl
     macos
     # emacs
