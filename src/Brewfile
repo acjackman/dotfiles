@@ -29,11 +29,15 @@ brew "pyenv"
 brew "pyenv-virtualenv"
 brew "poetry"
 brew "r"
+brew "go"
 cask "mactex-no-gui"
 brew "rsync"
 brew "terraform"
 brew "gh"
 brew "delta"
+brew "ripgrep"
+brew "coreutils"
+brew "fd"
 cask "docker"
 cask "iterm2"
 cask "kaleidoscope"
@@ -44,9 +48,7 @@ cask "dash"
 mas "Patterns", id: 429449079
 cask "firefox"
 cask "google-chrome"
-brew "ripgrep"
-brew "coreutils"
-brew "fd"
+cask "brave-browser"
 
 # Organization
 cask "slack"
@@ -55,43 +57,53 @@ cask "textexpander"
 cask "maestral"
 cask "1password"
 cask "1password-cli"
+mas "1Password for Safari", id: 1569813296
 cask "fantastical"
 cask "mimestream" 
+cask "cardhop"
+cask "discord"
 
-cask "obsidian"
 cask "devonthink"
 mas "GoodNotes", id: 1480793815
 mas "Instapaper", id: 1481302432
+mas "Instapaper Save", id: 1481302432  # Safari Extension
 mas "Drafts", id: 1435957248
 
 # Customization/Utilities
-# cask "amethyst"
-# cask "contexts"
+brew koekeishiya/formulae/yabai  # Tiling windows
 cask "karabiner-elements"
 cask "launchbar"
 cask "hammerspoon"
 cask "bettertouchtool"
-mas "Dark Mode for Safari", id: 1397180934
-cask "setapp"
+
 cask "backblaze"
 cask "iina"
 mas "CARROT Weather", id: 993487541
-brew "libusb" # used for Ergodox EZ keyboard flashing
+
 brew "noti"
-cask "qmk-toolbox"
-cask "keybase"
+# cask "keybase"
 brew "topgrade"
 cask "bartender"
 cask "timing"
 cask "marked"
 cask "soulver"
-#mas "ToothFairy", id: 1191449274
-# mas "Shush - Microphone Manager", id: 496437906
-# cask "logitech-camera-settings"
-# cask "logitech-options"
 mas "TextSniper", id: 1528890965
 brew "switchaudio-osx"
-mas  "Tailscale", id: 1475387142
+# mas  "Tailscale", id: 1475387142
+
+mas "Speedtest", id: 1153157709
+mas "Data Jar", id: 1453273600
+mas "OpenIn", id: 1547147101  # Customize Link opening
+mas "Shareful", id: 1522267256  # Make share menu useful
+mas "Service Station", id: 1503136033  # Clean up Services Menu
+mas "Peek", id: 1554235898  # Quicklook
+
+# Safari Extensions
+mas "about-blank", id: 1239207203
+mas "Wipr", id: 1320666476
+mas "Noir", id: 1592917505
+mas "Hush", id: 1544743900
+
 # Fonts
 cask "font-fira-code-nerd-font"
 cask "font-jetbrains-mono-nerd-font"
