@@ -70,3 +70,5 @@ yabai -m config insert_feedback_color        0xffd75f5f
 
 yabai -m rule --add app="^Steam$" manage=off
 yabai -m rule --add app="^Noir$" manage=off
+yabai -m rule --add app="^SoundSource$" manage=off
+yabai -m rule --add title=".*— (p|P)assword — 1Password$" sticky=on
