@@ -297,8 +297,7 @@
 
 (use-package! nov)
 
-;; (setq! org-superstar-special-todo-items "hide")
-(setq! org-superstar-special-todo-items "hide")
+(setq! org-superstar-special-todo-items nil)
 (setq! org-superstar-headline-bullets-list '("⁕" "⬣" "⁜" "➙" "▷" "▣" "◈"))
 
 
