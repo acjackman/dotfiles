@@ -49,20 +49,36 @@
            :unnarrowed t))
 
       org-roam-dailies-capture-templates
-        '(("d" "default" entry "** %<%H:%M>: %?"
-           :heading "Log"
-           :if-new (file+head+olp "%<%Y-%m-%d>.org" "%<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n" ("Log")))))
-
+        '(("d" "default" plain "%?"
+           :if-new (file+head "%<%Y-%m-%d>.org" "%<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n")
+           :unnarrowed t
+           :immediate-finish t)
+          ("l" "log" entry "** %<%H:%M>: %?"
+           :if-new (file+olp "%<%Y-%m-%d>.org" ("Log")))
+          ("t" "task" entry "* TODO %?"
+           :if-new (file+olp "%<%Y-%m-%d>.org" ("Tasks")))))
 
 
 ;; Disalbe org mode tag inheritance for better org-roam compatability
 (setq! org-use-tag-inheritance nil)
 
+(defun org-roam-dailies-capture-today-create (keys)
+  (interactive "P")
+  (org-roam-dailies-capture-today t "d"))
+
+(defun org-roam-dailies-capture-today-log (keys)
+  (interactive "P")
+  (org-roam-dailies-capture-today nil "l"))
+
+(defun org-roam-dailies-capture-today-task (keys)
+  (interactive "P")
+  (org-roam-dailies-capture-today nil "t"))
+
 ;; Log an item to daily file
 (map! :leader
       (:prefix-map ("l" . "Log")
-        :desc "Daily Log" "l" #'org-roam-dailies-capture-today))
-
+        :desc "Daily Log" "l" #'org-roam-dailies-capture-today-log
+        :desc "Daily Task" "t" #'org-roam-dailies-capture-today-task))
 
 
 ;; Capture immediate (Source: https://systemcrafters.net/build-a-second-brain-in-emacs/5-org-roam-hacks/#fast-note-insertion-for-a-smoother-writing-flow)
@@ -199,7 +215,7 @@
 
 
 
-(map! "C-M-s-SPC" #'org-roam-dailies-goto-today
+(map! "C-M-s-SPC" #'org-roam-dailies-capture-today-create
   "<C-M-s-return>" #'org-roam-dailies-goto-today)  ;; TODO: this should goto README or a root index
 
 
