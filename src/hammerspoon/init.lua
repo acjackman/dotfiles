@@ -190,6 +190,7 @@ for i,key in ipairs(old_hyper) do
   k:bind({}, key, nil, function() k.triggered = true hs.eventtap.keyStroke({"cmd","alt","shift","ctrl"}, key) end)
 end
 
+
 -- Alternate hyper
 alt_hyper = {
   'l', -- Hook Link
@@ -198,6 +199,18 @@ alt_hyper = {
 for i,key in ipairs(alt_hyper) do
   k:bind({}, key, nil, function() k.triggered = true hs.eventtap.keyStroke({"cmd","shift","ctrl"}, key) end)
 end
+
+
+--
+function savewindows()
+  hs.execute("yabai -m query --windows > ~/dump/windows-$(date '+%Y-%m-%dT%H-%M-%S').json; noti -t 'Saved Windows' -m ''", true)
+  -- hs.execute("yabai -m query --windows > ~/dump/windowsstate.json", true)
+  k.triggered = true
+end
+
+
+k:bind({}, 'w', nil, savewindows)
+
 
 -- iTunes controls
 function playpause()
