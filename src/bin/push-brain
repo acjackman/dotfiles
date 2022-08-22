@@ -15,6 +15,7 @@ else
 fi
 
 echo 'Syncing brain'
+git pull --rebase
 git push origin main
 popd
 echo "Sync complete"
