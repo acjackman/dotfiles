@@ -141,6 +141,7 @@ source $ZSH/oh-my-zsh.sh
 # For a full list of active aliases, run `alias`.
 
 export PYENV_ROOT="$HOME/.pyenv"
+export GOPATH="$HOME/go"
 # export PATH="$PYENV_ROOT/bin:$PATH"
 
 
