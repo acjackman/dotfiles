@@ -322,3 +322,10 @@
   :src_block_end "«")
 
 (setq confirm-kill-emacs nil)
+
+;; DevonThink Links
+(org-add-link-type "x-devonthink-item" 'org-devonthink-item-open)
+
+(defun org-devonthink-item-open (uid)
+  "Open the given uid, which is a reference to an item in Devonthink"
+  (shell-command (concat "open \"x-devonthink-item:" uid "\"")))
