@@ -21,7 +21,7 @@
     patch = !git --no-pager diff --no-color
 
     # Branch control
-	  b = branch
+      b = branch
     sw = switch
     co = checkout
     rh = reset --hard
@@ -54,6 +54,11 @@
 
     # Ignore templates
     ignore = "!gi() { curl -sL https://www.gitignore.io/api/$@ ;}; gi"
+
+[core]
+    excludesfile = ~/.gitignore
+    editor = vim
+    pager = delta
 
 [interactive]
     diffFilter = delta --color-only
@@ -95,10 +100,6 @@
     default = simple
     autoSetupRemote = true
 
-[core]
-  excludesfile = ~/.gitignore
-  editor = vim
-  pager = delta
 [filter "lfs"]
     required = true
     clean = git-lfs clean -- %f
@@ -107,37 +108,42 @@
 [credential]
     helper = osxkeychain
 [pull]
-	ff = only
+    ff = only
 [color]
-	ui = true
+    ui = true
 [color "diff-highlight"]
-	oldNormal = red bold
-	oldHighlight = red bold 52
-	newNormal = green bold
-	newHighlight = green bold 22
+    oldNormal = red bold
+    oldHighlight = red bold 52
+    newNormal = green bold
+    newHighlight = green bold 22
+
 [color "diff"]
-	meta = 11
-	frag = magenta bold
-	commit = yellow bold
-	old = red bold
-	new = green bold
-	whitespace = red reverse
+    meta = 11
+    frag = magenta bold
+    commit = yellow bold
+    old = red bold
+    new = green bold
+    whitespace = red reverse
+
 [init]
-	defaultBranch = main
+    defaultBranch = main
 
 [includeIf "gitdir:~/Development/Moov/"]
-  path = ~/.gitconfig-moov
+    path = ~/.gitconfig-moov
 
 [includeIf "gitdir:~/dev/Moov/"]
-  path = ~/.gitconfig-moov
+    path = ~/.gitconfig-moov
 
 [includeIf "gitdir:~/github.com/moovfinancial/"]
-  path = ~/.gitconfig-moov
+    path = ~/.gitconfig-moov
 
 [includeIf "gitdir:~/github.com/moov-io/"]
-  path = ~/.gitconfig-moov
+    path = ~/.gitconfig-moov
 
 [hub]
-	protocol = ssh
+    protocol = ssh
+
 [url "ssh://git@github.com/"]
-	insteadOf = https://github.com/
+    insteadOf = https://github.com/
+[github]
+	user = acjackman
