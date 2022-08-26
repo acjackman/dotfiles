@@ -62,7 +62,7 @@
 ;; Disalbe org mode tag inheritance for better org-roam compatability
 (setq! org-use-tag-inheritance nil)
 
-(defun org-roam-dailies-capture-today-create (keys)
+(defun my/org-roam-dailies-goto-today (keys)
   (interactive "P")
   (org-roam-dailies-capture-today t "d"))
 
@@ -79,6 +79,10 @@
       (:prefix-map ("l" . "Log")
         :desc "Daily Log" "l" #'org-roam-dailies-capture-today-log
         :desc "Daily Task" "t" #'org-roam-dailies-capture-today-task))
+
+
+(map! :leader
+     :desc "n r d t" "Goto today" #'my/org-roam-dailies-goto-today)
 
 
 ;; Capture immediate (Source: https://systemcrafters.net/build-a-second-brain-in-emacs/5-org-roam-hacks/#fast-note-insertion-for-a-smoother-writing-flow)
@@ -215,7 +219,7 @@
 
 
 
-(map! "C-M-s-SPC" #'org-roam-dailies-capture-today-create
+(map! "C-M-s-SPC" #'my/org-roam-dailies-goto-today
   "<C-M-s-return>" #'org-roam-dailies-goto-today)  ;; TODO: this should goto README or a root index
 
 
@@ -315,7 +319,6 @@
 
 (setq! org-superstar-special-todo-items nil)
 (setq! org-superstar-headline-bullets-list '("⁕" "⬣" "⁜" "➙" "▷" "▣" "◈"))
-
 
 (set-ligatures! 'org-mode
   :src_block     "»"
