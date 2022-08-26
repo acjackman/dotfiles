@@ -36,10 +36,10 @@
       +org-roam-open-buffer-on-find-file nil
       org-roam-capture-templates
        '(("d" "default" plain "%?"
-           :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
          ("o" "obsidian" plain "%?"
-           :target (file+head "inbox/%^{ObsidianId}-${slug}.org" "${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
+           :target (file+head "inbox/%^{ObsidianId}-${slug}.org" "#+title: ${title}\n#+obsidianid: %^1\n#+created: %^{Created}\n")
            :unnarrowed t)
          ("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
            :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
@@ -128,11 +128,7 @@
   (org-roam-node-find
    nil
    nil
-   (my/org-roam-filter-by-tag "Role")
-   :templates
-   '(("d" "default" plain "%?"
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-           :unnarrowed t))))
+   (my/org-roam-filter-by-tag "Role")))
 
 (defun my/org-roam-find-project ()
   (interactive)
@@ -143,6 +139,7 @@
    nil
    nil
    (my/org-roam-filter-by-tag "Project")
+   nil
    :templates
    '(("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
            :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org")
@@ -154,11 +151,11 @@
    nil
    nil
    (my/org-roam-filter-by-folder (concat (expand-file-name org-roam-directory) "r/book/"))
-   ;; (my/org-roam-filter-by-tag "book")
+   nil
    :templates
-   '("b" "book" plain (file "~/.doom.d/roam-templates/book.org")
-     :target (file+head "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
-     :unnarrowed t)))
+   '(("b" "book" plain (file "~/.doom.d/roam-templates/book.org")
+       :target (file+head "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n")
+       :unnarrowed t))))
 
 (defun my/org-roam-find-r-movie ()
   (interactive)
@@ -166,17 +163,11 @@
    nil
    nil
    (my/org-roam-filter-by-folder (concat (expand-file-name org-roam-directory) "r/movie/"))
-   ;; (my/org-roam-filter-by-tag "book")
+   nil
    :templates
    '("m" "Movie" plain "%?"
       :target (file+head "r/movie/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-      :unnarrowed t
-         ("g" "Video Game" plain "%?"
-           :target (file+head "r/video-game/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-           :unnarrowed t)
-         ("t" "TV Show" plain "%?"
-           :target (file+head "r/tv-show/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-           :unnarrowed t))))
+      :unnarrowed t)))
 
 (defun my/org-roam-find-r-tv-show ()
   (interactive)
@@ -184,7 +175,7 @@
    nil
    nil
    (my/org-roam-filter-by-folder (concat (expand-file-name org-roam-directory) "r/tv-show/"))
-   ;; (my/org-roam-filter-by-tag "book")
+   nil
    :templates
    '("t" "TV Show" plain "%?"
       :target (file+head "r/tv-show/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
@@ -196,7 +187,7 @@
    nil
    nil
    (my/org-roam-filter-by-folder (concat (expand-file-name org-roam-directory) "r/video-game/"))
-   ;; (my/org-roam-filter-by-tag "book")
+   nil
    :templates
    '("g" "Video Game" plain "%?"
       :target (file+head "r/video-game/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
