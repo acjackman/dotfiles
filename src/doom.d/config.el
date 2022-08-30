@@ -50,7 +50,7 @@
 
       org-roam-dailies-capture-templates
         '(("d" "default" plain "%?"
-           :if-new (file+head "%<%Y-%m-%d>.org" "%<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n")
+           :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n")
            :unnarrowed t
            :immediate-finish t)
           ("l" "log" entry "** %<%H:%M>: %?"
@@ -59,7 +59,7 @@
            :if-new (file+olp "%<%Y-%m-%d>.org" ("Tasks")))))
 
 
-;; Disalbe org mode tag inheritance for better org-roam compatability
+;; Disable org mode tag inheritance for better org-roam compatibility
 (setq! org-use-tag-inheritance nil)
 
 (defun my/org-roam-dailies-goto-today (keys)
@@ -218,12 +218,24 @@
 ;; numbers are disabled. For relative line numbers, set this to `relative'.
 (setq display-line-numbers-type t)
 
-(use-package! super-save
-  :config
-  (super-save-mode +1))
+(setq undo-limit 80000000                         ; Raise undo-limit to 80Mb
+      evil-want-fine-undo t                       ; By default while in insert all changes are one big blob. Be more granular
+      auto-save-default nil                       ; auto-save with super-save
+      truncate-string-ellipsis "…"                ; Unicode ellispis are nicer than "...", and also save /precious/ space
+      );
 
-(setq super-save-auto-save-when-idle t)
-(setq auto-save-default nil)
+(setq frame-title-format
+      '(""
+        (:eval
+         (if (s-contains-p org-roam-directory (or buffer-file-name ""))
+             (replace-regexp-in-string
+              ".*/[0-9]*-?" "☰ "
+              (subst-char-in-string ?_ ?  buffer-file-name))
+           "%b"))
+        (:eval
+         (let ((project-name (projectile-project-name)))
+           (unless (string= "-" project-name)
+             (format (if (buffer-modified-p)  " ◉ %s" "  ●  %s") project-name))))))
 
 (use-package! iterm
   :commands (iterm-send-text
@@ -283,6 +295,9 @@
 ;;
 ;; You can also try 'gd' (or 'C-c c d') to jump to their definition and see how
 ;; they are implemented.
+
+
+
 
 (defun add-list-to-list (dst src)
   "Similar to `add-to-list', but accepts a list as 2nd argument"
