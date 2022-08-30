@@ -17,6 +17,8 @@
 
 (package! nov)
 
+(package! hcl-mode)
+
 ;(package! dirvish)
 
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:

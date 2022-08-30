@@ -320,8 +320,9 @@
 
 (use-package! elpher)
 
-
 (use-package! nov)
+
+(use-package! hcl-mode)
 
 (setq! org-superstar-special-todo-items nil)
 (setq! org-superstar-headline-bullets-list '("⁕" "⬣" "⁜" "➙" "▷" "▣" "◈"))
