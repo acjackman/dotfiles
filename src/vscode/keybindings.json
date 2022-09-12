@@ -460,10 +460,6 @@
     "when": "editorTextFocus && !editorHasSelection"
   },
   {
-    "key": "shift+cmd+g",
-    "command": "workbench.view.extension.gitlab-workflow"
-  },
-  {
     "key": "shift+alt+cmd+r",
     "command": "revealFileInOS",
     "when": "!editorFocus"
@@ -476,7 +472,7 @@
   {
     "key": "alt+cmd+r",
     "command": "workbench.files.action.showActiveFileInExplorer"
-  }
+  },
   // Magit
   {
     "key": "g g",
@@ -541,5 +537,13 @@
   {
     "key": "ctrl+u x",
     "command": "-magit.reset-hard"
+  },
+  {
+    "key": "shift+cmd+g",
+    "command": "magit.status"
+  },
+  {
+    "key": "alt+x g",
+    "command": "-magit.status"
   }
 ]

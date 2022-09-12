@@ -1,0 +1,12 @@
+#!/usr/bin/env doomscript
+
+;; Based on https://github.com/doomemacs/doomemacs/issues/6494#issuecomment-1162483877
+
+(defcli! org-roam-db-sync ()
+  (require 'doom-start)          ; load your user config
+  (print! "Updating org-roam db...")
+  (org-roam-db-sync)
+  (print! "Updated org-roam")
+)
+
+(run! "org-roam-db-sync" (cdr (member "--" argv)))
