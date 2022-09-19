@@ -36,7 +36,7 @@
       +org-roam-open-buffer-on-find-file nil
       org-roam-capture-templates
        '(("d" "default" plain "%?"
-           :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+           :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
            :unnarrowed t)
          ("o" "obsidian" plain "%?"
            :target (file+head "inbox/%^{ObsidianId}-${slug}.org" "#+title: ${title}\n#+obsidianid: %^1\n#+created: %^{Created}\n")
