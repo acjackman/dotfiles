@@ -25,3 +25,6 @@
 [submodule "src/oh-my-zsh/custom/plugins/zsh-vi-mode"]
 	path = src/oh-my-zsh/custom/plugins/zsh-vi-mode
 	url = https://github.com/jeffreytse/zsh-vi-mode
+[submodule "tools/gitalias"]
+	path = tools/gitalias
+	url = git@github.com:GitAlias/gitalias.git
