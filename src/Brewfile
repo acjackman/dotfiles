@@ -65,7 +65,7 @@ cask "cardhop"
 cask "discord"
 
 cask "devonthink"
-mas "GoodNotes", id: 1480793815
+mas "GoodNotes 5", id: 1444383602
 mas "Instapaper", id: 1481302432
 mas "Instapaper Save", id: 1481302432  # Safari Extension
 mas "Drafts", id: 1435957248
