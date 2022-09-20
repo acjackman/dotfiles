@@ -339,3 +339,9 @@
 (defun org-devonthink-item-open (uid)
   "Open the given uid, which is a reference to an item in Devonthink"
   (shell-command (concat "open \"x-devonthink-item:" uid "\"")))
+
+
+(map! :map terraform-mode-map
+      :localleader
+      :desc "validate" "v" (cmd! (compile (format "%s validate" +terraform-runner) t))
+      :desc "format" "f" (cmd! (compile (format "%s fmt -recursive" +terraform-runner) t)))
