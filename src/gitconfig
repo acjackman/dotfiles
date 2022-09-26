@@ -131,10 +131,10 @@
 [init]
     defaultBranch = main
 
-[includeIf "gitdir:~/Development/Moov/"]
+[includeIf "gitdir:~/Development/moov/"]
     path = ~/.gitconfig-moov
 
-[includeIf "gitdir:~/dev/Moov/"]
+[includeIf "gitdir:~/dev/moov/"]
     path = ~/.gitconfig-moov
 
 [includeIf "gitdir:~/github.com/moovfinancial/"]
