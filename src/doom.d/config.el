@@ -278,6 +278,14 @@
 ;;     (mapc #'kill-buffer
 ;;       (-difference (buffer-list) buffs-snapshot))))
 
+  (defface org-link-roam
+    '((t :underline t))
+    "Face for Org-Mode links starting with id:."
+    :group 'org-faces)
+
+ (org-link-set-parameters
+   "id"
+   :face 'org-link-roam)
 
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
