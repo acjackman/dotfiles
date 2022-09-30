@@ -384,6 +384,11 @@
   "Open the given uid, which is a reference to an item in Devonthink"
   (shell-command (concat "open \"x-devonthink-item:" uid "\"")))
 
+(org-add-link-type "slack" 'org-slack-open)
+
+(defun org-slack-open (url)
+  "Open the given uid, which is a reference to an item in Devonthink"
+  (shell-command (concat "open \"slack:" url "\"")))
 
 (map! :map terraform-mode-map
       :localleader
