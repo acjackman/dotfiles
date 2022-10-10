@@ -371,9 +371,11 @@
 (setq! org-superstar-special-todo-items nil)
 (setq! org-superstar-headline-bullets-list '("⁕" "⬣" "⁜" "➙" "▷" "▣" "◈"))
 
-(set-ligatures! 'org-mode
-  :src_block     "»"
-  :src_block_end "«")
+(after! org
+  (set-ligatures! 'org-mode
+    :src_block     "»"
+    :src_block_end "«")
+)
 
 (setq confirm-kill-emacs nil)
 
@@ -394,3 +396,29 @@
       :localleader
       :desc "validate" "v" (cmd! (compile (format "%s validate" +terraform-runner) t))
       :desc "format" "f" (cmd! (compile (format "%s fmt -recursive" +terraform-runner) t)))
+
+
+(defun formatted-copy ()
+  "Export region to Rich Text, and copy it to the clipboard."
+  (interactive)
+  (save-window-excursion
+    (let* ((buf (org-export-to-buffer 'html "*Formatted Copy*" nil nil t t))
+           (html (with-current-buffer buf (buffer-string))))
+      (with-current-buffer buf
+        (shell-command-on-region
+         (point-min)
+         (point-max)
+         "textutil -stdin -format html -convert rtf -stdout | pbcopy"))
+      (kill-buffer buf))))
+
+(map!
+  :after org
+  :map org-mode-map
+
+  :localleader
+  "E" #'formatted-copy
+  )
+
+;; Pull up version control status instead of picking a file when switching projects
+;; https://www.reddit.com/r/emacs/comments/2qthru/comment/cnac0j9/
+(setq projectile-switch-project-action #'projectile-vc)
