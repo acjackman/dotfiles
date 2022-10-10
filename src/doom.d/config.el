@@ -52,15 +52,20 @@
         '(("d" "default" plain "%?"
            :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n")
            :unnarrowed t
-           :immediate-finish t)
-          ("l" "log" entry "** %<%H:%M>: %?"
-           :if-new (file+olp "%<%Y-%m-%d>.org" ("Log")))
-          ("t" "task" entry "* TODO %?"
-           :if-new (file+olp "%<%Y-%m-%d>.org" ("Tasks")))))
+           :immediate-finish t)))
 
 
 ;; Disable org mode tag inheritance for better org-roam compatibility
 (setq! org-use-tag-inheritance nil)
+
+(defun org-roam-dailies-capture- (time &optional goto templates)
+  (let ((org-roam-directory (expand-file-name org-roam-dailies-directory org-roam-directory))
+        (org-roam-dailies-directory "./"))
+    (org-roam-capture- :goto (when goto '(4))
+                       :node (org-roam-node-create)
+                       :templates (or templates org-roam-dailies-capture-templates)
+                       :props (list :override-default-time time)))
+  (when goto (run-hooks 'org-roam-dailies-find-file-hook)))
 
 (defun my/org-roam-dailies-goto-today (keys)
   (interactive "P")
@@ -68,21 +73,23 @@
 
 (defun org-roam-dailies-capture-today-log (keys)
   (interactive "P")
-  (org-roam-dailies-capture-today nil "l"))
+  (org-roam-dailies-capture- (current-time) nil
+    '(("d" nil entry "** %<%H:%M>: %?"
+       :if-new (file+olp "%<%Y-%m-%d>.org" ("Log"))))
+    ))
 
 (defun org-roam-dailies-capture-today-task (keys)
   (interactive "P")
-  (org-roam-dailies-capture-today nil "t"))
+  (org-roam-dailies-capture- (current-time) nil
+    '(("d" nil entry "* TODO %?"
+       :if-new (file+olp "%<%Y-%m-%d>.org" ("Tasks"))))
+    ))
 
 ;; Log an item to daily file
 (map! :leader
       (:prefix-map ("l" . "Log")
         :desc "Daily Log" "l" #'org-roam-dailies-capture-today-log
         :desc "Daily Task" "t" #'org-roam-dailies-capture-today-task))
-
-
-(map! :leader
-     :desc "n r d t" "Goto today" #'my/org-roam-dailies-goto-today)
 
 
 ;; Capture immediate (Source: https://systemcrafters.net/build-a-second-brain-in-emacs/5-org-roam-hacks/#fast-note-insertion-for-a-smoother-writing-flow)
@@ -129,26 +136,24 @@
 (defun clerk/org-roam-find-node (filter templates)
   (org-roam-node-find nil nil filter nil :templates templates))
 
-(defun clerk/org-roam-find-resource (dir filename &optional template header)
-  (let ()
-    (message "dir %S\nfilename %S\ntemplate %S\ntemplates %S" dir filename template templates)
-    (clerk/org-roam-find-node
-      (clerk/org-roam-filter-by-folder dir)
-      '(("d" "default" plain "%?"
-          :target (file+head (concat dir "%<%Y%m%d%H%M%S>-${slug}.org") (concat default-note-template header))
-          :unnarrowed t))
-    )
+(defun clerk/org-roam-find-resource (dir &optional template-file)
+  (message ";;;; dir %S" dir )
+  (clerk/org-roam-find-node
+    (clerk/org-roam-filter-by-folder dir)
+    '(("d" "default" plain (if template-file '(file (concat "~/.doom.d/roam-templates/" template-file)) "%?")
+        :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org"  "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+        :unnarrowed t))
   )
 )
 
 (defun clerk/org-roam-insert-node (filter templates)
   (org-roam-node-insert filter :templates templates))
 
-(defun clerk/org-roam-insert-resource (dir &optional template-file )
+(defun clerk/org-roam-insert-resource (dir &optional template-file)
   (clerk/org-roam-insert-node
     (clerk/org-roma-filter-by-folder dir)
-   `(("d" "default" plain (if template-file '(file (concat "~/.doom.d/roam-templates/" template-file)) "%?")
-       :target (file+head (concat 'dir "%<%Y%m%d%H%M%S>-${slug}.org") default-note-template)
+    '(("d" "default" plain (if template-file '(file (concat "~/.doom.d/roam-templates/" template-file)) "%?")
+       :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org"  "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
        :unnarrowed t
        :immediate-finish t))
   )
@@ -177,17 +182,6 @@
            :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org")
            :unnarrowed t))))
 
-;; (defun clerk/org-roam-find-person       () (interactive) (clerk/org-roam-find-resource "cards/people/" "cards/people/%<%Y%m%d%H%M%S>-${slug}.org"))
-;; (defun clerk/org-roam-find-r-book       () (interactive) (clerk/org-roam-find-resource "r/book/" "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "book.org"))
-;; (defun clerk/org-roam-find-r-movie      () (interactive) (clerk/org-roam-find-resource "r/movie/" "r/movie/%<%Y%m%d%H%M%S>-${slug}.org"))
-;; (defun clerk/org-roam-find-r-tv-show    () (interactive) (clerk/org-roam-find-resource "r/tv-show/" "r/tv-show/%<%Y%m%d%H%M%S>-${slug}.org"))
-;; (defun clerk/org-roam-find-r-video-game () (interactive) (clerk/org-roam-find-resource "r/video-game/" "r/video-game/%<%Y%m%d%H%M%S>-${slug}.org"))
-
-;; (defun clerk/org-roam-insert-person       () (interactive) (clerk/org-roam-insert-resource "cards/people/"))
-;; (defun clerk/org-roam-insert-r-book       () (interactive) (clerk/org-roam-insert-resource "r/book/" "book.org"))
-;; (defun clerk/org-roam-insert-r-movie      () (interactive) (clerk/org-roam-insert-resource "r/movie/"))
-;; (defun clerk/org-roam-insert-r-tv-show    () (interactive) (clerk/org-roam-insert-resource "r/tv-show/"))
-;; (defun clerk/org-roam-insert-r-video-game () (interactive) (clerk/org-roam-insert-resource "r/video-game/"))
 
 (map! :leader
   :prefix ("N" . "Find Note")
@@ -195,35 +189,34 @@
   (:prefix ("r" . "roles")
     (:prefix ("w" . "moov")
       :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "role/mv/moov-role.org")))
-      :desc "projects" "p" (lambda () (interactive) (clerk/org-roam-find-resource "role/mv/projects/" "role/mv/projects/%<%Y%m%d%H%M%S>-${slug}.org" "project.org"))
+      :desc "projects" "p" (lambda () (interactive) (clerk/org-roam-find-resource "role/mv/projects/" "project.org"))
     )
     (:prefix ("n" . "nerd")
       :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "role/nerd/nerd-role.org")))
-      :desc "projects" "p" (lambda () (interactive) (clerk/org-roam-find-resource "role/nerd/projects/" "role/nerd/projects/%<%Y%m%d%H%M%S>-${slug}.org" "project.org"))
+      :desc "projects" "p" (lambda () (interactive) (clerk/org-roam-find-resource "role/nerd/projects/" "project.org"))
     )
-    ;; (:prefix ("l" . "life")
-    ;;   :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "role/life/life-role.org")))
-    ;;   :desc "projects" "p" (lambda () (interactive) (clerk/org-roam-find-resource "role/life/projects/" "project.org"))
-    ;; )
-    ;; (:prefix ("v" . "verisage")
-    ;;   :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "role/vs/vs-role.org")))
-    ;;   :desc "projects" "p" (lambda () (interactive) (clerk/org-roam-find-resource "role/vs/projects/" "project.org"))
-    ;; )
+    (:prefix ("l" . "life")
+      :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "role/life/life-role.org")))
+      :desc "projects" "p" (lambda () (interactive) (clerk/org-roam-find-resource "role/life/projects/" "project.org"))
+    )
+    (:prefix ("v" . "verisage")
+      :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "role/vs/vs-role.org")))
+      :desc "projects" "p" (lambda () (interactive) (clerk/org-roam-find-resource "role/vs/projects/" "project.org"))
+    )
   )
   ;; :desc "Question" "q" #'my/org-roam-find-question
-  ;; :desc "Person" "p" (lambda () (interactive) (clerk/org-roam-find-resource "cards/people/"))
+  :desc "Person" "p" (lambda () (interactive) (clerk/org-roam-find-resource "cards/people/"))
 
   (:prefix ("SPC" . "Find reference node")
-    :desc "book" "b" (lambda () (interactive) (clerk/org-roam-find-resource "r/book/" "r/book/%<%Y%m%d%H%M%S>-${slug}.org" "book.org"))
-    ;; :desc "video-game" "g" (lambda () (interactive) (clerk/org-roam-find-resource "r/video-game/"))
-    ;; :desc "movie" "m" (lambda () (interactive) (clerk/org-roam-find-resource "r/movie/"))
-    ;; :desc "tv-show" "t" (lambda () (interactive) (clerk/org-roam-find-resource "r/video-game/"))
+    :desc "book" "b" (lambda () (interactive) (clerk/org-roam-find-resource "r/book/" "book.org"))
+    :desc "video-game" "g" (lambda () (interactive) (clerk/org-roam-find-resource "r/video-game/"))
+    :desc "movie" "m" (lambda () (interactive) (clerk/org-roam-find-resource "r/movie/"))
+    :desc "tv-show" "t" (lambda () (interactive) (clerk/org-roam-find-resource "r/tv-show/"))
   )
 )
 
 (map! :leader
   :prefix ("C-n" . "Link note")
-  ;; :desc "Node" "n" #'org-roam-node-find
   (:prefix ("r" . "roles")
     (:prefix ("w" . "moov")
       ;; :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "role/mv/moov-role.org")))
@@ -248,7 +241,7 @@
     :desc "book" "b" (lambda () (interactive) (clerk/org-roam-insert-resource "r/book/" "book.org"))
     :desc "video-game" "g" (lambda () (interactive) (clerk/org-roam-insert-resource "r/video-game/"))
     :desc "movie" "m" (lambda () (interactive) (clerk/org-roam-insert-resource "r/movie/"))
-    :desc "tv-show" "t" (lambda () (interactive) (clerk/org-roam-insert-resource "r/video-game/"))
+    :desc "tv-show" "t" (lambda () (interactive) (clerk/org-roam-insert-resource "r/tv-show/"))
   )
 )
 
@@ -321,14 +314,14 @@
 ;;     (mapc #'kill-buffer
 ;;       (-difference (buffer-list) buffs-snapshot))))
 
-  (defface org-link-roam
-    '((t :underline t))
-    "Face for Org-Mode links starting with id:."
-    :group 'org-faces)
+ ;;  (defface org-link-roam
+ ;;    '((t :underline t))
+ ;;    "Face for Org-Mode links starting with id:."
+ ;;    :group 'org-faces)
 
- (org-link-set-parameters
-   "id"
-   :face 'org-link-roam)
+ ;; (org-link-set-parameters
+ ;;   "id"
+ ;;   :face 'org-link-roam)
 
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
