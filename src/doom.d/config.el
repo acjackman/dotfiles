@@ -440,6 +440,22 @@
   "E" #'formatted-copy
   )
 
+;; from https://git.0xee.eu/0xee/emacs-config/commit/bc2011419c9d4f5c119c9e347ba85c8203fb11e5
+(defun projectile-find-file-or-magit (&optional arg)
+  "Jump to a project's file using completion.
+With a prefix ARG invalidates the cache first."
+  (interactive "P")
+  (projectile-maybe-invalidate-cache arg)
+  (let ((file (projectile-completing-read "Find file: "
+                                          (append (list "*magit*") (projectile-current-project-files)))))
+    (if (string= file "*magit*")
+        (magit-status-internal (projectile-project-root))
+      (progn (find-file (expand-file-name file (projectile-project-root)))
+             (run-hooks 'projectile-find-file-hook))
+      )
+    )
+  )
+
 ;; Pull up version control status instead of picking a file when switching projects
 ;; https://www.reddit.com/r/emacs/comments/2qthru/comment/cnac0j9/
-(setq projectile-switch-project-action #'projectile-vc)
+(setq projectile-switch-project-action (quote projectile-find-file-or-magit))
