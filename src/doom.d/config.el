@@ -75,7 +75,26 @@
   (interactive "P")
   (org-roam-dailies-capture- (current-time) nil
     '(("d" nil entry "** %<%H:%M>: %?"
-       :if-new (file+olp "%<%Y-%m-%d>.org" ("Log"))))
+       :if-new (file+olp "%<%Y-%m-%d>.org" ("Log"))
+    ))
+  ))
+
+(defun org-roam-dailies-capture-today-meeting (keys)
+  (interactive "P")
+  (org-roam-dailies-capture- (current-time) nil
+    '(("i" nil entry "** %<%H:%M>: %?"
+       :if-new (file+olp "%<%Y-%m-%d>.org" ("Log"))
+       :clock-in t
+       :clock-keep t
+       :jump-to-captured t))
+  ))
+
+(defun org-roam-dailies-capture-today-interrupt (keys)
+  (interactive "P")
+  (org-roam-dailies-capture- (current-time) nil
+    '(("i" nil entry "** %<%H:%M>: %?"
+       :if-new (file+olp "%<%Y-%m-%d>.org" ("Log"))
+       :clock-in t :clock-resume t))
     ))
 
 (defun org-roam-dailies-capture-today-task (keys)
@@ -89,6 +108,8 @@
 (map! :leader
       (:prefix-map ("l" . "Log")
         :desc "Daily Log" "l" #'org-roam-dailies-capture-today-log
+        :desc "Interrupt" "i" #'org-roam-dailies-capture-today-interrupt
+        :desc "Meeting" "m" #'org-roam-dailies-capture-today-meeting
         :desc "Daily Task" "t" #'org-roam-dailies-capture-today-task))
 
 
