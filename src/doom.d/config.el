@@ -43,8 +43,11 @@
          ("o" "obsidian" plain "%?"
            :target (file+head "inbox/%^{ObsidianId}-${slug}.org" "#+title: ${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
            :unnarrowed t)
-         ("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
-           :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "${title}")
+         ("e" "effort" plain (file "~/.doom.d/roam-templates/effort.org")
+           :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
+           :unnarrowed t)
+         ("p" "person" plain (file "~/.doom.d/roam-templates/person.org")
+           :target (file+head "cards/people/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
            :unnarrowed t)
       )
 
