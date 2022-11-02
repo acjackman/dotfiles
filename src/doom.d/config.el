@@ -104,6 +104,7 @@
        :if-new (file+olp "%<%Y-%m-%d>.org" ("Tasks"))))
     ))
 
+
 ;; Log an item to daily file
 (map! :leader
       (:prefix-map ("l" . "Log")
@@ -111,6 +112,7 @@
         :desc "Interrupt" "i" #'org-roam-dailies-capture-today-interrupt
         :desc "Meeting" "m" #'org-roam-dailies-capture-today-meeting
         :desc "Daily Task" "t" #'org-roam-dailies-capture-today-task))
+
 
 
 ;; Capture immediate (Source: https://systemcrafters.net/build-a-second-brain-in-emacs/5-org-roam-hacks/#fast-note-insertion-for-a-smoother-writing-flow)
@@ -441,21 +443,24 @@
   )
 
 ;; from https://git.0xee.eu/0xee/emacs-config/commit/bc2011419c9d4f5c119c9e347ba85c8203fb11e5
-(defun projectile-find-file-or-magit (&optional arg)
-  "Jump to a project's file using completion.
-With a prefix ARG invalidates the cache first."
-  (interactive "P")
-  (projectile-maybe-invalidate-cache arg)
-  (let ((file (projectile-completing-read "Find file: "
-                                          (append (list "*magit*") (projectile-current-project-files)))))
-    (if (string= file "*magit*")
-        (magit-status-internal (projectile-project-root))
-      (progn (find-file (expand-file-name file (projectile-project-root)))
-             (run-hooks 'projectile-find-file-hook))
-      )
-    )
-  )
+;; (defun projectile-find-file-or-magit (&optional arg)
+;;   "Jump to a project's file using completion.
+;; With a prefix ARG invalidates the cache first."
+;;   (interactive "P")
+;;   (projectile-maybe-invalidate-cache arg)
+;;   (let ((file (projectile-completing-read "Find file: "
+;;                                           (append (list "*magit*") (projectile-current-project-files))
+;;                                           :initial-input "*magit*")))
+;;     (if (string= file "*magit*")
+;;         (magit-status-internal (projectile-project-root))
+;;       (progn (find-file (expand-file-name file (projectile-project-root)))
+;;              (run-hooks 'projectile-find-file-hook))
+;;       )
+;;     )
+;;   )
+
 
 ;; Pull up version control status instead of picking a file when switching projects
 ;; https://www.reddit.com/r/emacs/comments/2qthru/comment/cnac0j9/
-(setq projectile-switch-project-action (quote projectile-find-file-or-magit))
+;; (setq +workspaces-switch-project-function (quote projectile-find-file-or-magit))
+;; (setq! +workspaces-switch-project-function #'magit-status-setup-buffer)
