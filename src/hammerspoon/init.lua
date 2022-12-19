@@ -252,7 +252,7 @@ singleapps = {
   {'q', 'OmniFocus'},
   {'s', 'Slack'},
   {'d', 'Drafts'},
-  -- {'e', 'Sublime Text'},
+  {'e', 'Emacs'},
   {'r', 'Safari'},
   {'t', 'iTerm'},
   {'f', 'Finder'},
@@ -279,14 +279,6 @@ end
 --   --k:exit()
 -- end
 -- k:bind({}, "t", nil, terminalHyper)
-
-
-if (hs.host.localizedName() == "MacBook Pro") then
-  k:bind({}, "e", function() launch('Visual Studio Code'); end)
-else
-  k:bind({}, "e", function() launch('Emacs'); end)
-end
-
 
 -- hs.loadSpoon("MuteLight")
 -- spoon.MuteLight:start("Jabra Link 380", false)
@@ -333,7 +325,7 @@ end
 hs.loadSpoon("ReloadConfiguration")
 spoon.ReloadConfiguration:start()
 
-if (hostname == "MacBook Pro") then
+if (hostname == "Birger") then
   hs.loadSpoon("WheelOfSeasons")
   spoon.WheelOfSeasons:start(
     os.getenv("HOME") .. "/WheelOfSeasons/",

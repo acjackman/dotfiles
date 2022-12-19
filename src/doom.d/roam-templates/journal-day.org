@@ -1,0 +1,34 @@
+#+created: %<%Y-%m-%dT%H:%M:%S%z>
+#+STARTUP: overview
+
+* Calendar
+:PROPERTIES:
+:VISIBILITY: children
+:END:
+* Log
+:PROPERTIES:
+:VISIBILITY: children
+:END:
+* Tasks
+:PROPERTIES:
+:VISIBILITY: children
+:END:
+* Time
+:PROPERTIES:
+:VISIBILITY: folded
+:END:
+
+#+begin_src elisp
+(defun my/linked-files-test ()
+  (list
+    (expand-file-name "~/brain/journal/2022-10-26.org")
+  )
+)
+#+end_src
+
+#+RESULTS:
+: my/linked-files-test
+
+
+#+BEGIN: clocktable :scope my/linked-files-test :maxlevel 3 :hidefiles t :tstart "<%<%Y-%m-%d> 05:00>" :tend "<2022-10-27 04:59>"
+#+END:

@@ -53,7 +53,7 @@
 
       org-roam-dailies-capture-templates
         '(("d" "default" plain "%?"
-           :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n")
+           :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n* Calendar\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n* Tasks\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n")
            :unnarrowed t
            :immediate-finish t)))
 
@@ -421,6 +421,7 @@
 (map! :map terraform-mode-map
       :localleader
       :desc "validate" "v" (cmd! (compile (format "%s validate" +terraform-runner) t))
+      :desc "init-upgrade" "u" (cmd! (compile (format "%s init -upgrade" +terraform-runner) t))
       :desc "format" "f" (cmd! (compile (format "%s fmt -recursive" +terraform-runner) t)))
 
 
