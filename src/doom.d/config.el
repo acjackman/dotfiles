@@ -395,7 +395,7 @@
 (use-package! hcl-mode)
 
 (setq! org-superstar-special-todo-items nil)
-(setq! org-superstar-headline-bullets-list '("⁕" "⬣" "⁜" "➙" "▷" "▣" "◈"))
+(setq! org-superstar-headline-bullets-list '("⬣" "⁕" "⁜" "➙" "▷" "▣" "◈"))
 
 (after! org
   (set-ligatures! 'org-mode
