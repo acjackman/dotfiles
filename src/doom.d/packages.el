@@ -18,6 +18,7 @@
 (package! nov)
 
 (package! hcl-mode)
+(package! rego-mode)
 
 ;(package! dirvish)
 

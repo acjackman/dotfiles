@@ -393,6 +393,7 @@
 (use-package! nov)
 
 (use-package! hcl-mode)
+(use-package! rego-mode)
 
 (setq! org-superstar-special-todo-items nil)
 (setq! org-superstar-headline-bullets-list '("⬣" "⁕" "⁜" "➙" "▷" "▣" "◈"))
