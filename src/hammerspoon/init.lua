@@ -10,12 +10,13 @@ print(hostname)
 --   log.df("name=%s", appname)
 
 
-control     = {"ctrl"}
-option      = {"option"}
-meh         = {"alt", "ctrl", "shift"}
-hyper       = {"cmd","alt","ctrl"}
-shift_hyper = {"cmd","alt","ctrl","shift"}
-ctrl_cmd    = {"cmd","ctrl"}
+control        = {"ctrl"}
+option         = {"option"}
+meh            = {"alt", "ctrl", "shift"}
+hyper          = {"cmd","alt","ctrl"}
+shift_hyper    = {"cmd","alt","ctrl","shift"}
+ctrl_cmd       = {"cmd","ctrl"}
+ctrl_cmd_shift = {"cmd","ctrl", "shift"}
 
 -- Disable hide
 hs.hotkey.bind("cmd", 'H', function() end)
@@ -161,6 +162,16 @@ spoon.RecursiveBinder.helperFormat = {
 
 
 hs.hotkey.bind({'ctrl'}, 'space', spoon.RecursiveBinder.recursiveBind(keyMap))
+
+hs.hotkey.bind(ctrl_cmd, 'h', nil, run_shell("yabai -m window --focus west"))
+hs.hotkey.bind(ctrl_cmd, 'j', nil, run_shell("yabai -m window --focus south"))
+hs.hotkey.bind(ctrl_cmd, 'k', nil, run_shell("yabai -m window --focus north"))
+hs.hotkey.bind(ctrl_cmd, 'l', nil, run_shell("yabai -m window --focus east"))
+
+hs.hotkey.bind(ctrl_cmd_shift, 'left', nil, run_shell("yabai -m window west --resize right:-20:0 2> /dev/null || yabai -m window --resize right:-20:0"))
+hs.hotkey.bind(ctrl_cmd_shift, 'down', nil, run_shell("yabai -m window north --resize bottom:0:20 2> /dev/null || yabai -m window --resize bottom:0:20"))
+hs.hotkey.bind(ctrl_cmd_shift, 'up', nil, run_shell("yabai -m window south --resize top:0:-20 2> /dev/null || yabai -m window --resize top:0:-20"))
+hs.hotkey.bind(ctrl_cmd_shift, 'right', nil, run_shell("yabai -m window east --resize left:20:0 2> /dev/null || yabai -m window --resize left:20:0"))
 
 -- A global variable for the Hyper Mode
 k = hs.hotkey.modal.new({}, "F18")
