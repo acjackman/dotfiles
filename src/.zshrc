@@ -93,8 +93,8 @@ ZSH_DISABLE_COMPFIX=true
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
     asdf
-    atuin
     zsh-vi-mode
+    fzf
     aws
     terraform
     colorize
