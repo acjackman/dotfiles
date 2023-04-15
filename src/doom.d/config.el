@@ -86,7 +86,7 @@
   (interactive "P")
   (org-roam-dailies-capture- (current-time) nil
     '(("i" nil entry "** %<%H:%M>: %?"
-       :if-new (file+olp "%<%Y-%m-%d>.org" ("Log"))
+       :if-new (file+olp "%<%Y-%m-%d>.org" ("Calendar"))
        :clock-in t
        :clock-keep t
        :jump-to-captured t))
@@ -95,7 +95,7 @@
 (defun org-roam-dailies-capture-today-interrupt (keys)
   (interactive "P")
   (org-roam-dailies-capture- (current-time) nil
-    '(("i" nil entry "** %<%H:%M>: %?"
+    '(("i" nil entry "** Interrupt %<%H:%M>: %?"
        :if-new (file+olp "%<%Y-%m-%d>.org" ("Log"))
        :clock-in t :clock-resume t))
     ))
