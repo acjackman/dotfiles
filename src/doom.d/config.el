@@ -307,6 +307,14 @@
 (map! "<C-s-return>" #'iterm-send-text
       "C-s-/" #'iterm-cd)
 
+(map! :leader
+      (:prefix-map ("g" . "git")
+       (:prefix ("w" . "worktree")
+        :desc "Worktree dispatch" "w" #'magit-worktree
+        :desc "branch and worktree" "c" #'magit-worktree-branch
+        :desc "Delete" "k" #'magit-worktree-delete
+        :desc "Visit" "g" #'magit-worktree-status
+        )))
 
 ;; https://www.eigenbahn.com/2021/09/15/org-roam#fn:4
 ;; (defun prf/org/file-path-org-p (f)
