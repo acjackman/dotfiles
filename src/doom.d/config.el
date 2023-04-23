@@ -384,6 +384,7 @@
 
 (after! lsp-mode
        (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.mypy_cache\\'")
+       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\__pycache__\\'")
        (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.nox\\'"))
 
 
@@ -454,6 +455,8 @@
   :localleader
   "E" #'formatted-copy
   )
+
+(setq flycheck-python-flake8-executable "flake8heavened")
 
 ;; from https://git.0xee.eu/0xee/emacs-config/commit/bc2011419c9d4f5c119c9e347ba85c8203fb11e5
 ;; (defun projectile-find-file-or-magit (&optional arg)

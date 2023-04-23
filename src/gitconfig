@@ -131,6 +131,12 @@
 [init]
     defaultBranch = main
 
+[includeIf "gitdir:~/Development/fulcrum/"]
+    path = ~/.gitconfig-fulcrum
+
+[includeIf "gitdir:~/dev/fulcrum/"]
+    path = ~/.gitconfig-fulcrum
+
 [includeIf "gitdir:~/Development/moov/"]
     path = ~/.gitconfig-moov
 

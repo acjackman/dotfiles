@@ -159,7 +159,7 @@ function okta_aws() (
     local PROFILE_NAME=$1
     shift
 
-    local MFA_CODE=$(op get totp "$OP_ITEM_OKTA")
+    local MFA_CODE=$(op item get "$OP_ITEM_OKTA" --otp)
     if [[ $MFA_CODE =~ ^[0-9]{6}$ ]] then
       echo "Authenticating for $PROFILE_NAME"
       gimme-aws-creds --mfa-code=$MFA_CODE --profile=$PROFILE_NAME --remember-device

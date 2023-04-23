@@ -340,6 +340,8 @@ end
 hs.loadSpoon("ReloadConfiguration")
 spoon.ReloadConfiguration:start()
 
+
+
 if (hostname == "Birger") then
   hs.loadSpoon("WheelOfSeasons")
   spoon.WheelOfSeasons:start(
@@ -347,12 +349,10 @@ if (hostname == "Birger") then
     60*60,
     true
   )
-end
-
-if (hostname == "Ingvar" or hostname == "Jormungandr") then
+elseif (hostname == "Ingvar") then
   hs.loadSpoon("WheelOfSeasons")
   spoon.WheelOfSeasons:start(
-    os.getenv("HOME") .. "/Dropbox/Reference/Desktops/FunWallpapers/",
+    os.getenv("HOME") .. "/.config/wallpapers/",
     60*60,
     true
   )
