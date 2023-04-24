@@ -18,6 +18,10 @@ brew "fzf"
 brew "svn"  # Fonts need
 brew "ispell"
 
+# Libs/dependencies
+brew "libvterm"
+brew "cmake"
+
 # Dev/Data Tools:
 brew "awscli"
 brew "git"
