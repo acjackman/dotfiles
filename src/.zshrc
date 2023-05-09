@@ -142,8 +142,9 @@ source $ZSH/oh-my-zsh.sh
 # For a full list of active aliases, run `alias`.
 
 export PYENV_ROOT="$HOME/.pyenv"
-export GOPATH="$HOME/go"
 # export PATH="$PYENV_ROOT/bin:$PATH"
+# export GOPATH="$HOME/go"
+export PATH="$HOME/go/bin:$PATH"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
