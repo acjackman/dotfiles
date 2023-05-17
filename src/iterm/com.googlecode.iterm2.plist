@@ -1376,8 +1376,12 @@
 	</array>
 	<key>OnlyWhenMoreTabs</key>
 	<false/>
+	<key>OpenArrangementAtStartup</key>
+	<false/>
 	<key>OpenFileInNewWindows</key>
 	<false/>
+	<key>OpenNoWindowsAtStartup</key>
+	<true/>
 	<key>PMPrintingExpandedStateForPrint2</key>
 	<false/>
 	<key>PasteSpecialRegex</key>
@@ -1424,11 +1428,11 @@
 	<key>Print In Black And White</key>
 	<true/>
 	<key>PromptOnQuit</key>
-	<false/>
+	<true/>
 	<key>QuitWhenAllWindowsClosed</key>
 	<false/>
 	<key>ShowFullScreenTabBar</key>
-	<false/>
+	<true/>
 	<key>SoundForEsc</key>
 	<false/>
 	<key>TabStyleWithAutomaticOption</key>

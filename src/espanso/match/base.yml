@@ -12,6 +12,14 @@ matches:
   - trigger: ",acc"
     replace: "### Acceptance Criteria\n[]"
 
+  - trigger: ",standup"
+    replace: "{{mydate}} Standup"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%A"
+
   # Print the current date
   - trigger: "dstp"
     replace: "{{mydate}}"
@@ -37,13 +45,22 @@ matches:
         params:
           format: "%Y-%m-%dT%H:%M:%S"
 
-  # Print the output of a shell command
-  - trigger: ":shell"
+  - trigger: ",gho"
     replace: "{{output}}"
     vars:
       - name: output
         type: shell
         params:
-          cmd: "echo 'Hello from your shell'"
+          cmd: >
+            pbpaste | sed -E 's|(https://github.com/([^/]+)/([^/]+)/pull/([^/]+)/(.*))|[[\1][\3#\4]]|'
+
+  - trigger: ",ghm"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: shell
+        params:
+          cmd: >
+            pbpaste | sed -E 's|(https://github.com/([^/]+)/([^/]+)/pull/([^/]+)/(.*))|[\3#\4](\1)|'
 
   # And much more! For more information, visit the docs: https://espanso.org/docs/
