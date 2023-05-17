@@ -96,6 +96,7 @@ plugins=(
     zsh-vi-mode
     fzf
     aws
+    gcloud
     terraform
     colorize
     colored-man-pages

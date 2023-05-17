@@ -3,7 +3,14 @@
       create: true
       relink: true
 
-- clean: ["~", "~/.config"]
+# Remvoe dead symbolic links to the dotfiles repo
+- clean:
+    ~/:
+      force: true
+    ~/.config:
+      recursive: true
+    "~/Library/Application Support":
+      if: "[ `uname` = Darwin ]"
 
 - link:
     ~/.zshrc: src/.zshrc
@@ -49,7 +56,10 @@
     ~/.editorconfig: src/editorconfig
 
     # macOS & apps
-    "~/Library/Application Support/Sublime Text 3/Packages/User": src/sublime/User
+    "~/Library/Application Support/espanso":
+      if: "[ `uname` = Darwin ]"
+      path: src/espanso
+      force: true
     ~/.Brewfile:
       if: "[ `uname` = Darwin ]"
       path: src/Brewfile

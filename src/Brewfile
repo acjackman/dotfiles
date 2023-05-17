@@ -59,6 +59,7 @@ mas "Patterns", id: 429449079
 cask "firefox"
 cask "google-chrome"
 cask "brave-browser"
+cask "espanso"
 
 # Organization
 cask "slack"
