@@ -131,7 +131,11 @@
 
 (map! :leader "n r I" #'org-roam-node-insert-immediate)
 
+(defun my/push-brain ()
+  (interactive)
+  (shell-command "~/.bin/push-brain"))
 
+(map! :leader "n r p" #'my/push-brain)
 
 ;; (defun my/org-roam-project-finalize-hook ()
 ;;   "Adds the captured project file to `org-agenda-files' if the
