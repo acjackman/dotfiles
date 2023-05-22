@@ -50,7 +50,7 @@
            :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
            :unnarrowed t)
          ("p" "person" plain (file "~/.doom.d/roam-templates/person.org")
-           :target (file+head "cards/people/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
+           :target (file+head "e/person/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
            :unnarrowed t)
       )
 
