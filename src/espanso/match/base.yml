@@ -29,14 +29,6 @@ matches:
         params:
           format: "%Y-%m-%d"
 
-  - trigger: "dstp"
-    replace: "{{mydate}}"
-    vars:
-      - name: mydate
-        type: date
-        params:
-          format: "%Y-%m-%d"
-
   - trigger: "dtstp"
     replace: "{{mydate}}"
     vars:
@@ -63,4 +55,6 @@ matches:
           cmd: >
             pbpaste | sed -E 's|(https://github.com/([^/]+)/([^/]+)/pull/([^/]+)/(.*))|[\3#\4](\1)|'
 
-  # And much more! For more information, visit the docs: https://espanso.org/docs/
+  - trigger: ",hb"
+    replace: "harbourbridge"
+
