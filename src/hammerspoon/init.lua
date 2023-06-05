@@ -96,6 +96,7 @@ local keyMap = {
   },
   [singleKey('w', 'window+')] = {
     [singleKey('b', 'balance')] = run_shell("yabai -m space --balance"),
+    [singleKey('t', 'toggle')] = run_shell("yabai -m window --toggle split"),
     -- [singleKey(',', 'main+1')] = global_binding({"shift", "alt"}, ","),
     -- [singleKey('.', 'main-1')] = global_binding({"shift", "alt"}, "."),
     -- [singleKey('h', 'main+1')] = global_binding({"shift", "alt"}, ","),

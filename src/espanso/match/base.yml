@@ -12,13 +12,21 @@ matches:
   - trigger: ",acc"
     replace: "### Acceptance Criteria\n[]"
 
-  - trigger: ",standup"
+  - trigger: ",stdd"
     replace: "{{mydate}} Standup"
     vars:
       - name: mydate
         type: date
         params:
           format: "%A"
+
+  - trigger: ",stdo"
+    replace: "{{order}}"
+    vars:
+      - name: order
+        type: shell
+        params:
+          cmd: "~/.dotfiles-moov/bin/standup"
 
   # Print the current date
   - trigger: "dstp"

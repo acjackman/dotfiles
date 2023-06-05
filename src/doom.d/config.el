@@ -31,6 +31,10 @@
 ;; Disable most warnings
 (setq warning-minimum-level :emergency)
 
+;; Prefix buffers with directory names to identify them
+(setq uniquify-buffer-name-style 'forward)
+
+
 ;; Org Templates
 
 ;; If you use `org' and don't want your org files in the default location below,
@@ -133,9 +137,11 @@
 
 (defun my/push-brain ()
   (interactive)
-  (shell-command "~/.bin/push-brain"))
+  (shell-command "~/.bin/push-brain")
+  (org-roam-db-sync))
 
 (map! :leader "n r p" #'my/push-brain)
+
 
 ;; (defun my/org-roam-project-finalize-hook ()
 ;;   "Adds the captured project file to `org-agenda-files' if the
