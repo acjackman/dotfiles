@@ -35,6 +35,7 @@
 (setq uniquify-buffer-name-style 'forward)
 
 
+
 ;; Org Templates
 
 ;; If you use `org' and don't want your org files in the default location below,
@@ -428,6 +429,10 @@
     :src_block     "»"
     :src_block_end "«")
 )
+
+
+(setq doom-modeline-vcs-max-length 20)
+
 
 (setq confirm-kill-emacs nil)
 
