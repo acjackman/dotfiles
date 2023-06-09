@@ -137,8 +137,11 @@
 
 (defun my/push-brain ()
   (interactive)
-  (shell-command "~/.bin/push-brain")
-  (org-roam-db-sync))
+  (let (
+         (shell-command-buffer-name "*Brain Sync*")
+         (max-mini-window-height .90))
+    (shell-command "~/.bin/push-brain")
+    (org-roam-db-sync)))
 
 (map! :leader "n r p" #'my/push-brain)
 
