@@ -115,6 +115,7 @@ mas "about-blank", id: 1239207203
 mas "Wipr", id: 1320666476
 mas "Noir", id: 1592917505
 mas "Hush", id: 1544743900
+mas "SponsorBlock for YouTube", id:1573461917
 
 # Fonts
 cask "font-fira-code-nerd-font"
