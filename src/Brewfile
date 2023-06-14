@@ -2,7 +2,6 @@ tap "homebrew/cask"
 tap "homebrew/core"
 tap "github/gh"
 tap "homebrew/bundle"
-tap "homebrew/cask-drivers"
 tap "homebrew/cask-fonts"
 tap "railwaycat/emacsmacport"
 tap "ttscoff/thelab"
@@ -22,14 +21,16 @@ brew "ispell"
 brew "libvterm"
 brew "cmake"
 
+
 # Dev/Data Tools:
+brew "git-lfs"
 brew "awscli"
 brew "git"
 brew "hub"
 brew "jq"
 brew "yq"
 brew "yj"
-brew "rs/tap/curlie"
+brew "curlie"
 brew "pandoc"
 brew "pipx"
 brew "pyenv"
@@ -63,26 +64,20 @@ cask "espanso"
 
 # Organization
 cask "slack"
-cask "omnifocus"
-cask "textexpander"
 cask "maestral"
 cask "1password"
 cask "1password-cli"
 mas "1Password for Safari", id: 1569813296
 cask "fantastical"
-cask "mimestream" 
 cask "cardhop"
 cask "discord"
-
 cask "devonthink"
 mas "GoodNotes 5", id: 1444383602
-mas "Instapaper", id: 1481302432
-mas "Instapaper Save", id: 1481302432  # Safari Extension
 mas "Drafts", id: 1435957248
-brew "gather-cli"
+
 
 # Customization/Utilities
-brew koekeishiya/formulae/yabai  # Tiling windows
+# brew koekeishiya/formulae/yabai  # Tiling windows
 cask "karabiner-elements"
 cask "launchbar"
 cask "hammerspoon"
@@ -101,7 +96,7 @@ cask "marked"
 cask "soulver"
 mas "TextSniper", id: 1528890965
 brew "switchaudio-osx"
-# mas  "Tailscale", id: 1475387142
+mas  "Tailscale", id: 1475387142
 
 mas "Speedtest", id: 1153157709
 mas "Data Jar", id: 1453273600
@@ -121,9 +116,16 @@ mas "SponsorBlock for YouTube", id:1573461917
 cask "font-fira-code-nerd-font"
 cask "font-jetbrains-mono-nerd-font"
 cask "font-montserrat-alternates"
-cask "font-source-code-pro-nerd-font"
+cask "font-sauce-code-pro-nerd-font"
 cask "font-atkinson-hyperlegible"
 cask "font-overpass"
 cask "iandol/adobe-fonts/font-source-code-pro"
 cask "iandol/adobe-fonts/font-source-sans"
 cask "iandol/adobe-fonts/font-source-serif"
+
+
+# Xcode 
+mas "Xcode", id: 497799835
+
+brew "ttscoff/thelab/gather-cli" # requires Xcode
+
