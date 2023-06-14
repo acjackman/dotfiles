@@ -28,3 +28,4 @@
 [submodule "tools/gitalias"]
 	path = tools/gitalias
 	url = git@github.com:GitAlias/gitalias.git
+	shallow = true
