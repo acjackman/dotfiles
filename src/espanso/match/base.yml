@@ -45,23 +45,23 @@ matches:
         params:
           format: "%Y-%m-%dT%H:%M:%S"
 
-  - trigger: ",gho"
+  - trigger: ",clo"
     replace: "{{output}}"
     vars:
       - name: output
         type: shell
         params:
           cmd: >
-            pbpaste | sed -E 's|(https://github.com/([^/]+)/([^/]+)/pull/([^/]+)/(.*))|[[\1][\3#\4]]|'
+            pbpaste | ~/.bin/pblink --org
 
-  - trigger: ",ghm"
+  - trigger: ",clm"
     replace: "{{output}}"
     vars:
       - name: output
         type: shell
         params:
           cmd: >
-            pbpaste | sed -E 's|(https://github.com/([^/]+)/([^/]+)/pull/([^/]+)/(.*))|[\3#\4](\1)|'
+            pbpaste | ~/.bin/pblink --md
 
   - trigger: ",hb"
     replace: "harbourbridge"

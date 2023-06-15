@@ -1,0 +1,70 @@
+#!/usr/bin/env python3
+import re
+import sys
+from urllib.parse import urlparse, ParseResult
+from functools import cached_property
+
+import click
+
+
+class GithubPRLink:
+    def __init__(self, url, parsed=None):
+        self.url = url.strip()
+        parsed = parsed or urlparse(url)
+
+        if parsed.hostname != "github.com":
+            raise Exception(f"Not github.com, {parsed.hostname}")
+
+        path = parsed.path
+        match = re.match("^/([^/]+)/([^/]+)/(pull|issue)/([0-9]+)", path)
+        if not match:
+            raise Exception("Not a PR or issue")
+
+        self.user = match.group(1)
+        self.repo = match.group(2)
+        self.num = match.group(4)
+
+    @property
+    def description(self):
+        return f"{self.repo}#{self.num}"
+
+
+LINKS = [GithubPRLink]
+
+
+def format_md(link):
+    return f"[{link.description}]({link.url})"
+
+
+def format_org(link):
+    return f"[[{link.url}][{link.description}]]"
+
+
+@click.command()
+@click.option("--md", "style", flag_value="markdown", default=True)
+@click.option("--org", "style", flag_value="org")
+def main(style):
+    pasteboard = click.get_text_stream("stdin").read()
+
+    try:
+        result = urlparse(pasteboard)
+    except Exception as e:
+        click.echo(pasteboard)
+        sys.exit(0)
+
+    for link_style in LINKS:
+        try:
+            link = link_style(pasteboard, result)
+            match style:
+                case "markdown":
+                    click.echo(format_md(link))
+                case "org":
+                    click.echo(format_org(link))
+
+            sys.exit(0)
+        except Exception as e:
+            pass
+
+
+if __name__ == "__main__":
+    main()
