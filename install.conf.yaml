@@ -44,8 +44,8 @@
     ~/.myclirc: src/myclirc
 
     # Emacs
-    ~/.doom.d:
-      path: src/doom.d/
+    ~/.config/doom:
+      path: src/doom/
       force: true
 
     ~/.config/topgrade.toml: src/topgrade/config.toml
