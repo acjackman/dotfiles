@@ -9,7 +9,7 @@ popd() {
 
 set -e
 
-dotfiles-installDOTFILES="$HOME/.dotfiles"
+DOTFILES="$HOME/.dotfiles"
 
 DOTBOT_DIR="tools/dotbot"
 CONFIG="install.conf.yaml"
