@@ -43,3 +43,10 @@ fi
 
 # Install applications
 brew bundle install --global
+
+# Start Yabai
+command -v yabai 2>&1 >/dev/null && FOUND_YABAI=1 || FOUND_YABAI=0
+if [[ $FOUND_YABAI -eq 1 ]]; then
+  yabai --start-service
+fi
+unset FOUND_YABAI

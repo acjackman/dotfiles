@@ -7,6 +7,17 @@ tap "railwaycat/emacsmacport"
 tap "ttscoff/thelab"
 brew "mas"
 
+# Fonts
+cask "font-fira-code-nerd-font"
+cask "font-jetbrains-mono-nerd-font"
+cask "font-montserrat-alternates"
+cask "font-sauce-code-pro-nerd-font"
+cask "font-atkinson-hyperlegible"
+cask "font-overpass"
+cask "iandol/adobe-fonts/font-source-code-pro"
+cask "iandol/adobe-fonts/font-source-sans"
+cask "iandol/adobe-fonts/font-source-serif"
+
 # *Nix utils
 brew "asdf"
 brew "direnv"
@@ -51,15 +62,17 @@ brew "shellcheck"
 cask "docker"
 cask "iterm2"
 cask "kaleidoscope"
-cask "tower"
+# cask "tower"
 cask "transmit"
+brew "emacs-mac", args: ["with-modules", "with-emacs-big-sur-icon", "with-native-comp" ]
 cask "tad"  # CSV Viewer
-cask "dash"
+cask "dash" # Offline Documentation
 mas "Patterns", id: 429449079
 cask "firefox"
 cask "google-chrome"
 cask "brave-browser"
-cask "espanso"
+cask "arc"
+cask "espanso" # Text expansion
 
 # Organization
 cask "slack"
@@ -74,9 +87,10 @@ cask "devonthink"
 mas "GoodNotes 5", id: 1444383602
 mas "Drafts", id: 1435957248
 mas "Things 3", id: 904280696
+mas "Timery for Toggl", id: 1425368544
 
 # Customization/Utilities
-# brew koekeishiya/formulae/yabai  # Tiling windows
+brew "koekeishiya/formulae/yabai"  # Tiling windows
 cask "karabiner-elements"
 cask "launchbar"
 cask "hammerspoon"
@@ -111,20 +125,7 @@ mas "Noir", id: 1592917505
 mas "Hush", id: 1544743900
 mas "SponsorBlock for YouTube", id:1573461917
 
-# Fonts
-cask "font-fira-code-nerd-font"
-cask "font-jetbrains-mono-nerd-font"
-cask "font-montserrat-alternates"
-cask "font-sauce-code-pro-nerd-font"
-cask "font-atkinson-hyperlegible"
-cask "font-overpass"
-cask "iandol/adobe-fonts/font-source-code-pro"
-cask "iandol/adobe-fonts/font-source-sans"
-cask "iandol/adobe-fonts/font-source-serif"
-
-
 # Xcode 
 mas "Xcode", id: 497799835
 
-brew "ttscoff/thelab/gather-cli" # requires Xcode
-
+# brew "ttscoff/thelab/gather-cli" # requires Xcode
