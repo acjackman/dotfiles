@@ -42,6 +42,7 @@
       path: src/doom/
       force: true
 
+    ~/.config/k9s: src/k9s
     ~/.config/topgrade.toml: src/topgrade/config.toml
     ~/.editorconfig: src/editorconfig
 
