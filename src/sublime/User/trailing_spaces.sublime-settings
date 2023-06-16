@@ -1,5 +1,0 @@
-// Settings in here override those in "TrailingSpaces/trailing_spaces.sublime-settings"
-
-{
-    "trailing_spaces_modified_lines_only": true
-}
