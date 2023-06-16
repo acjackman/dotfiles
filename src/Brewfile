@@ -73,6 +73,7 @@ cask "google-chrome"
 cask "brave-browser"
 cask "arc"
 cask "espanso" # Text expansion
+cask "shortcat" # keyboard driven clicks
 
 # Organization
 cask "slack"
