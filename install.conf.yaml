@@ -44,10 +44,6 @@
     ~/.myclirc: src/myclirc
 
     # Emacs
-    ~/.emacs.d:
-      path: tools/doom-emacs/
-      force: true
-    # ~/.spacemacs.d: src/spacemacs/
     ~/.doom.d:
       path: src/doom.d/
       force: true
