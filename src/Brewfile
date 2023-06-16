@@ -21,7 +21,6 @@ brew "ispell"
 brew "libvterm"
 brew "cmake"
 
-
 # Dev/Data Tools:
 brew "git-lfs"
 brew "awscli"
@@ -74,7 +73,7 @@ cask "discord"
 cask "devonthink"
 mas "GoodNotes 5", id: 1444383602
 mas "Drafts", id: 1435957248
-
+mas "Things 3", id: 904280696
 
 # Customization/Utilities
 # brew koekeishiya/formulae/yabai  # Tiling windows
