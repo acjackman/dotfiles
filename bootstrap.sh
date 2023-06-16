@@ -6,7 +6,7 @@ export OMZDIR="$HOME/.oh-my-zsh"
 export DOTFILES_DIR="$HOME/.dotfiles"
 
 # Check if Homebrew is installed
-if [ ! -f "`which brew`" ]; then
+if [ ! -f "$(which brew)" ]; then
   echo 'Installing homebrew'
   /usr/bin/ruby -e "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install)"
 
@@ -20,7 +20,7 @@ else
   echo 'homebrew already installed'
 fi
 
-brew tap homebrew/bundle  # Install Homebrew Bundle
+brew tap homebrew/bundle # Install Homebrew Bundle
 brew install mas
 
 # Change default shell
@@ -33,23 +33,13 @@ fi
 
 # Clone Dotfiles repo
 if [[ ! -d "$DOTFILES_DIR" ]]; then
-    git clone --recurse-submodules -j8 https://github.com/acjackman/dotfiles $DOTFILES_DIR
+  git clone --recurse-submodules -j8 https://github.com/acjackman/dotfiles $DOTFILES_DIR
 else
-    echo 'dotfiles already cloned'
+  echo 'dotfiles already cloned'
 fi
 
 # Install dotfiles
-.dotfiles/install
+.dotfiles/src/bin/dotfiles-install
 
 # Install applications
 brew bundle install --global
-
-# Install Poetry;
-if [[ -f "$HOME/.poetry/bin/poetry" ]]; then
-  echo 'Poetry already installed'
-else
-  curl -sSL https://raw.githubusercontent.com/python-poetry/poetry/master/get-poetry.py | python
-fi
-
-
-pipx install black nox pls

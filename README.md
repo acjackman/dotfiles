@@ -6,12 +6,7 @@ These are my dotfiles, massively easier system configuration.
 Configured with [Dotbot](https://github.com/anishathalye/dotbot).
 
 ## Updating dotfiles
-
-```sh
-cd ~
-.dotfiles/install
-```
-
+Run the `dotfiles-install` script.
 
 ## Bootstrapping
 
