@@ -21,7 +21,10 @@
 
     # ZSH config
     ~/.zshrc:
-      path: src/.zshrc
+      path: src/zshrc
+      force: true
+    ~/.zprofile:
+      path: src/zprofile
       force: true
     ~/.oh-my-zsh:
       path: tools/ohmyzsh/
