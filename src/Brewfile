@@ -97,6 +97,7 @@ cask "launchbar"
 cask "hammerspoon"
 cask "bettertouchtool"
 
+cask "hpedrorodrigues/tools/dockutil"
 cask "backblaze"
 cask "iina"
 mas "CARROT Weather", id: 993487541

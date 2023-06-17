@@ -6,20 +6,12 @@
 # settings we’re about to change
 osascript -e 'tell application "System Preferences" to quit'
 
-# Ask for the administrator password upfront
-sudo -v
-
-# Keep-alive: update existing `sudo` time stamp until `.macos` has finished
-while true; do sudo -n true; sleep 60; kill -0 "$$" || exit; done 2>/dev/null &
-
 ###############################################################################
 # General UI/UX                                                               #
 ###############################################################################
 
 # Set computer name (as done via System Preferences → Sharing)
-if [[ -z "${COMPUTER_NAME}" ]]; then
-  MY_SCRIPT_VARIABLE="Some default value because DEPLOY_ENV is undefined"
-else
+if [[ -n "${COMPUTER_NAME}" ]]; then
   sudo scutil --set ComputerName "${COMPUTER_NAME}"
   sudo scutil --set HostName "${COMPUTER_NAME}"
   sudo scutil --set LocalHostName "${COMPUTER_NAME}"
@@ -166,6 +158,7 @@ defaults write NSGlobalDomain AppleLanguages -array "en"
 defaults write NSGlobalDomain AppleLocale -string "en_US@currency=USD"
 defaults write NSGlobalDomain AppleMeasurementUnits -string "INCHES"
 defaults write NSGlobalDomain AppleMetricUnits -bool false
+defaults write NSGlobalDomain AppleFirstWeekday -dict gregorian 2
 
 # Show language menu in the top right corner of the boot screen
 sudo defaults write /Library/Preferences/com.apple.loginwindow showInputMenu -bool true
@@ -225,7 +218,7 @@ sudo pmset -a displaysleep 15
 defaults write com.apple.screensaver askForPassword -int 1
 defaults write com.apple.screensaver askForPasswordDelay -int 0
 
-# Save screenshots to the desktop
+# Save screenshots to the Downloads folder
 defaults write com.apple.screencapture location -string "${HOME}/Downloads"
 
 # Save screenshots in PNG format (other options: BMP, GIF, JPG, PDF, TIFF)
@@ -347,15 +340,15 @@ chflags nohidden ~/Library
 sudo chflags nohidden /Volumes
 
 # Remove Dropbox’s green checkmark icons in Finder
-file=/Applications/Dropbox.app/Contents/Resources/emblem-dropbox-uptodate.icns
-[ -e "${file}" ] && mv -f "${file}" "${file}.bak"
+# file=/Applications/Dropbox.app/Contents/Resources/emblem-dropbox-uptodate.icns
+# [ -e "${file}" ] && mv -f "${file}" "${file}.bak"
 
 # Expand the following File Info panes:
 # “General”, “Open with”, and “Sharing & Permissions”
 defaults write com.apple.finder FXInfoPanesExpanded -dict \
-    General -bool true \
-    OpenWith -bool true \
-    Privileges -bool true
+  General -bool true \
+  OpenWith -bool true \
+  Privileges -bool true
 
 ###############################################################################
 # Dock, Dashboard, and hot corners                                            #
@@ -460,10 +453,9 @@ sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator (
 # https://apple.stackexchange.com/a/322787
 
 # clear the file if it isn't empty
-find ~/Library/Preferences/ByHost/ -name 'com.apple.loginwindow*' ! -size 0 -exec tee {} \; < /dev/null
+find ~/Library/Preferences/ByHost/ -name 'com.apple.loginwindow*' ! -size 0 -exec tee {} \; </dev/null
 # set the user immutable flag
 find ~/Library/Preferences/ByHost/ -name 'com.apple.loginwindow*' -exec chflags uimmutable {} \;
-
 
 ###############################################################################
 # Safari & WebKit                                                             #
@@ -597,35 +589,35 @@ defaults write com.apple.mail DisableInlineAttachmentViewing -bool true
 #   MENU_SPOTLIGHT_SUGGESTIONS (send search queries to Apple)
 #   MENU_WEBSEARCH             (send search queries to Apple)
 #   MENU_OTHER
-defaults write com.apple.spotlight orderedItems -array \
-    '{"enabled" = 1;"name" = "APPLICATIONS";}' \
-    '{"enabled" = 1;"name" = "SYSTEM_PREFS";}' \
-    '{"enabled" = 1;"name" = "DIRECTORIES";}' \
-    '{"enabled" = 1;"name" = "PDF";}' \
-    '{"enabled" = 1;"name" = "FONTS";}' \
-    '{"enabled" = 0;"name" = "DOCUMENTS";}' \
-    '{"enabled" = 0;"name" = "MESSAGES";}' \
-    '{"enabled" = 0;"name" = "CONTACT";}' \
-    '{"enabled" = 0;"name" = "EVENT_TODO";}' \
-    '{"enabled" = 0;"name" = "IMAGES";}' \
-    '{"enabled" = 0;"name" = "BOOKMARKS";}' \
-    '{"enabled" = 0;"name" = "MUSIC";}' \
-    '{"enabled" = 0;"name" = "MOVIES";}' \
-    '{"enabled" = 0;"name" = "PRESENTATIONS";}' \
-    '{"enabled" = 0;"name" = "SPREADSHEETS";}' \
-    '{"enabled" = 0;"name" = "SOURCE";}' \
-    '{"enabled" = 0;"name" = "MENU_DEFINITION";}' \
-    '{"enabled" = 0;"name" = "MENU_OTHER";}' \
-    '{"enabled" = 0;"name" = "MENU_CONVERSION";}' \
-    '{"enabled" = 0;"name" = "MENU_EXPRESSION";}' \
-    '{"enabled" = 0;"name" = "MENU_WEBSEARCH";}' \
-    '{"enabled" = 0;"name" = "MENU_SPOTLIGHT_SUGGESTIONS";}'
-# Load new settings before rebuilding the index
-killall mds > /dev/null 2>&1
-# Make sure indexing is enabled for the main volume
-sudo mdutil -i on / > /dev/null
-# Rebuild the index from scratch
-sudo mdutil -E / > /dev/null
+# defaults write com.apple.spotlight orderedItems -array \
+#   '{"enabled" = 1;"name" = "APPLICATIONS";}' \
+#   '{"enabled" = 1;"name" = "SYSTEM_PREFS";}' \
+#   '{"enabled" = 1;"name" = "DIRECTORIES";}' \
+#   '{"enabled" = 1;"name" = "PDF";}' \
+#   '{"enabled" = 1;"name" = "FONTS";}' \
+#   '{"enabled" = 0;"name" = "DOCUMENTS";}' \
+#   '{"enabled" = 0;"name" = "MESSAGES";}' \
+#   '{"enabled" = 0;"name" = "CONTACT";}' \
+#   '{"enabled" = 0;"name" = "EVENT_TODO";}' \
+#   '{"enabled" = 0;"name" = "IMAGES";}' \
+#   '{"enabled" = 0;"name" = "BOOKMARKS";}' \
+#   '{"enabled" = 0;"name" = "MUSIC";}' \
+#   '{"enabled" = 0;"name" = "MOVIES";}' \
+#   '{"enabled" = 0;"name" = "PRESENTATIONS";}' \
+#   '{"enabled" = 0;"name" = "SPREADSHEETS";}' \
+#   '{"enabled" = 0;"name" = "SOURCE";}' \
+#   '{"enabled" = 0;"name" = "MENU_DEFINITION";}' \
+#   '{"enabled" = 0;"name" = "MENU_OTHER";}' \
+#   '{"enabled" = 0;"name" = "MENU_CONVERSION";}' \
+#   '{"enabled" = 0;"name" = "MENU_EXPRESSION";}' \
+#   '{"enabled" = 0;"name" = "MENU_WEBSEARCH";}' \
+#   '{"enabled" = 0;"name" = "MENU_SPOTLIGHT_SUGGESTIONS";}'
+# # Load new settings before rebuilding the index
+# killall mds >/dev/null 2>&1
+# # Make sure indexing is enabled for the main volume
+# sudo mdutil -i on / >/dev/null
+# # Rebuild the index from scratch
+# sudo mdutil -E / >/dev/null
 
 ###############################################################################
 # Terminal & iTerm 2                                                          #
@@ -828,22 +820,22 @@ defaults write com.google.Chrome.canary PMPrintingExpandedStateForPrint2 -bool t
 ###############################################################################
 
 for app in "Activity Monitor" \
-    "Address Book" \
-    "Calendar" \
-    "cfprefsd" \
-    "Contacts" \
-    "Dock" \
-    "Finder" \
-    "Google Chrome Canary" \
-    "Google Chrome" \
-    "Mail" \
-    "Messages" \
-    "Opera" \
-    "Photos" \
-    "Safari" \
-    "SystemUIServer" \
-    "Terminal" \
-    "iCal"; do
-    killall "${app}" &> /dev/null
+  "Address Book" \
+  "Calendar" \
+  "cfprefsd" \
+  "Contacts" \
+  "Dock" \
+  "Finder" \
+  "Google Chrome Canary" \
+  "Google Chrome" \
+  "Mail" \
+  "Messages" \
+  "Opera" \
+  "Photos" \
+  "Safari" \
+  "SystemUIServer" \
+  "Terminal" \
+  "iCal"; do
+  killall "${app}" &>/dev/null
 done
 echo "Done. Note that some of these changes require a logout/restart to take effect."

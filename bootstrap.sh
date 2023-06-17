@@ -5,6 +5,17 @@ cd "$HOME" || exit
 export OMZDIR="$HOME/.oh-my-zsh"
 export DOTFILES_DIR="$HOME/.dotfiles"
 
+# Ask for the administrator password upfront
+sudo -n true || sudo -v
+
+# Keep-alive: update existing `sudo` time stamp until script finished
+while true; do
+  sudo -n true
+  sleep 60
+  kill -0 "$$" || exit
+
+done 2>/dev/null &
+
 # Check if Homebrew is installed
 if [ ! -f "$(which brew)" ]; then
   echo 'Installing homebrew'
@@ -43,6 +54,9 @@ fi
 
 # Install applications
 brew bundle install --global
+
+# Configure macos defaults
+~/.dotfiles/src/macos
 
 # Start Yabai
 command -v yabai 2>&1 >/dev/null && FOUND_YABAI=1 || FOUND_YABAI=0
