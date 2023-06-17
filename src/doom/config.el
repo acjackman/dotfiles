@@ -51,10 +51,10 @@
          ("o" "obsidian" plain "%?"
            :target (file+head "inbox/%^{ObsidianId}-${slug}.org" "#+title: ${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
            :unnarrowed t)
-         ("e" "effort" plain (file "~/.doom.d/roam-templates/effort.org")
+         ("e" "effort" plain (file "~/.config/doom/roam-templates/effort.org")
            :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
            :unnarrowed t)
-         ("p" "person" plain (file "~/.doom.d/roam-templates/person.org")
+         ("p" "person" plain (file "~/.config/doom/roam-templates/person.org")
            :target (file+head "e/person/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
            :unnarrowed t)
       )
@@ -183,7 +183,7 @@
   (message ";;;; dir %S" dir )
   (clerk/org-roam-find-node
     (clerk/org-roam-filter-by-folder dir)
-    '(("d" "default" plain (if template-file '(file (concat "~/.doom.d/roam-templates/" template-file)) "%?")
+    '(("d" "default" plain (if template-file '(file (concat doom-user-dir "roam-templates/" template-file)) "%?")
         :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org"  "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
         :unnarrowed t))
   )
@@ -195,7 +195,7 @@
 (defun clerk/org-roam-insert-resource (dir &optional template-file)
   (clerk/org-roam-insert-node
     (clerk/org-roma-filter-by-folder dir)
-    '(("d" "default" plain (if template-file '(file (concat "~/.doom.d/roam-templates/" template-file)) "%?")
+    '(("d" "default" plain (if template-file '(file (concat doom-user-dir "roam-templates/" template-file)) "%?")
        :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org"  "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
        :unnarrowed t
        :immediate-finish t))
@@ -210,20 +210,20 @@
    nil
    (my/org-roam-filter-by-tag "Role")))
 
-(defun my/org-roam-find-project ()
-  (interactive)
-  ;; Add the project file to the agenda after capture is finished
-  ;; (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
-  ;; Select a project file to open, creating it if necessary
-  (org-roam-node-find
-   nil
-   nil
-   (my/org-roam-filter-by-tag "Project")
-   nil
-   :templates
-   '(("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
-           :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org")
-           :unnarrowed t))))
+;; (defun my/org-roam-find-project ()
+;;   (interactive)
+;;   ;; Add the project file to the agenda after capture is finished
+;;   ;; (add-hook 'org-capture-after-finalize-hook #'my/org-roam-project-finalize-hook)
+;;   ;; Select a project file to open, creating it if necessary
+;;   (org-roam-node-find
+;;    nil
+;;    nil
+;;    (my/org-roam-filter-by-tag "Project")
+;;    nil
+;;    :templates
+;;    '(("p" "project" plain (file "~/.doom.d/roam-templates/project.org")
+;;            :target (file+head "%<%Y%m%d%H%M%S>-${slug}.org")
+;;            :unnarrowed t))))
 
 
 (map! :leader
@@ -232,23 +232,23 @@
   ;; :desc "Node" "n" #'org-roam-node-find
   (:prefix ("r" . "roles")
     (:prefix ("m" . "moov")
-      :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "r/mv/moov-role.org")))
+      :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/mv/moov-role.org")))
       :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/mv/efforts/" "effort.org"))
     )
     (:prefix ("n" . "nerd")
-      :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "r/nerd/nerd-role.org")))
+      :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/nerd/nerd-role.org")))
       :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/nerd/efforts/" "effort.org"))
     )
     (:prefix ("l" . "life")
-      :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "r/life/life-role.org")))
+      :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/life/life-role.org")))
       :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/life/efforts/" "effort.org"))
     )
     (:prefix ("v" . "verisage")
-      :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "r/vs/vs-role.org")))
+      :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/vs/vs-role.org")))
       :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/vs/efforts/" "effort.org"))
     )
     (:prefix ("f" . "fulcrum")
-      :desc "role" "r" (lambda () (interactive) (org-open-file (concat (expand-file-name org-roam-directory) "r/fl/vs-role.org")))
+      :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/fl/vs-role.org")))
       :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/fl/efforts/" "effort.org"))
     )
   )
