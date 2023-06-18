@@ -2,13 +2,14 @@
 -- require("hs.ipc")
 -- hs.ipc.cliInstall("/usr/local")
 
+
 -- Easy access variables:
 hostname = hs.host.localizedName()
 
-print(hostname)
-  -- local log = hs.logger.new('terminalHyper','debug')
+-- print(hostname)
+local log = hs.logger.new('terminalHyper','debug')
+hs.logger.defaultLogLevel="info"
 --   log.df("name=%s", appname)
-
 
 control        = {"ctrl"}
 option         = {"option"}
@@ -17,6 +18,51 @@ hyper          = {"cmd","alt","ctrl"}
 shift_hyper    = {"cmd","alt","ctrl","shift"}
 ctrl_cmd       = {"cmd","ctrl"}
 ctrl_cmd_shift = {"cmd","ctrl", "shift"}
+
+--
+-- hs.loadSpoon("SpoonInstall")
+-- Install=spoon.SpoonInstall
+
+
+
+-- chromeBrowser = appID('/Applications/Google Chrome.app')
+-- -- edgeBrowser = appID('/Applications/Microsoft Edge.app')
+-- braveBrowser = appID('/Applications/Brave Browser Dev.app')
+
+-- DefaultBrowser = braveBrowser
+-- WorkBrowser = edgeBrowser
+
+-- -- JiraApp = appID('~/Applications/Epichrome SSBs/Jira.app')
+-- -- WikiApp = appID('~/Applications/Epichrome SSBs/Wiki.app')
+-- OpsGenieApp = WorkBrowser
+
+-- Install:andUse("URLDispatcher",
+-- {
+--   config = {
+--     url_patterns = {
+--       -- { "https?://jira%.work%.com",      JiraApp },
+--       -- { "https?://jira%.work%.com",      JiraApp },
+--       -- { "https?://wiki%.work%.com",      WikiApp },
+--       -- { "https?://app.*%.opsgenie%.com", OpsGenieApp },
+--       -- { "msteams:",                      "com.microsoft.teams" },
+--       -- { "https?://.*%.work%.com",        WorkBrowser }
+--     },
+--     url_redir_decoders = {
+
+--       -- Send MS Teams URLs directly to the app
+--       -- { "MS Teams URLs",
+--       --   "(https://teams.microsoft.com.*)", "msteams:%1", true },
+--       -- Preview incorrectly encodes the anchor
+--       -- character in URLs as %23, we fix it
+--       { "Fix broken Preview anchor URLs",
+--         "%%23", "#", false, "Preview" },
+--     },
+--     default_handler = DefaultBrowser
+--   },
+--   start = true,
+--   -- Enable debug logging if you get unexpected behavior
+--   -- loglevel = 'debug'
+-- })
 
 -- Disable hide
 hs.hotkey.bind("cmd", 'H', function() end)

@@ -115,19 +115,30 @@ mas  "Tailscale", id: 1475387142
 
 mas "Speedtest", id: 1153157709
 mas "Data Jar", id: 1453273600
-mas "OpenIn", id: 1547147101  # Customize Link opening
+mas "OpenIn 4 Advanced Link Handler", id: 1643649331 # Customize Link opening
 mas "Shareful", id: 1522267256  # Make share menu useful
 mas "Service Station", id: 1503136033  # Clean up Services Menu
 mas "Peek", id: 1554235898  # Quicklook
 
 # Safari Extensions
 mas "about-blank", id: 1239207203
-mas "Wipr", id: 1320666476
+# mas "Wipr", id: 1320666476
 mas "Noir", id: 1592917505
 mas "Hush", id: 1544743900
-mas "SponsorBlock for YouTube", id:1573461917
+mas "SponsorBlock for YouTube", id: 1573461917
+mas "Save to Reader", id: 1640236961
+mas "Focus (for YouTube)", id: 1514703160
+mas "Safari AdBlock - Magic Lasso", id: 1198047227
+mas "Baking Soda - Tube Cleaner", id: 1601151613
 
 # Xcode 
 mas "Xcode", id: 497799835
 
 # brew "ttscoff/thelab/gather-cli" # requires Xcode
+
+
+# sometimes
+mas "Day One", id: 1055511498
+mas "Friendly Streaming Browser", id: 553245401
+cask "hazel"
+mas "DaisyDisk", id: 411643860

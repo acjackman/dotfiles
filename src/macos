@@ -816,7 +816,7 @@ defaults write com.google.Chrome PMPrintingExpandedStateForPrint2 -bool true
 defaults write com.google.Chrome.canary PMPrintingExpandedStateForPrint2 -bool true
 
 ###############################################################################
-# Launchbar
+# Launchbar                                                                   #
 ###############################################################################
 defaults write at.obdev.LaunchBar Theme "at.obdev.LaunchBar.theme.Dark"
 defaults write at.obdev.LaunchBar RetypeDelay -int 3
@@ -848,6 +848,14 @@ defaults write at.obdev.LaunchBar OpenLocationPrependWWW -bool false
 
 # Files
 defaults write at.obdev.LaunchBar AbbreviateFilePaths -bool true
+
+# Contacts
+defaults write at.obdev.LaunchBar ShowInAddressBookURLPrefix "x-cardhop://show?id="
+
+###############################################################################
+# Kill affected applications                                                  #
+###############################################################################
+defaults write at.obdev.LaunchBar ShowSupportAssistant -bool false
 
 ###############################################################################
 # Kill affected applications                                                  #
