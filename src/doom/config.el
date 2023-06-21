@@ -410,7 +410,8 @@
 (after! lsp-mode
        (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.mypy_cache\\'")
        (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\__pycache__\\'")
-       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.nox\\'"))
+       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.nox\\'")
+       (setq lsp-enable-indentation nil))
 
 
 
