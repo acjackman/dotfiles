@@ -56,7 +56,22 @@ class LinearIssueLink:
         return f"{self.ticket}"
 
 
-LINKS = [GithubPRLink, LinearIssueLink]
+class SlackLink:
+    def __init__(self, url, parsed=none):
+        self.url = url.strip()
+        parsed = parsed or urlparse(url)
+
+        if parsed.hostname != "":
+            raise Exception(f"not slack.com, {parsed.hostname}")
+
+        path = parsed.path
+        match = re.match("^/archives/", path)
+        if not match:
+            raise Exception("not an archive link")
+
+    @property
+    def description(self):
+        return "Slack Thread"
 
 
 def format_md(link):
@@ -65,6 +80,9 @@ def format_md(link):
 
 def format_org(link):
     return f"[[{link.url}][{link.description}]]"
+
+
+LINKS = [GithubPRLink, LinearIssueLink, SlackLink]
 
 
 @click.command()
