@@ -142,3 +142,7 @@ mas "Day One", id: 1055511498
 mas "Friendly Streaming Browser", id: 553245401
 cask "hazel"
 mas "DaisyDisk", id: 411643860
+cask "little-snitch"
+cask "micro-snitch"
+cask "opal"
+mas "Amphetamine", id: 937984704
