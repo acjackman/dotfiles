@@ -57,7 +57,7 @@ class LinearIssueLink:
 
 
 class SlackLink:
-    def __init__(self, url, parsed=none):
+    def __init__(self, url, parsed=None):
         self.url = url.strip()
         parsed = parsed or urlparse(url)
 

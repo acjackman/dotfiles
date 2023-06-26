@@ -36,7 +36,19 @@
 (setq doom-modeline-minor-modes nil)
 (setq doom-modeline-buffer-state-icon nil)
 (setq doom-modeline-major-mode-icon nil)
+(setq doom-modeline-buffer-encoding nil)
 (setq doom-modeline-buffer-file-name-style 'relative-to-project)
+(setq doom-modeline-hud t)
+
+;; Define your custom doom-modeline
+;; (doom-modeline-def-modeline 'my-simple-line
+;;   '(bar matches buffer-info remote-host buffer-position parrot selection-info)
+;;   '(misc-info minor-modes input-method buffer-encoding major-mode process vcs checker))
+
+;; ;; Set default mode-line
+;; (add-hook 'doom-modeline-mode-hook
+;;           (lambda ()
+;;             (doom-modeline-set-modeline 'my-simple-line 'default)))
 
 
 
