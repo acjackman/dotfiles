@@ -61,7 +61,7 @@ class SlackLink:
         self.url = url.strip()
         parsed = parsed or urlparse(url)
 
-        if parsed.hostname != "":
+        if parsed.hostname != "slack.com":
             raise Exception(f"not slack.com, {parsed.hostname}")
 
         path = parsed.path
@@ -74,6 +74,27 @@ class SlackLink:
         return "Slack Thread"
 
 
+class SpaceliftRunLink:
+    def __init__(self, url, parsed=None):
+        self.url = url.strip()
+        parsed = parsed or urlparse(url)
+
+        if not parsed.hostname.endswith(".spacelift.io"):
+            raise Exception(f"not spacelift.io, {parsed.hostname}")
+
+        path = parsed.path
+        match = re.match("^/stack/([^/]+)/run/([A-Z0-9]+)", path)
+        if not match:
+            raise Exception("not an archive link")
+
+        self.stack = match.group(1)
+        self.run = match.group(2)
+
+    @property
+    def description(self):
+        return f"{self.stack} {self.run}"
+
+
 def format_md(link):
     return f"[{link.description}]({link.url})"
 
@@ -82,7 +103,7 @@ def format_org(link):
     return f"[[{link.url}][{link.description}]]"
 
 
-LINKS = [GithubPRLink, LinearIssueLink, SlackLink]
+LINKS = [GithubPRLink, LinearIssueLink, SlackLink, SpaceliftRunLink]
 
 
 @click.command()
