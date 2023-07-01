@@ -852,10 +852,17 @@ defaults write at.obdev.LaunchBar AbbreviateFilePaths -bool true
 # Contacts
 defaults write at.obdev.LaunchBar ShowInAddressBookURLPrefix "x-cardhop://show?id="
 
+# defaults write at.obdev.LaunchBar ShowSupportAssistant -bool false
 ###############################################################################
-# Kill affected applications                                                  #
+# TextSniper                                                                  #
 ###############################################################################
-defaults write at.obdev.LaunchBar ShowSupportAssistant -bool false
+defaults write com.valerijs.boguckis.store.TextSniper DisableSuccessNotifications -bool true
+defaults write com.valerijs.boguckis.store.TextSniper Sound -bool true
+defaults write com.valerijs.boguckis.store.TextSniper KeyboardShortcuts_keyboardShortcut -string '{\"carbonModifiers\":768,\"carbonKeyCode\":19}'                      # Cmd + Shift + 2
+defaults write com.valerijs.boguckis.store.TextSniper KeyboardShortcuts_captureTextWithoutLineBreaksShortcut -string '{\"carbonModifiers\":4864,\"carbonKeyCode\":19}' # Cmd + shift + ctl + 2
+defaults write com.valerijs.boguckis.store.TextSniper KeyboardShortcuts_keepHistoryShortcut -int string 0
+defaults write com.valerijs.boguckis.store.TextSniper KeyboardShortcuts_textToSpeechShortcut -int string 0
+defaults write com.valerijs.boguckis.store.TextSniper KeyboardShortcuts_keepLineBrakesShortcut -int string 0
 
 ###############################################################################
 # Kill affected applications                                                  #
