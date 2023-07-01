@@ -146,3 +146,4 @@ cask "little-snitch"
 cask "micro-snitch"
 cask "opal"
 mas "Amphetamine", id: 937984704
+mas "Streaks", id: 963034692
