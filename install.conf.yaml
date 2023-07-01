@@ -23,9 +23,9 @@
     ~/.zshrc:
       path: src/zshrc
       force: true
-    ~/.zprofile:
-      path: src/zprofile
-      force: true
+    # ~/.zprofile:
+    #   path: src/zprofile
+    #   force: true
     ~/.oh-my-zsh:
       path: tools/ohmyzsh/
       force: true
@@ -46,6 +46,7 @@
       force: true
 
     ~/.config/k9s: src/k9s
+    ~/.config/asdf: src/asdf
     ~/.config/topgrade.toml: src/topgrade/config.toml
     ~/.editorconfig: src/editorconfig
 
