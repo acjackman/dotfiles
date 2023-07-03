@@ -3,49 +3,153 @@ import re
 import sys
 from urllib.parse import urlparse, urlunparse, ParseResult
 from functools import cached_property
+from dataclasses import dataclass
+import typing
+from devtools import debug
 
 import click
 
 
-class GithubPRLink:
+class Mismatch(Exception):
+    ...
+
+
+class NotAUrl(Mismatch):
+    ...
+
+
+class MismatchedDomain(Mismatch):
+    ...
+
+
+class MismatchedPath(Mismatch):
+    ...
+
+
+@dataclass(slots=True)
+class LinkCheck:
+    input_url: str
+    expected_match: bool | Mismatch
+    expected_url: str
+    expected_description: str
+    match: bool = False
+    url: str = None
+    description: str = None
+
+    def __call__(self):
+        result = True
+        msg = []
+
+        if self.expected_match is False and isinstance(self.match, Mismatch):
+            return result, msg  # None of the other tests make sense
+
+        elif self.expected_match is False and self.match is True:
+            msg.append("Should not have matched, but did")
+            return False, msg
+
+        if isinstance(self.match, Mismatch):
+            debug(self.expected_match, self.match)
+            result = False
+            msg.append(str(self.match))
+
+            # Early return as the other checks wouldn't have been filled out
+            return False, msg
+
+        if self.url != self.expected_url:
+            result = False
+            msg.append(f"'{self.url=} != '{self.expected_url}'")
+
+        if self.description != self.expected_description:
+            result = False
+            msg.append(f"{self.description=} != '{self.expected_description}'")
+
+        return result, msg
+
+
+class Link:
+    __check_cases__: dict[str, dict]
+
+    def __init__(self, url, domain, path_regex, parsed=None):
+        self.url = self.orginal_url = url.strip()
+        try:
+            self.parsed = parsed or urlparse(self.url)
+            assert self.parsed is not None
+        except Exception as e:
+            raise NotAUrl from e
+
+        if not self.parsed.hostname.endswith(domain):
+            raise MismatchedDomain(f"Not {domain}, {self.parsed.hostname}")
+
+        self.match = re.match(path_regex, self.parsed.path)
+        if not self.match:
+            raise MismatchedPath(f"Path does not match regex: {path_regex}")
+
+    @classmethod
+    def _run_checks(cls, cases=None) -> list[LinkCheck]:
+        cases = cases or getattr(cls, "__check_cases__", {})
+        results = []
+        for url, expected in cases.items():
+            result = LinkCheck(
+                input_url=url,
+                expected_match=expected.get("match", True),
+                expected_url=expected.get("url", url),
+                expected_description=expected.get("description", ""),
+            )
+            results.append(result)
+
+            try:
+                link = cls(url)
+            except Mismatch as e:
+                result.match = e
+                continue
+
+            result.match = True
+            result.url = link.url
+            result.description = link.description
+
+        return results
+
+
+class GithubPRLink(Link):
     def __init__(self, url, parsed=None):
-        self.url = url.strip()
-        parsed = parsed or urlparse(url)
+        super().__init__(
+            url,
+            domain="github.com",
+            path_regex=r"^/([^/]+)/([^/]+)/(pull|issue)/([0-9]+)",
+            parsed=parsed,
+        )
 
-        if parsed.hostname != "github.com":
-            raise Exception(f"Not github.com, {parsed.hostname}")
-
-        path = parsed.path
-        match = re.match("^/([^/]+)/([^/]+)/(pull|issue)/([0-9]+)", path)
-        if not match:
-            raise Exception("Not a PR or issue")
-
-        self.user = match.group(1)
-        self.repo = match.group(2)
-        self.num = match.group(4)
+        self.user = self.match.group(1)
+        self.repo = self.match.group(2)
+        self.num = self.match.group(4)
 
     @property
     def description(self):
         return f"{self.repo}#{self.num}"
 
+    __check_cases__ = {
+        "https://github.com/foo/thing/pull/4242": {
+            "description": "thing#4242",
+        },
+        "https://github.com/foo/thing": {
+            "match": False,
+        },
+    }
 
-class LinearIssueLink:
+
+class LinearIssueLink(Link):
     def __init__(self, url, parsed=None):
-        self.url = url.strip()
-        parsed = parsed or urlparse(url)
+        super().__init__(
+            url,
+            domain="linear.app",
+            path_regex=r"^/([^/]+)/issue/(([A-Z0-9]+)-([0-9]+))/",
+            parsed=parsed,
+        )
 
-        if parsed.hostname != "linear.app":
-            raise Exception(f"Not linear.app, {parsed.hostname}")
-
-        path = parsed.path
-        match = re.match("^/([^/]+)/issue/(([A-Z0-9]+)-([0-9]+))/", path)
-        if not match:
-            raise Exception("Not an issue")
-
-        self.workspace = match.group(1)
-        self.ticket = match.group(2)
-        self.team = match.group(3)
-        self.num = match.group(4)
+        self.workspace = self.match.group(1)
+        self.ticket = self.match.group(2)
+        self.team = self.match.group(3)
+        self.num = self.match.group(4)
 
         self.url = urlunparse(
             parsed._replace(path=f"/{self.workspace}/issue/{self.ticket}/")
@@ -56,8 +160,50 @@ class LinearIssueLink:
         return f"{self.ticket}"
 
 
-class SlackLink:
+class LinearProjectLink(Link):
     def __init__(self, url, parsed=None):
+        super().__init__(
+            url,
+            domain="linear.app",
+            path_regex=r"^/([^/]+)/project/(([^/]+?)-([^-/]+))$",
+            parsed=parsed,
+        )
+
+        self.workspace = self.match.group(1)
+        self.project_slug = self.match.group(3)
+        self.project_id = self.match.group(4)
+
+        self.url = urlunparse(
+            self.parsed._replace(path=f"/{self.workspace}/project/{self.project_id}")
+        )
+
+    @property
+    def description(self):
+        core_slug = (
+            self.project_slug.strip("-")
+            .removeprefix("[internal]")
+            .removesuffix("[internal]")
+            .strip("-")
+        )
+        project_name = " ".join(core_slug.split("-"))
+        return project_name
+
+    __check_cases__ = {
+        "https://linear.app/acme/project/bobs-your-uncle-[internal]-123abc789": {
+            "url": "https://linear.app/acme/project/123abc789",
+            "description": "bobs your uncle",
+        }
+    }
+
+
+class SlackMessageLink(Link):
+    def __init__(self, url, parsed=None):
+        super().__init__(
+            url,
+            domain="slack.com",
+            path_regex=r"^/([^/]+)/project/(([A-Z0-9-]+?)-([0-9]+))",
+            parsed=parsed,
+        )
         self.url = url.strip()
         parsed = parsed or urlparse(url)
 
@@ -74,7 +220,7 @@ class SlackLink:
         return "Slack Thread"
 
 
-class SpaceliftRunLink:
+class SpaceliftRunLink(Link):
     def __init__(self, url, parsed=None):
         self.url = url.strip()
         parsed = parsed or urlparse(url)
@@ -103,13 +249,40 @@ def format_org(link):
     return f"[[{link.url}][{link.description}]]"
 
 
-LINKS = [GithubPRLink, LinearIssueLink, SlackLink, SpaceliftRunLink]
+# LINKS = [GithubPRLink, LinearIssueLink, SlackLink, SpaceliftRunLink]
+LINKS = Link.__subclasses__()
 
 
 @click.command()
 @click.option("--md", "style", flag_value="markdown", default=True)
 @click.option("--org", "style", flag_value="org")
-def main(style):
+@click.option("--test", is_flag=True, default=False)
+def main(style, test):
+    if test:
+        passing = True
+        for link in LINKS:
+            click.echo(link.__name__, nl=False)
+
+            results = link._run_checks()
+
+            click.echo(f" ({len(results)})")
+
+            for result in results:
+                check_state, messages = result()
+                passing |= check_state
+                result_code = "PASSED" if check_state else "FAILED"
+                result_code_color = "green" if check_state else "red"
+
+                click.secho(result_code, fg=result_code_color, nl=False)
+                click.echo(f": {result.input_url}")
+                for msg in messages:
+                    click.echo(f"  • {msg}")
+
+
+            # TODO: check all other postive matches don't match
+            click.echo()
+        sys.exit(passing)
+
     pasteboard = click.get_text_stream("stdin").read()
 
     try:
@@ -130,6 +303,10 @@ def main(style):
             sys.exit(0)
         except Exception as e:
             pass
+
+
+def test_foo():
+    ...
 
 
 if __name__ == "__main__":
