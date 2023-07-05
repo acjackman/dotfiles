@@ -20,6 +20,8 @@
 (package! hcl-mode)
 (package! rego-mode)
 
+(package! mermaid-mode)
+
 ;(package! dirvish)
 
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:

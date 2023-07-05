@@ -147,6 +147,7 @@ export PYENV_ROOT="$HOME/.pyenv"
 export GOPATH="$HOME/dev/moov"
 export GOBIN="$HOME/go/bin"
 export PATH="$HOME/go/bin:$PATH"
+export PATH="$PATH:$HOME/.bun/bin"
 
 export NVM_DIR="$HOME/.nvm"
 [ -s "/opt/homebrew/opt/nvm/nvm.sh" ] && \. "/opt/homebrew/opt/nvm/nvm.sh"  # This loads nvm
