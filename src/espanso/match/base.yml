@@ -37,13 +37,31 @@ matches:
         params:
           format: "%Y-%m-%d"
 
+  - trigger: "dtfstp"
+    replace: "{{mydate}}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y-%m-%d-%H-%M-%S"
+
   - trigger: "dtstp"
     replace: "{{mydate}}"
     vars:
       - name: mydate
         type: date
         params:
-          format: "%Y-%m-%dT%H:%M:%S"
+          format: "%Y-%m-%dT%H:%M:%S%Z"
+
+
+  - trigger: "dtzstp"
+    replace: "{{mydate}}"
+    vars:
+      - name: mydate
+        type: shell
+        params:
+          cmd: >
+            date -u '+%Y-%m-%d-%H-%M-%SZ'
 
   - trigger: ",clo"
     replace: "{{output}}"
@@ -63,6 +81,72 @@ matches:
           cmd: >
             pbpaste | ~/.bin/pblink --md
 
+  # Markdown / Org Conversions
+  - trigger: ",cmo"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: shell
+        params:
+          cmd: >
+            pbpaste | pandoc --from markdown --to org --wrap=none
+
+  - trigger: ",com"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: shell
+        params:
+          cmd: >
+            pbpaste | pandoc --from org --to markdown --wrap=none
+
+  - trigger: ",slks"
+    replace: "{{mydate}} Standup\n{{output}}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y-%m-%d"
+      - name: output
+        type: shell
+        params:
+          cmd: |
+            pbpaste \
+              | pandoc --from org --to markdown --wrap=none \
+              | sed 's/^\*Yesterday\*$/:hammer_and_wrench: *Yesterday\*/' \
+              | sed 's/^\*Today\*$/:spiral_calendar_pad: *Yesterday\*/' \
+              | sed 's/^\*Blockers\*$/:construction: *Blockers\*/'
+
+
+  - trigger: ",slks"
+    replace: "{{mydate}} Standup\n{{output}}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y-%m-%d"
+      - name: output
+        type: shell
+        params:
+          cmd: |
+            pbpaste \
+              | pandoc --from org --to markdown --wrap=none \
+              | sed 's/^\*Yesterday\*$/:hammer_and_wrench: *Yesterday\*/' \
+              | sed 's/^\*Today\*$/:spiral_calendar_pad: *Yesterday\*/' \
+              | sed 's/^\*Blockers\*$/:construction: *Blockers\*/'
+
+  # Simple subss
   - trigger: ",hb"
     replace: "harbourbridge"
 
+  # Templates
+  - trigger: ";standup"
+    replace: |
+      #+begin_src org
+      /Yesterday/
+
+      /Today/
+
+      /Blockers/
+
+      #+end_src
