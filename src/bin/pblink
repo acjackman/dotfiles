@@ -298,6 +298,7 @@ class SlackMessageLink(Link):
         }
     }
 
+
 class SpaceliftStackLink(Link):
     def __init__(self, url, parsed=None):
         super().__init__(
@@ -307,11 +308,16 @@ class SpaceliftStackLink(Link):
             parsed=parsed,
         )
         self.stack = self.match.group(1)
-        self.run = self.match.group(2)
 
     @property
     def description(self):
-        return f"{self.stack} {self.run}"
+        return f"{self.stack}"
+
+    __check_cases__ = {
+        "https://foo.app.spacelift.io/stack/big-project-name": {
+            "description": "big-project-name",
+        }
+    }
 
 
 class SpaceliftRunLink(Link):
@@ -329,6 +335,11 @@ class SpaceliftRunLink(Link):
     def description(self):
         return f"{self.stack} {self.run}"
 
+    __check_cases__ = {
+        "https://foo.app.spacelift.io/stack/big-project/run/01H50Y2KC5GJM6XRWSGWV00EZM": {
+            "description": "big-project 01H50Y2KC5GJM6XRWSGWV00EZM",
+        }
+    }
 
 def format_md(link):
     return f"[{link.description}]({link.url})"
@@ -372,7 +383,7 @@ def main(style, test):
             click.echo()
         sys.exit(passing)
 
-    pasteboard = click.get_text_stream("stdin").read()
+    pasteboard = click.get_text_stream("stdin").read().strip()
 
     try:
         result = urlparse(pasteboard)

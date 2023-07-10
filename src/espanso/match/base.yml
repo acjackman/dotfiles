@@ -118,22 +118,14 @@ matches:
               | sed 's/^\*Blockers\*$/:construction: *Blockers\*/'
 
 
-  - trigger: ",slks"
-    replace: "{{mydate}} Standup\n{{output}}"
+  - trigger: ",standup"
+    replace: "{{output}}"
     vars:
-      - name: mydate
-        type: date
-        params:
-          format: "%Y-%m-%d"
       - name: output
         type: shell
         params:
-          cmd: |
-            pbpaste \
-              | pandoc --from org --to markdown --wrap=none \
-              | sed 's/^\*Yesterday\*$/:hammer_and_wrench: *Yesterday\*/' \
-              | sed 's/^\*Today\*$/:spiral_calendar_pad: *Yesterday\*/' \
-              | sed 's/^\*Blockers\*$/:construction: *Blockers\*/'
+          cmd: >
+            ~/.dotfiles-moov/bin/standup | pbcopy; pbpaste
 
   # Simple subss
   - trigger: ",hb"
