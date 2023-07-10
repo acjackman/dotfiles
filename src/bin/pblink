@@ -333,11 +333,11 @@ class SpaceliftRunLink(Link):
 
     @property
     def description(self):
-        return f"{self.stack} {self.run}"
+        return f"{self.run}"
 
     __check_cases__ = {
         "https://foo.app.spacelift.io/stack/big-project/run/01H50Y2KC5GJM6XRWSGWV00EZM": {
-            "description": "big-project 01H50Y2KC5GJM6XRWSGWV00EZM",
+            "description": "01H50Y2KC5GJM6XRWSGWV00EZM",
         }
     }
 
