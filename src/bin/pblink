@@ -109,6 +109,56 @@ class Link:
 
         return results
 
+class GithubUserLink(Link):
+    def __init__(self, url, parsed=None):
+        super().__init__(
+            url,
+            domain="github.com",
+            path_regex=r"^/([^/]+)$",
+            parsed=parsed,
+        )
+
+        self.user = self.match.group(1)
+
+    @property
+    def description(self):
+        return self.user 
+
+    __check_cases__ = {
+        "https://github.com/foo/thing/pull/4242": {
+            "match": False,
+        },
+        "https://github.com/foo/thing": {
+            "match": False,
+        },
+        "https://github.com/foo": {
+            "description": "foo",
+        },
+    }
+class GithubRepoLink(Link):
+    def __init__(self, url, parsed=None):
+        super().__init__(
+            url,
+            domain="github.com",
+            path_regex=r"^/([^/]+)/([^/]+)$",
+            parsed=parsed,
+        )
+
+        self.user = self.match.group(1)
+        self.repo = self.match.group(2)
+
+    @property
+    def description(self):
+        return f"{self.user}/{self.repo}"
+
+    __check_cases__ = {
+        "https://github.com/foo/thing/pull/4242": {
+            "match": False,
+        },
+        "https://github.com/foo/thing": {
+            "description": "foo/thing",
+        },
+    }
 
 class GithubPRLink(Link):
     def __init__(self, url, parsed=None):
@@ -136,6 +186,31 @@ class GithubPRLink(Link):
         },
     }
 
+class GithubCommitLink(Link):
+    def __init__(self, url, parsed=None):
+        super().__init__(
+            url,
+            domain="github.com",
+            path_regex=r"^/([^/]+)/([^/]+)/(commit)/([a-z0-9]+)$",
+            parsed=parsed,
+        )
+
+        self.user = self.match.group(1)
+        self.repo = self.match.group(2)
+        self.sha = self.match.group(4)
+
+    @property
+    def description(self):
+        return f"{self.sha[:7]}"
+
+    __check_cases__ = {
+        "https://github.com/foo/thing/commit/7743bda08d0ac36ec17bfc1992aa3376546e5772": {
+            "description": "7743bda",
+        },
+        "https://github.com/foo/thing": {
+            "match": False,
+        },
+    }
 
 class LinearIssueLink(Link):
     def __init__(self, url, parsed=None):
@@ -201,40 +276,54 @@ class SlackMessageLink(Link):
         super().__init__(
             url,
             domain="slack.com",
-            path_regex=r"^/([^/]+)/project/(([A-Z0-9-]+?)-([0-9]+))",
+            path_regex=r"^/archives/",
             parsed=parsed,
         )
-        self.url = url.strip()
-        parsed = parsed or urlparse(url)
 
-        if parsed.hostname != "slack.com":
-            raise Exception(f"not slack.com, {parsed.hostname}")
+        self.url
+        self.url = urlunparse(
+          self.parsed._replace(scheme="slack")
+        )
 
-        path = parsed.path
-        match = re.match("^/archives/", path)
-        if not match:
-            raise Exception("not an archive link")
+        # self.archive = self.match.group(1)
 
     @property
     def description(self):
         return "Slack Thread"
 
+    __check_cases__ = {
+        "https://moovfinancial.slack.com/archives/C037430LC69/p1689019060333369": {
+            "url": "slack://moovfinancial.slack.com/archives/C037430LC69/p1689019060333369", 
+            "description": "Slack Thread",
+        }
+    }
+
+class SpaceliftStackLink(Link):
+    def __init__(self, url, parsed=None):
+        super().__init__(
+            url,
+            domain="spacelift.io",
+            path_regex=r"^/stack/([^/]+)/?$",
+            parsed=parsed,
+        )
+        self.stack = self.match.group(1)
+        self.run = self.match.group(2)
+
+    @property
+    def description(self):
+        return f"{self.stack} {self.run}"
+
 
 class SpaceliftRunLink(Link):
     def __init__(self, url, parsed=None):
-        self.url = url.strip()
-        parsed = parsed or urlparse(url)
-
-        if not parsed.hostname.endswith(".spacelift.io"):
-            raise Exception(f"not spacelift.io, {parsed.hostname}")
-
-        path = parsed.path
-        match = re.match("^/stack/([^/]+)/run/([A-Z0-9]+)", path)
-        if not match:
-            raise Exception("not an archive link")
-
-        self.stack = match.group(1)
-        self.run = match.group(2)
+        super().__init__(
+            url,
+            domain="spacelift.io",
+            path_regex=r"^/stack/([^/]+)/run/([A-Z0-9]+)",
+            parsed=parsed,
+        )
+        self.stack = self.match.group(1)
+        self.run = self.match.group(2)
 
     @property
     def description(self):
