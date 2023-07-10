@@ -430,10 +430,11 @@
        (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.nox\\'")
        (setq lsp-enable-indentation nil))
 
-(after! forge
-       (setq forge-buffer-draft-p t))
-
-
+;; (after! forge
+;;        (setq forge-buffer-draft-p t))
+(use-package-hook! forge
+  :post-config
+  (setq forge-buffer-draft-p t))
 
 
 (setq calendar-week-start-day 1)
