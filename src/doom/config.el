@@ -453,6 +453,10 @@
 
 (use-package! mermaid-mode)
 
+(use-package! dired-quick-sort)
+(after! dired-quick-sort
+  (dired-quick-sort-setup))
+
 (setq! org-superstar-special-todo-items nil)
 (setq! org-superstar-headline-bullets-list '("⬣" "⬡" "⁜" "➙" "▷" "▣" "◈"))
 

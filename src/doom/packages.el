@@ -22,6 +22,8 @@
 
 (package! mermaid-mode)
 
+(package! dired-quick-sort)
+;
 ;(package! dirvish)
 
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
