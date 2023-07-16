@@ -153,15 +153,22 @@
 
 (map! :leader "n r I" #'org-roam-node-insert-immediate)
 
-(defun my/push-brain ()
+;; edt
+(defun my/brain-sync ()
   (interactive)
+  (save-some-buffers 'no-confirm (lambda ()
+    (cond
+      ((and buffer-file-name (string-prefix-p org-roam-directory buffer-file-name)))
+      ((and buffer-file-name (derived-mode-p 'org-mode))))))
   (let (
          (shell-command-buffer-name "*Brain Sync*")
          (max-mini-window-height .90))
     (shell-command "~/.bin/push-brain")
-    (org-roam-db-sync)))
+    ;; (switch-to-buffer "Brain Sync")
+    (org-roam-db-sync)
+      ))
 
-(map! :leader "n r p" #'my/push-brain)
+(map! :leader "n r p" #'my/brain-sync)
 
 
 ;; (defun my/org-roam-project-finalize-hook ()
