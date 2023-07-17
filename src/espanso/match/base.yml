@@ -10,7 +10,7 @@
 matches:
 
   - trigger: ",acc"
-    replace: "### Acceptance Criteria\n[]"
+    replace: "### Acceptance Criteria\n"
 
   - trigger: ",stdd"
     replace: "{{mydate}} Standup"
@@ -98,7 +98,7 @@ matches:
         type: shell
         params:
           cmd: >
-            pbpaste | pandoc --from org --to markdown --wrap=none
+            pbpaste | pandoc --from org --to markdown --wrap=none | sed '/^$/d'
 
   - trigger: ",slks"
     replace: "{{mydate}} Standup\n{{output}}"
