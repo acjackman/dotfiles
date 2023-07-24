@@ -363,6 +363,10 @@
         :desc "branch and worktree" "c" #'magit-worktree-branch
         :desc "Delete" "k" #'magit-worktree-delete
         :desc "Visit" "g" #'magit-worktree-status
+        )
+       (:prefix ("c" . "create")
+        :desc "branch and worktree" "w" #'magit-worktree-branch
+        :desc "worktree" "W" #'magit-worktree-checkout
         )))
 
 ;; https://www.eigenbahn.com/2021/09/15/org-roam#fn:4
