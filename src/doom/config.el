@@ -74,6 +74,9 @@
          ("p" "person" plain (file "~/.config/doom/roam-templates/person.org")
            :target (file+head "e/person/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
            :unnarrowed t)
+         ("b" "book" plain (file "~/.config/doom/roam-templates/book.org")
+           :target (file+head "e/book/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
+           :unnarrowed t)
       )
 
       org-roam-dailies-capture-templates
