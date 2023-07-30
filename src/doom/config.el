@@ -98,6 +98,12 @@
                        :props (list :override-default-time time)))
   (when goto (run-hooks 'org-roam-dailies-find-file-hook)))
 
+(defun my/org-roam-open-root-node (keys)
+  (interactive "P")
+  (org-roam-node-open (org-roam-node-from-id "1d110b64-2969-477f-a368-cd13bfc8eb95")))
+
+
+
 (defun my/org-roam-dailies-goto-today (keys)
   (interactive "P")
   (org-roam-dailies-capture-today t "d"))
@@ -325,7 +331,7 @@
 
 
 (map! "C-M-s-SPC" #'my/org-roam-dailies-goto-today
-  "<C-M-s-return>" #'org-roam-dailies-goto-today)  ;; TODO: this should goto README or a root index
+  "<C-M-s-return>" #'my/org-roam-open-root-node)
 
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
