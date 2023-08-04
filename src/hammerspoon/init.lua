@@ -237,7 +237,6 @@ old_hyper = {
   'k', -- Keyboard Maestro
   'b', -- Cardhop
   'h', -- Global Dash
-  ';', -- Text Expander
   'RETURN', -- Drafts
   'y', -- Menuwhere
   -- Keyboard Maestro
@@ -315,7 +314,7 @@ singleapps = {
   {'s', 'Slack'},
   {'d', 'Drafts'},
   {'e', 'Emacs'},
-  {'r', 'Safari'},
+  {'r', 'Arc'},
   {'t', 'iTerm'},
   {'f', 'Finder'},
   {'n', 'Obsidian'},
