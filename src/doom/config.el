@@ -477,6 +477,9 @@
 (after! dired-quick-sort
   (dired-quick-sort-setup))
 
+
+(use-package! dash-at-point)
+
 (setq! org-superstar-special-todo-items nil)
 (setq! org-superstar-headline-bullets-list '("⬣" "⬡" "⁜" "➙" "▷" "▣" "◈"))
 

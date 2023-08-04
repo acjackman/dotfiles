@@ -24,6 +24,8 @@
 
 (package! dired-quick-sort)
 ;
+(package! dash-at-point)
+
 ;(package! dirvish)
 
 ;; To install SOME-PACKAGE from MELPA, ELPA or emacsmirror:
