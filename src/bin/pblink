@@ -365,6 +365,32 @@ class NotionPageLink(Link):
         }
     }
 
+class IncidentIoLink(Link):
+    def __init__(self, url, parsed=None):
+        super().__init__(
+            url,
+            domain="app.incident.io",
+            path_regex=r"^/([^/]+)/incidents/([0-9]+)$",
+            parsed=parsed,
+        )
+        self.account = self.match.group(1)
+        self.incident_id = self.match.group(2)
+
+    @property
+    def description(self):
+        return f"INC-{self.incident_id}"
+
+    __check_cases__ = {
+        "https://app.incident.io/company/incidents/44": {
+            "description": "INC-44",
+        },
+        # "https://app.incident.io/company/incidents/44?from=incidents&tab=updates": {
+        #     "url": "https://app.incident.io/moovfinancial/incidents/44",
+        #     "description": "INC-44",
+        # }
+    }
+
+
 def format_md(link):
     return f"[{link.description}]({link.url})"
 
