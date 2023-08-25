@@ -547,7 +547,7 @@ With a prefix ARG invalidates the cache first."
                                           (append (list "*magit*") (projectile-current-project-files))
                                           :initial-input "*magit*")))
     (if (string= file "*magit*")
-        (magit-status-internal (projectile-project-root))
+        (magit-status (projectile-project-root))
       (progn (find-file (expand-file-name file (projectile-project-root)))
              (run-hooks 'projectile-find-file-hook))
       )
