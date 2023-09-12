@@ -399,7 +399,7 @@ elseif (hostname == "Ingvar") then
   hs.loadSpoon("WheelOfSeasons")
   spoon.WheelOfSeasons:start(
     os.getenv("HOME") .. "/.config/wallpapers/",
-    60*60,
+    60*15,
     true
   )
 end
