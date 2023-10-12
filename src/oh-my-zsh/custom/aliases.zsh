@@ -1,6 +1,4 @@
 # Open/Edit
-alias cdmp="cd $HOME/Dropbox/Dump"
-alias editor_new="code -n"
 alias hconfig="editor_new ~/.hammerspoon ~/.hammerspoon/init.lua"
 alias zshconfig="editor_new ~/.dotfiles/src/oh-my-zsh/custom ~/.dotfiles/src/bin ~/.zshrc ~/.zshrc_local"
 alias dotfiles="editor_new ~/.dotfiles"
@@ -17,7 +15,6 @@ alias dcud="docker-compose up -d"
 alias pwhich="pyenv which"
 alias aws2='/usr/local/bin/aws'
 alias aws-cli=aws2
-
 
 alias opl='eval $(op signin)'
 
@@ -45,7 +42,6 @@ alias pip='python -m pip'
 alias count_unique='cut -f 1 | sort | uniq -c'
 alias json2yaml="yq eval -P"
 alias yaml2json="yq eval --tojson"
-
 
 # Navigation
 alias sd="pushd"
