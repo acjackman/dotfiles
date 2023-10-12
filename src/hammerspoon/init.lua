@@ -240,7 +240,7 @@ old_hyper = {
   'RETURN', -- Drafts
   'y', -- Menuwhere
   -- Keyboard Maestro
-  'v', -- Paste by typing
+  -- 'v', -- Paste by typing
   -- Rating Music with Alfred
   '`', -- Remove rating
   '1', -- one star
@@ -301,6 +301,15 @@ k:bind({}, 'left', nil, backtrack)
 k:bind({}, 'right', nil, nexttrack)
 k:bind({}, 'up', nil, musicvolup)
 k:bind({}, 'down', nil, musicvoldown)
+
+
+-- TODO: paste clipboard
+-- function typeClipboard()
+--   hs.eventtap.keyStrokes(hs.pasteboard.getContents())
+--   k.triggered = true
+-- end
+-- k:bind({}, 'v', nil, typeClipboard)
+-- hs.hotkey.bind("cmd", 'H', function() end)
 
 
 -- Single keybinding for app launch
