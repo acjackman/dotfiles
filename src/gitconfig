@@ -1,21 +1,18 @@
-[include]
-    path = ~/.dotfiles/tools/gitalias/gitalias.txt
-
 [alias]
     # Status & Info
     s = status -s
-    # home = rev-parse --show-toplevel
-    # hash = "!git rev-parse HEAD"
-    # hsh = "!git rev-parse --short HEAD"
-    # branch-name = "!git rev-parse --abbrev-ref HEAD"
-    # bname = "branch-name"
+    home = rev-parse --show-toplevel
+    hash = "!git rev-parse HEAD"
+    hsh = "!git rev-parse --short HEAD"
+    branch-name = "!git rev-parse --abbrev-ref HEAD"
+    bname = "branch-name"
 
     # Commit control
-    # a = "add"
-    # aa = "!git add $(git home)"
-    # ci = commit  # Commit Interactive
-    # cm = "commit -m"  # Commit with Message
-    # cem = "commit --allow-empty -m"
+    a = "add"
+    aa = "!git add $(git home)"
+    ci = commit  # Commit Interactive
+    cm = "commit -m"  # Commit with Message
+    cem = "commit --allow-empty -m"
     fix = "commit --amend"
     fixx = "commit --amend --no-edit"
     cfix = fixx
@@ -24,36 +21,38 @@
     patch = !git --no-pager diff --no-color
 
     # Branch control
-      # b = branch
-    # sw = switch
-    # co = checkout
-    # rh = reset --hard
-    # rhh = reset --hard HEAD
-    # cb = checkout -b
-    # ct = "!git checkout main || git checkout master"
-    # nb = checkout -b
-    # renb = branch -m
+    b = branch
+    sw = switch
+    co = checkout
+    rh = reset --hard
+    rhh = reset --hard HEAD
+    cb = checkout -b
+    ct = main
+    main = "!f() { git show-ref --verify --quiet refs/heads/main && git checkout main || git checkout master; }; f"
+
+    nb = checkout -b
+    renb = branch -m
 
     # Remotes
-    # l = pull
-    # u = push
-    # pl = pull
-    # ps = push
-    # psf = push --force-with-lease
-    # psu = push --set-upstream
-    # publish = "!git push -u origin $(git branch-name)"
-    # publishf = "publish --force-with-lease"
-    # pb = "publish"
-    # pbf = "publishf"
-    # remotes = remote -v
+    l = pull
+    u = push
+    pl = pull
+    ps = push
+    psf = push --force-with-lease
+    psu = push --set-upstream
+    publish = "!git push -u origin $(git branch-name)"
+    publishf = "publish --force-with-lease"
+    pb = "publish"
+    pbf = "publishf"
+    remotes = remote -v
 
     # Log and History
-    # lf = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
-    # lg = lf --abbrev-commit --date=relative
-    # lg5 = "!git --no-pager lg -n 5"
-    # lgg = lg5
-    # lg10 = "!git --no-pager lg -n 10"
-    # graph = lg --graph
+    lf = log --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset'
+    lg = lf --abbrev-commit --date=relative
+    lg5 = "!git --no-pager lg -n 5"
+    lgg = lg5
+    lg10 = "!git --no-pager lg -n 10"
+    graph = lg --graph
 
     # Ignore templates
     ignore = "!gi() { curl -sL https://www.gitignore.io/api/$@ ;}; gi"
