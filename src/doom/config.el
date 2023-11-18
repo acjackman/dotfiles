@@ -20,7 +20,7 @@
 ;; They all accept either a font-spec, font string ("Input Mono-12"), or xlfd
 ;; font string. You generally only need these two:
 (setq doom-font (font-spec :family "JetBrainsMono Nerd Font" :size 15 :weight 'regular)
-     doom-variable-pitch-font (font-spec :family "Source Sans 3" :size 15 :weight 'regular))
+      doom-variable-pitch-font (font-spec :family "Source Sans 3" :size 15 :weight 'regular))
 
 ;; There are two ways to load a theme. Both assume the theme is installed and
 ;; available. You can either set `doom-theme' or manually load a theme with the
@@ -62,28 +62,28 @@
       org-roam-dailies-directory "journal/"
       +org-roam-open-buffer-on-find-file nil
       org-roam-capture-templates
-       '(("d" "default" plain "%?"
-           :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-           :unnarrowed t)
-         ("o" "obsidian" plain "%?"
-           :target (file+head "inbox/%^{ObsidianId}-${slug}.org" "#+title: ${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
-           :unnarrowed t)
-         ("e" "effort" plain (file "~/.config/doom/roam-templates/effort.org")
-           :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
-           :unnarrowed t)
-         ("p" "person" plain (file "~/.config/doom/roam-templates/person.org")
-           :target (file+head "e/person/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
-           :unnarrowed t)
-         ("b" "book" plain (file "~/.config/doom/roam-templates/book.org")
-           :target (file+head "e/book/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
-           :unnarrowed t)
-      )
+      '(("d" "default" plain "%?"
+         :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+         :unnarrowed t)
+        ("o" "obsidian" plain "%?"
+         :target (file+head "inbox/%^{ObsidianId}-${slug}.org" "#+title: ${title}\n#+obsidianid: %^{ObsidianId}\n#+created: %^{Created}\n")
+         :unnarrowed t)
+        ("e" "effort" plain (file "~/.config/doom/roam-templates/effort.org")
+         :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
+         :unnarrowed t)
+        ("p" "person" plain (file "~/.config/doom/roam-templates/person.org")
+         :target (file+head "e/person/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
+         :unnarrowed t)
+        ("b" "book" plain (file "~/.config/doom/roam-templates/book.org")
+         :target (file+head "e/book/%<%Y%m%d%H%M%S>-${slug}.org" "#+title: ${title}")
+         :unnarrowed t)
+        )
 
       org-roam-dailies-capture-templates
-        '(("d" "default" plain "%?"
-           :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n* Calendar\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n* Tasks\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n")
-           :unnarrowed t
-           :immediate-finish t)))
+      '(("d" "default" plain "%?"
+         :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n* Calendar\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n* Tasks\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n")
+         :unnarrowed t
+         :immediate-finish t)))
 
 
 ;; Disable org mode tag inheritance for better org-roam compatibility
@@ -111,44 +111,44 @@
 (defun org-roam-dailies-capture-today-log (keys)
   (interactive "P")
   (org-roam-dailies-capture- (current-time) nil
-    '(("d" nil entry "** %<%H:%M>: %?"
-       :if-new (file+olp "%<%Y-%m-%d>.org" ("Log"))
-    ))
-  ))
+                             '(("d" nil entry "** %<%H:%M>: %?"
+                                :if-new (file+olp "%<%Y-%m-%d>.org" ("Log"))
+                                ))
+                             ))
 
 (defun org-roam-dailies-capture-today-meeting (keys)
   (interactive "P")
   (org-roam-dailies-capture- (current-time) nil
-    '(("i" nil entry "** %<%H:%M>: %?"
-       :if-new (file+olp "%<%Y-%m-%d>.org" ("Calendar"))
-       :clock-in t
-       :clock-keep t
-       :jump-to-captured t))
-  ))
+                             '(("i" nil entry "** %<%H:%M>: %?"
+                                :if-new (file+olp "%<%Y-%m-%d>.org" ("Calendar"))
+                                :clock-in t
+                                :clock-keep t
+                                :jump-to-captured t))
+                             ))
 
 (defun org-roam-dailies-capture-today-interrupt (keys)
   (interactive "P")
   (org-roam-dailies-capture- (current-time) nil
-    '(("i" nil entry "** Interrupt %<%H:%M>: %?"
-       :if-new (file+olp "%<%Y-%m-%d>.org" ("Log"))
-       :clock-in t :clock-resume t))
-    ))
+                             '(("i" nil entry "** Interrupt %<%H:%M>: %?"
+                                :if-new (file+olp "%<%Y-%m-%d>.org" ("Log"))
+                                :clock-in t :clock-resume t))
+                             ))
 
 (defun org-roam-dailies-capture-today-task (keys)
   (interactive "P")
   (org-roam-dailies-capture- (current-time) nil
-    '(("d" nil entry "* TODO %?"
-       :if-new (file+olp "%<%Y-%m-%d>.org" ("Tasks"))))
-    ))
+                             '(("d" nil entry "* TODO %?"
+                                :if-new (file+olp "%<%Y-%m-%d>.org" ("Tasks"))))
+                             ))
 
 
 ;; Log an item to daily file
 (map! :leader
       (:prefix-map ("l" . "Log")
-        :desc "Daily Log" "l" #'org-roam-dailies-capture-today-log
-        :desc "Interrupt" "i" #'org-roam-dailies-capture-today-interrupt
-        :desc "Meeting" "m" #'org-roam-dailies-capture-today-meeting
-        :desc "Daily Task" "t" #'org-roam-dailies-capture-today-task))
+       :desc "Daily Log" "l" #'org-roam-dailies-capture-today-log
+       :desc "Interrupt" "i" #'org-roam-dailies-capture-today-interrupt
+       :desc "Meeting" "m" #'org-roam-dailies-capture-today-meeting
+       :desc "Daily Task" "t" #'org-roam-dailies-capture-today-task))
 
 
 
@@ -166,16 +166,16 @@
 (defun my/brain-sync ()
   (interactive)
   (save-some-buffers 'no-confirm (lambda ()
-    (cond
-      ((and buffer-file-name (string-prefix-p org-roam-directory buffer-file-name)))
-      ((and buffer-file-name (derived-mode-p 'org-mode))))))
+                                   (cond
+                                    ((and buffer-file-name (string-prefix-p org-roam-directory buffer-file-name)))
+                                    ((and buffer-file-name (derived-mode-p 'org-mode))))))
   (let (
-         (shell-command-buffer-name "*Brain Sync*")
-         (max-mini-window-height .90))
+        (shell-command-buffer-name "*Brain Sync*")
+        (max-mini-window-height .90))
     (shell-command "~/.bin/push-brain")
     ;; (switch-to-buffer "Brain Sync")
     (org-roam-db-sync)
-      ))
+    ))
 
 (map! :leader "n r p" #'my/brain-sync)
 
@@ -215,25 +215,25 @@
 (defun clerk/org-roam-find-resource (dir &optional template-file)
   (message ";;;; dir %S" dir )
   (clerk/org-roam-find-node
-    (clerk/org-roam-filter-by-folder dir)
-    '(("d" "default" plain (if template-file '(file (concat doom-user-dir "roam-templates/" template-file)) "%?")
-        :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org"  "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-        :unnarrowed t))
+   (clerk/org-roam-filter-by-folder dir)
+   '(("d" "default" plain (if template-file '(file (concat doom-user-dir "roam-templates/" template-file)) "%?")
+      :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org"  "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+      :unnarrowed t))
+   )
   )
-)
 
 (defun clerk/org-roam-insert-node (filter templates)
   (org-roam-node-insert filter :templates templates))
 
 (defun clerk/org-roam-insert-resource (dir &optional template-file)
   (clerk/org-roam-insert-node
-    (clerk/org-roma-filter-by-folder dir)
-    '(("d" "default" plain (if template-file '(file (concat doom-user-dir "roam-templates/" template-file)) "%?")
-       :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org"  "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
-       :unnarrowed t
-       :immediate-finish t))
+   (clerk/org-roma-filter-by-folder dir)
+   '(("d" "default" plain (if template-file '(file (concat doom-user-dir "roam-templates/" template-file)) "%?")
+      :target (file+head "inbox/%<%Y%m%d%H%M%S>-${slug}.org"  "#+title: ${title}\n#+created: %<%Y-%m-%dT%H:%M:%S%z>\n")
+      :unnarrowed t
+      :immediate-finish t))
+   )
   )
-)
 
 
 (defun my/org-roam-find-role ()
@@ -260,44 +260,44 @@
 
 
 (map! :leader
-  :prefix ("N" . "Find Note")
+      :prefix ("N" . "Find Note")
 
-  ;; :desc "Node" "n" #'org-roam-node-find
-  (:prefix ("r" . "roles")
-    (:prefix ("m" . "moov")
-      :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/mv/moov-role.org")))
-      :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/mv/efforts/" "effort.org"))
-    )
-    (:prefix ("n" . "nerd")
-      :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/nerd/nerd-role.org")))
-      :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/nerd/efforts/" "effort.org"))
-    )
-    (:prefix ("l" . "life")
-      :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/life/life-role.org")))
-      :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/life/efforts/" "effort.org"))
-    )
-    (:prefix ("v" . "verisage")
-      :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/vs/vs-role.org")))
-      :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/vs/efforts/" "effort.org"))
-    )
-    (:prefix ("f" . "fulcrum")
-      :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/fl/vs-role.org")))
-      :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/fl/efforts/" "effort.org"))
-    )
-  )
-  ;; :desc "Question" "q" #'my/org-roam-find-question
+      ;; :desc "Node" "n" #'org-roam-node-find
+      (:prefix ("r" . "roles")
+               (:prefix ("m" . "moov")
+                :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/mv/moov-role.org")))
+                :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/mv/efforts/" "effort.org"))
+                )
+               (:prefix ("n" . "nerd")
+                :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/nerd/nerd-role.org")))
+                :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/nerd/efforts/" "effort.org"))
+                )
+               (:prefix ("l" . "life")
+                :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/life/life-role.org")))
+                :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/life/efforts/" "effort.org"))
+                )
+               (:prefix ("v" . "verisage")
+                :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/vs/vs-role.org")))
+                :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/vs/efforts/" "effort.org"))
+                )
+               (:prefix ("f" . "fulcrum")
+                :desc "role" "r" (lambda () (interactive) (org-open-file (expand-file-name org-roam-directory "r/fl/vs-role.org")))
+                :desc "efforts" "e" (lambda () (interactive) (clerk/org-roam-find-resource "r/fl/efforts/" "effort.org"))
+                )
+               )
+      ;; :desc "Question" "q" #'my/org-roam-find-question
 
-  (:prefix ("SPC" . "Find entity node")
-    :desc "article" "a" (lambda () (interactive) (clerk/org-roam-find-resource "e/article/" "article.org"))
-    :desc "book" "b" (lambda () (interactive) (clerk/org-roam-find-resource "e/book/" "book.org"))
-    :desc "clipping" "c" (lambda () (interactive) (clerk/org-roam-find-resource "e/clipping/" "clipping.org"))
-    ;; :desc "music" "m" (lambda () (interactive) (clerk/org-roam-find-resource "e/music/" "music.org"))
-    :desc "movie" "m" (lambda () (interactive) (clerk/org-roam-find-resource "e/movie/" "movie.org"))
-    :desc "person" "p" (lambda () (interactive) (clerk/org-roam-find-resource "e/person/" "person.org"))
-    :desc "tv-show" "t" (lambda () (interactive) (clerk/org-roam-find-resource "e/tv-show/" "tv-show.org"))
-    :desc "video-game" "v" (lambda () (interactive) (clerk/org-roam-find-resource "e/video-game/" "video-game.org"))
-  )
-)
+      (:prefix ("SPC" . "Find entity node")
+       :desc "article" "a" (lambda () (interactive) (clerk/org-roam-find-resource "e/article/" "article.org"))
+       :desc "book" "b" (lambda () (interactive) (clerk/org-roam-find-resource "e/book/" "book.org"))
+       :desc "clipping" "c" (lambda () (interactive) (clerk/org-roam-find-resource "e/clipping/" "clipping.org"))
+       ;; :desc "music" "m" (lambda () (interactive) (clerk/org-roam-find-resource "e/music/" "music.org"))
+       :desc "movie" "m" (lambda () (interactive) (clerk/org-roam-find-resource "e/movie/" "movie.org"))
+       :desc "person" "p" (lambda () (interactive) (clerk/org-roam-find-resource "e/person/" "person.org"))
+       :desc "tv-show" "t" (lambda () (interactive) (clerk/org-roam-find-resource "e/tv-show/" "tv-show.org"))
+       :desc "video-game" "v" (lambda () (interactive) (clerk/org-roam-find-resource "e/video-game/" "video-game.org"))
+       )
+      )
 
 ;; (map! :leader
 ;;   :prefix ("C-n" . "Link note")
@@ -331,7 +331,7 @@
 
 
 (map! "C-M-s-SPC" #'my/org-roam-dailies-goto-today
-  "<C-M-s-return>" #'my/org-roam-open-root-node)
+      "<C-M-s-return>" #'my/org-roam-open-root-node)
 
 
 ;; This determines the style of line numbers in effect. If set to `nil', line
@@ -367,16 +367,16 @@
 
 (map! :leader
       (:prefix-map ("g" . "git")
-       (:prefix ("w" . "worktree")
-        :desc "Worktree dispatch" "w" #'magit-worktree
-        :desc "branch and worktree" "c" #'magit-worktree-branch
-        :desc "Delete" "k" #'magit-worktree-delete
-        :desc "Visit" "g" #'magit-worktree-status
-        )
-       (:prefix ("c" . "create")
-        :desc "branch and worktree" "w" #'magit-worktree-branch
-        :desc "worktree" "W" #'magit-worktree-checkout
-        )))
+                   (:prefix ("w" . "worktree")
+                    :desc "Worktree dispatch" "w" #'magit-worktree
+                    :desc "branch and worktree" "c" #'magit-worktree-branch
+                    :desc "Delete" "k" #'magit-worktree-delete
+                    :desc "Visit" "g" #'magit-worktree-status
+                    )
+                   (:prefix ("c" . "create")
+                    :desc "branch and worktree" "w" #'magit-worktree-branch
+                    :desc "worktree" "W" #'magit-worktree-checkout
+                    )))
 
 ;; https://www.eigenbahn.com/2021/09/15/org-roam#fn:4
 ;; (defun prf/org/file-path-org-p (f)
@@ -410,14 +410,14 @@
 ;;     (mapc #'kill-buffer
 ;;       (-difference (buffer-list) buffs-snapshot))))
 
- ;;  (defface org-link-roam
- ;;    '((t :underline t))
- ;;    "Face for Org-Mode links starting with id:."
- ;;    :group 'org-faces)
+;;  (defface org-link-roam
+;;    '((t :underline t))
+;;    "Face for Org-Mode links starting with id:."
+;;    :group 'org-faces)
 
- ;; (org-link-set-parameters
- ;;   "id"
- ;;   :face 'org-link-roam)
+;; (org-link-set-parameters
+;;   "id"
+;;   :face 'org-link-roam)
 
 ;; Here are some additional functions/macros that could help you configure Doom:
 ;;
@@ -442,16 +442,16 @@
 (defun add-list-to-list (dst src)
   "Similar to `add-to-list', but accepts a list as 2nd argument"
   (set dst
-    (append (eval dst) src)))
+       (append (eval dst) src)))
 
 (after! lsp-mode
-       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.mypy_cache\\'")
-       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\__pycache__\\'")
-       (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.nox\\'")
-       (setq lsp-enable-indentation nil))
+  (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.mypy_cache\\'")
+  (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\__pycache__\\'")
+  (add-to-list 'lsp-file-watch-ignored-directories "[/\\\\]\\.nox\\'")
+  (setq lsp-enable-indentation nil))
 
 (after! forge
-       (setq forge-buffer-draft-p t))
+  (setq forge-buffer-draft-p t))
 
 
 
@@ -487,7 +487,7 @@
   (set-ligatures! 'org-mode
     :src_block     "»"
     :src_block_end "«")
-)
+  )
 
 
 
@@ -528,12 +528,12 @@
       (kill-buffer buf))))
 
 (map!
-  :after org
-  :map org-mode-map
+ :after org
+ :map org-mode-map
 
-  :localleader
-  "E" #'formatted-copy
-  )
+ :localleader
+ "E" #'formatted-copy
+ )
 
 (setq flycheck-python-flake8-executable "flake8heavened")
 
@@ -568,3 +568,21 @@ With a prefix ARG invalidates the cache first."
 (add-hook! 'doom-init-ui-hook
            :append ;; ensure it gets added to the end.
            #'(lambda () (require 'uniquify) (setq uniquify-buffer-name-style 'forward)))
+
+
+;; (defun load-directory (directory)
+;;   "Load recursively all `.el' files in DIRECTORY."
+;;   (dolist (element (directory-files-and-attributes directory nil nil nil))
+;;     (let* ((path (car element))
+;;            (fullpath (concat directory "/" path))
+;;            (isdir (car (cdr element)))
+;;            (ignore-dir (or (string= path ".") (string= path ".."))))
+;;       (cond
+;;        ((and (eq isdir t) (not ignore-dir))
+;;         (load-directory fullpath))
+;;        ((and (eq isdir nil) (string= (substring path -3) ".el"))
+;;         (load (file-name-sans-extension fullpath)))))))
+
+
+;; (setq! 'doom-machine-dir (fullpath (concat doom-private-dir "/../doom-machine/config.el")) )
+;; (if (file-exists-p doom-machine-dir) (load))
