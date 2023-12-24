@@ -208,3 +208,14 @@ function oktap_aws() (
 # fh() {
 #   eval $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
 # }
+
+zinit-update() {
+  zinit delete --clean
+  zinit update --all
+  zinit cclear
+}
+
+# a touch command which creates folders too
+function touchp() {
+  mkdir -p $(dirname $1) && touch "$1"
+}
