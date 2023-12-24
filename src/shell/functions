@@ -219,3 +219,16 @@ zinit-update() {
 function touchp() {
   mkdir -p $(dirname $1) && touch "$1"
 }
+
+# j - cd to selected directory
+jj() {
+  local dir
+  dir=$(find ${1:-.} -path '*/\.*' -prune \
+                  -o -type d -print 2> /dev/null | fzf +m) &&
+  cd "$dir"
+}
+
+# fh - search in your command history and execute selected command
+fh() {
+  eval $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
+}

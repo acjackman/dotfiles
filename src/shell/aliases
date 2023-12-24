@@ -6,7 +6,7 @@ alias e="emacs.sh"
 
 alias ls='exa -l --group-directories-first'
 alias j='z'
-alias jj='zi'
+alias jjj='zi'
 alias tree='tre --limit 3'
 #
 # Command Shortcuts

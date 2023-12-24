@@ -22,3 +22,8 @@ fi
 if [[ -e "$HOME/${XDG_CONFIG_HOME:-.config}/emacs/bin" ]]; then
   export PATH="$HOME/${XDG_CONFIG_HOME:-.config}/emacs/bin:$PATH"
 fi
+
+# Golang
+export GOPATH="$HOME/.local/go"
+export GOBIN="$HOME/.local/go/bin"
+export PATH="$PATH:$GOBIN"

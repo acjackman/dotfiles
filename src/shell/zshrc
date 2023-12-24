@@ -69,12 +69,15 @@ setopt auto_cd
 setopt menu_complete            # Auto pick a menu match
 
 # Set history behavior
-setopt share_history            # Share history across session
-setopt inc_append_history       # Dont overwrite history, add new entries immediately
+# setopt share_history            # Share history across session
+# setopt inc_append_history       # Dont overwrite history, add new entries immediately
+setopt nosharehistory
+setopt noincappendhistory
 setopt extended_history         # Also record time and duration of commands.
 setopt hist_expire_dups_first   # Clear duplicates when trimming internal hist.
 setopt hist_find_no_dups        # Dont display duplicates during searches.
 setopt hist_ignore_dups         # Ignore consecutive duplicates.
+setopt hist_ignore_space        # Ignore commands prefixed with space
 setopt hist_reduce_blanks       # Remove superfluous blanks.
 setopt hist_save_no_dups        # Omit older commands in favor of newer ones.
 
@@ -98,19 +101,32 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 source "${ZINIT_HOME}/zinit.zsh"
 
 # TODO https://github.com/zdharma/zinit/issues/173#issuecomment-537325714
-# Load ~/.exports, ~/.aliases, ~/.functions and ~/.extra
-# ~/.extra can be used for settings you don’t want to commit
-for file in exports aliases functions extra; do
+# Load ~/.exports, ~/.aliases, ~/.functions and ~/.zshrc_local
+# ~/.zshrc_local can be used for settings you don’t want to commit
+for file in exports aliases functions zshrc_local; do
   local file="$HOME/.$file"
   [ -e "$file" ] && source "$file"
 done
 
 source ~/.zsh_plugins
 
-
 # ===========
 # Keybindings
 # ===========
+
+bindkey "^[[A" history-substring-search-up # Up
+bindkey "^[[B" history-substring-search-down # Down
+
+# open up current command in EDITOR, ctrl+x then ctrl+e
+autoload -U edit-command-line
+zle -N edit-command-line
+bindkey '^X^E' edit-command-line
+
+# save current command in buffer & restore after next command is run
+# https://unix.stackexchange.com/a/74381
+autoload -U push-input
+# not sure why, but ^S is not getting passed to the terminal
+bindkey '^X^P' push-input
 
 # ===========
 # Misc Config
