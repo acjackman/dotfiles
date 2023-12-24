@@ -8,7 +8,6 @@
     ~/:
       force: true
     ~/.config:
-      recursive: true
     "~/Library/Application Support":
       if: "[ `uname` = Darwin ]"
 
@@ -20,18 +19,13 @@
     ~/.gitconfig-moov: src/gitconfig-moov
 
     # ZSH config
-    ~/.zshrc:
-      path: src/zshrc
-      force: true
-    ~/.zprofile:
-      path: src/zprofile
-      force: true
-    ~/.oh-my-zsh:
-      path: tools/ohmyzsh/
-      force: true
-    ~/.p10k.zsh:
-      path: src/.p10k.zsh
-      force: true
+    ~/.zshrc: src/shell/zshrc
+    ~/.zprofile: src/shell/zprofile
+    ~/.exports: src/shell/exports
+    ~/.functions: src/shell/functions
+    ~/.aliases: src/shell/aliases
+    ~/.zsh_plugins: src/shell/zsh_plugins
+    ~/.p10k.zsh: src/shell/p10k.zsh
 
     # Scripts
     ~/.bin: src/bin

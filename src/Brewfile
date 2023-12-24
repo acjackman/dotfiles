@@ -19,6 +19,8 @@ cask "iandol/adobe-fonts/font-source-sans"
 cask "iandol/adobe-fonts/font-source-serif"
 
 # *Nix utils
+brew "zinit"
+brew "zsh-autosuggestions"
 brew "asdf"
 brew "direnv"
 brew "duti"
