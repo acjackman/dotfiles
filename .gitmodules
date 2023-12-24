@@ -16,9 +16,6 @@
 [submodule "src/oh-my-zsh/custom/themes/powerlevel10k"]
 	path = src/oh-my-zsh/custom/themes/powerlevel10k
 	url = https://github.com/romkatv/powerlevel10k.git
-[submodule "tools/doom-emacs"]
-	path = tools/doom-emacs
-	url = https://github.com/hlissner/doom-emacs
 [submodule "src/oh-my-zsh/custom/plugins/zsh-vi-mode"]
 	path = src/oh-my-zsh/custom/plugins/zsh-vi-mode
 	url = https://github.com/jeffreytse/zsh-vi-mode
