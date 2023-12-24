@@ -1,3 +1,4 @@
+# -*- mode: sh -*-
 function op_value {
     op get item $1 | read ITEM
     if [[ $2 =~ ^(username|user|u)$ ]]; then
@@ -67,7 +68,6 @@ function awswho() {
     echo AWS_PROFILE=${AWS_PROFILE}
     awswhoami
 }
-
 
 function awsso() {
     # Only login if credentials have timed out
@@ -196,62 +196,32 @@ function oktap_aws() (
   done
 )
 
+# # fd - cd to selected directory
+# fd() {
+#   local dir
+#   dir=$(find ${1:-.} -path '*/\.*' -prune \
+#                   -o -type d -print 2> /dev/null | fzf +m) &&
+#   cd "$dir"
+# }
 
-function pylv() {
-    # zparseopts -D -E -A opts -clean:
+# # fh - search in your command history and execute selected command
+# fh() {
+#   eval $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
+# }
 
-    DIRNAME=${PWD##*/}
-    LATEST_PY=$(pyenv versions --bare --skip-aliases | sed '/\//d' | sort --version-sort | tail -1)
-    PY_VERSION=${1:-$LATEST_PY}
-    # DEFAULT_NAME=$DIRNAME$(echo $PY_VERSION | sed -E 's/([0-9]+).([0-9]+).([0-9]+)/\1.\2/')
-    DEFAULT_NAME=$DIRNAME
-    ENV_NAME=${2:-$DEFAULT_NAME}
-
-
-    echo "pyenv virtualenv $PY_VERSION $ENV_NAME && pyenv local $ENV_NAME"
-    pyenv virtualenv $PY_VERSION $ENV_NAME \
-      && pyenv local $ENV_NAME
-
-    echo "pyenv virtualenv $PY_VERSION $ENV_NAME && pyenv local $ENV_NAME"
-    $(pyenv which python) -m pip install --upgrade pip \
-      && $(pyenv which python) -m pip install ipython importmagic epc 'devtools[pygments]'
-    # if [[ -f "pyproject.toml" ]]; then
-    #   echo "poetry install"
-    #   poetry install
-    # fi
+zinit-update() {
+  zinit delete --clean
+  zinit update --all
+  zinit cclear
 }
 
-function pydel() {
-    pyenv virtualenv-delete $(pyenv version-name)
-    [[ -f ".python-version" ]] && {
-        rm .python-version
-    }
+# a touch command which creates folders too
+function touchp() {
+  mkdir -p $(dirname $1) && touch "$1"
 }
 
-
-function repo-setup(){
-    git config alias.pull-trunk 'fetch origin main:main'
-    pre-commit install
-}
-
-function headphones(){
-  SwitchAudioSource -t output -s "Adam’s AirPods Max"
-  SwitchAudioSource -t input -s "Adam’s AirPods Max"
-}
-
-
-function tower(){
-  DIR=$1
-
-  if [[ "$DIR" == "" ]]; then
-    DIR=$(git home)
-  fi
-
-  gittower $DIR
-}
-
-# fd - cd to selected directory
-fd() {
+# j - cd to selected directory
+jj() {
   local dir
   dir=$(find ${1:-.} -path '*/\.*' -prune \
                   -o -type d -print 2> /dev/null | fzf +m) &&
