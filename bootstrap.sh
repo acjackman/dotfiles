@@ -55,6 +55,16 @@ fi
 # Install applications
 brew bundle install --global
 
+
+# Clone Dotfiles repo
+if [[ ! -d "$HOME/.config/emacsp" ]]; then
+  git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
+  ~/.config/emacs/bin/doom install
+else
+  echo 'doom emacs already cloned'
+fi
+
+
 # Configure macos defaults
 ~/.dotfiles/src/macos
 

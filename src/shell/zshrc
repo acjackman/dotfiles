@@ -91,6 +91,11 @@ for brew_path in "/home/linuxbrew/.linuxbrew/bin/brew" "/opt/homebrew/bin/brew";
   fi
 done
 
+if ! command -v python &> /dev/null
+then
+  export PATH="$PATH:$(brew --prefix python)/libexec/bin"
+fi
+
 export PATH="$PATH:$HOME/.bin"
 
 # avoid installation via brew, this is not a supported installation method and breaks
