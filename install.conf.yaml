@@ -35,9 +35,9 @@
     ~/.myclirc: src/myclirc
 
     # Emacs
-    # ~/.config/doom:
-    #   path: src/doom/
-    #   force: true
+    ~/.config/doom:
+      path: src/doom/
+      force: true
 
     ~/.config/k9s: src/k9s
     ~/.config/asdf: src/asdf
