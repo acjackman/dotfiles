@@ -125,11 +125,34 @@ end
 
 
 
+if (hostname == "Birger") then
+  hs.loadSpoon("WheelOfSeasons")
+  spoon.WheelOfSeasons:start(
+    os.getenv("HOME") .. "/WheelOfSeasons/",
+    60*60,
+    true
+  )
+elseif (hostname == "Odin") then
+  hs.loadSpoon("WheelOfSeasons")
+  spoon.WheelOfSeasons:start(
+    os.getenv("HOME") .. "/.config/wallpapers/",
+    60*60,
+    true
+  )
+elseif (hostname == "Ingvar") then
+  hs.loadSpoon("WheelOfSeasons")
+  spoon.WheelOfSeasons:start(
+    os.getenv("HOME") .. "/.config/wallpapers/",
+    60*15,
+    true
+  )
+end
 
 -- spoon.RecursiveBinder.escapeKey = {{}, 'escape'}  -- Press escape to abort
 local singleKey = spoon.RecursiveBinder.singleKey
 local keyMap = {
-  [singleKey('o', 'open')] = {
+  [singleKey('d', "wallpapers")] = function() spoon.WheelOfSeasons:shiftWallpapers() end,
+  [singleKey('o', 'open+')] = {
     [singleKey('o', 'omnifocus')] = launch_app("OmniFocus"),
     [singleKey('l', 'linear')] = launch_app("Linear"),
     [singleKey('e', 'emacs')] = launch_app("Emacs"),
@@ -168,7 +191,7 @@ local keyMap = {
     },
     [singleKey('n', 'new')] = run_shell("yabai -m space --create"),
   },
-  [singleKey('s', 'screen')] = {
+  [singleKey('s', 'screen+')] = {
     [singleKey('f', 'focus')] = {
       [singleKey('1', 'screen-1')] = run_shell("yabai -m display --focus 1"),
       [singleKey('2', 'screen-2')] = run_shell("yabai -m display --focus 2"),
@@ -192,7 +215,8 @@ local keyMap = {
       [singleKey('1', "90°")] = function() screen:rotate(90) end,
       [singleKey('2', "180°")] = function() screen:rotate(180) end,
       [singleKey('3', "270°")] = function() screen:rotate(270) end,
-    }
+    },
+    -- [singleKey('d', "wallpapers")] = shift_wallpapers,
   }
 }
 
@@ -376,50 +400,24 @@ f19 = hs.hotkey.bind({}, 'F19', pressedF19, releasedF19)
 
 -- Launch and quit ScanSnap Manager
 -- usbWatcher = nil
-function usbDeviceCallback(data)
-    if (data["productName"] == "ScanSnap S1300i") then
-        if (data["eventType"] == "added") then
-            hs.application.launchOrFocus("ScanSnap Manager")
-        elseif (data["eventType"] == "removed") then
-            app = hs.appfinder.appFromName("ScanSnap Manager")
-            app:kill()
-        end
-    end
-end
+-- function usbDeviceCallback(data)
+--     if (data["productName"] == "ScanSnap S1300i") then
+--         if (data["eventType"] == "added") then
+--             hs.application.launchOrFocus("ScanSnap Manager")
+--         elseif (data["eventType"] == "removed") then
+--             app = hs.appfinder.appFromName("ScanSnap Manager")
+--             app:kill()
+--         end
+--     end
+-- end
 
-if (hs.host.localizedName() == "Jormungandr") then
-  usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
-  usbWatcher:start()
-end
+-- if (hs.host.localizedName() == "Jormungandr") then
+--   usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
+--   usbWatcher:start()
+-- end
 
 hs.loadSpoon("ReloadConfiguration")
 spoon.ReloadConfiguration:start()
-
-
-
-if (hostname == "Birger") then
-  hs.loadSpoon("WheelOfSeasons")
-  spoon.WheelOfSeasons:start(
-    os.getenv("HOME") .. "/WheelOfSeasons/",
-    60*60,
-    true
-  )
-elseif (hostname == "Odin") then
-  hs.loadSpoon("WheelOfSeasons")
-  spoon.WheelOfSeasons:start(
-    os.getenv("HOME") .. "/.config/wallpapers/",
-    60*60,
-    true
-  )
-elseif (hostname == "Ingvar") then
-  hs.loadSpoon("WheelOfSeasons")
-  spoon.WheelOfSeasons:start(
-    os.getenv("HOME") .. "/.config/wallpapers/",
-    60*15,
-    true
-  )
-end
-
 
 function yabaiRestarter()
   -- hs.notify.show("HS-> Yabai", "", "restarting yabai")
