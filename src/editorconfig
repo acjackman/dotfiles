@@ -9,7 +9,20 @@ end_of_line = lf
 insert_final_newline = true
 trim_trailing_whitespace = true
 indent_style = space
-indent_size = 4
+indent_size = 8
+
+# Org
+[*.{org}]
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 8
+
+# Go
+[{*.go,go.mod,go.sum}]
+indent_style = tab
+indent_size = 8
 
 # Makefile
 [Makefile]
@@ -45,3 +58,4 @@ trim_trailing_whitespace = true
 # Markdown
 [*.md,*.markdown]
 trim_trailing_whitespace = false
+indent_size = 4
