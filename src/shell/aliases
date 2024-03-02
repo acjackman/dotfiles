@@ -1,7 +1,7 @@
 # -*- mode: sh -*-
 alias enw="emacs -nw"
 alias te="emacs.sh -nw"
-alias e="emacs.sh"
+alias e="nvim"
 
 
 alias ls='exa -l --group-directories-first'
