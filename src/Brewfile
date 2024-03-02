@@ -60,8 +60,8 @@ brew "fd"
 brew "shfmt"
 brew "shellcheck"
 cask "docker"
-cask "iterm2"
-cask "kaleidoscope"
+cask "alacritty"
+
 # cask "tower"
 cask "transmit"
 brew "emacs-mac", args: ["with-modules", "with-emacs-big-sur-icon", "with-native-comp" ]

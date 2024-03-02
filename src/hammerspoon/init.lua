@@ -160,7 +160,7 @@ local keyMap = {
     [singleKey('d', 'drafts')] = launch_app("Drafts"),
     [singleKey('f', 'finder')] = launch_app("Finder"),
     [singleKey('=', 'calc')] = launch_app("Soulver 3"),
-    [singleKey('t', 'terminal')] = launch_app("iTerm"),
+    [singleKey('t', 'terminal')] = launch_app("Alacritty"),
     [singleKey('b', 'browser')] = launch_app("Safari")
   },
   [singleKey('w', 'window+')] = {
@@ -256,7 +256,7 @@ old_hyper = {
   'a', -- Zoom Global Mute Shortcut
   'SPACE', -- OmniFocus Quick Capture
   'c', -- Fantastical Keyboard Shortcut
-  'i', -- iTerm interactive
+  -- 'i', -- iTerm interactive
   'z', -- Alfred Clipboard
   'k', -- Keyboard Maestro
   'b', -- Cardhop
@@ -348,7 +348,7 @@ singleapps = {
   {'d', 'Drafts'},
   {'e', 'Emacs'},
   {'r', 'Arc'},
-  {'t', 'iTerm'},
+  {'t', 'Alacritty'},
   {'f', 'Finder'},
   {'n', 'Obsidian'},
   {'o', 'The Archive'},

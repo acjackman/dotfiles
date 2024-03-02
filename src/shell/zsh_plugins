@@ -66,7 +66,6 @@ zinit load zsh-users/zsh-history-substring-search
 #   - colors: sets aliases for some colors and most styles via '$c'
 #   - lib/spectrum.zsh: 'spectrum_ls' alias to visually inspect colors
 zinit wait'1' lucid for \
-  marzocchi/zsh-notify \
   djui/alias-tips \
   chrissicool/zsh-256color \
   zpm-zsh/colors \

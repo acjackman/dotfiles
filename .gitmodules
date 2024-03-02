@@ -23,3 +23,6 @@
 	path = tools/gitalias
 	url = git@github.com:GitAlias/gitalias.git
 	shallow = true
+[submodule "src/alacritty/themes"]
+	path = src/alacritty/themes
+	url = https://github.com/alacritty/alacritty-theme
