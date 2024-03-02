@@ -22,12 +22,12 @@
     ~/.gitconfig-moov: src/gitconfig-moov
 
     # ZSH config
-    ~/.zshrc: src/shell/zshrc
-    ~/.zprofile: src/shell/zprofile
-    ~/.exports: src/shell/exports
-    ~/.functions: src/shell/functions
-    ~/.aliases: src/shell/aliases
-    ~/.zsh_plugins: src/shell/zsh_plugins
+    ~/.zshrc: src/shell/zshrc.zsh
+    ~/.zprofile: src/shell/zprofile.zsh
+    ~/.exports: src/shell/exports.zsh
+    ~/.functions: src/shell/functions.zsh
+    ~/.aliases: src/shell/aliases.zsh
+    ~/.zsh_plugins: src/shell/zsh_plugins.zsh
     ~/.p10k.zsh: src/shell/p10k.zsh
 
     # Tmux
