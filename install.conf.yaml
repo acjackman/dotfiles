@@ -27,6 +27,9 @@
     ~/.zsh_plugins: src/shell/zsh_plugins
     ~/.p10k.zsh: src/shell/p10k.zsh
 
+    # Tmux
+    ~/.config/tmux: src/tmux
+
     # Scripts
     ~/.bin: src/bin
 

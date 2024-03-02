@@ -15,4 +15,7 @@ src/ipython/*/history.sqlite
 src/karabiner/automatic_backups/*
 .vscode
 
+# ignore installed tmux plugins
+src/tmux/plugin
+
 **dask-worker-space/
