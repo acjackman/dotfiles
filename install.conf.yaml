@@ -45,6 +45,9 @@
       path: src/doom/
       force: true
 
+    # Neovim
+    ~/.config/nvim: src/nvim
+
     ~/.config/k9s: src/k9s
     ~/.config/asdf: src/asdf
     ~/.config/topgrade.toml: src/topgrade/config.toml
