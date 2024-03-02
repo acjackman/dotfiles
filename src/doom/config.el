@@ -59,6 +59,10 @@
       calendar-week-start-day 1    ; Monday is the first day of the week
       );
 
+(setq! org-superstar-special-todo-items nil
+       org-superstar-headline-bullets-list '("⬣" "◉" "⬡" "⁜" "➙" "▷" "▣" "◈")
+       )
+
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
@@ -89,7 +93,7 @@
          :if-new (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>\n* Calendar\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n* Log\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n* Tasks\n:PROPERTIES:\n:VISIBILITY: children\n:END:\n")
          :unnarrowed t
          :immediate-finish t))
-)
+      )
 
 ;; Disable org mode tag inheritance for better org-roam compatibility
 (setq! org-use-tag-inheritance nil)
@@ -331,3 +335,6 @@ With a prefix ARG invalidates the cache first."
 
 ;; (setq! 'doom-machine-dir (fullpath (concat doom-private-dir "/../doom-machine/config.el")) )
 ;; (if (file-exists-p doom-machine-dir) (load))
+
+
+(add-to-list 'doom-detect-indentation-excluded-modes 'org-mode 'org-journal-mode)
