@@ -16,18 +16,23 @@ indent_size = 4
 indent_style = tab
 indent_size = 4
 
+# Org
+[*.org]
+indent_style = tab
+indent_size = 8
+
 # Go
 [{*.go,go.mod,go.sum}]
 indent_style = tab
 indent_size = 4
 
 # Rego / OPA
-[*.{rego}]
+[*.rego]
 indent_style = tab
 indent_size = 2
 
 # Terraform
-[*.{tf,tfvars}]
+[*.tf,*.tfvars]
 indent_style = space
 indent_size = 2
 
