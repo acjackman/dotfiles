@@ -12,6 +12,9 @@
       if: "[ `uname` = Darwin ]"
 
 - link:
+    # Terminal
+    ~/.config/alacritty: src/alacritty
+
     # Git
     ~/.gitconfig: src/gitconfig
     ~/.gitignore: src/gitignore
@@ -47,7 +50,6 @@
     ~/.config/topgrade.toml: src/topgrade/config.toml
     ~/.editorconfig: src/editorconfig
 
-    ~/.config/alacritty: src/alacritty
     # macOS & apps
     "~/Library/Application Support/espanso":
       if: "[ `uname` = Darwin ]"
