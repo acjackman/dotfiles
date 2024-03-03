@@ -19,3 +19,4 @@ src/karabiner/automatic_backups/*
 src/tmux/plugin
 
 **dask-worker-space/
+src/tmux/plugins
