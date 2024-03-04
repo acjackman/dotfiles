@@ -14,7 +14,7 @@ decorations = "none"
 dynamic_padding = true
 
 [window.padding]
-x = 5
+x = 0
 y = 0
 
 [cursor]
