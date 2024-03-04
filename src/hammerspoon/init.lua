@@ -437,7 +437,7 @@ spoon.ReloadConfiguration:start()
 
 function yabaiRestarter()
     -- hs.notify.show("HS-> Yabai", "", "restarting yabai")
-    hs.execute("noti brew services restart yabai", true)
+    hs.execute("yabai --stop-service; yabai --start-service", true)
 end
 
 yabaiWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.config/yabai/", yabaiRestarter):start()
