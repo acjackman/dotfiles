@@ -26,3 +26,6 @@
 [submodule "src/alacritty/themes"]
 	path = src/alacritty/themes
 	url = https://github.com/alacritty/alacritty-theme
+[submodule "tools/tpm"]
+	path = tools/tpm
+	url = https://github.com/tmux-plugins/tpm

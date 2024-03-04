@@ -32,6 +32,7 @@
 
     # Tmux
     ~/.config/tmux: src/tmux
+    ~/.tmux/plugins/tpm: tools/tpm
 
     # Scripts
     ~/.bin: src/bin
