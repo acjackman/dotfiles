@@ -49,3 +49,7 @@ alias pip='python -m pip'
 
 # Cloud
 alias awswhoami="aws-cli sts get-caller-identity"
+
+# Commons
+alias dotfiles="cd ~/.dotfiles && e"
+alias notes="cd ~/notes && e"
