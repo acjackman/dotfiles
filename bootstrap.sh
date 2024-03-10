@@ -31,6 +31,11 @@ else
   echo 'homebrew already installed'
 fi
 
+if [ ! -f "/opt/jackman" ]; then
+  sudo mkdir -p /opt/jackman
+  sudo chown $(whoami) /opt/jackman
+fi
+
 brew tap homebrew/bundle # Install Homebrew Bundle
 brew install mas
 

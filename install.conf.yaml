@@ -36,6 +36,7 @@
 
     # Scripts
     ~/.bin: src/bin
+    /opt/jackman/bin/tmux_chooser.sh: src/bin/tmux_chooser.sh
 
     # shell apps config
     ~/.ipython: src/ipython
