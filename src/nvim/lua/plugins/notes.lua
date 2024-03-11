@@ -11,11 +11,13 @@ return {
     --   "BufNewFile " .. vim.fn.expand("~") .. "/notes/**.md",
     -- },
     keys = {
-      { "<leader>nn", "<cmd>ObsidianNew<cr>", desc = "New Obsidian note", mode = "n" },
-      { "<leader>no", "<cmd>ObsidianSearch<cr>", desc = "Search Obsidian notes", mode = "n" },
+      { "<leader>nn", "<cmd>ObsidianNew<cr>", desc = "New note", mode = "n" },
+      { "<leader>no", "<cmd>ObsidianSearch<cr>", desc = "Search notes", mode = "n" },
       { "<leader>ns", "<cmd>ObsidianQuickSwitch<cr>", desc = "Quick Switch", mode = "n" },
       { "<leader>nb", "<cmd>ObsidianBacklinks<cr>", desc = "Show location list of backlinks", mode = "n" },
-      { "<leader>nt", "<cmd>ObsidianTemplate<cr>", desc = "Follow link under cursor", mode = "n" },
+      -- { "<leader>nt", "<cmd>ObsidianTemplate<cr>", desc = "Follow link under cursor", mode = "n" },
+      { "<leader>ndt", "<cmd>ObsidianToday<cr>", desc = "Open todays note", mode = "n" },
+      -- { "<leader>ndd", "<cmd>ObsidianToday<cr>", desc = "Open todays note", mode = "n" }, -- TODO: Setup a calendar picker
     },
     opts = {
       workspaces = {
