@@ -40,7 +40,8 @@ else
     if [[ $input == "" ]]; then
         tmux new-session
     elif [[ $input == 'nil' ]]; then
-        exit 1
+        # Run the default shell
+        $SHELL
     elif [[ $input =~ ^[0-9]+$ ]] && [[ $input -le $no_of_terminals ]]; then
         terminal_name="${output_names[input - 1]}"
         tmux attach -t "$terminal_name"
