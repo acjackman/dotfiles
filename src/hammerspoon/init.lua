@@ -208,7 +208,7 @@ spoon.RecursiveBinder.helperFormat = {
 }
 
 
-hs.hotkey.bind({'ctrl'}, 'space', spoon.RecursiveBinder.recursiveBind(keyMap))
+hs.hotkey.bind(shift_hyper, 'space', spoon.RecursiveBinder.recursiveBind(keyMap))
 
 hs.hotkey.bind(ctrl_cmd, 'h', nil, run_shell("yabai -m window --focus west"))
 hs.hotkey.bind(ctrl_cmd, 'j', nil, run_shell("yabai -m window --focus south"))
