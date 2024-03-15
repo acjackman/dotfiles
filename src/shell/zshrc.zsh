@@ -77,7 +77,7 @@ setopt hist_save_no_dups        # Omit older commands in favor of newer ones.
 # =============
 # Evals
 # =============
-for brew_path in "/home/linuxbrew/.linuxbrew/bin/brew" "/opt/homebrew/bin/brew"; do
+for brew_path in "/opt/homebrew/bin/brew"; do
   if [[ -x "$brew_path" ]]; then
     eval "$($brew_path shellenv)"
     break
@@ -111,20 +111,10 @@ source ~/.zsh_plugins
 # ===========
 # Keybindings
 # ===========
-
-bindkey "^[[A" history-substring-search-up # Up
-bindkey "^[[B" history-substring-search-down # Down
-
 # open up current command in EDITOR, ctrl+x then ctrl+e
 autoload -U edit-command-line
 zle -N edit-command-line
 bindkey '^X^E' edit-command-line
-
-# save current command in buffer & restore after next command is run
-# https://unix.stackexchange.com/a/74381
-autoload -U push-input
-# not sure why, but ^S is not getting passed to the terminal
-bindkey '^X^P' push-input
 
 # ===========
 # Misc Config
