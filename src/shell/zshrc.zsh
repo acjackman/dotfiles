@@ -131,25 +131,7 @@ zle -N self-insert url-quote-magic
 # =======================================
 # zsh-autosuggest & bracketed-paste-magic
 # =======================================
-
-# copied from https://github.com/zsh-users/zsh-autosuggestions/issues/351#issuecomment-588235793
-# hopefully this is fixed in zsh-autosuggest in the future
-
-# This speeds up pasting w/ autosuggest
-# https://github.com/zsh-users/zsh-autosuggestions/issues/238
-pasteinit() {
-  OLD_SELF_INSERT=${${(s.:.)widgets[self-insert]}[2,3]}
-  zle -N self-insert url-quote-magic # I wonder if you'd need `.url-quote-magic`?
-}
-
-pastefinish() {
-  zle -N self-insert $OLD_SELF_INSERT
-}
-zstyle :bracketed-paste-magic paste-init pasteinit
-zstyle :bracketed-paste-magic paste-finish pastefinish
-
-# https://github.com/zsh-users/zsh-autosuggestions/issues/351
-ZSH_AUTOSUGGEST_CLEAR_WIDGETS+=(bracketed-paste)
+# DISABLE_MAGIC_FUNCTIONS=true
 
 # ===========
 # Word Definition
