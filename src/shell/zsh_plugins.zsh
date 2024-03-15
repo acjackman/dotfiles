@@ -8,13 +8,6 @@ if type svn &> /dev/null; then
     OMZ::plugins/extract
 fi
 
-# NOTE the public iterm zsh integration is broken
-# https://github.com/decayofmind/zsh-iterm2-utilities
-zinit ice depth"1" \
-  pick"shell_integration/zsh" \
-  sbin"utilities/*" if"[[ $+ITERM_PROFILE ]]"
-zinit load gnachman/iTerm2-shell-integration
-
 # autopair must be loaded before syntax highlight
 zinit wait lucid for \
   OMZ::lib/functions.zsh \
@@ -38,28 +31,22 @@ zinit wait lucid for \
   mafredri/zsh-async \
   redxtech/zsh-asdf-direnv \
   zpm-zsh/zsh-better-npm-completion \
-  'https://gist.githubusercontent.com/iloveitaly/4eac0f4ddb3f8162f95fa3ed6f123a06/raw/91af07681dcb1bd863f1922526d6287debd10a80/1password.zsh' \
-  'https://gist.githubusercontent.com/iloveitaly/a79ffc31ef5b4785da8950055763bf52/raw/4140dd8fa63011cdd30814f2fbfc5b52c2052245/github-copilot-cli.zsh' \
-  'https://gist.githubusercontent.com/iloveitaly/043d91a2968597fe601673664b124dd3/raw/f79dd08a352f9dfde17ba22d345e8e1f87ac3c57/orbctl.zsh' \
-  'https://gist.githubusercontent.com/iloveitaly/ebd80140aaa4d8183b558adddb06b809/raw/fc23843bd07b3665233b8d74d0030b8ffff290dd/pack.plugin.zsh' \
-  'https://github.com/iloveitaly/dolt/blob/zsh-plugin/dolt.plugin.zsh' \
   'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh' \
   'https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh' \
   as'completion' blockf OMZ::plugins/ripgrep/_ripgrep \
   atinit'zicompinit' atpull'zinit creinstall .' src'completions/git-forgit.zsh' wfxr/forgit \
   blockf atpull'zinit creinstall  .' zsh-users/zsh-completions \
   RobSis/zsh-completion-generator \
-  atinit"zicompinit; zicdreplay" zdharma/fast-syntax-highlighting \
   atload'_zsh_autosuggest_start' zsh-users/zsh-autosuggestions \
+  atinit"zicompinit; zicdreplay" z-shell/F-Sy-H \
   Aloxaf/fzf-tab \
-  iloveitaly/zsh-github-cli \
-  atload"zpcdreplay" atclone"./zplug.zsh" atpull"%atclone" g-plane/pnpm-shell-completion
-
-# TODO conflicts with fzf-tab
-# marlonrichert/zsh-autocomplete
+  iloveitaly/zsh-github-cli
 
 # must be loaded after syntax completion
 zinit load zsh-users/zsh-history-substring-search
+
+zinit ice depth=1
+zinit light jeffreytse/zsh-vi-mode
 
 # experimental
 #   - zsh-256color: configures env for 256 color support
