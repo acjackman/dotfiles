@@ -3,10 +3,6 @@
 # import = ["/Users/mischa/.config/alacritty/themes/themes/gruvbox_dark.toml"]
 import = ["~/.config/alacritty/themes/themes/catppuccin_mocha.toml"]
 
-[shell]
-# program = "/opt/jackman/bin/tmux_chooser.sh"
-program = "/bin/zsh"
-
 [font]
 size = 14
 
