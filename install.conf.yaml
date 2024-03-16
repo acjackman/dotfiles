@@ -47,6 +47,7 @@
 
     ~/.config/k9s: src/k9s
     ~/.config/ruff: src/ruff
+    ~/.config/terraform: src/terraform
     ~/.config/topgrade.toml: src/topgrade/config.toml
     ~/.editorconfig: src/editorconfig
 
