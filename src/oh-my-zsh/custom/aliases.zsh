@@ -55,9 +55,12 @@ alias x..="cd ../.. && clear && ls"
 alias x...="cd ../../.. && clear && ls"
 alias x....="cd ../../../.. && clear && ls"
 alias x.....="cd ../../../../.. && clear && ls"
+alias ,jg='cd $(git rev-parse --show-toplevel)'
+
+# Spacelift
+alias splogin='unset SPACELIFT_API_TOKEN; spacectl whoami > /dev/null || spacectl profile login; export SPACELIFT_API_TOKEN=$(spacectl profile export-token)'
 
 ## Shortcuts to common directories
-alias dbox="pushd ~/Dropbox && clear && ls"
 alias notes="pushd ~/brain && clear && ls -1 | tail -r | grep -v -E '(media|^Z.*|Notes & Settings|.*csv$)' | head -10 && echo '...'"
 alias dev="pushd ~/dev && clear && echo */ | sed 's:/::g' "
 alias dwn="pushd ~/Downloads && clear && ls"
