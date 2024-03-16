@@ -14,3 +14,5 @@ export COOKIECUTTER_CONFIG=$HOME/.dotfiles/src/.cookiecutter.yaml
 
 export TOGGL2HARVEST_CONFIG=$HOME/.toggl2harvest
 export STUDYPODCAST_CONFIG=$HOME/.studypodcast
+
+export TF_CLI_CONFIG_FILE=$HOME/.config/terraform/terraform.tfrc
