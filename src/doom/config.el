@@ -586,3 +586,7 @@ With a prefix ARG invalidates the cache first."
 
 ;; (setq! 'doom-machine-dir (fullpath (concat doom-private-dir "/../doom-machine/config.el")) )
 ;; (if (file-exists-p doom-machine-dir) (load))
+
+(add-to-list 'doom-detect-indentation-excluded-modes 'org-mode)
+
+(org-indent-mode -1)
