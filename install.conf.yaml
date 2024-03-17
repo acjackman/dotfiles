@@ -30,10 +30,6 @@
     ~/.zsh_plugins: src/shell/zsh_plugins.zsh
     ~/.p10k.zsh: src/shell/p10k.zsh
 
-    # Tmux
-    ~/.config/tmux: src/tmux
-    ~/.tmux/plugins/tpm: tools/tpm
-
     # Scripts
     ~/.bin: src/bin
 
@@ -47,8 +43,8 @@
       force: true
 
     # Neovim
+    ~/.config/tmux: src/tmux
     ~/.config/nvim: src/nvim
-
     ~/.config/k9s: src/k9s
     ~/.config/asdf: src/asdf
     ~/.config/topgrade.toml: src/topgrade/config.toml

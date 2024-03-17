@@ -1,12 +1,13 @@
 # -*- mode: sh -*-
 # plugin location: `~/.local/share/zinit/plugins`
 
+###########################
 # oh-my-zsh plugins
+###########################
 # in some environments, we may not be able to install svn
-if type svn &> /dev/null; then
-  zinit svn wait lucid for \
-    OMZ::plugins/extract
-fi
+# if type svn &> /dev/null; then
+#   zinit svn wait lucid for \
+# fi
 
 # autopair must be loaded before syntax highlight
 zinit wait lucid for \
@@ -34,7 +35,7 @@ zinit wait lucid for \
   'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh' \
   'https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh' \
   as'completion' blockf OMZ::plugins/ripgrep/_ripgrep \
-  atinit'zicompinit' atpull'zinit creinstall .' src'completions/git-forgit.zsh' wfxr/forgit \
+  atinit'zicompinit' atpull'zinit creinstall .' wfxr/forgit \
   blockf atpull'zinit creinstall  .' zsh-users/zsh-completions \
   RobSis/zsh-completion-generator \
   atload'_zsh_autosuggest_start' zsh-users/zsh-autosuggestions \

@@ -77,7 +77,7 @@ setopt hist_save_no_dups        # Omit older commands in favor of newer ones.
 # =============
 # Evals
 # =============
-for brew_path in "/opt/homebrew/bin/brew"; do
+for brew_path in "/opt/homebrew/bin/brew" "/usr/local/bin/brew"; do
   if [[ -x "$brew_path" ]]; then
     eval "$($brew_path shellenv)"
     break

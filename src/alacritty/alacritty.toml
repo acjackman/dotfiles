@@ -3,6 +3,13 @@
 # import = ["/Users/mischa/.config/alacritty/themes/themes/gruvbox_dark.toml"]
 import = ["~/.config/alacritty/themes/themes/catppuccin_mocha.toml"]
 
+[shell]
+program = "/bin/zsh"
+args = ["-l"]
+
+[env]
+SHELL = "/bin/zsh"
+
 [font]
 size = 14
 
