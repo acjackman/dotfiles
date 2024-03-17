@@ -20,9 +20,8 @@ cask "font-overpass"
 
 # *Nix utils
 brew "zoxide"
-# brew "zsh-autosuggestions"
-brew "asdf"
-brew "direnv"
+# brew "asdf # Installed via git
+# brew "direnv" # Installed via zinit
 brew "duti"
 brew "tldr"
 brew "tre-command"
@@ -30,6 +29,7 @@ brew "eza"
 brew "fzf"
 brew "svn"  # Fonts need
 brew "ispell"
+brew "tmux"
 
 # Libs/dependencies
 brew "libvterm"
@@ -64,7 +64,8 @@ cask "alacritty"
 
 # cask "tower"
 cask "transmit"
-brew "emacs-mac", args: ["with-modules", "with-emacs-big-sur-icon", "with-native-comp" ]
+# brew "emacs-mac", args: ["with-modules", "with-emacs-big-sur-icon", "with-native-comp" ]
+brew "neovim"
 cask "tad"  # CSV Viewer
 cask "dash" # Offline Documentation
 mas "Patterns", id: 429449079
