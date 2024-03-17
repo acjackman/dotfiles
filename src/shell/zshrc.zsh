@@ -44,7 +44,7 @@ zstyle ':fzf-tab:*' switch-group ',' '.'
 zstyle ':completion:*' menu select=2
 
 # preview directory's content with exa when completing cd
-zstyle ':fzf-tab:complete:cd:*' fzf-preview 'exa -1 --color=always $realpath'
+zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 
 # don't show fzf unless there are more than 4 items
 # zstyle ':fzf-tab:*' ignore false 4
