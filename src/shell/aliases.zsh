@@ -4,7 +4,7 @@ alias te="emacs.sh -nw"
 alias e="nvim"
 
 
-alias ls='exa -l --group-directories-first'
+alias ls='eza -l --group-directories-first'
 alias j='z'
 alias jjj='zi'
 alias tree='tre --limit 3'

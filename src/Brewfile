@@ -26,7 +26,7 @@ brew "direnv"
 brew "duti"
 brew "tldr"
 brew "tre-command"
-brew "exa"
+brew "eza"
 brew "fzf"
 brew "svn"  # Fonts need
 brew "ispell"
