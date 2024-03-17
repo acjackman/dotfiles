@@ -1,17 +1,17 @@
 # -*- mode: sh -*-
-function op_value {
-    op get item $1 | read ITEM
-    if [[ $2 =~ ^(username|user|u)$ ]]; then
-        echo $ITEM | jq -e -r ".details.fields[] | select(.name==\"username\" or .designation==\"username\") | .value"
-    elif [[ $2 =~ ^(password|pwd|p)$ ]]; then
-        echo $ITEM | jq -e -r ".details.fields[] | select(.name==\"password\" or .designation==\"password\") | .value"
-    else
-        local SECTION_TITLE=$2
-        local FIELD_TITLE=$3
-        echo $ITEM | jq -e -r ".details.sections[] | select(.title==\"$SECTION_TITLE\") | .fields[] | select(.t==\"$FIELD_TITLE\") | .v"
-    fi
-}
-
+# function op_value {
+#     op get item $1 | read ITEM
+#     if [[ $2 =~ ^(username|user|u)$ ]]; then
+#         echo $ITEM | jq -e -r ".details.fields[] | select(.name==\"username\" or .designation==\"username\") | .value"
+#     elif [[ $2 =~ ^(password|pwd|p)$ ]]; then
+#         echo $ITEM | jq -e -r ".details.fields[] | select(.name==\"password\" or .designation==\"password\") | .value"
+#     else
+#         local SECTION_TITLE=$2
+#         local FIELD_TITLE=$3
+#         echo $ITEM | jq -e -r ".details.sections[] | select(.title==\"$SECTION_TITLE\") | .fields[] | select(.t==\"$FIELD_TITLE\") | .v"
+#     fi
+# }
+#
 function op_dburl() {
     # Usage op_dburl "<DB item name>"
 

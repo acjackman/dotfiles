@@ -106,6 +106,10 @@ for file in exports aliases functions zshrc_local; do
   [ -e "$file" ] && source "$file"
 done
 
+# TODO: Move this directory somewhere
+[ -d $HOME/.zfunc ] && fpath+=~/.zfunc
+# [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions" ] && fpath+=${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions
+
 source ~/.zsh_plugins
 
 # ===========
