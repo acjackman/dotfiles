@@ -32,7 +32,7 @@ indent_style = tab
 indent_size = 2
 
 # Terraform
-[*.tf,*.tfvars]
+[*.{tf,tfvars}]
 indent_style = space
 indent_size = 2
 
@@ -48,5 +48,5 @@ indent_size = 4
 trim_trailing_whitespace = true
 
 # Markdown
-[*.md,*.markdown]
+[*.{md,markdown}]
 trim_trailing_whitespace = false
