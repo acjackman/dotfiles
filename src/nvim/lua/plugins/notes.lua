@@ -31,6 +31,17 @@ return {
         return path:with_suffix(".md")
       end,
       -- see below for full list of options 👇
+      attachments = {
+        -- The default folder to place images in via `:ObsidianPasteImg`.
+        img_folder = "z/media/", -- This is the default
+        ---@param client obsidian.Client
+        ---@param path obsidian.Path the absolute path to the image file
+        ---@return string
+        img_text_func = function(client, path)
+          path = client:vault_relative_path(path) or path
+          return string.format("![%s](%s)", path.name, path)
+        end,
+      },
     },
     dependencies = {
       -- Required.
