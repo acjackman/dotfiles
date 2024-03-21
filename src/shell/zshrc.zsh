@@ -145,3 +145,4 @@ WORDCHARS='*?_-.[]~=&;!#$%^(){}<>/ '$'\n'
 autoload -Uz select-word-style
 select-word-style normal
 zstyle ':zle:*' word-style unspecified
+source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/zshrc"
