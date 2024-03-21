@@ -8,7 +8,6 @@
 # Matches are substitution rules: when you type the "trigger" string
 # it gets replaced by the "replace" string.
 matches:
-
   - trigger: ",acc"
     replace: "### Acceptance Criteria\n"
 
@@ -52,7 +51,6 @@ matches:
         type: date
         params:
           format: "%Y-%m-%dT%H:%M:%S%Z"
-
 
   - trigger: "dtzstp"
     replace: "{{mydate}}"
@@ -117,7 +115,6 @@ matches:
               | sed 's/^\*Today\*$/:spiral_calendar_pad: *Yesterday\*/' \
               | sed 's/^\*Blockers\*$/:construction: *Blockers\*/'
 
-
   - trigger: ",standup"
     replace: "{{output}}"
     vars:
@@ -126,6 +123,24 @@ matches:
         params:
           cmd: >
             ~/.dotfiles-moov/bin/standup | pbcopy; pbpaste
+
+  - trigger: ",python"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: shell
+        params:
+          cmd: >
+            which python3
+
+  - trigger: ",path"
+    replace: "{{output}}"
+    vars:
+      - name: output
+        type: shell
+        params:
+          cmd: >
+            echo $PATH
 
   # Simple subss
   - trigger: ",hb"
