@@ -2,14 +2,12 @@
 -- hammerspoon console script
 -- require("hs.ipc")
 -- hs.ipc.cliInstall("/usr/local")
+local log = hs.logger.new("terminalHyper", "debug")
+hs.logger.defaultLogLevel = "info"
 
 -- Easy access variables:
 hostname = hs.host.localizedName()
-
--- print(hostname)
-local log = hs.logger.new("terminalHyper", "debug")
-hs.logger.defaultLogLevel = "info"
---   log.df("name=%s", appname)
+log.df("hostname=%s", hostname)
 
 control = { "ctrl" }
 option = { "option" }
