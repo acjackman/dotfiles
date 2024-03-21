@@ -142,9 +142,12 @@ matches:
           cmd: >
             echo $PATH
 
-  # Simple subss
+  # Simple substitution
   - trigger: ",hb"
     replace: "harbourbridge"
+
+  - trigger: ",-["
+    replace: "- [ ] "
 
   # Templates
   - trigger: ";standup"
