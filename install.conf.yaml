@@ -50,6 +50,9 @@
     ~/.config/asdf: src/asdf
     ~/.config/topgrade.toml: src/topgrade/config.toml
     ~/.editorconfig: src/editorconfig
+    ~/.config/gh/config.yml:
+      path: src/gh/config.yml # linking only config allows hosts to be unique
+      force: true
 
     # macOS & apps
     "~/Library/Application Support/espanso":
