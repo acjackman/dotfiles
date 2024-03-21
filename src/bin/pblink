@@ -5,7 +5,6 @@ from urllib.parse import urlparse, urlunparse, ParseResult
 from functools import cached_property
 from dataclasses import dataclass
 import typing
-from devtools import debug
 
 import click
 
@@ -48,7 +47,7 @@ class LinkCheck:
             return False, msg
 
         if isinstance(self.match, Mismatch):
-            debug(self.expected_match, self.match)
+            # debug(self.expected_match, self.match)
             result = False
             msg.append(str(self.match))
 
@@ -122,7 +121,7 @@ class GithubUserLink(Link):
 
     @property
     def description(self):
-        return self.user 
+        return self.user
 
     __check_cases__ = {
         "https://github.com/foo/thing/pull/4242": {
@@ -293,7 +292,7 @@ class SlackMessageLink(Link):
 
     __check_cases__ = {
         "https://moovfinancial.slack.com/archives/C037430LC69/p1689019060333369": {
-            "url": "slack://moovfinancial.slack.com/archives/C037430LC69/p1689019060333369", 
+            "url": "slack://moovfinancial.slack.com/archives/C037430LC69/p1689019060333369",
             "description": "Slack Thread",
         }
     }
@@ -464,3 +463,4 @@ def test_foo():
 
 if __name__ == "__main__":
     main()
+
