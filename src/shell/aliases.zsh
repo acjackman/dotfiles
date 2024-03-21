@@ -1,8 +1,6 @@
 # -*- mode: sh -*-
 alias enw="emacs -nw"
-alias te="emacs.sh -nw"
 alias e="nvim"
-
 
 alias ls='eza --group-directories-first'
 alias j='z'
