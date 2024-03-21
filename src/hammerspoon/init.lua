@@ -1,3 +1,4 @@
+-- luacheck: globals hs
 -- hammerspoon console script
 -- require("hs.ipc")
 -- hs.ipc.cliInstall("/usr/local")
@@ -244,17 +245,18 @@ launch = function(appname)
 end
 
 singleapps = {
-    { "q", "OmniFocus" },
     { "s", "Slack" },
     { "d", "Drafts" },
     { "e", "Emacs" },
     { "r", "Arc" },
-    { "t", "Alacritty" },
+    { "i", "Alacritty" },
+    { "t", "iTerm" },
     { "f", "Finder" },
     { "n", "Obsidian" },
     { "o", "The Archive" },
     { "=", "Soulver 3" },
 }
+
 for i, app in ipairs(singleapps) do
     k:bind({}, app[1], function()
         launch(app[2])
