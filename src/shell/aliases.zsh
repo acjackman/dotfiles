@@ -26,6 +26,9 @@ alias g=git
 alias gitsweep="git branch --merged | egrep -v '(^\*|master|dev.*|stg|prod|develop|release/.*)' | xargs git branch -d && git remote | xargs git remote prune && echo 'Branches Remaining: ' && git --no-pager branch | head -n 20"
 alias git-hew-wip="git branch | sed '/^\*/d' | sed '/^\+/d' | xargs git branch -D"
 
+# github
+alias ,opr="gh pr view --web"
+
 # fancier ping
 alias ping='prettyping --nolegend'
 
