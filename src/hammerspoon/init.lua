@@ -245,7 +245,6 @@ end
 local singleapps = {
     { "s", "Slack" },
     { "d", "Drafts" },
-    { "e", "Emacs" },
     { "r", "Arc" },
     { "f", "Finder" },
     { "n", "Obsidian" },
@@ -254,8 +253,10 @@ local singleapps = {
 }
 if hostname == "Birger" then
     table.insert(singleapps, { "i", "Alacritty" })
+    table.insert(singleapps, { "e", "Emacs" })
     table.insert(singleapps, { "t", "iTerm" })
 else
+    table.insert(singleapps, { "e", "Alacritty" })
     table.insert(singleapps, { "t", "Alacritty" })
     table.insert(singleapps, { "i", "iTerm" })
 end
