@@ -242,20 +242,24 @@ launch = function(appname)
     k.triggered = true
 end
 
-singleapps = {
+local singleapps = {
     { "s", "Slack" },
     { "d", "Drafts" },
     { "e", "Emacs" },
     { "r", "Arc" },
-    { "i", "Alacritty" },
-    { "t", "iTerm" },
     { "f", "Finder" },
     { "n", "Obsidian" },
     { "o", "The Archive" },
     { "=", "Soulver 3" },
 }
-
-for i, app in ipairs(singleapps) do
+if hostname == "Birger" then
+    table.insert(singleapps, { "i", "Alacritty" })
+    table.insert(singleapps, { "t", "iTerm" })
+else
+    table.insert(singleapps, { "t", "Alacritty" })
+    table.insert(singleapps, { "i", "iTerm" })
+end
+for _, app in ipairs(singleapps) do
     k:bind({}, app[1], function()
         launch(app[2])
     end)
@@ -264,7 +268,7 @@ end
 -- function terminalHyper()
 --   local app = hs.application.frontmostApplication()
 --   local appname = app:name()
---   local log = hs.logger.new('terminalHyper','debug')
+--   local log = hs.logger.new('','debug')
 --   log.df("name=%s", appname)
 
 --   if (appname == "Code") then
