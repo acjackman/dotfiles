@@ -1,0 +1,2 @@
+git:
+  autoFetch: false # Disable automatic fetch to prevent 1Password

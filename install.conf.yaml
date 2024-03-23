@@ -50,6 +50,7 @@
     ~/.config/nvim: src/nvim
     ~/.config/k9s: src/k9s
     ~/.config/asdf: src/asdf
+    ~/.config/lazygit: src/lazygit
     ~/.config/topgrade.toml: src/topgrade/config.toml
     ~/.editorconfig: src/editorconfig
     ~/.config/gh/config.yml:
