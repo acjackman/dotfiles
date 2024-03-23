@@ -14,7 +14,13 @@ export MANPAGER="less -FX"
 # https://www.topbug.net/blog/2016/09/27/make-gnu-less-more-powerful/
 export LESS='--quit-if-one-screen --ignore-case --status-column --LONG-PROMPT --RAW-CONTROL-CHARS --HILITE-UNREAD --tabs=4 --window=-4'
 
+# Zsh alias
 
+export ZSH_PLUGINS_ALIAS_TIPS_EXCLUDES="g e"
+export ZSH_PLUGINS_ALIAS_TIPS_REVEAL=0
+export ZSH_PLUGINS_ALIAS_TIPS_REVEAL_TEXT="Long version: "
+
+# Emacs
 if [[ -e "$HOME/.emacs.d/bin" ]]; then
   export PATH="$HOME/.emacs.d/bin:$PATH"
 fi

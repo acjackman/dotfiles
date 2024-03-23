@@ -21,6 +21,8 @@ alias count_unique='cut -f 1 | sort | uniq -c'
 alias json2yaml="yq eval -P"
 alias yaml2json="yq eval --tojson"
 
+alias ,show-aliases="export ZSH_PLUGINS_ALIAS_TIPS_REVEAL=1"
+
 # git
 alias g=git
 alias gitsweep="git branch --merged | egrep -v '(^\*|master|dev.*|stg|prod|develop|release/.*)' | xargs git branch -d && git remote | xargs git remote prune && echo 'Branches Remaining: ' && git --no-pager branch | head -n 20"
