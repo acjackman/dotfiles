@@ -19,21 +19,21 @@ cask "font-overpass"
 # cask "iandol/adobe-fonts/font-source-serif"
 
 # *Nix utils
-brew "zoxide"
 # brew "asdf # Installed via git
 # brew "direnv" # Installed via zinit
 brew "duti"
 brew "tldr"
-brew "tre-command"
-brew "eza"
+brew "tre-command" # Better tree
+brew "eza"         # Better ls
+brew "zoxide"      # Better cd
 brew "fzf"
-brew "svn"  # Fonts need
 brew "ispell"
 brew "tmux"
 
 # Libs/dependencies
 brew "libvterm"
 brew "cmake"
+brew "svn"  # Fonts need
 
 # Dev/Data Tools:
 brew "git-lfs"
@@ -99,6 +99,7 @@ cask "launchbar"
 cask "hammerspoon"
 cask "bettertouchtool"
 cask "linearmouse"
+cask "stats"
 
 cask "hpedrorodrigues/tools/dockutil"
 cask "backblaze"
@@ -109,12 +110,10 @@ brew "noti"
 # cask "keybase"
 brew "topgrade"
 cask "bartender"
-cask "timing"
 cask "marked"
 cask "soulver"
 mas "TextSniper", id: 1528890965
-brew "switchaudio-osx"
-mas  "Tailscale", id: 1475387142
+mas "Tailscale", id: 1475387142
 
 mas "Speedtest", id: 1153157709
 mas "Data Jar", id: 1453273600

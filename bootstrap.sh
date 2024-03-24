@@ -36,8 +36,6 @@ if [ ! -f "/opt/jackman" ]; then
   sudo chown $(whoami) /opt/jackman
 fi
 
-brew tap homebrew/bundle # Install Homebrew Bundle
-brew install mas
 
 # Change default shell
 if [ ! $0 = "-zsh" ]; then
@@ -57,18 +55,19 @@ fi
 # Install dotfiles
 .dotfiles/src/bin/dotfiles-install
 
+brew tap homebrew/bundle # Install Homebrew Bundle
+brew install mas
+
 # Install applications
 brew bundle install --global
 
-
-# Clone Dotfiles repo
+# Clone Doom repo
 if [[ ! -d "$HOME/.config/emacsp" ]]; then
   git clone --depth 1 https://github.com/doomemacs/doomemacs ~/.config/emacs
   ~/.config/emacs/bin/doom install
 else
   echo 'doom emacs already cloned'
 fi
-
 
 # Configure macos defaults
 ~/.dotfiles/src/macos
