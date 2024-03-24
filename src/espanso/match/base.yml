@@ -52,6 +52,14 @@ matches:
         params:
           format: "%Y-%m-%dT%H:%M:%S%Z"
 
+  - trigger: "dwstp"
+    replace: "{{mydate}}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y-W%W"
+
   - trigger: "dtzstp"
     replace: "{{mydate}}"
     vars:
