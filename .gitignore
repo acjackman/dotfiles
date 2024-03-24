@@ -20,3 +20,4 @@ src/tmux/plugin
 
 **dask-worker-space/
 src/tmux/plugins
+src/lazygit/state.yml
