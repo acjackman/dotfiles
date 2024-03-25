@@ -54,7 +54,7 @@ flycheck_*.el
 
 # End of https://www.toptal.com/developers/gitignore/api/emacs
 
-
+# OS
 .DS_Store
 .VolumeIcon.icns
 .fseventsd
@@ -65,15 +65,26 @@ flycheck_*.el
 Thumbs.db
 .Spotlight-V100
 Desktop.ini
+
+# editors
+.vscode/
+/.idea/
+
+# javascript
 node_modules
+
+# Rlang
 .Rapp.history
 .Rhistory
 .atomignore
 .python-version
 .httr-oauth
+
+# Direnv
 .envrc
+.direnv
+
+# Custom
 **/.scratch/
 **/.tmp/
 **/.dist/
-.vscode/
-/.idea/
