@@ -139,7 +139,7 @@ matches:
         type: shell
         params:
           cmd: >
-            which python3
+            which -a python
 
   - trigger: ",path"
     replace: "{{output}}"
