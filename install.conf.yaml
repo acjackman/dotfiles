@@ -22,13 +22,14 @@
     ~/.gitconfig-moov: src/gitconfig-moov
 
     # ZSH config
-    ~/.config/zsh: src/shell
+    ~/.config/zsh:
+      path: src/shell
+      force: true
     ~/.zlogin: src/shell/zlogin.zsh
     ~/.zshenv: src/shell/zshenv.zsh
     ~/.zprofile: src/shell/zprofile.zsh
     ~/.zshrc: src/shell/zshrc.zsh
     ~/.exports: src/shell/exports.zsh
-    ~/.config/zsh/functions: src/shell/functions
     ~/.aliases: src/shell/aliases.zsh
     ~/.zsh_plugins: src/shell/zsh_plugins.zsh
     ~/.p10k.zsh: src/shell/p10k.zsh
