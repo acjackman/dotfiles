@@ -1,0 +1,52 @@
+#!/usr/bin/env sh
+
+if test "$1" = "ls"; then
+    tmux ls
+    exit
+fi
+
+dir="$(pwd)"
+sessions=$(tmux list-sessions -F\#S 2>/dev/null || echo "")
+
+if [ "$1" = "-" ]; then
+    session=$(basename "$dir")
+elif [ $(echo "$sessions" | sed '/^\s*$/d' | wc -l) -eq 0 ]; then
+    session="main"
+else
+    session="${1}"
+    # Short circut if a full session name is passed
+    echo "$sessions" | grep -Fx "$session"
+    if [ $? != 0 ]; then
+        # TODO: Add session preview
+        session=$(echo "$sessions" | fzf --layout=reverse --print-query --query "$session" | tail -1)
+    fi
+fi
+
+# Customize some sessions
+case "$session" in
+"")
+    # Catch a canceled fzf
+    exit 2
+    ;;
+"main")
+    dir="$HOME"
+    ;;
+".dotfiles" | "dotfiles")
+    session="dotfiles"
+    dir="$HOME/.dotfiles"
+    ;;
+"notes")
+    dir="$HOME/notes"
+    ;;
+esac
+
+# if tmux session exists connect to it, otherwise start a new one
+# if an arg is passed, use that instead of $USER
+# echo "session='$session'" "dir='$dir'"
+
+if [ -z ${TMUX+x} ]; then
+    exec tmux new -A -s "$session" -c $dir
+else
+    tmux has-session -t "$session" || tmux new -s "$session" -c "$dir" -d
+    tmux switch-client -t "$session"
+fi
