@@ -53,6 +53,11 @@ alias pip='python -m pip'
 # Cloud
 alias awswhoami="aws-cli sts get-caller-identity"
 
-# Commons
-alias dotfiles="cd ~/.dotfiles && e"
-alias notes="cd ~/notes && e"
+# Common projects
+alias dotfiles="tat dotfiles"
+alias notes="tat notes"
+
+# Jump points
+alias ,jg='pushd $(git rev-parse --show-toplevel)'
+alias ,jc="tat dotfiles"
+alias ,jn="tat notes"
