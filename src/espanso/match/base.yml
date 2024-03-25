@@ -148,7 +148,7 @@ matches:
         type: shell
         params:
           cmd: >
-            echo $PATH
+            tr ":" "\n" <<< "$PATH"
 
   # Simple substitution
   - trigger: ",hb"
