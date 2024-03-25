@@ -3,10 +3,8 @@ alias enw="emacs -nw"
 alias e="nvim"
 
 alias ls='eza --group-directories-first'
-alias j='z'
-alias jjj='zi'
 alias tree='tre --limit 3'
-#
+
 # Command Shortcuts
 alias dcmp="docker-compose"
 alias o=open
