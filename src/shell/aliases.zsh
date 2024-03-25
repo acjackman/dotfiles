@@ -3,6 +3,7 @@ alias enw="emacs -nw"
 alias e="nvim"
 
 alias ls='eza --group-directories-first'
+alias ll='eza --group-directories-first -lah'
 alias tree='tre --limit 3'
 
 # Command Shortcuts
