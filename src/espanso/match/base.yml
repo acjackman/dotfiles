@@ -76,7 +76,7 @@ matches:
         type: shell
         params:
           cmd: >
-            pbpaste | ~/.bin/pblink --org
+            pbpaste | pblink --style=org
 
   - trigger: ",clm"
     replace: "{{output}}"
@@ -85,7 +85,7 @@ matches:
         type: shell
         params:
           cmd: >
-            pbpaste | ~/.bin/pblink --md
+            pbpaste | pblink --style=md
 
   # Markdown / Org Conversions
   - trigger: ",cmo"
