@@ -107,6 +107,7 @@ export PATH="$PATH:$HOME/.local/share/jackman/bin" # personal scripts
 # ASDF_FORCE_PREPEND=no . "${ASDF_DIR:-$HOME/.asdf}/asdf.sh"
 export PATH="$PATH:${ASDF_DIR:-$HOME/.asdf}/shims:${ASDF_DIR:-$HOME/.asdf}/bin"
 source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/zshrc"
+fpath+="${ASDF_DIR:-$HOME/.asdf}/completions"
 
 # TODO https://github.com/zdharma/zinit/issues/173#issuecomment-537325714
 # Load ~/.exports, ~/.aliases, ~/.functions and ~/.zshrc_local
