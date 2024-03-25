@@ -30,7 +30,6 @@ zinit wait lucid for \
 # blockf ver"zinit-fixed" as"completion" nocompile mv'git-completion.zsh -> _git' iloveitaly/git-completion \
 zinit wait lucid for \
   mafredri/zsh-async \
-  redxtech/zsh-asdf-direnv \
   zpm-zsh/zsh-better-npm-completion \
   'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh' \
   'https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh' \

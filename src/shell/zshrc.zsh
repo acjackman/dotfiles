@@ -106,9 +106,6 @@ for file in exports aliases functions zshrc_local; do
   [ -e "$file" ] && source "$file"
 done
 
-# TODO: Move this directory somewhere
-[ -d $HOME/.zfunc ] && fpath+=~/.zfunc
-
 # Autoload personal functions
 () {
     # https://stackoverflow.com/a/63661686
@@ -159,4 +156,3 @@ WORDCHARS='*?_-.[]~=&;!#$%^(){}<>/ '$'\n'
 autoload -Uz select-word-style
 select-word-style normal
 zstyle ':zle:*' word-style unspecified
-source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/zshrc"
