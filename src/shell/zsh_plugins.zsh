@@ -41,13 +41,12 @@ zinit wait lucid for \
   atload'_zsh_autosuggest_start' zsh-users/zsh-autosuggestions \
   atinit"zicompinit; zicdreplay" zsh-users/zsh-syntax-highlighting \
   Aloxaf/fzf-tab \
-  iloveitaly/zsh-github-cli
+  iloveitaly/zsh-github-cli \
+  depth:1 jeffreytse/zsh-vi-mode
 
 # must be loaded after syntax completion
 zinit load zsh-users/zsh-history-substring-search
 
-zinit ice depth=1
-zinit light jeffreytse/zsh-vi-mode
 
 # experimental
 #   - zsh-256color: configures env for 256 color support
