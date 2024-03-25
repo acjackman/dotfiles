@@ -252,9 +252,9 @@ local singleapps = {
     { "=", "Soulver 3" },
 }
 if hostname == "Birger" then
-    table.insert(singleapps, { "i", "Alacritty" })
+    table.insert(singleapps, { "t", "Alacritty" })
     table.insert(singleapps, { "e", "Emacs" })
-    table.insert(singleapps, { "t", "iTerm" })
+    table.insert(singleapps, { "i", "iTerm" })
 else
     table.insert(singleapps, { "e", "Alacritty" })
     table.insert(singleapps, { "t", "Alacritty" })
