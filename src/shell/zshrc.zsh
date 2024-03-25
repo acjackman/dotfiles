@@ -97,9 +97,13 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "${ZINIT_HOME}/zinit.zsh"
 
+# Language
+export PATH="$PATH:$HOME/.local/go/bin" # golang
+
 # Scripts
 export PATH="$PATH:$HOME/.local/bin" # pipx
 export PATH="$PATH:$HOME/.local/share/jackman/bin" # personal scripts
+export PATH="$PATH:$HOME/.local/config/emacs/bin" # doom emacs
 
 # asdf setup
 # export PATH="$PATH:${ASDF_DIR:-$HOME/.asdf}/bin"
