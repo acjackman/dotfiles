@@ -66,8 +66,8 @@
 
 ;; If you use `org' and don't want your org files in the default location below,
 ;; change `org-directory'. It must be set before org loads!
-(setq org-directory "~/brain/"
-      org-roam-directory "~/brain/"
+(setq org-directory "~/notes/z/legacy/brain/"
+      org-roam-directory "~/notes/z/legacy/brain/"
       org-roam-dailies-directory "journal/"
       +org-roam-open-buffer-on-find-file nil
       org-roam-capture-templates
