@@ -39,7 +39,7 @@ zinit wait lucid for \
   blockf atpull'zinit creinstall  .' zsh-users/zsh-completions \
   RobSis/zsh-completion-generator \
   atload'_zsh_autosuggest_start' zsh-users/zsh-autosuggestions \
-  atinit"zicompinit; zicdreplay" z-shell/F-Sy-H \
+  atinit"zicompinit; zicdreplay" zsh-users/zsh-syntax-highlighting \
   Aloxaf/fzf-tab \
   iloveitaly/zsh-github-cli
 
