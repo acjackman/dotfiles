@@ -84,10 +84,10 @@ for brew_path in "/opt/homebrew/bin/brew" "/usr/local/bin/brew"; do
   fi
 done
 
-if ! command -v python &> /dev/null
-then
-  export PATH="$PATH:$(brew --prefix python)/libexec/bin"
-fi
+# if ! command -v python &> /dev/null
+# then
+#   export PATH="$PATH:$(brew --prefix python)/libexec/bin"
+# fi
 
 export PATH="$PATH:$HOME/.local/bin:$HOME/.bin"
 
