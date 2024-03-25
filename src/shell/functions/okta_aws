@@ -1,0 +1,35 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# Usage: okta_aws c-networking
+
+set -e -o pipefail
+
+if [[ -z "$OP_ITEM_OKTA" ]]  then
+echo "\$OP_ITEM_OKTA is not set"
+exit 1
+fi
+
+if [ $# -eq 0 ]
+then
+echo "No profiles specified"
+fi
+
+while [[ $# -ne 0 ]]; do
+local PROFILE_NAME=$1
+shift
+
+local MFA_CODE=$(op item get "$OP_ITEM_OKTA" --otp)
+if [[ $MFA_CODE =~ ^[0-9]{6}$ ]] then
+    echo "Authenticating for $PROFILE_NAME"
+    gimme-aws-creds --mfa-code=$MFA_CODE --profile=$PROFILE_NAME --remember-device
+else
+    echo "Unable to fetch MFA code from '$OP_ITEM_OKTA'"
+    exit 2
+fi
+
+if [[ $# -ne 0 ]] then
+    echo "Waiting for next MFA code..."
+    sleep 32
+fi
+done
+

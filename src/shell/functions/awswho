@@ -1,0 +1,6 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+function awswho() {
+    echo AWS_PROFILE=${AWS_PROFILE}
+    awswhoami
+}

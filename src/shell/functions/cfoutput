@@ -1,0 +1,11 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+function cfoutput() {
+  local STACK=$1
+  local VAR=$2
+  aws-cli cloudformation describe-stacks \
+    --stack-name $STACK \
+    --output text \
+    --query "Stacks[0].Outputs[?OutputKey==\`$VAR\`].OutputValue | [0]" \
+  | cat
+}

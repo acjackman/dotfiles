@@ -1,0 +1,15 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+function awsso() {
+    # Only login if credentials have timed out
+    # Usage: `awsso $AWS_PROFILE`
+    local PROFILE=$1
+
+    aws-cli sts get-caller-identity --profile $PROFILE > /dev/null
+    if [ $? -ne 0 ]; then
+        # Login if unable to get caller identity
+        aws-cli sso login --profile $PROFILE
+    fi
+
+    export AWS_PROFILE=$PROFILE
+}

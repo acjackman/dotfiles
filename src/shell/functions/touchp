@@ -1,0 +1,5 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# touchp - a touch command which creates folders too
+
+mkdir -p $(dirname $1) && touch "$1"

@@ -1,0 +1,5 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# fh - search in your command history and execute selected command
+
+eval $( ([ -n "$ZSH_NAME" ] && fc -l 1 || history) | fzf +s --tac | sed 's/ *[0-9]* *//')
