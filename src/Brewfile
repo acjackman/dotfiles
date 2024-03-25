@@ -20,7 +20,7 @@ cask "font-overpass"
 
 # *Nix utils
 # brew "asdf # Installed via git
-# brew "direnv" # Installed via zinit
+brew "direnv"
 brew "duti"
 brew "tldr"
 brew "tre-command" # Better tree

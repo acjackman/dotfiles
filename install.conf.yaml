@@ -22,19 +22,19 @@
     ~/.gitconfig-moov: src/gitconfig-moov
 
     # ZSH config
+    ~/.config/zsh: src/shell
     ~/.zlogin: src/shell/zlogin.zsh
     ~/.zshenv: src/shell/zshenv.zsh
     ~/.zprofile: src/shell/zprofile.zsh
     ~/.zshrc: src/shell/zshrc.zsh
     ~/.exports: src/shell/exports.zsh
-    ~/.functions: src/shell/functions.zsh
     ~/.config/zsh/functions: src/shell/functions
     ~/.aliases: src/shell/aliases.zsh
     ~/.zsh_plugins: src/shell/zsh_plugins.zsh
     ~/.p10k.zsh: src/shell/p10k.zsh
 
     # Scripts
-    ~/.bin: src/bin
+    ~/.local/share/jackman/bin: src/bin
 
     # shell apps config
     ~/.ipython: src/ipython
@@ -45,7 +45,6 @@
       path: src/doom/
       force: true
 
-    # Neovim
     ~/.config/tmux: src/tmux
     ~/.config/nvim: src/nvim
     ~/.config/k9s: src/k9s

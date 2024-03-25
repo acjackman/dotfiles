@@ -89,7 +89,6 @@ done
 #   export PATH="$PATH:$(brew --prefix python)/libexec/bin"
 # fi
 
-export PATH="$PATH:$HOME/.local/bin:$HOME/.bin"
 
 # avoid installation via brew, this is not a supported installation method and breaks
 # some directory structure assumptions that exist across the plugin ecosystem.
@@ -97,6 +96,17 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "${ZINIT_HOME}/zinit.zsh"
+
+# Scripts
+export PATH="$PATH:$HOME/.local/bin" # pipx
+export PATH="$PATH:$HOME/.local/share/jackman/bin" # personal scripts
+
+# asdf setup
+# export PATH="$PATH:${ASDF_DIR:-$HOME/.asdf}/bin"
+# Not running default install, instead place shims at the end of path
+# ASDF_FORCE_PREPEND=no . "${ASDF_DIR:-$HOME/.asdf}/asdf.sh"
+export PATH="$PATH:${ASDF_DIR:-$HOME/.asdf}/shims:${ASDF_DIR:-$HOME/.asdf}/bin"
+source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/zshrc"
 
 # TODO https://github.com/zdharma/zinit/issues/173#issuecomment-537325714
 # Load ~/.exports, ~/.aliases, ~/.functions and ~/.zshrc_local
@@ -136,8 +146,8 @@ bindkey '^X^E' edit-command-line
 # Misc Config
 # ===========
 
-# https://til.hashrocket.com/posts/7evpdebn7g-remove-duplicates-in-zsh-path
-typeset -aU path
+# https://til.hashrocket.com/posts/7evpdebn8g-remove-duplicates-in-zsh-path
+typeset -U path
 
 # # https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/misc.zsh
 # autoload -Uz url-quote-magic

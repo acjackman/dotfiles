@@ -2,7 +2,6 @@
 
 cd "$HOME" || exit
 
-export OMZDIR="$HOME/.oh-my-zsh"
 export DOTFILES_DIR="$HOME/.dotfiles"
 
 # Ask for the administrator password upfront
@@ -54,12 +53,21 @@ fi
 
 # Install dotfiles
 .dotfiles/src/bin/dotfiles-install
+# TODO: source zshenv
 
 brew tap homebrew/bundle # Install Homebrew Bundle
 brew install mas
 
 # Install applications
 brew bundle install --global
+
+# Install asdf
+if [[ -z "${ASDF_DIR+x}" ]]; then
+    export ASDF_DIR="$HOME/.asdf/"
+fi
+git clone https://github.com/asdf-vm/asdf.git "$ASDF_DIR" --branch v0.14.0
+asdf plugin-add direnv
+asdf direnv setup --no-touch-rc-file --shell zsh --version system
 
 # Clone Doom repo
 if [[ ! -d "$HOME/.config/emacsp" ]]; then
