@@ -142,10 +142,9 @@ bindkey '^X^E' edit-command-line
 # https://til.hashrocket.com/posts/7evpdebn7g-remove-duplicates-in-zsh-path
 typeset -aU path
 
-# https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/misc.zsh
-autoload -Uz url-quote-magic
-zle -N self-insert url-quote-magic
-
+# # https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/misc.zsh
+# autoload -Uz url-quote-magic
+# zle -N self-insert url-quote-magic
 
 # =======================================
 # zsh-autosuggest & bracketed-paste-magic
