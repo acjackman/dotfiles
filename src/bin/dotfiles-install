@@ -24,8 +24,3 @@ git submodule update --init --recursive "${DOTBOT_DIR}"
     -c "${CONFIG}" "${@}"
 
 popd
-
-echo "
-Installing Neovim plugins"
-command -v nvim &>/dev/null && nvim --headless "+Lazy! restore" +qa
-echo "Finished Installing Neovim plugins"

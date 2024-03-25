@@ -1,16 +1,17 @@
-#!/bin/zsh
+#!/usr/bin/env zsh
+
+BIN=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
 pushd ~/.dotfiles
 echo 'Updating dotfiles'
 git pull
 git submodule update --init --recursive
 pushd ~
-.dotfiles/install
-doom sync
+dotfiles-install
 popd
 popd
 
-pushd ~/brain
-echo 'Updating brain'
-git pull
-popd
+echo ""
+echo "Installing Neovim plugins"
+command -v nvim &>/dev/null && nvim --headless "+Lazy! restore" +qa
+echo "Finished Installing Neovim plugins"
