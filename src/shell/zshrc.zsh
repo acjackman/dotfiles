@@ -89,7 +89,7 @@ then
   export PATH="$PATH:$(brew --prefix python)/libexec/bin"
 fi
 
-export PATH="$PATH:$HOME/.bin"
+export PATH="$PATH:$HOME/.local/bin:$HOME/.bin"
 
 # avoid installation via brew, this is not a supported installation method and breaks
 # some directory structure assumptions that exist across the plugin ecosystem.
