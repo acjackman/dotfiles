@@ -108,7 +108,22 @@ done
 
 # TODO: Move this directory somewhere
 [ -d $HOME/.zfunc ] && fpath+=~/.zfunc
-# [ -d "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions" ] && fpath+=${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions
+
+# Autoload personal functions
+() {
+    # https://stackoverflow.com/a/63661686
+    # add our local functions dir to the fpath
+    local funcs="${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions"
+
+    # FPATH is already tied to fpath, but this adds
+    # a uniqueness constraint to prevent duplicate entries
+    typeset -TUg +x FPATH=$funcs:$FPATH fpath
+
+    # Now autoload them
+    if [[ -d $funcs ]]; then
+        autoload ${=$(cd "$funcs" && echo *)}
+    fi
+}
 
 source ~/.zsh_plugins
 
