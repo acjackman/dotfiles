@@ -63,5 +63,5 @@ alias notes="tat notes"
 
 # Jump points
 alias ,jg='pushd $(git rev-parse --show-toplevel)'
-alias ,jc="tat dotfiles"
-alias ,jn="tat notes"
+alias ,jc="pushd ~/.dotfiles"
+alias ,jn="pushd ~/notes"
