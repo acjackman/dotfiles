@@ -14,11 +14,9 @@ elif [ $(echo "$sessions" | sed '/^\s*$/d' | wc -l) -eq 0 ]; then
     session="main"
 else
     session="${1}"
-    # Short circut if a full session name is passed
-    echo "$sessions" | grep -Fx "$session"
-    if [ $? != 0 ]; then
+    if [ "$session" = "" ]; then
         # TODO: Add session preview
-        session=$(echo "$sessions" | fzf --layout=reverse --print-query --query "$session" | tail -1)
+        session=$(echo "$sessions" | fzf --layout=reverse --print-query | tail -1)
     fi
 fi
 
@@ -31,7 +29,7 @@ case "$session" in
 "main")
     dir="$HOME"
     ;;
-".dotfiles" | "dotfiles")
+".dotfiles" | "dotfiles" | "d")
     session="dotfiles"
     dir="$HOME/.dotfiles"
     ;;
