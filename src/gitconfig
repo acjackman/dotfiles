@@ -41,6 +41,8 @@
     wh = hew-worktree
 
     # Remotes
+    f = fetch
+    ft = fetch
     l = pull
     u = push
     pl = pull
