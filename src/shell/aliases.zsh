@@ -28,8 +28,12 @@ alias lg=lazygit
 alias gitsweep="git branch --merged | egrep -v '(^\*|master|dev.*|stg|prod|develop|release/.*)' | xargs git branch -d && git remote | xargs git remote prune && echo 'Branches Remaining: ' && git --no-pager branch | head -n 20"
 alias git-hew-wip="git branch | sed '/^\*/d' | sed '/^\+/d' | xargs git branch -D"
 
+alias ,gwa="git worktree add"
+
 # github
 alias ,opr="gh pr view --web"
+alias ,ghpro="gh pr view --web"
+alias ,ghprn="gh pr view --json number --jq number"
 
 # fancier ping
 alias ping='prettyping --nolegend'

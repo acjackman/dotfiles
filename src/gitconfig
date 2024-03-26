@@ -33,6 +33,13 @@
     nb = checkout -b
     renb = branch -m
 
+    # Worktree
+    w = worktree
+    wa = woktree add
+    wm = woktree move
+    wd = woktree remove
+    wh = hew-worktree
+
     # Remotes
     l = pull
     u = push
