@@ -5,7 +5,7 @@ if test "$1" = "ls"; then
     exit
 fi
 
-dir="$(pwd)"
+dir="${2:-$(pwd)}"
 sessions=$(tmux list-sessions -F\#S 2>/dev/null || echo "")
 
 if [ "$1" = "-" ]; then
@@ -45,6 +45,9 @@ esac
 if [ -z ${TMUX+x} ]; then
     exec tmux new -A -s "$session" -c $dir
 else
-    tmux has-session -t "$session" || tmux new -s "$session" -c "$dir" -d
+    tmux has-session -t "$session" &> /dev/null 2>&1
+    if [ $? -ne 0 ]; then
+        tmux new -s "$session" -c "$dir" -d
+    fi
     tmux switch-client -t "$session"
 fi
