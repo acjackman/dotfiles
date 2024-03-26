@@ -168,3 +168,11 @@ matches:
       /Blockers/
 
       #+end_src
+
+  - trigger: ";pr"
+    replace: |
+      ## What changed?
+
+      ## How was it done?
+
+      ## How was it tested?
