@@ -34,10 +34,10 @@
     renb = branch -m
 
     # Worktree
-    w = worktree
-    wa = woktree add
-    wm = woktree move
-    wd = woktree remove
+    w  = worktree
+    wa = worktree add
+    wm = worktree move
+    wd = worktree remove
     wh = hew-worktree
 
     # Remotes
