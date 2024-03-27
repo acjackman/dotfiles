@@ -6,6 +6,8 @@ alias ls='eza --group-directories-first'
 alias ll='eza --group-directories-first -lah'
 alias tree='tre --limit 3'
 
+alias ,clear='clear && if [ -v TMUX ]; then; tmux clear-history; fi'
+
 # Command Shortcuts
 alias dcmp="docker-compose"
 alias o=open
