@@ -11,7 +11,7 @@ sessions=$(tmux list-sessions -F\#S 2>/dev/null || echo "")
 if [ "$1" = "-" ]; then
     session=$(basename "$dir")
 elif [ $(echo "$sessions" | sed '/^\s*$/d' | wc -l) -eq 0 ]; then
-    session="main"
+    session=${1:-"main"}
 else
     session="${1}"
     if [ "$session" = "" ]; then
