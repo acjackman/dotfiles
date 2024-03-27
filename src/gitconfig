@@ -123,7 +123,7 @@
 [credential]
     helper = osxkeychain
 [pull]
-    ff = only
+	rebase = true
 [color]
     ui = true
 [color "diff-highlight"]
