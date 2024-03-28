@@ -103,7 +103,7 @@ export PATH="$PATH:$HOME/.local/go/bin" # golang
 # Scripts
 export PATH="$PATH:$HOME/.local/bin" # pipx
 export PATH="$PATH:$HOME/.local/share/jackman/bin" # personal scripts
-export PATH="$PATH:$HOME/.local/config/emacs/bin" # doom emacs
+export PATH="$PATH:$HOME/.config/emacs/bin" # doom emacs
 
 # asdf setup
 # export PATH="$PATH:${ASDF_DIR:-$HOME/.asdf}/bin"
