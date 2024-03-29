@@ -11,6 +11,9 @@ matches:
   - trigger: ",acc"
     replace: "### Acceptance Criteria\n"
 
+  - trigger: ",gh"
+    replace: "$(git rev-parse --show-toplevel)"
+
   - trigger: ",stdd"
     replace: "{{mydate}} Standup"
     vars:

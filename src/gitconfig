@@ -43,6 +43,7 @@
     # Remotes
     f = fetch
     ft = fetch
+    fff = pull --ff-only
     l = pull
     u = push
     pl = pull
