@@ -24,10 +24,7 @@
     ~/.config/alacritty: src/alacritty
 
     # Git
-    ~/.gitconfig: src/gitconfig
-    ~/.gitignore: src/gitignore
-    ~/.gitconfig-fulcrum: src/gitconfig-fulcrum
-    ~/.gitconfig-moov: src/gitconfig-moov
+    ~/.config/git: src/git
 
     # ZSH config
     ~/.zshenv: src/zsh/zshenv.zsh

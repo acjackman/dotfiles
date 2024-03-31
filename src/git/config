@@ -73,7 +73,7 @@
 
 [core]
     excludesfile = ~/.gitignore
-    editor = nvim
+    editor = "nvim -f"
     pager = delta
 
 [interactive]
@@ -144,28 +144,23 @@
 [init]
     defaultBranch = main
 
-[includeIf "gitdir:~/Development/fulcrum/"]
-    path = ~/.gitconfig-fulcrum
-
 [includeIf "gitdir:~/dev/fulcrum/"]
-    path = ~/.gitconfig-fulcrum
-
-[includeIf "gitdir:~/Development/moov/"]
-    path = ~/.gitconfig-moov
+    path = ~/.config/git/config-fulcrum
 
 [includeIf "gitdir:~/dev/moov/"]
-    path = ~/.gitconfig-moov
+    path = ~/.config/git/config-moov
 
 [includeIf "gitdir:~/github.com/moovfinancial/"]
-    path = ~/.gitconfig-moov
+    path = ~/.config/git/config-moov
 
 [includeIf "gitdir:~/github.com/moov-io/"]
-    path = ~/.gitconfig-moov
+    path = ~/.config/git/moov
 
 [hub]
     protocol = ssh
 
 [url "ssh://git@github.com/"]
     insteadOf = https://github.com/
+
 [github]
 	user = acjackman
