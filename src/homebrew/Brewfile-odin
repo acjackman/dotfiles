@@ -1,0 +1,13 @@
+# -*- mode: ruby; -*- vim: set ft=ruby
+
+cask "hazel"
+cask "little-snitch"
+# cask "opal"
+
+# R & dependencies
+brew "gcc"
+brew "xz"
+brew "libxt"
+brew "cairo"
+brew "pcre2"
+brew "r"

@@ -52,14 +52,13 @@ fi
 
 # Install dotfiles
 .dotfiles/src/bin/dotfiles-install
-# TODO: source zshenv
 
 brew tap homebrew/bundle # Install Homebrew Bundle
 brew install --cask docker
 brew install mas whalebrew
 
 # Install applications
-brew bundle install --global --file=$DOTFILES_DIR/src/brewfile/Brewfile
+brew bundle install --no-lock --file=$DOTFILES_DIR/src/homebrew/Brewfile-base
 
 # Install asdf
 if [[ -z "${ASDF_DIR+x}" ]]; then

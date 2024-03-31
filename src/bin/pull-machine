@@ -18,14 +18,15 @@ show-header "Running dotbot"
 dotfiles-install
 
 function brew-bundle() {
-    local file="$HOME/.config/brewfile/${1}"
+    local file="$HOME/.config/homebrew/${1}"
     if [ -f "$file" ]; then
         show-header "Homebrew $1"
         brew bundle install --file="$file"
     fi
 }
-brew-bundle Brewfile
+brew-bundle Brewfile-base
 brew-bundle Brewfile-local
+brew-bundle Brewfile-personal
 brew-bundle Brewfile-machine
 
 

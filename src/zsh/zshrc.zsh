@@ -103,6 +103,7 @@ done
 # See https://docs.brew.sh/Manpage#environment
 export HOMEBREW_NO_ENV_HINTS=1
 export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_BUNDLE_FILE_GLOBAL="${XDG_CONFIG_HOME:-${HOME}/.config}/homebrew/Brewfile-machine"
 
 # avoid installation via brew, this is not a supported installation method and breaks
 # some directory structure assumptions that exist across the plugin ecosystem.

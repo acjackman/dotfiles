@@ -69,10 +69,10 @@
     ~/.config/gh/config.yml:
       path: src/gh/config.yml # linking only config allows hosts to be unique
       force: true
-    ~/.config/brewfile/Brewfile:
+    ~/.config/homebrew/Brewfile-base:
       if: "[ `uname` = Darwin ]"
-      path: src/brewfile/Brewfile
-    ~/.config/brewfile/Brewfile-local:
+      path: src/homebrew/Brewfile-base
+    ~/.config/homebrew/Brewfile-local:
       if: "[ -f ~/.dotfiles/local/Brewfile ]"
       path: ~/.dotfiles/local/Brewfile
 
