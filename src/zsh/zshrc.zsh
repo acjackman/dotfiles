@@ -75,19 +75,34 @@ setopt hist_reduce_blanks       # Remove superfluous blanks.
 setopt hist_save_no_dups        # Omit older commands in favor of newer ones.
 
 # =============
+# Interactive Sesttings
+# =============
+# without this some CLI tools (gh cli, for instance) do not page contents
+export PAGER=less
+
+# Don’t clear the screen after quitting a manual page
+export MANPAGER="less -FX"
+
+# more powerful less config
+# https://www.topbug.net/blog/2016/09/27/make-gnu-less-more-powerful/
+export LESS='--quit-if-one-screen --ignore-case --status-column --LONG-PROMPT --RAW-CONTROL-CHARS --HILITE-UNREAD --tabs=4 --window=-4'
+
+export VISUAL=nvim
+export EDITOR="$VISUAL"
+
+# =============
 # Evals
 # =============
+# Homebrew
 for brew_path in "/opt/homebrew/bin/brew" "/usr/local/bin/brew"; do
   if [[ -x "$brew_path" ]]; then
     eval "$($brew_path shellenv)"
     break
   fi
 done
-
-# if ! command -v python &> /dev/null
-# then
-#   export PATH="$PATH:$(brew --prefix python)/libexec/bin"
-# fi
+# See https://docs.brew.sh/Manpage#environment
+export HOMEBREW_NO_ENV_HINTS=1
+export HOMEBREW_NO_AUTO_UPDATE=1
 
 # avoid installation via brew, this is not a supported installation method and breaks
 # some directory structure assumptions that exist across the plugin ecosystem.
@@ -96,12 +111,22 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
 source "${ZINIT_HOME}/zinit.zsh"
 
-# Language
+# Golang
 export PATH="$PATH:$HOME/.local/go/bin" # golang
+export GOPATH="$HOME/.local/go"
+export GOBIN="$HOME/.local/go/bin"
+export PATH="$PATH:$GOBIN"
+
+# Python
+# if ! command -v python &> /dev/null
+# then
+#   export PATH="$PATH:$(brew --prefix python)/libexec/bin"
+# fi
 
 # Scripts
-export PATH="$PATH:$HOME/.local/bin" # pipx
+export PATH="$PATH:$HOME/.local/bin" # pipx and other things put stuff here
 export PATH="$PATH:$HOME/.local/share/jackman/bin" # personal scripts
+[ -d "$HOME/.dotfiles-local/bin" ] && export PATH="$PATH:$HOME/.dotfiles-local/bin"
 export PATH="$PATH:$HOME/.config/emacs/bin" # doom emacs
 
 # asdf setup
@@ -112,31 +137,35 @@ export PATH="$PATH:${ASDF_DIR:-$HOME/.asdf}/shims:${ASDF_DIR:-$HOME/.asdf}/bin"
 source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/zshrc"
 fpath+="${ASDF_DIR:-$HOME/.asdf}/completions"
 
+
 # TODO https://github.com/zdharma/zinit/issues/173#issuecomment-537325714
 # Load ~/.exports, ~/.aliases, ~/.functions and ~/.zshrc_local
 # ~/.zshrc_local can be used for settings you don’t want to commit
-for file in exports aliases functions zshrc_local; do
-  local file="$HOME/.$file"
+for file in aliases zshrc_local aliases_local; do
+  local file="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/$file.zsh"
   [ -e "$file" ] && source "$file"
 done
 
 # Autoload personal functions
-() {
-    # https://stackoverflow.com/a/63661686
+function load_funcs() {
+    # via https://stackoverflow.com/a/63661686
     # add our local functions dir to the fpath
-    local funcs="${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions"
+    local funcs="$1"
 
-    # FPATH is already tied to fpath, but this adds
-    # a uniqueness constraint to prevent duplicate entries
-    typeset -TUg +x FPATH=$funcs:$FPATH fpath
-
-    # Now autoload them
     if [[ -d $funcs ]]; then
+        # FPATH is already tied to fpath, but this adds
+        # a uniqueness constraint to prevent duplicate entries
+        typeset -TUg +x FPATH=$funcs:$FPATH fpath
+
+        # Now autoload them
         autoload ${=$(cd "$funcs" && echo *)}
     fi
 }
+load_funcs "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions"
+load_funcs "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions_local"
+unset -f load_funcs
 
-source ~/.zsh_plugins
+source ~/.config/zsh/zsh_plugins.zsh
 
 # ===========
 # Keybindings
@@ -149,6 +178,12 @@ bindkey '^X^E' edit-command-line
 # ===========
 # Misc Config
 # ===========
+
+# Alias Tips setup
+export ZSH_PLUGINS_ALIAS_TIPS_EXCLUDES="g e"
+export ZSH_PLUGINS_ALIAS_TIPS_REVEAL=0
+export ZSH_PLUGINS_ALIAS_TIPS_REVEAL_TEXT="Long version: "
+
 
 # https://til.hashrocket.com/posts/7evpdebn8g-remove-duplicates-in-zsh-path
 typeset -U path

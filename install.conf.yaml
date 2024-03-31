@@ -11,6 +11,14 @@
     "~/Library/Application Support":
       if: "[ `uname` = Darwin ]"
 
+- create:
+    ~/.ssh:
+      mode: 0700
+    ~/dev:
+    ~/.config/:
+    ~/.local/share/:
+    ~/.local/bin/:
+
 - link:
     # Terminal
     ~/.config/alacritty: src/alacritty
@@ -22,17 +30,25 @@
     ~/.gitconfig-moov: src/gitconfig-moov
 
     # ZSH config
-    ~/.config/zsh:
-      path: src/shell
+    ~/.zshenv: src/zsh/zshenv.zsh
+    ~/.p10k.zsh: src/zsh/p10k.zsh
+
+    ~/.config/zsh/.zshrc: src/zsh/zshrc.zsh
+    ~/.config/zsh/zsh_plugins.zsh: src/zsh/zsh_plugins.zsh
+    ~/.config/zsh/aliases.zsh: src/zsh/aliases.zsh
+    ~/.config/zsh/functions: src/zsh/functions
+    ~/.config/zsh/functions_local:
+      if: "[ -d ~/.dotfiles-local/zsh/functions ]"
+      path: ~/.dotfiles-local/zsh/functions
       force: true
-    ~/.zlogin: src/shell/zlogin.zsh
-    ~/.zshenv: src/shell/zshenv.zsh
-    ~/.zprofile: src/shell/zprofile.zsh
-    ~/.zshrc: src/shell/zshrc.zsh
-    ~/.exports: src/shell/exports.zsh
-    ~/.aliases: src/shell/aliases.zsh
-    ~/.zsh_plugins: src/shell/zsh_plugins.zsh
-    ~/.p10k.zsh: src/shell/p10k.zsh
+    ~/.config/zsh/zshrc_local.zsh:
+      if: "[ -f ~/.dotfiles-local/zsh/zshrc_local.zsh ]"
+      path: ~/.dotfiles-local/zsh/zsh/zshrc_local.zsh
+      force: true
+    ~/.config/zsh/aliases_local.zsh:
+      if: "[ -f ~/.dotfiles-local/zsh/aliases_local.zsh ]"
+      path: ~/.dotfiles-local/zsh/zsh/aliases_local.zsh
+      force: true
 
     # Scripts
     ~/.local/share/jackman/bin: src/bin
