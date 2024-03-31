@@ -2,16 +2,39 @@
 
 BIN=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
+function show-header () {
+    gum style --border=double --align=left --padding "0 2" --width=75 $@
+}
+
 pushd ~/.dotfiles
-echo 'Updating dotfiles'
+show-header 'Updating dotfiles'
 git pull
 git submodule update --init --recursive
-pushd ~
-dotfiles-install
-popd
 popd
 
-echo ""
-echo "Installing Neovim plugins"
-command -v nvim &>/dev/null && nvim --headless "+Lazy! restore" +qa
-echo "Finished Installing Neovim plugins"
+pushd "$HOME"
+
+show-header "Running dotbot"
+dotfiles-install
+
+function brew-bundle() {
+    local file="$HOME/.config/brewfile/${1}"
+    if [ -f "$file" ]; then
+        show-header "Homebrew $1"
+        brew bundle install --file="$file"
+    fi
+}
+brew-bundle Brewfile
+brew-bundle Brewfile-local
+brew-bundle Brewfile-machine
+
+
+command -v nvim &>/dev/null
+if [ $? -eq 0 ]; then
+    show-header "Neovim"
+    nvim --headless "+Lazy! restore" +qa && echo "Nvim plugins installed"
+fi
+
+# Pop back to current directory
+popd
+

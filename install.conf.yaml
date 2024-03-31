@@ -72,15 +72,18 @@
     ~/.config/gh/config.yml:
       path: src/gh/config.yml # linking only config allows hosts to be unique
       force: true
+    ~/.config/brewfile/Brewfile:
+      if: "[ `uname` = Darwin ]"
+      path: src/brewfile/Brewfile
+    ~/.config/brewfile/Brewfile-local:
+      if: "[ -f ~/.dotfiles/local/Brewfile ]"
+      path: ~/.dotfiles/local/Brewfile
 
     # macOS & apps
     "~/Library/Application Support/espanso":
       if: "[ `uname` = Darwin ]"
       path: src/espanso
       force: true
-    ~/.Brewfile:
-      if: "[ `uname` = Darwin ]"
-      path: src/Brewfile
     ~/.config/yabai:
       if: "[ `uname` = Darwin ]"
       path: src/yabai

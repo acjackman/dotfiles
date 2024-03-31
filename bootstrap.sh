@@ -35,7 +35,6 @@ if [ ! -f "/opt/jackman" ]; then
   sudo chown $(whoami) /opt/jackman
 fi
 
-
 # Change default shell
 if [ ! $0 = "-zsh" ]; then
   echo 'Changing default shell to zsh'
@@ -56,10 +55,11 @@ fi
 # TODO: source zshenv
 
 brew tap homebrew/bundle # Install Homebrew Bundle
-brew install mas
+brew install --cask docker
+brew install mas whalebrew
 
 # Install applications
-brew bundle install --global
+brew bundle install --global --file=$DOTFILES_DIR/src/brewfile/Brewfile
 
 # Install asdf
 if [[ -z "${ASDF_DIR+x}" ]]; then
