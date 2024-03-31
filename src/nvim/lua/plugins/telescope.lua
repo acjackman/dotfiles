@@ -9,8 +9,22 @@ return {
       end,
     },
     keys = {
-      -- Overload from LazyVim https://github.com/LazyVim/LazyVim/blob/cfbd3582736286433ee5532e1ea3a8d05a1e2649/lua/lazyvim/plugins/editor.lua#L181
-      -- { "<leader>fF", LazyVim.telescope("files", { cwd = false }), desc = "Find Files (cwd)" },
+      {
+        "<leader>fh",
+        function()
+          require("telescope.builtin")["find_files"]({ cwd = vim.fn.expand("%:p:h") })
+        end,
+        desc = "Find files (file)",
+        mode = "n",
+      },
+    },
+  },
+
+  {
+    "nvim-telescope/telescope-file-browser.nvim",
+    dependencies = { "nvim-telescope/telescope.nvim", "nvim-lua/plenary.nvim" },
+    keys = {
+      { "<leader>.", ":Telescope file_browser path=%:p:h select_buffer=true<CR>" },
     },
   },
 }
