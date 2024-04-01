@@ -40,11 +40,11 @@
       force: true
     ~/.config/zsh/zshrc_local.zsh:
       if: "[ -f ~/.dotfiles-local/zsh/zshrc_local.zsh ]"
-      path: ~/.dotfiles-local/zsh/zsh/zshrc_local.zsh
+      path: ~/.dotfiles-local/zsh/zshrc_local.zsh
       force: true
     ~/.config/zsh/aliases_local.zsh:
       if: "[ -f ~/.dotfiles-local/zsh/aliases_local.zsh ]"
-      path: ~/.dotfiles-local/zsh/zsh/aliases_local.zsh
+      path: ~/.dotfiles-local/zsh/aliases_local.zsh
       force: true
 
     # Scripts
@@ -73,8 +73,8 @@
       if: "[ `uname` = Darwin ]"
       path: src/homebrew/Brewfile-base
     ~/.config/homebrew/Brewfile-local:
-      if: "[ -f ~/.dotfiles/local/Brewfile ]"
-      path: ~/.dotfiles/local/Brewfile
+      if: "[ -f ~/.dotfiles-local/Brewfile ]"
+      path: ~/.dotfiles-local/Brewfile
 
     # macOS & apps
     "~/Library/Application Support/espanso":

@@ -150,16 +150,20 @@ done
 # Autoload personal functions
 function load_funcs() {
     # via https://stackoverflow.com/a/63661686
-    # add our local functions dir to the fpath
     local funcs="$1"
 
     if [[ -d $funcs ]]; then
+        # add our local functions dir to the fpath
         # FPATH is already tied to fpath, but this adds
         # a uniqueness constraint to prevent duplicate entries
         typeset -TUg +x FPATH=$funcs:$FPATH fpath
 
+        local names=(${=$(ls -1 "$funcs")})
+
         # Now autoload them
-        autoload ${=$(cd "$funcs" && echo *)}
+        if [ "${#names[@]}" -gt 0 ]; then
+            autoload $names
+        fi
     fi
 }
 load_funcs "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions"
