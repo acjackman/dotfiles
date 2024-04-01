@@ -72,7 +72,7 @@
     hew-worktree = "!hew_worktree() { git worktree list | tail -n +2 | fzf -m | sed -E 's/[[:space:]].*//' | xargs --verbose -I _ git worktree remove _ ; }; hew_worktree"
 
 [core]
-    excludesfile = ~/.gitignore
+	excludesfile = ~/.config/git/ignore
     editor = "nvim -f"
     pager = delta
 
@@ -91,12 +91,13 @@
     trustexitcode = true
     trustExitCode = true
 
+[difftool "Kaleidoscope"]
+    cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
+
 [merge]
     # tool = Kaleidoscope
     conflictstyle = diff3
 
-[difftool "Kaleidoscope"]
-    cmd = ksdiff --partial-changeset --relative-path \"$MERGED\" -- \"$LOCAL\" \"$REMOTE\"
 
 [difftool]
     prompt = false
@@ -105,7 +106,7 @@
     prompt = false
 
 [diff]
-    tool = Kaleidoscope
+    # tool = Kaleidoscope
     compactionHeuristic = true
 
 [user]
