@@ -23,6 +23,8 @@ brew "svn"  # Fonts need
 # Fonts
 ######################################
 cask "font-fira-code-nerd-font"
+cask "font-iosevka-term-nerd-font"
+cask "font-iosevka-term-slab-nerd-font"
 cask "font-jetbrains-mono-nerd-font"
 cask "font-montserrat-alternates"
 cask "font-sauce-code-pro-nerd-font"

@@ -9,12 +9,15 @@ args = ["-l"]
 
 [env]
 SHELL = "/bin/zsh"
+TERM = "xterm-256color"
 
 [font]
-size = 14
+size = 15
 
-[font.normal]
-family = "JetBrainsMono Nerd Font"
+normal = {family = "IosevkaTerm Nerd Font Mono" , style = "Regular"}
+bold = {family = "IosevkaTerm Nerd Font Mono" , style = "Bold"}
+italic = {family = "IosevkaTerm Nerd Font Mono" , style = "Italic"}
+bold_italic = {family = "IosevkaTerm Nerd Font Mono" , style = "Bold Italic"}
 
 [window]
 decorations = "none"
