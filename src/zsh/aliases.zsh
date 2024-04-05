@@ -13,6 +13,8 @@ alias dcmp="docker-compose"
 alias o=open
 alias tf=terraform
 
+alias rgf="rg --files-with-matches"
+
 # Tools
 alias lspath='tr ":" "\n" <<< "$PATH"'
 alias lspathu='tr ":" "\n" <<< "$PATH" | awk "!seen[\$0]++"'
