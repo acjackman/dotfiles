@@ -157,6 +157,9 @@ matches:
   - trigger: ",hb"
     replace: "harbourbridge"
 
+  - trigger: ",tsk"
+    replace: "- [ ] "
+
   - trigger: ",-["
     replace: "- [ ] "
 
