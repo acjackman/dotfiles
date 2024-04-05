@@ -158,7 +158,7 @@ function load_funcs() {
         # a uniqueness constraint to prevent duplicate entries
         typeset -TUg +x FPATH=$funcs:$FPATH fpath
 
-        local names=(${=$(ls -1 "$funcs")})
+        local names=(${=$(ls -1 "$funcs" | sed -E "/^_/d")})
 
         # Now autoload them
         if [ "${#names[@]}" -gt 0 ]; then
