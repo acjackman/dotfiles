@@ -69,7 +69,7 @@
 
     # Hew
     hew-all = "!hew_all() { git branch | sed '/^\\*/d' | sed '/^\\+/d' | xargs -p git branch -D ;}; hew_all"
-    hew-worktree = "!hew_worktree() { git worktree list | tail -n +2 | fzf -m | sed -E 's/[[:space:]].*//' | xargs --verbose -I _ git worktree remove _ ; }; hew_worktree"
+    hew-worktree = "!hew_worktree() { git worktree list | tail -n +2 | sed -E '/\\[(main|master)\\]/d' | fzf -m | sed -E 's/[[:space:]].*//' | xargs --verbose -I _ git worktree remove _ ; }; hew_worktree"
 
 [core]
 	excludesfile = ~/.config/git/ignore
