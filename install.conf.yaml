@@ -23,6 +23,10 @@
     # Terminal
     ~/.config/alacritty: src/alacritty
 
+    # Tmux
+    ~/.config/tmux: src/tmux
+    /opt/jackman/bin/tmux_launcher.sh: src/bin/tmux_launcher.sh
+
     # Git
     ~/.config/git: src/git
 
@@ -59,7 +63,6 @@
       path: src/doom/
       force: true
 
-    ~/.config/tmux: src/tmux
     ~/.config/nvim: src/nvim
     ~/.config/k9s: src/k9s
     ~/.config/asdf: src/asdf
