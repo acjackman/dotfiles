@@ -4,8 +4,10 @@
 import = ["~/.config/alacritty/themes/themes/catppuccin_mocha.toml"]
 
 [shell]
-program = "/bin/zsh"
-args = ["-l"]
+# program = "/bin/zsh"
+# args = ["-l"]
+program =  "tmux"
+args = ["new-session", "-A", "-D", "-s", "main"]
 
 [env]
 SHELL = "/bin/zsh"
