@@ -63,6 +63,9 @@ brew "the_silver_searcher"
 # Help
 brew "tldr"
 
+# Nicities
+brew "gum"
+
 ######################################
 # Editor
 ######################################
