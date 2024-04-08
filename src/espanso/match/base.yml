@@ -8,27 +8,19 @@
 # Matches are substitution rules: when you type the "trigger" string
 # it gets replaced by the "replace" string.
 matches:
-  - trigger: ",acc"
+  - trigger: ";acc"
     replace: "### Acceptance Criteria\n"
 
-  - trigger: ",gh"
+  - trigger: ";gh"
     replace: "$(git rev-parse --show-toplevel)"
 
-  - trigger: ",stdd"
+  - trigger: ";stdd"
     replace: "{{mydate}} Standup"
     vars:
       - name: mydate
         type: date
         params:
           format: "%A"
-
-  - trigger: ",stdo"
-    replace: "{{order}}"
-    vars:
-      - name: order
-        type: shell
-        params:
-          cmd: "~/.dotfiles-moov/bin/standup"
 
   # Print the current date
   - trigger: "dstp"
@@ -109,7 +101,7 @@ matches:
           cmd: >
             pbpaste | pandoc --from org --to markdown --wrap=none | sed '/^$/d'
 
-  - trigger: ",slks"
+  - trigger: ";std"
     replace: "{{mydate}} Standup\n{{output}}"
     vars:
       - name: mydate
@@ -122,9 +114,9 @@ matches:
           cmd: |
             pbpaste \
               | pandoc --from org --to markdown --wrap=none \
-              | sed 's/^\*Yesterday\*$/:hammer_and_wrench: *Yesterday\*/' \
-              | sed 's/^\*Today\*$/:spiral_calendar_pad: *Yesterday\*/' \
-              | sed 's/^\*Blockers\*$/:construction: *Blockers\*/'
+            | sed 's/^(y|Y|Yesterday):?$/:hammer_and_wrench: *Yesterday*/' \
+            | sed 's/^(t|T|Today):?$/:spiral_calendar_pad: *Yesterday*/' \
+            | sed 's/^(b|B|Blockers):?$/:construction: *Blockers*/'
 
   - trigger: ",standup"
     replace: "{{output}}"
@@ -133,9 +125,9 @@ matches:
         type: shell
         params:
           cmd: >
-            ~/.dotfiles-moov/bin/standup | pbcopy; pbpaste
+            ~/.dotfiles-local/bin/standup | pbcopy; pbpaste
 
-  - trigger: ",python"
+  - trigger: ";python"
     replace: "{{output}}"
     vars:
       - name: output
@@ -144,7 +136,7 @@ matches:
           cmd: >
             which -a python
 
-  - trigger: ",path"
+  - trigger: ";path"
     replace: "{{output}}"
     vars:
       - name: output
@@ -166,14 +158,11 @@ matches:
   # Templates
   - trigger: ";standup"
     replace: |
-      #+begin_src org
-      /Yesterday/
+      ## Yesterday
 
-      /Today/
+      ## Today
 
-      /Blockers/
-
-      #+end_src
+      ## Blockers
 
   - trigger: ";pr"
     replace: |
