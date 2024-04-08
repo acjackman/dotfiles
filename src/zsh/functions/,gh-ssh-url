@@ -1,0 +1,4 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+gh repo view --json sshUrl --jq '.sshUrl' $@
+
