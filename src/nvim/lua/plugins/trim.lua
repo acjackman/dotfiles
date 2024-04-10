@@ -10,7 +10,7 @@ return {
       },
 
       -- highlight trailing spaces
-      highlight = true,
+      highlight = false,
     },
   },
 }
