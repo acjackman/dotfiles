@@ -1,0 +1,3 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+rg --files-with-matches $@ | xargs nvim
