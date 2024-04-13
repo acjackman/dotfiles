@@ -4,6 +4,8 @@ cask "hazel"
 cask "little-snitch"
 # cask "opal"
 
+cask "quarto"
+
 # R & dependencies
 brew "gcc"
 brew "xz"
