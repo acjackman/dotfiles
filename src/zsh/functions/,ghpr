@@ -1,0 +1,22 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+set -e
+
+PROJECT_DIR=${1}
+REPO_URL=${2}
+
+echo "Cloning $REPO_URL into ${PROJECT_DIR}/.bare"
+
+mkdir $PROJECT_DIR
+pushd $PROJECT_DIR
+git clone --bare $REPO_URL .bare
+echo "gitdir: ./.bare" > .git
+git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+git fetch
+
+# Setup default branch worktree
+DEFAULT_BRANCH=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
+git worktree add $DEFAULT_BRANCH
+pushd $DEFAULT_BRANCH
+git branch --set-upstream-to=origin/$DEFAULT_BRANCH $DEFAULT_BRANCH
+popd

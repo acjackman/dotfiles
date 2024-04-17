@@ -1,0 +1,5 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+set -e
+
+gh pr create --draft -t $1 | grep
