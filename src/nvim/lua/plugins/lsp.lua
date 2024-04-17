@@ -1,4 +1,5 @@
 return {
+
   {
     "neovim/nvim-lspconfig",
     opts = {
@@ -6,7 +7,9 @@ return {
         pyright = {
           mason = false,
         },
+        marksman = {},
       },
+      setup = {},
     },
   },
 }

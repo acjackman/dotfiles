@@ -65,6 +65,7 @@
 
     ~/.config/nvim: src/nvim
     ~/.config/k9s: src/k9s
+    ~/.config/marksman: src/marksman
     ~/.config/asdf: src/asdf
     ~/.config/lazygit: src/lazygit
     ~/.config/topgrade.toml: src/topgrade/config.toml
