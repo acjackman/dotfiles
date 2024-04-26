@@ -32,9 +32,9 @@
 
     # ZSH config
     ~/.zshenv: src/zsh/zshenv.zsh
+    ~/.zshrc: src/zsh/zshrc.zsh
     ~/.p10k.zsh: src/zsh/p10k.zsh
 
-    ~/.config/zsh/.zshrc: src/zsh/zshrc.zsh
     ~/.config/zsh/zsh_plugins.zsh: src/zsh/zsh_plugins.zsh
     ~/.config/zsh/aliases.zsh: src/zsh/aliases.zsh
     ~/.config/zsh/functions: src/zsh/functions

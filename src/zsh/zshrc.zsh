@@ -138,7 +138,6 @@ export PATH="$PATH:${ASDF_DIR:-$HOME/.asdf}/shims:${ASDF_DIR:-$HOME/.asdf}/bin"
 source "${XDG_CONFIG_HOME:-$HOME/.config}/asdf-direnv/zshrc"
 fpath+="${ASDF_DIR:-$HOME/.asdf}/completions"
 
-
 # TODO https://github.com/zdharma/zinit/issues/173#issuecomment-537325714
 # Load ~/.exports, ~/.aliases, ~/.functions and ~/.zshrc_local
 # ~/.zshrc_local can be used for settings you don’t want to commit
@@ -170,7 +169,7 @@ load_funcs "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions"
 load_funcs "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions_local"
 unset -f load_funcs
 
-source ~/.config/zsh/zsh_plugins.zsh
+source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/zsh_plugins.zsh"
 
 # ===========
 # Keybindings
@@ -188,7 +187,6 @@ bindkey '^X^E' edit-command-line
 export ZSH_PLUGINS_ALIAS_TIPS_EXCLUDES="g e"
 export ZSH_PLUGINS_ALIAS_TIPS_REVEAL=0
 export ZSH_PLUGINS_ALIAS_TIPS_REVEAL_TEXT="Long version: "
-
 
 # https://til.hashrocket.com/posts/7evpdebn8g-remove-duplicates-in-zsh-path
 typeset -U path
