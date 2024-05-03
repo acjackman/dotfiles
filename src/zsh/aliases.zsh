@@ -67,6 +67,7 @@ alias notes="tat notes"
 
 # Jump points
 alias ,jg='pushd $(git rev-parse --show-toplevel) > /dev/null'
+alias ,jgw='pushd $(git worktree list | sed '"'"'/\.bare/d'"'"' | fzf | awk '"'"'{print $1}'"'"') > /dev/null'
 alias ,jgd='pushd $(dirname $(git diff --name-only origin/HEAD | fzf)) > /dev/null'
 alias ,jc="pushd ~/.dotfiles > /dev/null"
 alias ,jn="pushd ~/notes > /dev/null"
