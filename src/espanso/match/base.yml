@@ -99,7 +99,7 @@ matches:
         type: shell
         params:
           cmd: >
-            pbpaste | pandoc --from org --to markdown --wrap=none | sed '/^$/d'
+            echo "#+OPTIONS: H:9\n`pbpaste`" | pandoc --from org --to markdown --wrap=none | sed '/^$/d'
 
   - trigger: ";std"
     replace: "{{mydate}} Standup\n{{output}}"
