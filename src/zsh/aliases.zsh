@@ -66,8 +66,9 @@ alias dotfiles="tat dotfiles"
 alias notes="tat notes"
 
 # Jump points
-alias ,jg='pushd $(git rev-parse --show-toplevel) > /dev/null'
-alias ,jgw='pushd $(git worktree list | sed '"'"'/\.bare/d'"'"' | fzf | awk '"'"'{print $1}'"'"') > /dev/null'
-alias ,jgd='pushd $(dirname $(git diff --name-only origin/HEAD | fzf)) > /dev/null'
+alias ,jg='[[ "$(git rev-parse --is-inside-work-tree)" == "true" ]] && pushd "$( git rev-parse --show-toplevel )" > /dev/null'
+alias ,jgw='pushd "$( git worktree list | sed '"'"'/\.bare/d'"'"' | fzf | awk '"'"'{print $1}'"'"' )" > /dev/null'
+alias ,jgb='pushd "$( git worktree list --porcelain | awk '"'"'/^worktree /{p=$2} /^bare$/{print p}'"'"' )/../" > /dev/null'
+alias ,jgd='[[ "$(git rev-parse --is-inside-work-tree)" == "true" ]] && pushd "$( dirname $(git diff --name-only origin/HEAD | fzf) )" > /dev/null'
 alias ,jc="pushd ~/.dotfiles > /dev/null"
 alias ,jn="pushd ~/notes > /dev/null"
