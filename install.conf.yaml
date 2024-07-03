@@ -68,6 +68,7 @@
     ~/.config/marksman: src/marksman
     ~/.config/asdf: src/asdf
     ~/.config/lazygit: src/lazygit
+    ~/.config/bat: src/bat
     ~/.config/topgrade.toml: src/topgrade/config.toml
     ~/.editorconfig: src/editorconfig
     ~/.config/gh/config.yml:
