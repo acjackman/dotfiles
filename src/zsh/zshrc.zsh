@@ -113,7 +113,6 @@ ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 source "${ZINIT_HOME}/zinit.zsh"
 
 # Golang
-export PATH="$PATH:$HOME/.local/go/bin" # golang
 export GOPATH="$HOME/.local/go"
 export GOBIN="$HOME/.local/go/bin"
 export PATH="$PATH:$GOBIN"
