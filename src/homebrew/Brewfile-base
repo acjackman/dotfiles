@@ -2,7 +2,6 @@
 
 tap "github/gh"
 tap "homebrew/bundle"
-tap "homebrew/cask-fonts"
 tap "ttscoff/thelab"
 
 ######################################
@@ -113,7 +112,6 @@ cask "transmit"
 
 # Document creation
 brew "pandoc"
-cask "mactex-no-gui"
 
 # Organization
 cask "slack"
@@ -142,7 +140,7 @@ cask "espanso"                             # Text expansion
 cask "shortcat"                            # keyboard driven clicks
 
 # Style
-cask "bartender"                           # Hide menubar items
+cask "jordanbaird-ice"                     # Hide menubar items
 cask "stats"                               # Menubar stats
 # cask "hpedrorodrigues/tools/dockutil"    # Control dock positions
 
@@ -150,4 +148,3 @@ cask "stats"                               # Menubar stats
 brew "duti"                                # Set macOS default apps
 cask "marked"                              # Markdown Viewer
 cask "soulver"                             # Calculator
-

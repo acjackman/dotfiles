@@ -4,6 +4,7 @@ cask "hazel"
 cask "little-snitch"
 # cask "opal"
 
+cask "mactex-no-gui"
 cask "quarto"
 
 # R & dependencies
