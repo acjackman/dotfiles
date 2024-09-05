@@ -1,0 +1,9 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+remote_url=$(git remote get-url origin)
+
+if [[ "$remote_url" =~ github\.com ]]; then
+  gh pr view --web
+else;
+  >&2 echo unsupported origin $remote_url
+fi
