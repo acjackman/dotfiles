@@ -18,9 +18,17 @@ if [[ -x "/opt/homebrew/bin/tmux" ]] || [[ -x "/usr/local/bin/tmux" ]]; then
   if [[ "$no_of_terminals" == "0" ]]; then
     exec tmux new-session -A -D -s main
   else
-    exec tmux new-session -A -D -s $(($no_of_terminals + 1))
+    next_id=1
+    sessions=$(tmux list-sessions -F "#{session_name}" | grep -E '^[0-9]+$')
+    function exists() {
+      echo $sessions | tr " " "\n" | grep -F -q -x $1
+    }
+    while exists $next_id ; do
+      next_id=$(($next_id + 1))
+    done
+    exec tmux new-session -A -D -s $next_id
   fi
+else
+  # No tmux found, falling back to local shell
+  exec $SHELL
 fi
-
-# No tmux found, falling back to local shell
-exec $SHELL
