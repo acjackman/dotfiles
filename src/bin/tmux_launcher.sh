@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # shellcheck disable=SC2207
 
 # from https://cedaei.com/posts/ideas-from-my-dev-setup-always-tmux/
@@ -14,18 +14,21 @@ if [[ -x "/usr/local/bin/tmux" ]]; then
 fi
 
 if [[ -x "/opt/homebrew/bin/tmux" ]] || [[ -x "/usr/local/bin/tmux" ]]; then
-  no_of_terminals=$(tmux list-sessions | wc -l)
-  if [[ "$no_of_terminals" == "0" ]]; then
+  sessions=($(tmux list-sessions -F "#{session_name}" 2>/dev/null))
+  if [[ "${#sessions[@]}" -eq 0 ]]; then
     exec tmux new-session -A -D -s main
   else
     next_id=1
-    sessions=$(tmux list-sessions -F "#{session_name}" | grep -E '^[0-9]+$')
+    digit_sessions=$(tmux list-sessions -F "#{session_name}" 2>/dev/null | grep -E '^[0-9]+$')
     function exists() {
-      echo $sessions | tr " " "\n" | grep -F -q -x $1
+      echo $digit_sessions | tr " " "\n" | grep -F -q -x $1
     }
-    while exists $next_id ; do
+    while exists $next_id; do
       next_id=$(($next_id + 1))
     done
+
+    # echo "Next id: $next_id"
+    # read -r input
     exec tmux new-session -A -D -s $next_id
   fi
 else
