@@ -119,7 +119,7 @@ end
 if hostname == "Birger" then
   log.df("identified", hostname)
   hs.loadSpoon("WheelOfSeasons")
-  spoon.WheelOfSeasons:start(os.getenv("HOME") .. "/WheelOfSeasons/Winter/", 60 * 60, true)
+  spoon.WheelOfSeasons:start(os.getenv("HOME") .. "/WheelOfSeasons/Spring/", 60 * 60, true)
   log.df("started wheel of seasons", hostname)
 elseif hostname == "Odin" then
   hs.loadSpoon("WheelOfSeasons")
