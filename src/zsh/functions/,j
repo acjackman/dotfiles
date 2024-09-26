@@ -1,0 +1,14 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+local FZF_DEFAULT_COMMAND
+# is path provided
+if [[ "$1" != "" && -d $1 ]]
+then
+        export FZF_DEFAULT_COMMAND="fd . $1 --type dir"
+else
+        export FZF_DEFAULT_COMMAND='fd . $HOME --type dir'
+fi
+
+local dir
+dir=$(fzf --no-multi --preview 'eza --long --group-directories-first --color=always {}' --preview-window '~3')
+cd "$dir"
