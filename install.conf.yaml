@@ -69,6 +69,7 @@
     ~/.config/asdf: src/asdf
     ~/.config/lazygit: src/lazygit
     ~/.config/bat: src/bat
+    ~/.config/fd: src/fd
     ~/.config/topgrade.toml: src/topgrade/config.toml
     ~/.editorconfig: src/editorconfig
     ~/.config/gh/config.yml:
