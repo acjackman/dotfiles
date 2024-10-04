@@ -1,0 +1,10 @@
+{{ if eq .chezmoi.os "darwin" -}}
+{{- $computerName := output "scutil" "--get" "ComputerName" | trim -}}
+
+{{ if (and .set_hostname (not (eq $computerName .hostname))) }}
+sudo scutil --set ComputerName "{{ .hostname }}"
+sudo scutil --set HostName "{{ .hostname }}"
+sudo scutil --set LocalHostName "{{ .hostname }}"
+sudo defaults write /Library/Preferences/SystemConfiguration/com.apple.smb.server NetBIOSName -string "{{ .hostname }}"
+{{end -}}
+{{end -}}

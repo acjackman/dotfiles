@@ -1,6 +1,0 @@
-#!/bin/zsh
-
-pushd ~/brain
-echo 'Updating brain'
-git pull --rebase
-popd

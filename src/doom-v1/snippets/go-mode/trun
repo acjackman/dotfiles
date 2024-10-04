@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: trun
-# key: trigger-key
-# condition: t
-# --
-t.Run("$1", func(t *testing.T) {
-	$0
-})

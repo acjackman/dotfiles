@@ -1,0 +1,29 @@
+# themes from https://github.com/alacritty/alacritty-theme
+
+# import = ["/Users/mischa/.config/alacritty/themes/themes/gruvbox_dark.toml"]
+import = ["~/.config/alacritty/themes/themes/catppuccin_mocha.toml"]
+
+[shell]
+program = "{{ .chezmoi.homeDir }}/.config/tmux/tmux_launcher.sh"
+
+[env]
+TERM = "xterm-256color"
+
+[font]
+size = 15
+
+normal = {family = "IosevkaTerm Nerd Font Mono" , style = "Regular"}
+bold = {family = "IosevkaTerm Nerd Font Mono" , style = "Bold"}
+italic = {family = "IosevkaTerm Nerd Font Mono" , style = "Italic"}
+bold_italic = {family = "IosevkaTerm Nerd Font Mono" , style = "Bold Italic"}
+
+[window]
+decorations = "none"
+dynamic_padding = true
+
+[window.padding]
+x = 0
+y = 0
+
+[cursor]
+unfocused_hollow = true

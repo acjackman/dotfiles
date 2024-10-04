@@ -1,0 +1,19 @@
+{{ if eq .chezmoi.os "darwin" -}}{{- $computerName := output "scutil" "--get" "ComputerName" | trim -}}
+#!/bin/bash
+
+# Install for {{ $computerName }}
+
+# Checksum {{ include "dot_config/homebrew/Brewfile-base" | sha256sum }}
+brew bundle --file=Brewfile-base
+
+{{ if eq $computerName "Odin" "Ingvar" }}
+# Checksum {{ include "dot_config/homebrew/Brewfile-personal" | sha256sum }}
+brew bundle --file=Brewfile-personal
+{{ end -}}
+
+{{- if eq $computerName "Odin" }}
+# Checksum {{ include "dot_config/homebrew/Brewfile-odin" | sha256sum }}
+brew bundle --file=Brewfile-odin
+{{ end -}}
+
+{{ end -}}

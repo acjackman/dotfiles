@@ -1,9 +1,0 @@
-#+created: %<%Y-%m-%dT%H:%M:%S%z>
-#+filetags: :Effort::
-* Goals
-
-%?
-
-* Dates
-* Tasks
-** TODO Add initial tasks

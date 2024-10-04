@@ -1,0 +1,12 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+
+set -e
+
+espanso stop || echo "espanso already stopped"
+rm -rf espanso 2> /dev/null || echo "No espanso config"
+
+ln -s "$HOME/.config/espanso" "$(espanso path config)"
+
+espanso start
+{{end -}}

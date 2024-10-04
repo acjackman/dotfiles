@@ -1,6 +1,0 @@
-#+created: %<%Y-%m-%dT%H:%M:%S%z>
-| Author | %? |
-
-* Recommendations
-* My Library
-* Reading Sessions

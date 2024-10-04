@@ -1,0 +1,11 @@
+{{- $email := promptStringOnce . "email" "Email address" -}}
+{{- $hostname := promptStringOnce . "hostname" "Hostname" -}}
+{{- $setHostname := promptBoolOnce . "set_hostname" "Set Hostname" -}}
+
+[data]
+    hostname = {{ $hostname | quote }}
+    set_hostname = {{ $setHostname }}
+    email    = {{ $email | quote }}
+
+[hooks.read-source-state.pre]
+    command = ".local/share/chezmoi/.install-password-manager.sh"
