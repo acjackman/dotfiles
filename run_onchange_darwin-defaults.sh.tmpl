@@ -407,8 +407,8 @@ defaults write com.apple.dock showLaunchpadGestureEnabled -int 0
 find "${HOME}/Library/Application Support/Dock" -name "*-*.db" -maxdepth 1 -delete
 
 # Add iOS & Watch Simulator to Launchpad
-sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app" "/Applications/Simulator.app"
-sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator (Watch).app" "/Applications/Simulator (Watch).app"
+# sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator.app" "/Applications/Simulator.app"
+# sudo ln -sf "/Applications/Xcode.app/Contents/Developer/Applications/Simulator (Watch).app" "/Applications/Simulator (Watch).app"
 
 # Add a spacer to the left side of the Dock (where the applications are)
 #defaults write com.apple.dock persistent-apps -array-add '{tile-data={}; tile-type="spacer-tile";}'
@@ -678,12 +678,6 @@ defaults write com.apple.terminal SecureKeyboardEntry -bool true
 # Disable the annoying line marks
 # defaults write com.apple.Terminal ShowLineMarks -int 0
 
-# Install the Solarized Dark theme for iTerm
-# open "${HOME}/init/Solarized Dark.itermcolors"
-
-# Don’t display the annoying prompt when quitting iTerm
-defaults write com.googlecode.iterm2 PromptOnQuit -bool false
-
 ###############################################################################
 # Time Machine                                                                #
 ###############################################################################
@@ -808,44 +802,6 @@ defaults write com.google.Chrome.canary DisablePrintPreview -bool true
 defaults write com.google.Chrome PMPrintingExpandedStateForPrint2 -bool true
 defaults write com.google.Chrome.canary PMPrintingExpandedStateForPrint2 -bool true
 
-###############################################################################
-# Launchbar                                                                   #
-###############################################################################
-defaults write at.obdev.LaunchBar Theme "at.obdev.LaunchBar.theme.Dark"
-defaults write at.obdev.LaunchBar RetypeDelay -int 3
-
-# Clipboard History
-defaults write at.obdev.LaunchBar ClipboardHistoryEnabled -bool true
-defaults write at.obdev.LaunchBar ClipboardHistoryCapacity -string "-7"
-defaults write at.obdev.LaunchBar ClipboardHistoryIgnoreApplicationsEnabled -bool true
-defaults write at.obdev.LaunchBar ClipboardHistoryIgnoreApplications -array-add "com.agilebits.onepassword"
-
-defaults write at.obdev.LaunchBar ShowClipboardHistoryHotKeyEnabled -bool true
-defaults write at.obdev.LaunchBar ShowClipboardHistoryHotKey -string "6912@6"
-defaults write at.obdev.LaunchBar PasteClipboardHistoryHotKeyEnabled -bool false
-defaults write at.obdev.LaunchBar SelectFromClipboardHistoryHotKeyEnabled -bool false
-
-# Instant Send with double command
-defaults write at.obdev.LaunchBar ModifierTapInstantSend -int 21
-
-# Disable spotlight search
-defaults write at.obdev.LaunchBar SpotlightHotKeyEnabled -bool false
-
-# Enable Calculator
-defaults write at.obdev.LaunchBar CalculatorHotKeyEnabled -bool false
-defaults write at.obdev.LaunchBar SwitchToCalculatorAutomatically -bool false
-defaults write at.obdev.LaunchBar SwitchToCalculatorWithEqualsSign -bool true
-
-# Open Location
-defaults write at.obdev.LaunchBar OpenLocationPrependWWW -bool false
-
-# Files
-defaults write at.obdev.LaunchBar AbbreviateFilePaths -bool true
-
-# Contacts
-defaults write at.obdev.LaunchBar ShowInAddressBookURLPrefix "x-cardhop://show?id="
-
-# defaults write at.obdev.LaunchBar ShowSupportAssistant -bool false
 ###############################################################################
 # TextSniper                                                                  #
 ###############################################################################
