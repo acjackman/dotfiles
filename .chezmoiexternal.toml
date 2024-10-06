@@ -2,3 +2,6 @@
     type = "git-repo"
     url = "https://github.com/alacritty/alacritty-theme.git"
     refreshPeriod = "168h"
+[".config/tmux/plugins/catppuccin"]
+    type = "git-repo"
+    url = "https://github.com/catppuccin/tmux.git@fe0d245e1c971789d87ab80f492a20709af91c91"
