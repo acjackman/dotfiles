@@ -102,6 +102,7 @@ brew "pyright"
 brew "ruff"
 
 # browser
+cask "finicky"
 cask "firefox"
 cask "google-chrome"
 cask "brave-browser"
