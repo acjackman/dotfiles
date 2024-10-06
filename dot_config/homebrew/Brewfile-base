@@ -130,7 +130,7 @@ brew "topgrade"
 # Customization/Utilities
 ######################################
 # Controls
-brew "koekeishiya/formulae/yabai"          # Tiling windows
+cask "nikitabobko/tap/aerospace"           # Tiling window manager
 cask "karabiner-elements"                  # Rebind capslock -> hyper
 cask "hammerspoon"                         # Automation
 # cask "bettertouchtool"                     # Input Customization
