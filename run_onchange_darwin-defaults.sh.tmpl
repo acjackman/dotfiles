@@ -1,4 +1,3 @@
-{{ if false }}
 {{ if eq .chezmoi.os "darwin" -}}
 #!/usr/bin/env bash
 
@@ -451,10 +450,12 @@ find ~/Library/Preferences/ByHost/ -name 'com.apple.loginwindow*' ! -size 0 -exe
 # set the user immutable flag
 find ~/Library/Preferences/ByHost/ -name 'com.apple.loginwindow*' -exec chflags uimmutable {} \;
 
+{{ if false }}
+# macos v15 changed the defaults settings for Safari, need to update these
 ###############################################################################
 # Safari & WebKit                                                             #
 ###############################################################################
-
+#
 # Privacy: don’t send search queries to Apple
 defaults write com.apple.Safari UniversalSearchEnabled -bool false
 defaults write com.apple.Safari SuppressSearchSuggestions -bool true
@@ -539,7 +540,10 @@ defaults write com.apple.Safari SendDoNotTrackHTTPHeader -bool true
 
 # Update extensions automatically
 defaults write com.apple.Safari InstallExtensionUpdatesAutomatically -bool true
+{{ end -}}
 
+{{ if false }}
+# macos v15 changed the defaults settings for mail, need to update these
 ###############################################################################
 # Mail                                                                        #
 ###############################################################################
@@ -564,6 +568,7 @@ defaults write com.apple.mail DisableInlineAttachmentViewing -bool true
 
 # Disable automatic spell checking
 # defaults write com.apple.mail SpellCheckingBehavior -string "NoSpellCheckingEnabled"
+{{ end -}}
 
 ###############################################################################
 # Spotlight                                                                   #
@@ -818,26 +823,5 @@ defaults write com.valerijs.boguckis.store.TextSniper KeyboardShortcuts_keepLine
 # Kill affected applications                                                  #
 ###############################################################################
 
-for app in "Activity Monitor" \
-  "Address Book" \
-  "Calendar" \
-  "cfprefsd" \
-  "Contacts" \
-  "Dock" \
-  "Finder" \
-  "Google Chrome Canary" \
-  "Google Chrome" \
-  "Mail" \
-  "Messages" \
-  "Opera" \
-  "Photos" \
-  "Safari" \
-  "SystemUIServer" \
-  "Terminal" \
-  "Launchbar" \
-  "iCal"; do
-  killall "${app}" &>/dev/null
-done
 echo "Done. Note that some of these changes require a logout/restart to take effect."
-{{ end -}}
 {{ end -}}
