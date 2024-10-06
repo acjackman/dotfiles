@@ -2,11 +2,14 @@
 
 These are my dotfiles, massively easier system configuration.
 
-
-Configured with [Dotbot](https://github.com/anishathalye/dotbot).
+Configured with [Chezmoi](https://www.chezmoi.io/).
 
 ## Updating dotfiles
-Run the `dotfiles-install` script.
+
+```sh
+chezmoi update
+```
+
 
 ## Bootstrapping
 
