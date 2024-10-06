@@ -8,10 +8,11 @@ alias tree='tre --limit 3'
 
 alias ,clear='clear && if [ -v TMUX ]; then; tmux clear-history; fi'
 
+alias trim='tr -d "\n"'
+
 # Command Shortcuts
 alias dcmp="docker-compose"
 alias o=open
-alias tf=terraform
 
 alias rgf="rg --files-with-matches"
 
@@ -26,7 +27,7 @@ alias yaml2json="yq eval --tojson"
 
 alias ,show-aliases="export ZSH_PLUGINS_ALIAS_TIPS_REVEAL=1"
 
-alias ,k9s='k9s --context=$(yq -r '"'"'.contexts[] | .name'"'"' ~/.kube/config | fzf) --namespace=all'
+alias ,k9s='k9s --context=$(yq -r '"'"'.contexts[] | .name'"'"' ~/.kube/config | fzf --layout reverse --height=10% --border) --namespace=all'
 alias k9ss=',k9s'
 
 # git
@@ -63,6 +64,31 @@ alias pip='python -m pip'
 
 # Cloud
 alias awswhoami="aws-cli sts get-caller-identity"
+
+# Terraform
+alias tf='terraform'
+alias tfi='terraform init'
+alias tfp='terraform plan'
+alias tfa='terraform apply'
+alias tfat='terraform apply -target'
+alias tfaaa='terraform apply --auto-approve'
+alias tffmt='terraform fmt -check -recursive'
+
+# Spacelift
+alias splogin='unset SPACELIFT_API_TOKEN; spacectl whoami > /dev/null || spacectl profile login; export SPACELIFT_API_TOKEN=$(spacectl profile export-token)'
+
+# Config
+alias chezmoi-local="chezmoi -S ~/.local/share/chezmoi-local --config ~/.config/chezmoi-local/chezmoi.toml"
+alias ,c='chezmoi'
+alias ,cl='chezmoi-local'
+function ,ce() (
+  pushd ~/.local/share/chezmoi > /dev/null
+  chezmoi edit $@
+)
+function ,cle() (
+  pushd ~/.local/share/chezmoi-local > /dev/null
+  chezmoi-local edit $@
+)
 
 # Common projects
 alias dotfiles="tat dotfiles"
