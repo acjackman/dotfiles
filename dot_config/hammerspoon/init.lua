@@ -116,7 +116,7 @@ rotate_screen_counterclockwise = function()
   k.triggered = true
 end
 
-if hostname == "Birger" then
+if hostname == "MacBook Pro" then
   log.df("identified", hostname)
   hs.loadSpoon("WheelOfSeasons")
   spoon.WheelOfSeasons:start(os.getenv("HOME") .. "/WheelOfSeasons/Spring/", 60 * 60, true)

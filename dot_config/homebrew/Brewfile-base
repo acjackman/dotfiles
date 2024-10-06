@@ -132,6 +132,7 @@ brew "topgrade"
 ######################################
 # Controls
 cask "nikitabobko/tap/aerospace"           # Tiling window manager
+brew "FelixKratz/formulae/borders"         # Active window indicator
 cask "karabiner-elements"                  # Rebind capslock -> hyper
 cask "hammerspoon"                         # Automation
 # cask "bettertouchtool"                     # Input Customization

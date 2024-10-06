@@ -2,16 +2,6 @@
 
 pushd "$HOME" || exit
 
-# Ask for the administrator password upfront
-sudo -n true || sudo -v
-
-# Keep-alive: update existing `sudo` time stamp until script finished
-while true; do
-  sudo -n true
-  sleep 60
-  kill -0 "$$" || exit
-done 2>/dev/null &
-
 # Check if Homebrew is installed
 if [ ! -f "$(which brew)" ]; then
   echo 'Installing homebrew'
@@ -25,12 +15,6 @@ if [ ! -f "$(which brew)" ]; then
   fi
 else
   echo 'homebrew already installed'
-fi
-
-if [ ! -f "/opt/jackman" ]; then
-  sudo mkdir -p /opt/jackman
-  sudo chown $(whoami) /opt/jackman
-  ln
 fi
 
 # Change default shell
@@ -55,12 +39,6 @@ if [[ -z "${ASDF_DIR+x}" ]]; then
     export ASDF_DIR="$HOME/.asdf/"
 fi
 git clone https://github.com/asdf-vm/asdf.git "$ASDF_DIR" --branch v0.14.1
+export PATH="$PATH:$ASDF_DIR/bin"
 asdf plugin-add direnv
 asdf direnv setup --no-touch-rc-file --shell zsh --version system
-
-# Start Yabai
-command -v yabai 2>&1 >/dev/null && FOUND_YABAI=1 || FOUND_YABAI=0
-if [[ $FOUND_YABAI -eq 1 ]]; then
-  yabai --start-service
-fi
-unset FOUND_YABAI

@@ -33,7 +33,6 @@ zinit wait lucid for \
   zpm-zsh/zsh-better-npm-completion \
   'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh' \
   'https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh' \
-  as'completion' blockf OMZ::plugins/ripgrep/_ripgrep \
   atinit'zicompinit' atpull'zinit creinstall .' wfxr/forgit \
   blockf atpull'zinit creinstall  .' zsh-users/zsh-completions \
   RobSis/zsh-completion-generator \
@@ -45,7 +44,6 @@ zinit wait lucid for \
 
 # must be loaded after syntax completion
 zinit load zsh-users/zsh-history-substring-search
-
 
 # experimental
 #   - zsh-256color: configures env for 256 color support
