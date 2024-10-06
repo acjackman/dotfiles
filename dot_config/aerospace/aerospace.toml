@@ -111,10 +111,10 @@ alt-shift-j = 'move down'
 alt-shift-k = 'move up'
 alt-shift-l = 'move right'
 
-cmd-alt-shift-h = ['move-node-to-monitor left', 'mode main']
-cmd-alt-shift-j = ['move-node-to-monitor down', 'mode main']
-cmd-alt-shift-k = ['move-node-to-monitor up', 'mode main']
-cmd-alt-shift-l = ['move-node-to-monitor right', 'mode main']
+cmd-alt-shift-h = ['move-node-to-monitor left', 'focus-monitor left']
+cmd-alt-shift-j = ['move-node-to-monitor down', 'focus-monitor down']
+cmd-alt-shift-k = ['move-node-to-monitor up', 'focus-monitor up']
+cmd-alt-shift-l = ['move-node-to-monitor right', 'focus-monitor right']
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#resize
 alt-shift-minus = 'resize smart -50'
@@ -207,3 +207,35 @@ alt-shift-h = ['join-with left', 'mode main']
 alt-shift-j = ['join-with down', 'mode main']
 alt-shift-k = ['join-with up', 'mode main']
 alt-shift-l = ['join-with right', 'mode main']
+
+[[on-window-detected]]
+if.app-id = 'com.apple.Terminal'
+run = 'move-node-to-workspace T'
+
+[[on-window-detected]]
+if.app-id = 'org.alacritty'
+run = 'move-node-to-workspace T'
+
+[[on-window-detected]]
+if.app-id = 'com.github.wez.wezterm'
+run = 'move-node-to-workspace T'
+
+[[on-window-detected]]
+if.app-id = 'net.kovidgoyal.kitty'
+run = 'move-node-to-workspace T'
+
+[[on-window-detected]]
+if.app-id = 'md.obsidian'
+run = 'move-node-to-workspace N'
+
+[[on-window-detected]]
+if.app-id = '	com.apple.Music'
+run = 'move-node-to-workspace M'
+
+[[on-window-detected]]
+if.app-id = '	com.apple.Slack'
+run = 'move-node-to-workspace S'
+
+[workspace-to-monitor-force-assignment]
+S = 1
+T = 'main'
