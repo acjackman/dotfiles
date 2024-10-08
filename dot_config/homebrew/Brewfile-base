@@ -17,6 +17,7 @@ brew "mas"
 brew "libvterm"
 brew "cmake"
 brew "svn"  # Fonts need
+brew "rust" # nvim mason dependency
 
 ######################################
 # Fonts
