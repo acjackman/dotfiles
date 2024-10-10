@@ -22,9 +22,9 @@ module.exports = {
       browser: "Discord",
     },
     {
-      match: "https://discord.com/*",
-      url: { protocol: "discord" },
-      browser: "Discord",
+      match: "https://linear.app/*",
+      url: { protocol: "linear" },
+      browser: "Linear",
     },
     {
       match: ({ url }) => url.protocol === "slack",
