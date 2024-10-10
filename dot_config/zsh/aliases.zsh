@@ -101,5 +101,6 @@ alias ,jump-git-worktree='pushd "$( git worktree list | sed '"'"'/\.bare/d'"'"' 
 alias ,jgw=,jump-git-worktree
 alias ,jump-git-bare='pushd "$( git worktree list --porcelain | awk '"'"'/^worktree /{p=$2} /^bare$/{print p}'"'"' )/../" > /dev/null'
 alias ,jgb=,jump-git-bare
-alias ,jc="pushd ~/.dotfiles > /dev/null"
+alias ,jc="pushd ~/.local/share/chezmoi > /dev/null"
+alias ,jcl="pushd ~/.local/share/chezmoi-local > /dev/null"
 alias ,jn="pushd ~/notes > /dev/null"
