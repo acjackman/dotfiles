@@ -3,15 +3,27 @@
 
 # Install for {{ $computerName }}
 
+function show-header() {
+  command -v gum &>/dev/null
+  if [ $? -eq 0 ]; then
+    gum style --border=double --align=left --padding "0 2" --width=75 $@
+  else
+    echo $@
+  fi
+}
+
+show-header "Homebrew Base"
 # Checksum {{ include "dot_config/homebrew/Brewfile-base" | sha256sum }}
 brew bundle --file=Brewfile-base
 
 {{ if eq $computerName "Odin" "Ingvar" }}
+show-header "Homebrew Personal"
 # Checksum {{ include "dot_config/homebrew/Brewfile-personal" | sha256sum }}
 brew bundle --file=Brewfile-personal
 {{ end -}}
 
 {{- if eq $computerName "Odin" }}
+show-header "Homebrew Odin"
 # Checksum {{ include "dot_config/homebrew/Brewfile-odin" | sha256sum }}
 brew bundle --file=Brewfile-odin
 {{ end -}}

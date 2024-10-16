@@ -3,6 +3,7 @@
 tap "github/gh"
 tap "homebrew/bundle"
 tap "ttscoff/thelab"
+tap "caarlos0/tap"
 
 ######################################
 # Installers
@@ -81,6 +82,9 @@ brew "git-lfs"
 brew "lazygit"
 brew "gh"
 brew "hub"
+
+# semantic version utility
+brew "svu"
 
 ######################################
 # Dev tools
