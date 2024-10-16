@@ -84,7 +84,7 @@ brew "gh"
 brew "hub"
 
 # semantic version utility
-brew "svu"
+brew "caarlos0/tap/svu"
 
 ######################################
 # Dev tools
