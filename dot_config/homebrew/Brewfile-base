@@ -105,6 +105,7 @@ brew "shellcheck"
 # Python
 brew "pyright"
 brew "ruff"
+brew "uv"
 
 # browser
 cask "finicky"
@@ -113,7 +114,8 @@ cask "google-chrome"
 cask "brave-browser"
 cask "arc"
 
-# Remote files
+# files
+brew "yazi"
 cask "transmit"
 
 # Document creation
