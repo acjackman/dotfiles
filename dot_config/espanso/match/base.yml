@@ -145,6 +145,9 @@ matches:
           cmd: >
             tr ":" "\n" <<< "$PATH"
 
+  - trigger: ";;'"
+    replace: '''"''"'''
+
   # Simple substitution
   - trigger: ",hb"
     replace: "harbourbridge"
