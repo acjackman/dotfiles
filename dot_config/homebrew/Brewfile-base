@@ -4,6 +4,7 @@ tap "github/gh"
 tap "homebrew/bundle"
 tap "ttscoff/thelab"
 tap "caarlos0/tap"
+tap "FelixKratz/formulae"
 
 ######################################
 # Installers
