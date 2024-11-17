@@ -1,5 +1,7 @@
 # -*- mode: ruby; -*- vim: set ft=ruby;
 
+brew "fastfetch"
+
 cask "maestral"
 
 cask "discord"
