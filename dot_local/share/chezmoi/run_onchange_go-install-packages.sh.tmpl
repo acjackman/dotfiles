@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+
+{{ range .packages.golang -}}
+go install {{ . | quote }}
+{{ end -}}
