@@ -5,6 +5,7 @@ tap "homebrew/bundle"
 tap "ttscoff/thelab"
 tap "caarlos0/tap"
 tap "FelixKratz/formulae"
+tap "goreleaser/tap"
 
 ######################################
 # Installers
@@ -107,6 +108,10 @@ brew "shellcheck"
 brew "pyright"
 brew "ruff"
 brew "uv"
+
+# Go
+brew "go"
+brew "goreleaser/tap/goreleaser"
 
 # browser
 cask "finicky"
