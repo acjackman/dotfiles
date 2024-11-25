@@ -40,6 +40,7 @@ alias ,gwa="git worktree add"
 
 # github
 alias ,opr="gh pr view --web"
+alias ,gho='gh repo view --web'
 alias ,ghpro="gh pr view --web"
 alias ,ghprn="gh pr view --json number --jq number"
 
