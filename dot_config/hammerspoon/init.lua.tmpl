@@ -2,6 +2,7 @@
 -- hammerspoon console script
 -- require("hs.ipc")
 -- hs.ipc.cliInstall("/usr/local")
+
 local log = hs.logger.new("terminalHyper", "debug")
 hs.logger.defaultLogLevel = "info"
 
@@ -31,34 +32,6 @@ ctrl_cmd_shift = { "cmd", "ctrl", "shift" }
 -- -- JiraApp = appID('~/Applications/Epichrome SSBs/Jira.app')
 -- -- WikiApp = appID('~/Applications/Epichrome SSBs/Wiki.app')
 -- OpsGenieApp = WorkBrowser
-
--- Install:andUse("URLDispatcher",
--- {
---   config = {
---     url_patterns = {
---       -- { "https?://jira%.work%.com",      JiraApp },
---       -- { "https?://jira%.work%.com",      JiraApp },
---       -- { "https?://wiki%.work%.com",      WikiApp },
---       -- { "https?://app.*%.opsgenie%.com", OpsGenieApp },
---       -- { "msteams:",                      "com.microsoft.teams" },
---       -- { "https?://.*%.work%.com",        WorkBrowser }
---     },
---     url_redir_decoders = {
-
---       -- Send MS Teams URLs directly to the app
---       -- { "MS Teams URLs",
---       --   "(https://teams.microsoft.com.*)", "msteams:%1", true },
---       -- Preview incorrectly encodes the anchor
---       -- character in URLs as %23, we fix it
---       { "Fix broken Preview anchor URLs",
---         "%%23", "#", false, "Preview" },
---     },
---     default_handler = DefaultBrowser
---   },
---   start = true,
---   -- Enable debug logging if you get unexpected behavior
---   -- loglevel = 'debug'
--- })
 
 -- Disable hide
 hs.hotkey.bind("cmd", "H", function() end)
@@ -191,18 +164,6 @@ for i, key in ipairs(alt_hyper) do
   end)
 end
 
---
-function savewindows()
-  hs.execute(
-    "yabai -m query --windows > ~/dump/windows-$(date '+%Y-%m-%dT%H-%M-%S').json; noti -t 'Saved Windows' -m ''",
-    true
-  )
-  -- hs.execute("yabai -m query --windows > ~/dump/windowsstate.json", true)
-  k.triggered = true
-end
-
-k:bind({}, "w", nil, savewindows)
-
 -- iTunes controls
 function playpause()
   hs.itunes.playpause()
@@ -247,22 +208,14 @@ end
 local singleapps = {
   { "s", "Slack" },
   { "d", "Drafts" },
-  { "r", "Arc" },
+  { "r", "{{ .default_browser }}" },
   { "f", "Finder" },
   { "n", "Obsidian" },
   { "o", "The Archive" },
   { "=", "Soulver 3" },
+  { "t", "Alacritty" },
+  { "e", "Alacritty" },
 }
-if hostname == "Birger" then
-  table.insert(singleapps, { "t", "Alacritty" })
-  -- table.insert(singleapps, { "e", "Emacs" })
-  table.insert(singleapps, { "e", "Alacritty" })
-  table.insert(singleapps, { "i", "iTerm" })
-else
-  table.insert(singleapps, { "e", "Alacritty" })
-  table.insert(singleapps, { "t", "Alacritty" })
-  table.insert(singleapps, { "i", "iTerm" })
-end
 for _, app in ipairs(singleapps) do
   k:bind({}, app[1], function()
     launch(app[2])
@@ -290,7 +243,7 @@ end
 
 -- k:bind({}, 'm', nil, function() k.triggered = true; spoon.MuteLight:togglLight() end)
 
--- spoon.RecursiveBinder.escapeKey = {{}, 'escape'}  -- Press escape to abort
+-- spoon.RecursiveBinder.escapeKey ={ {}, 'escape'}  -- Press escape to abort
 local singleKey = spoon.RecursiveBinder.singleKey
 local keyMap = {
   [singleKey("d", "wallpapers")] = function()
@@ -305,53 +258,10 @@ local keyMap = {
     [singleKey("f", "finder")] = launch_app("Finder"),
     [singleKey("=", "calc")] = launch_app("Soulver 3"),
     [singleKey("t", "terminal")] = launch_app("Alacritty"),
-    [singleKey("b", "browser")] = launch_app("Safari"),
+    [singleKey("b", "browser")] = launch_app("{{ .default_browser }}"),
   },
-  [singleKey("w", "window+")] = {
-    [singleKey("b", "balance")] = run_shell("yabai -m space --balance"),
-    [singleKey("t", "toggle")] = run_shell("yabai -m window --toggle split"),
-    -- [singleKey(',', 'main+1')] = global_binding({"shift", "alt"}, ","),
-    -- [singleKey('.', 'main-1')] = global_binding({"shift", "alt"}, "."),
-    -- [singleKey('h', 'main+1')] = global_binding({"shift", "alt"}, ","),
-    -- [singleKey('l', 'main-1')] = global_binding({"shift", "alt"}, "."),
-    [singleKey("l", "float")] = run_shell("yabai -m window --toggle float"),
-    [singleKey("f", "focus")] = {
-      [singleKey("h", "west")] = run_shell("yabai -m window --focus west"),
-      [singleKey("j", "south")] = run_shell("yabai -m window --focus south"),
-      [singleKey("k", "north")] = run_shell("yabai -m window --focus north"),
-      [singleKey("l", "east")] = run_shell("yabai -m window --focus east"),
-    },
-    [singleKey("m", "move")] = {
-      [singleKey("1", "screen-1")] = run_shell("yabai -m window --display 1; yabai -m display --focus 1"),
-      [singleKey("2", "screen-2")] = run_shell("yabai -m window --display 2; yabai -m display --focus 2"),
-      [singleKey("3", "screen-3")] = run_shell("yabai -m window --display 3; yabai -m display --focus 3"),
-      [singleKey("4", "screen-4")] = run_shell("yabai -m window --display 4; yabai -m display --focus 4"),
-      [singleKey("m", "first")] = run_shell("yabai -m window --warp first"),
-      [singleKey("n", "last")] = run_shell("yabai -m window --warp last"),
-      [singleKey("h", "west")] = run_shell("yabai -m window --warp west"),
-      [singleKey("j", "south")] = run_shell("yabai -m window --warp south"),
-      [singleKey("k", "north")] = run_shell("yabai -m window --warp north"),
-      [singleKey("l", "east")] = run_shell("yabai -m window --warp east"),
-    },
-    [singleKey("n", "new")] = run_shell("yabai -m space --create"),
   },
   [singleKey("s", "screen+")] = {
-    [singleKey("f", "focus")] = {
-      [singleKey("1", "screen-1")] = run_shell("yabai -m display --focus 1"),
-      [singleKey("2", "screen-2")] = run_shell("yabai -m display --focus 2"),
-      [singleKey("3", "screen-3")] = run_shell("yabai -m display --focus 3"),
-      [singleKey("4", "screen-4")] = run_shell("yabai -m display --focus 4"),
-      [singleKey("h", "west")] = run_shell("yabai -m display --focus west"),
-      [singleKey("j", "south")] = run_shell("yabai -m display --focus south"),
-      [singleKey("k", "north")] = run_shell("yabai -m display --focus north"),
-      [singleKey("l", "east")] = run_shell("yabai -m display --focus east"),
-    },
-    [singleKey("s", "space")] = {
-      [singleKey("n", "new")] = run_shell("yabai -m space --create"),
-      [singleKey("d", "delete")] = run_shell("yabai -m space --destroy"),
-      [singleKey("h", "previous")] = run_shell("yabai -m space --focus prev || yabai -m space --focus last"),
-      [singleKey("l", "next")] = run_shell("yabai -m space --focus next || yabai -m space --focus first"),
-    },
     [singleKey("r", "rotate-screen")] = {
       [singleKey("[", "left")] = rotate_screen_counterclockwise,
       [singleKey("]", "right")] = rotate_screen_clockwise,
@@ -384,68 +294,6 @@ spoon.RecursiveBinder.helperFormat = {
 }
 
 hs.hotkey.bind(shift_hyper, "space", spoon.RecursiveBinder.recursiveBind(keyMap))
--- k:bind({}, "space", function()
---     spoon.RecursiveBinder.recursiveBind(keyMap)
---     k.triggered = true
--- end)
-
-hs.hotkey.bind(ctrl_cmd, "h", nil, run_shell("yabai -m window --focus west"))
-hs.hotkey.bind(ctrl_cmd, "j", nil, run_shell("yabai -m window --focus south"))
-hs.hotkey.bind(ctrl_cmd, "k", nil, run_shell("yabai -m window --focus north"))
-hs.hotkey.bind(ctrl_cmd, "l", nil, run_shell("yabai -m window --focus east"))
-hs.hotkey.bind(ctrl_cmd_shift, "h", nil, run_shell("yabai -m display --focus west"))
-hs.hotkey.bind(ctrl_cmd_shift, "j", nil, run_shell("yabai -m display --focus south"))
-hs.hotkey.bind(ctrl_cmd_shift, "k", nil, run_shell("yabai -m display --focus north"))
-hs.hotkey.bind(ctrl_cmd_shift, "l", nil, run_shell("yabai -m display --focus east"))
-
-hs.hotkey.bind(
-  ctrl_cmd_shift,
-  "left",
-  nil,
-  run_shell("yabai -m window west --resize right:-20:0 2> /dev/null || yabai -m window --resize right:-20:0")
-)
-hs.hotkey.bind(
-  ctrl_cmd_shift,
-  "down",
-  nil,
-  run_shell("yabai -m window north --resize bottom:0:20 2> /dev/null || yabai -m window --resize bottom:0:20")
-)
-hs.hotkey.bind(
-  ctrl_cmd_shift,
-  "up",
-  nil,
-  run_shell("yabai -m window south --resize top:0:-20 2> /dev/null || yabai -m window --resize top:0:-20")
-)
-hs.hotkey.bind(
-  ctrl_cmd_shift,
-  "right",
-  nil,
-  run_shell("yabai -m window east --resize left:20:0 2> /dev/null || yabai -m window --resize left:20:0")
-)
--- Launch and quit ScanSnap Manager
--- usbWatcher = nil
--- function usbDeviceCallback(data)
---     if (data["productName"] == "ScanSnap S1300i") then
---         if (data["eventType"] == "added") then
---             hs.application.launchOrFocus("ScanSnap Manager")
---         elseif (data["eventType"] == "removed") then
---             app = hs.appfinder.appFromName("ScanSnap Manager")
---             app:kill()
---         end
---     end
--- end
-
--- if (hs.host.localizedName() == "Jormungandr") then
---   usbWatcher = hs.usb.watcher.new(usbDeviceCallback)
---   usbWatcher:start()
--- end
 
 hs.loadSpoon("ReloadConfiguration")
 spoon.ReloadConfiguration:start()
-
-function yabaiRestarter()
-  -- hs.notify.show("HS-> Yabai", "", "restarting yabai")
-  hs.execute("yabai --stop-service; yabai --start-service", true)
-end
-
-yabaiWatcher = hs.pathwatcher.new(os.getenv("HOME") .. "/.config/yabai/", yabaiRestarter):start()

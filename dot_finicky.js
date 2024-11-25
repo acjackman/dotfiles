@@ -1,5 +1,5 @@
 module.exports = {
-  defaultBrowser: "Arc",
+  defaultBrowser: "{{ .default_browser }}",
   handlers: [
     {
       match: /zoom\.us\/join/,
