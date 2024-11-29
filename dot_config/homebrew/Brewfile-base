@@ -153,7 +153,7 @@ cask "hammerspoon"                         # Automation
 cask "linearmouse"                         # Trackpad natural, mouseweel normal scroll
 cask "raycast"                             # Launcher
 cask "espanso"                             # Text expansion
-cask "shortcat"                            # keyboard driven clicks
+cask "homerow"                            # keyboard driven clicks
 
 # Style
 cask "jordanbaird-ice"                     # Hide menubar items
