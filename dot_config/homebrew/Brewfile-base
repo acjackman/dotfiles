@@ -6,6 +6,7 @@ tap "ttscoff/thelab"
 tap "caarlos0/tap"
 tap "FelixKratz/formulae"
 tap "goreleaser/tap"
+tap "noahgorstein/tap"
 
 ######################################
 # Installers
@@ -96,7 +97,7 @@ brew "noti"
 
 # Data Tools:
 brew "jq"
-brew "jqp"
+brew "noahgorstein/tap/jqp"
 brew "yq"
 brew "yj"
 cask "tad"  # CSV Viewer
