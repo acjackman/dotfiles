@@ -4,3 +4,4 @@
 -- vim.g.lazyvim_python_lsp = "ruff_lsp"
 vim.g.lazyvim_python_lsp = "pyright"
 vim.g.lazyvim_python_ruff = "ruff"
+vim.opt.relativenumber = false -- no line numbers
