@@ -1,12 +1,13 @@
 # -*- mode: ruby; -*- vim: set ft=ruby
 
-tap "github/gh"
-tap "homebrew/bundle"
-tap "ttscoff/thelab"
-tap "caarlos0/tap"
 tap "FelixKratz/formulae"
+tap "caarlos0/tap"
+tap "derailed/k9s"
+tap "github/gh"
 tap "goreleaser/tap"
+tap "homebrew/bundle"
 tap "noahgorstein/tap"
+tap "ttscoff/thelab"
 
 ######################################
 # Installers
@@ -114,6 +115,10 @@ brew "uv"
 # Go
 brew "go"
 brew "goreleaser/tap/goreleaser"
+
+# k8s
+brew install kubectx
+brew "derailed/k9s/k9s"
 
 # browser
 cask "finicky"
