@@ -1,0 +1,11 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# yazi shell wrapper
+# source https://yazi-rs.github.io/docs/quick-start/#shell-wrapper
+
+local tmp="$(mktemp -t "yazi-cwd.XXXXXX")" cwd
+yazi "$@" --cwd-file="$tmp"
+if cwd="$(command cat -- "$tmp")" && [ -n "$cwd" ] && [ "$cwd" != "$PWD" ]; then
+  builtin pushd -- "$cwd"
+fi
+rm -f -- "$tmp"
