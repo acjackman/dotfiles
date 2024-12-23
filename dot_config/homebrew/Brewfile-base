@@ -117,7 +117,7 @@ brew "go"
 brew "goreleaser/tap/goreleaser"
 
 # k8s
-brew install kubectx
+brew "kubectx"
 brew "derailed/k9s/k9s"
 
 # browser
