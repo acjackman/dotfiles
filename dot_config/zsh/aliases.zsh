@@ -91,6 +91,9 @@ function ,cle() (
   chezmoi-local edit $@
 )
 
+# Tmux
+alias ,t='~/.config/tmux/tmux_launcher.sh'
+
 # Common projects
 alias dotfiles="tat dotfiles"
 alias notes="tat notes"
