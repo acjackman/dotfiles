@@ -33,6 +33,9 @@ ctrl_cmd_shift = { "cmd", "ctrl", "shift" }
 -- -- WikiApp = appID('~/Applications/Epichrome SSBs/Wiki.app')
 -- OpsGenieApp = WorkBrowser
 
+terminal = "Ghostty"
+browser = "{{ .default_browser }}"
+
 -- Disable hide
 hs.hotkey.bind("cmd", "H", function() end)
 
@@ -208,13 +211,12 @@ end
 local singleapps = {
   { "s", "Slack" },
   { "d", "Drafts" },
-  { "r", "{{ .default_browser }}" },
+  { "r", browser },
   { "f", "Finder" },
   { "n", "Obsidian" },
-  { "o", "The Archive" },
   { "=", "Soulver 3" },
-  { "t", "Alacritty" },
-  { "e", "Alacritty" },
+  { "t", terminal },
+  { "e", editor },
 }
 for _, app in ipairs(singleapps) do
   k:bind({}, app[1], function()
@@ -257,7 +259,7 @@ local keyMap = {
     [singleKey("d", "drafts")] = launch_app("Drafts"),
     [singleKey("f", "finder")] = launch_app("Finder"),
     [singleKey("=", "calc")] = launch_app("Soulver 3"),
-    [singleKey("t", "terminal")] = launch_app("Alacritty"),
+    [singleKey("t", "terminal")] = launch_app(terminal),
     [singleKey("b", "browser")] = launch_app("{{ .default_browser }}"),
   },
   [singleKey("s", "screen+")] = {

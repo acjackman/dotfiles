@@ -1,0 +1,10 @@
+# Relode config with cmd + shift + ,
+# reference
+# https://ghostty.org/docs/config/reference#initial-command
+#
+
+font-family = "IosevkaTerm Nerd Font Mono"
+
+font-size = 15
+
+theme = dark:catppuccin-mocha,light:catppuccin-latte

@@ -49,7 +49,7 @@ brew "fzf"
 brew "tmux"
 
 # Terminal Emulator
-cask "alacritty"
+cask "ghostty"
 
 # *Nix utitlites
 brew "coreutils"
