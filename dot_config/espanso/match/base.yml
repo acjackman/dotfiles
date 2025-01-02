@@ -145,6 +145,16 @@ matches:
           cmd: >
             tr ":" "\n" <<< "$PATH"
 
+  - trigger: ";tfdebug"
+    force_mode: clipboard
+    replace: |
+      resource "local_file" "debug" {
+        content = yamlencode({
+
+        })
+        filename = "DELETEME.yml"
+      }
+
   - trigger: ";;'"
     replace: '''"''"'''
 
