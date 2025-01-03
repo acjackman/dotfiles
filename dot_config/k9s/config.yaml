@@ -12,6 +12,7 @@ k9s:
     reactive: false
     noIcons: false
     defaultsToFullScreen: false
+    skin: catppuccin-mocha
   featureGates:
     nodeShell: true
   skipLatestRevCheck: false

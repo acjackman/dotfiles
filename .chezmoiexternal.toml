@@ -2,6 +2,12 @@
     type = "git-repo"
     url = "https://github.com/alacritty/alacritty-theme.git"
     refreshPeriod = "168h"
+[".config/k9s/skins"]
+    type = "archive"
+    url = "https://github.com/catppuccin/k9s/archive/main.tar.gz"
+    refreshPeriod = "168h"
+    stripComponents = 2
+    include = ["k9s-main/dist/*.yaml"]
 [".config/tmux/plugins/catppuccin"]
     type = "archive"
     url = "https://github.com/catppuccin/tmux/archive/fe0d245e1c971789d87ab80f492a20709af91c91.tar.gz"
