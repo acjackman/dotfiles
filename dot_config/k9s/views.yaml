@@ -1,0 +1,27 @@
+views:
+  # Alters the pod view column layout. Uses GVR as key
+  v1/pods:
+    sortColumn: AGE:asc
+    columns:
+      - AGE
+      - NAMESPACE
+      - NAME
+      - PF
+      - READY
+      - RESTARTS
+      - STATUS
+      - MEM
+      - MEM/R:L
+      - CPU
+      - CPU/R:L
+      # - IP
+      # - NODE
+
+  # # Alters the service view column layout
+  # v1/services:
+  #   columns:
+  #     - AGE
+  #     - NAMESPACE
+  #     - NAME
+  #     - TYPE
+  #     - CLUSTER-IP
