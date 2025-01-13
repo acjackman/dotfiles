@@ -11,9 +11,10 @@ return {
     --   "BufNewFile " .. vim.fn.expand("~") .. "/notes/**.md",
     -- },
     keys = {
-      { "<leader>nn", "<cmd>ObsidianNew<cr>", desc = "New note", mode = "n" },
-      { "<leader>no", "<cmd>ObsidianSearch<cr>", desc = "Search notes", mode = "n" },
-      { "<leader>ns", "<cmd>ObsidianQuickSwitch<cr>", desc = "Quick Switch", mode = "n" },
+      { "<leader>nN", "<cmd>ObsidianNew<cr>", desc = "New note", mode = "n" },
+      { "<leader>n/", "<cmd>ObsidianSearch<cr>", desc = "Search notes", mode = "n" },
+      { "<leader>nn", "<cmd>ObsidianQuickSwitch<cr>", desc = "Quick Switch", mode = "n" },
+      { "<leader>ng", "<cmd>ObsidiangollowLink<cr>", desc = "Follow Link", mode = "n" },
       { "<leader>nb", "<cmd>ObsidianBacklinks<cr>", desc = "Show location list of backlinks", mode = "n" },
       -- { "<leader>nt", "<cmd>ObsidianTemplate<cr>", desc = "Follow link under cursor", mode = "n" },
       { "<leader>ndt", "<cmd>ObsidianToday<cr>", desc = "Open todays note", mode = "n" },
@@ -30,6 +31,18 @@ return {
         local path = spec.dir / "+" / tostring(spec.id)
         return path:with_suffix(".md")
       end,
+      daily_notes = {
+        -- Optional, if you keep daily notes in a separate directory.
+        folder = "journal/daily",
+        -- Optional, if you want to change the date format for the ID of daily notes.
+        date_format = "%Y-%m-%d",
+        -- Optional, if you want to change the date format of the default alias of daily notes.
+        alias_format = nil,
+        -- Optional, default tags to add to each new daily note created.
+        default_tags = nil,
+        -- Optional, if you want to automatically insert a template from your template directory like 'daily.md'
+        template = nil,
+      },
       note_frontmatter_func = function(note)
         -- Add the title of the note as an alias.
         if note.title then
