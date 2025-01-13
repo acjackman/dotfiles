@@ -12,3 +12,6 @@
     type = "archive"
     url = "https://github.com/catppuccin/tmux/archive/fe0d245e1c971789d87ab80f492a20709af91c91.tar.gz"
     stripComponents = 1
+[".local./share/navi/cheats/denisidoro__cheats"]
+    type = "git-repo"
+    url = "https://github.com/denisidoro/cheats"

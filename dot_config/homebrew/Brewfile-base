@@ -66,7 +66,8 @@ brew "ripgrep"
 brew "the_silver_searcher"
 
 # Help
-brew "tldr"
+brew "tealdeer" # better tldr
+brew "navi"
 
 # Nicities
 brew "gum"
