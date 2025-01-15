@@ -14,8 +14,8 @@ views:
       - MEM/R:L
       - CPU
       - CPU/R:L
+      - NODE
       # - IP
-      # - NODE
 
   # # Alters the service view column layout
   # v1/services:
