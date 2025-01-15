@@ -23,6 +23,14 @@ matches:
           format: "%A"
 
   # Print the current date
+  - trigger: "dstc"
+    replace: "{{mydate}}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y%m%d"
+
   - trigger: "dstp"
     replace: "{{mydate}}"
     vars:
