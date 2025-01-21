@@ -1,0 +1,9 @@
+% github, pull-request
+
+# Create Pull request
+gh pr create
+
+% github, repo
+
+# Open repository website
+gh repo view --web
