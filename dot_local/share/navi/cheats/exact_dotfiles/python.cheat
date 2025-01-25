@@ -1,0 +1,4 @@
+% python, snippet
+
+# Embed IPython terminal for debugging
+from IPython import embed; embed()
