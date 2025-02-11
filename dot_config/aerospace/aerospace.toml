@@ -231,11 +231,11 @@ if.app-id = 'md.obsidian'
 run = 'move-node-to-workspace N'
 
 [[on-window-detected]]
-if.app-id = '	com.apple.Music'
+if.app-id = 'com.apple.Music'
 run = 'move-node-to-workspace M'
 
 [[on-window-detected]]
-if.app-id = '	com.apple.Slack'
+if.app-id = 'com.apple.Slack'
 run = 'move-node-to-workspace S'
 
 [workspace-to-monitor-force-assignment]
