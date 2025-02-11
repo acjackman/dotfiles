@@ -147,7 +147,7 @@ alt-t = 'workspace T'
 # alt-u = 'workspace U'
 # alt-v = 'workspace V'
 # alt-w = 'workspace W'
-# alt-x = 'workspace X'
+alt-x = 'workspace X'
 # alt-y = 'workspace Y'
 # alt-z = 'workspace Z'
 
@@ -180,7 +180,7 @@ alt-shift-t =['move-node-to-workspace T', 'workspace T']
 # alt-shift-u =['move-node-to-workspace U', 'workspace U']
 # alt-shift-v =['move-node-to-workspace V', 'workspace V']
 # alt-shift-w =['move-node-to-workspace W', 'workspace W']
-# alt-shift-x =['move-node-to-workspace X', 'workspace X']
+alt-shift-x =['move-node-to-workspace X', 'workspace X']
 # alt-shift-y =['move-node-to-workspace Y', 'workspace Y']
 # alt-shift-z =['move-node-to-workspace Z', 'workspace Z']
 
@@ -238,6 +238,11 @@ run = 'move-node-to-workspace M'
 if.app-id = 'com.apple.Slack'
 run = 'move-node-to-workspace S'
 
+[[on-window-detected]]
+if.app-id = 'com.linear'
+run = 'move-node-to-workspace X'
+
 [workspace-to-monitor-force-assignment]
 S = 1
 T = 'main'
+X = [3, '^built-in retina display$']
