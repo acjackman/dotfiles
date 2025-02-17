@@ -1,0 +1,4 @@
+% macos, dns
+
+# Flush DNS cache macOS 12
+sudo dscacheutil -flushcache; sudo killall -HUP mDNSResponder
