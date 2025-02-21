@@ -11,6 +11,7 @@ cask "backblaze"
 cask "iina"
 
 brew "dnscontrol"
+cask "cirrus"  # Debug icloud
 # cask "keybase"
 
 mas "Day One", id: 1055511498
