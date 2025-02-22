@@ -170,3 +170,4 @@ cask "stats"                               # Menubar stats
 brew "duti"                                # Set macOS default apps
 cask "marked"                              # Markdown Viewer
 cask "soulver"                             # Calculator
+cask "cleanshot"                           # Screanshots

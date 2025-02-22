@@ -21,11 +21,9 @@ mas "Drafts", id: 1435957248
 mas "Things 3", id: 904280696
 mas "Timery for Toggl", id: 1425368544
 mas "CARROT Weather", id: 993487541
-mas "TextSniper", id: 1528890965
 mas "Tailscale", id: 1475387142
 mas "Speedtest", id: 1153157709
 mas "Data Jar", id: 1453273600
-mas "OpenIn 4 Advanced Link Handler", id: 1643649331 # Customize Link opening
 mas "Shareful", id: 1522267256  # Make share menu useful
 mas "Service Station", id: 1503136033  # Clean up Services Menu
 mas "Peek", id: 1554235898  # Quicklook
