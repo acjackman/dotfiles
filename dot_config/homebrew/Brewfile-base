@@ -100,7 +100,8 @@ brew "jq"
 brew "noahgorstein/tap/jqp"
 brew "yq"
 brew "yj"
-cask "tad"  # CSV Viewer
+cask "tad"  # CSV + sqlite + duckdb viewer
+cask "modern-csv"  # CSV Viewer with dark mode
 
 # Shell
 brew "shfmt"
