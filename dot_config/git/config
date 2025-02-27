@@ -99,8 +99,18 @@
     prompt = false
 
 [diff]
+    algorithm = histogram
+    colorMoved = true
+    mnemonicPrefix = true
+    renames = true
     # tool = Kaleidoscope
     compactionHeuristic = true
+
+[merge]
+    conflictstyle = zdiff3
+
+[tag]
+    sort = version:refname
 
 [user]
     email = adam@acjackman.com
@@ -109,6 +119,7 @@
 [push]
     default = simple
     autoSetupRemote = true
+    followTags = true
 
 [filter "lfs"]
     required = true
@@ -117,8 +128,23 @@
     process = git-lfs filter-process
 [credential]
     helper = osxkeychain
+
+[fetch]
+    prune = true
+    pruneTags = true
+    all = true
+
 [pull]
     rebase = true
+
+[rebase]
+    autoSquash = true
+    autoStash = true
+    updateRefs = true
+
+[commit]
+    verbose = true
+
 [color]
     ui = true
 [color "diff-highlight"]
@@ -126,7 +152,6 @@
     oldHighlight = red bold 52
     newNormal = green bold
     newHighlight = green bold 22
-
 [color "diff"]
     meta = 11
     frag = magenta bold
