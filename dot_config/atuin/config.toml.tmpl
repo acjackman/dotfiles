@@ -1,0 +1,45 @@
+dialect = "us"
+
+# for darwin
+ctrl_n_shortcuts = true
+
+filter_mode_shell_up_key_binding = "directory"
+
+# exit_mode = "return-query"
+
+enter_accept = true
+
+common_subcommands = [
+  "apt",
+  "cargo",
+  "composer",
+  "dnf",
+  "docker",
+  "git",
+  "go",
+  "ip",
+  "kubectl",
+  "nix",
+  "nmcli",
+  "npm",
+  "pecl",
+  "pnpm",
+  "podman",
+  "port",
+  "systemctl",
+  "tmux",
+  "uv",
+  "yarn",
+]
+
+## Note that these regular expressions are unanchored, i.e. if they don't start
+## with ^ or end with $, they'll match anywhere in the command.
+history_filter = [
+  {{- .atuin_history_filter | quoteList | join ", " -}}
+]
+cwd_filter = [
+  {{- .atuin_cwd_filter | quoteList | join ", " -}}
+]
+
+[dotfiles]
+enabled = false

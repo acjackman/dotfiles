@@ -67,6 +67,9 @@ brew "the_silver_searcher"
 brew "tealdeer" # better tldr
 brew "navi"
 
+# History
+brew "atuin"
+
 # Nicities
 brew "gum"
 

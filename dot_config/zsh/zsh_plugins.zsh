@@ -1,6 +1,8 @@
 # -*- mode: sh -*-
 # plugin location: `~/.local/share/zinit/plugins`
 
+# Based on https://github.com/iloveitaly/dotfiles/tree/master
+
 ###########################
 # oh-my-zsh plugins
 ###########################
@@ -27,16 +29,18 @@ zinit wait lucid for \
 #   - fzf-tab: load order is important, must go last
 #   - forgit needs _git to be loaded in order for the additional src to work, which is why we zicompinit
 # TODO https://github.com/felipec/git-completion/issues/8
+# TODO: remove fzf history from key-bindings (overdone by atuin)
 # blockf ver"zinit-fixed" as"completion" nocompile mv'git-completion.zsh -> _git' iloveitaly/git-completion \
+# TODO  'https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh' \
 zinit wait lucid for \
   mafredri/zsh-async \
   zpm-zsh/zsh-better-npm-completion \
   'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh' \
-  'https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh' \
   atinit'zicompinit' atpull'zinit creinstall .' wfxr/forgit \
   blockf atpull'zinit creinstall  .' zsh-users/zsh-completions \
   RobSis/zsh-completion-generator \
   atload'_zsh_autosuggest_start' zsh-users/zsh-autosuggestions \
+  atuinsh/atuin \
   atinit"zicompinit; zicdreplay" zsh-users/zsh-syntax-highlighting \
   Aloxaf/fzf-tab \
   iloveitaly/zsh-github-cli \

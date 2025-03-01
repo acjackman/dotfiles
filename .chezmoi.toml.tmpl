@@ -8,6 +8,8 @@
     set_hostname = {{ $setHostname }}
     email    = {{ $email | quote }}
     default_browser = {{ $default_browser | quote }}
+    atuin_history_filter = {{with  $filter := .atuin_history_filter}}{{$filter | toToml}}{{else}}[]{{end}}
+    atuin_cwd_filter = {{with $filter := .atuin_cwd_filter}}{{$filter | toToml}}{{else}}[]{{end}}
 
 [hooks.read-source-state.pre]
     command = ".local/share/chezmoi/.install-password-manager.sh"

@@ -196,6 +196,9 @@ export ZSH_PLUGINS_ALIAS_TIPS_EXCLUDES="g e"
 export ZSH_PLUGINS_ALIAS_TIPS_REVEAL=0
 export ZSH_PLUGINS_ALIAS_TIPS_REVEAL_TEXT="Long version: "
 
+# zsh-autosuggestions via atuin
+ZSH_AUTOSUGGEST_STRATEGY=("atuin")
+
 # https://til.hashrocket.com/posts/7evpdebn8g-remove-duplicates-in-zsh-path
 typeset -U path
 
@@ -213,6 +216,11 @@ export NOTI_DEFAULT="slack"
 # navi
 # =======================================
 eval "$(navi widget zsh)"
+
+# =======================================
+# atuin shell history
+# =======================================
+eval "$(atuin init zsh)"
 
 # =======================================
 # zsh-autosuggest & bracketed-paste-magic
