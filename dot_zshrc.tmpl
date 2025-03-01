@@ -181,6 +181,12 @@ autoload -U edit-command-line
 zle -N edit-command-line
 bindkey '^X^E' edit-command-line
 
+# save current command in buffer & restore after next command is run
+# https://unix.stackexchange.com/a/74381
+autoload -U push-input
+# not sure why, but ^S is not getting passed to the terminal
+bindkey '^X^P' push-input
+
 # ===========
 # Misc Config
 # ===========
