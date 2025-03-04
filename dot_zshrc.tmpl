@@ -171,6 +171,9 @@ load_funcs "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions"
 load_funcs "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions_local"
 unset -f load_funcs
 
+# Place any completions here
+fpath+="${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/completions"
+
 source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/zsh_plugins.zsh"
 
 # ===========
