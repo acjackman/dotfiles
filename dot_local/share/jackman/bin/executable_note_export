@@ -1,0 +1,34 @@
+#!/usr/bin/env -S uv run --script
+
+# /// script
+# dependencies = [
+#   "python-frontmatter",
+#   "typer"
+# ]
+# ///
+
+import re
+from pathlib import Path
+
+import frontmatter
+import typer
+
+app = typer.Typer()
+
+
+@app.command()
+def convert(path: Path):
+    post = frontmatter.load(path)
+
+    content = post.content
+    content = re.sub("\[(?:\[|\[[^\]]*\|)([^\]\|]+)\]\]", r"\1", content)
+    content = re.sub("## Notes", "", content)
+    content = re.sub("^# ", "## ", content)
+    # content = re.sub("^[]# ", "", content)
+    content = re.sub(r"^\s*-\s*\n", "", content, flags=re.MULTILINE)
+    content = re.sub(r"\n\s*\n", "\n\n", content)
+    print(content)
+
+
+if __name__ == "__main__":
+    app()
