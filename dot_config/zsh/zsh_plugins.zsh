@@ -23,6 +23,8 @@ zinit wait lucid for \
 # similar to copycat, but using the native search so it's fast (https://github.com/tmux-plugins/tmux-copycat/tree/master)
 ###########################
 
+export ZVM_INIT_MODE=sourcing
+
 # zicompinit runs `compinit` to generate completions
 # important to load suggestions *after* zsh-completions
 #   - fzf/key-bindings: sets up reverse-i via fzf
