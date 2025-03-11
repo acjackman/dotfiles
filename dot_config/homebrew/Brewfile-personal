@@ -1,5 +1,8 @@
 # -*- mode: ruby; -*- vim: set ft=ruby;
 
+cask "fantastical"
+cask "cardhop"
+
 brew "fastfetch"
 
 cask "maestral"

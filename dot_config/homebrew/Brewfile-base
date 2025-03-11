@@ -142,8 +142,6 @@ brew "pandoc"
 cask "slack"
 cask "1password"
 cask "1password-cli"
-cask "fantastical"
-cask "cardhop"
 
 # Doucmentation
 cask "dash" # Offline Documentation
