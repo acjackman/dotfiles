@@ -1,0 +1,4 @@
+% dateutils, timezone
+
+# Print timezone
+datezone UTC America/Los_Angeles America/Phoenix America/Boise America/Chicago America/New_York now

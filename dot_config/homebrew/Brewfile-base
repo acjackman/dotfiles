@@ -52,6 +52,7 @@ cask "ghostty"
 # *Nix utitlites
 brew "coreutils"
 brew "rsync"
+brew "dateutils"
 brew "eza"         # Better ls
 brew "bat"         # Better cat
 brew "tre-command" # Better tree
