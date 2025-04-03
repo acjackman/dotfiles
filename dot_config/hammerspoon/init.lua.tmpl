@@ -33,6 +33,7 @@ ctrl_cmd_shift = { "cmd", "ctrl", "shift" }
 -- -- WikiApp = appID('~/Applications/Epichrome SSBs/Wiki.app')
 -- OpsGenieApp = WorkBrowser
 
+editor = "Ghostty"
 terminal = "Ghostty"
 browser = "{{ .default_browser }}"
 
@@ -223,6 +224,24 @@ for _, app in ipairs(singleapps) do
     launch(app[2])
   end)
 end
+
+hs.loadSpoon("Rcmd")
+  :bindHotkeys({
+    s = "Slack",
+    d = "Drafts",
+    r = browser,
+    f = "Finder",
+    t = terminal,
+    e = editor,
+    n = function()
+      os.execute('open "obsidian://daily?vault=notes"')
+    end,
+
+    h = function()
+      hs.application.frontmostApplication():hide()
+    end,
+  })
+  :start()
 
 -- function terminalHyper()
 --   local app = hs.application.frontmostApplication()

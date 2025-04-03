@@ -15,3 +15,6 @@
 [".local./share/navi/cheats/denisidoro__cheats"]
     type = "git-repo"
     url = "https://github.com/denisidoro/cheats"
+[".config/hammerspoon/Spoons/Rcmd.spoon"]
+    type = "git-repo"
+    url = "https://github.com/gnudad/Rcmd.spoon.git"
