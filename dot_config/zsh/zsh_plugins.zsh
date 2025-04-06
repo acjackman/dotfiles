@@ -78,7 +78,7 @@ zinit light romkatv/powerlevel10k
 
 # avoid loading the builtin git completions
 # https://mikebian.co/git-completions-tooling-on-the-command-line/
-rm $(brew --prefix)/share/zsh/site-functions/_git 2> /dev/null
+rm ${HOMEBREW_PREFIX}/share/zsh/site-functions/_git 2> /dev/null
 
 # function don't get completions by default, aliases need to be manually assigned
 # zicompdef fdd=fd
