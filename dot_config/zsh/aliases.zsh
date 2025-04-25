@@ -38,7 +38,7 @@ alias gitsweep="git branch --merged | egrep -v '(^\*|master|dev.*|stg|prod|devel
 alias git-hew-wip="git branch | sed '/^\*/d' | sed '/^\+/d' | xargs git branch -D"
 
 alias ,gwa="git worktree add"
-alias ,gwrm='g w remove $(pwd) && cd $(dirname $(g home))'
+alias ,gwrm='cd $(g home) && g w remove $(pwd) && cd $(dirname $(pwd))'
 
 # github
 alias ,opr="gh pr view --web"
