@@ -1,6 +1,6 @@
 # -*- mode: zsh -*- vim: ft=zsh
 
-# jj - cd to an fzf-selected directory
+# ,j - cd to an fzf-selected directory
 
 local dir
 dir=$(find ${1:-.} -path '*/\.*' -prune \
