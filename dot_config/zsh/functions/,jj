@@ -1,5 +1,7 @@
 # -*- mode: zsh -*- vim: ft=zsh
 
+# ,j - cd to an fzf-selected directory
+
 local FZF_DEFAULT_COMMAND
 # is path provided
 if [[ "$1" != "" && -d $1 ]]
