@@ -22,7 +22,7 @@ require("lazy").setup({
     -- { import = "lazyvim.plugins.extras.ui.mini-animate" },
     { import = "lazyvim.plugins.extras.coding.blink" },
     { import = "lazyvim.plugins.extras.util.chezmoi" },
-    { import = "lazyvim.plugins.extras.util.rest" },
+    -- { import = "lazyvim.plugins.extras.util.rest" },
     -- import/override with your plugins
     { import = "plugins" },
   },
