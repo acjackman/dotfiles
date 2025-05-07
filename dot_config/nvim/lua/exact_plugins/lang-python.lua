@@ -2,7 +2,7 @@ local lsp = vim.g.lazyvim_python_lsp or "ruff_lsp"
 
 return {
   {
-    "williamboman/mason.nvim",
+    "mason-org/mason.nvim",
     opts = function(_, opts)
       table.insert(opts.ensure_installed, "ruff")
     end,
