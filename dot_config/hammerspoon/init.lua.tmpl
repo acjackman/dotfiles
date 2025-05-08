@@ -225,23 +225,23 @@ for _, app in ipairs(singleapps) do
   end)
 end
 
-hs.loadSpoon("Rcmd")
-  :bindHotkeys({
-    s = "Slack",
-    d = "Drafts",
-    r = browser,
-    f = "Finder",
-    t = terminal,
-    e = editor,
-    n = function()
-      os.execute('open "obsidian://daily?vault=notes"')
-    end,
-
-    h = function()
-      hs.application.frontmostApplication():hide()
-    end,
-  })
-  :start()
+-- hs.loadSpoon("Rcmd")
+--   :bindHotkeys({
+--     s = "Slack",
+--     d = "Drafts",
+--     r = browser,
+--     f = "Finder",
+--     t = terminal,
+--     e = editor,
+--     n = function()
+--       os.execute('open "obsidian://daily?vault=notes"')
+--     end,
+--
+--     h = function()
+--       hs.application.frontmostApplication():hide()
+--     end,
+--   })
+--   :start()
 
 -- function terminalHyper()
 --   local app = hs.application.frontmostApplication()
@@ -271,7 +271,6 @@ local keyMap = {
     spoon.WheelOfSeasons:shiftWallpapers()
   end,
   [singleKey("o", "open+")] = {
-    [singleKey("o", "omnifocus")] = launch_app("OmniFocus"),
     [singleKey("l", "linear")] = launch_app("Linear"),
     [singleKey("e", "emacs")] = launch_app("Emacs"),
     [singleKey("s", "slack")] = launch_app("Slack"),
