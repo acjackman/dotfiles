@@ -162,18 +162,11 @@
 
 [init]
     defaultBranch = main
-
-[includeIf "gitdir:~/dev/fulcrum/"]
-    path = ~/.config/git/config-fulcrum
-
-[includeIf "gitdir:~/dev/moov/"]
-    path = ~/.config/git/config-moov
-
-[includeIf "gitdir:~/github.com/moovfinancial/"]
-    path = ~/.config/git/config-moov
-
-[includeIf "gitdir:~/github.com/moov-io/"]
-    path = ~/.config/git/config-moov
+{{ $git_identities := joinPath .chezmoi.homeDir ".config/git/identities.toml" }}
+{{- if stat $git_identities }}{{- range $identity := (fromToml (include $git_identities )).identity }}{{- range $path := $identity.paths }}
+[includeIf "gitdir:{{$path}}"]
+    path = {{ $identity.config }}
+{{- end }}{{- end }}{{- end }}
 
 [hub]
     protocol = ssh
