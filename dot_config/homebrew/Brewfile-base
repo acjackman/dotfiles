@@ -163,6 +163,7 @@ cask "linearmouse"                         # Trackpad natural, mouseweel normal 
 cask "raycast"                             # Launcher
 cask "espanso"                             # Text expansion
 cask "homerow"                            # keyboard driven clicks
+cask "leader-key"                          # Leader Key
 
 # Style
 cask "jordanbaird-ice"                     # Hide menubar items
