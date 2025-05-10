@@ -42,7 +42,15 @@ key-mapping.preset = 'qwerty'
 # Drop it from your config, if you don't like this behavior
 # See https://nikitabobko.github.io/AeroSpace/guide#on-focus-changed-callbacks
 # See https://nikitabobko.github.io/AeroSpace/commands#move-mouse
-on-focus-changed = ['move-mouse window-lazy-center'] # Mouse lazily follows any focus (window or workspace)
+on-focus-changed = [
+  'move-mouse window-lazy-center', # Mouse lazily follows any focus (window or workspace)
+  'exec-and-forget sketchybar --trigger aerospace_focus_change'
+]
+
+exec-on-workspace-change = [
+  '/bin/dash', '-c',
+  'sketchybar --trigger aerospace_workspace_change FOCUSED=$AEROSPACE_FOCUSED_WORKSPACE PREV_FOCUSED=$AEROSPACE_PREV_WORKSPACE'
+]
 
 # Gaps between windows (inner-*) and between monitor edges (outer-*).
 # Possible values:
@@ -56,7 +64,7 @@ inner.horizontal = 10
 inner.vertical =   10
 outer.left =       10
 outer.bottom =     10
-outer.top =        10
+outer.top =        [{monitor."^built-in retina display$" = 10}, 50]
 outer.right =      10
 
 # 'main' binding mode declaration
@@ -87,6 +95,10 @@ outer.right =      10
 #     activate
 # end tell'
 # '''
+
+# Disable hide
+# cmd-h = [] # Disable "hide application"
+# cmd-alt-h = [] # Disable "hide others"
 
 # See: https://nikitabobko.github.io/AeroSpace/commands#layout
 alt-slash = 'layout tiles horizontal vertical'
