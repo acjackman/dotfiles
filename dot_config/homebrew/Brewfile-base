@@ -8,6 +8,7 @@ tap "goreleaser/tap"
 tap "homebrew/bundle"
 tap "noahgorstein/tap"
 tap "ttscoff/thelab"
+tap "FelixKratz/formulae"
 
 ######################################
 # Installers
@@ -25,6 +26,9 @@ brew "rust" # nvim mason dependency
 ######################################
 # Fonts
 ######################################
+cask "sf-symbols"
+cask "font-hack-nerd-font"
+cask "font-sketchybar-app-font"
 cask "font-fira-code-nerd-font"
 cask "font-iosevka-term-nerd-font"
 cask "font-iosevka-term-slab-nerd-font"
@@ -162,10 +166,11 @@ cask "hammerspoon"                         # Automation
 cask "linearmouse"                         # Trackpad natural, mouseweel normal scroll
 cask "raycast"                             # Launcher
 cask "espanso"                             # Text expansion
-cask "homerow"                            # keyboard driven clicks
+cask "homerow"                             # keyboard driven clicks
 cask "leader-key"                          # Leader Key
 
 # Style
+brew "FelixKratz/formulae/sketchybar"      # Custom Menu bar
 cask "jordanbaird-ice"                     # Hide menubar items
 cask "stats"                               # Menubar stats
 # cask "hpedrorodrigues/tools/dockutil"    # Control dock positions
