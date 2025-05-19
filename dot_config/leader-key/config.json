@@ -1,80 +1,80 @@
 {
-  "actions" : [
+  "actions": [
     {
-      "key" : "t",
-      "label" : "",
-      "type" : "application",
-      "value" : "/Applications/Ghostty.app"
+      "key": "t",
+      "label": "",
+      "type": "application",
+      "value": "/Applications/Ghostty.app"
     },
     {
-      "actions" : [
+      "actions": [
         {
-          "key" : "s",
-          "label" : "",
-          "type" : "application",
-          "value" : "/Applications/Safari.app"
+          "key": "s",
+          "label": "",
+          "type": "application",
+          "value": "/Applications/Safari.app"
         },
         {
-          "key" : "e",
-          "label" : "",
-          "type" : "application",
-          "value" : "/Applications/Mail.app"
+          "key": "e",
+          "label": "",
+          "type": "application",
+          "value": "/Applications/Mail.app"
         },
         {
-          "key" : "i",
-          "label" : "",
-          "type" : "application",
-          "value" : "/System/Applications/Music.app"
+          "key": "i",
+          "label": "",
+          "type": "application",
+          "value": "/System/Applications/Music.app"
         },
         {
-          "key" : "m",
-          "label" : "",
-          "type" : "application",
-          "value" : "/Applications/Messages.app"
+          "key": "m",
+          "label": "",
+          "type": "application",
+          "value": "/Applications/Messages.app"
         }
       ],
-      "key" : "o",
-      "label" : "",
-      "type" : "group"
+      "key": "o",
+      "label": "",
+      "type": "group"
     },
     {
-      "actions" : [
+      "actions": [
         {
-          "key" : "e",
-          "label" : "",
-          "type" : "url",
-          "value" : "raycast://extensions/raycast/emoji-symbols/search-emoji-symbols"
+          "key": "e",
+          "label": "",
+          "type": "url",
+          "value": "raycast://extensions/raycast/emoji-symbols/search-emoji-symbols"
         },
         {
-          "key" : "p",
-          "label" : "",
-          "type" : "url",
-          "value" : "raycast://confetti"
+          "key": "p",
+          "label": "",
+          "type": "url",
+          "value": "raycast://confetti"
         },
         {
-          "key" : "c",
-          "label" : "",
-          "type" : "url",
-          "value" : "raycast://extensions/raycast/system/open-camera"
+          "key": "c",
+          "label": "",
+          "type": "url",
+          "value": "raycast://extensions/raycast/system/open-camera"
         }
       ],
-      "key" : "r",
-      "label" : "",
-      "type" : "group"
+      "key": "r",
+      "label": "",
+      "type": "group"
     },
     {
-      "actions" : [
+      "actions": [
         {
-          "key" : "n",
-          "label" : "Notes",
-          "type" : "url",
-          "value" : "obsidian://daily?vault=notes"
+          "key": "n",
+          "label": "Notes",
+          "type": "url",
+          "value": "obsidian://daily?vault=notes"
         }
       ],
-      "key" : "n",
-      "label" : null,
-      "type" : "group"
+      "key": "n",
+      "label": null,
+      "type": "group"
     }
   ],
-  "type" : "group"
+  "type": "group"
 }
