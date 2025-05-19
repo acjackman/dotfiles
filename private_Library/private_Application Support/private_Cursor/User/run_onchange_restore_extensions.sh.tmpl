@@ -1,0 +1,6 @@
+#!/bin/sh
+
+# Checksum {{ include "data/cursor/extensions.txt" | sha256sum }}
+if command -v cursor >/dev/null 2>&1; then
+    cat "{{.chezmoi.sourceDir}}/data/cursor/extensions.txt" | xargs -L 1 cursor --install-extension
+fi 

@@ -1,0 +1,18 @@
+{
+    "window.commandCenter": 1,
+    "git.confirmSync": false,
+    "extensions.experimental.affinity": {
+        "asvetliakov.vscode-neovim": 1
+    },
+    "editor.accessibilitySupport": "off",
+    "files.exclude": {
+        "**/__pycache__": true,
+        "**/.pytest_cache": true,
+        "**/.ruff_cache": true,
+        "**/.venv": true
+    },
+    "editor.fontFamily": " JetBrainsMono Nerd Font, Menlo, Monaco, 'Courier New', monospace",
+    "files.autoSave": "onFocusChange",
+    "files.insertFinalNewline": true,
+    "files.trimFinalNewlines": true
+}

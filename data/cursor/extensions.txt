@@ -1,0 +1,5 @@
+asvetliakov.vscode-neovim
+ms-python.debugpy
+ms-python.python
+ms-python.vscode-pylance
+ms-vscode.makefile-tools
