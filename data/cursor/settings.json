@@ -16,5 +16,7 @@
     "files.autoSave": "onFocusChange",
     "files.insertFinalNewline": true,
     "files.trimFinalNewlines": true,
-    "explorer.autoReveal": false
+    "explorer.autoReveal": false,
+    "explorer.confirmDragAndDrop": false,
+    "lazygit-vscode.autoMaximizeWindow": true
 }
