@@ -1,7 +1,10 @@
+git:
+  autoFetch: false # Disable automatic fetch to prevent 1Password calls
+
 os:
-  edit: 'cursor {{filename}}'
-  editAtLine: 'cursor --line={{line}} {{filename}}'
-  editAtLineAndWait: 'cursor --block --line={{line}} {{filename}}'
+  edit: "cursor {{filename}}"
+  editAtLine: "cursor --line={{line}} {{filename}}"
+  editAtLineAndWait: "cursor --block --line={{line}} {{filename}}"
   editInTerminal: false
-  openDirInEditor: 'cursor {{dir}}'
+  openDirInEditor: "cursor {{dir}}"
 promptToReturnFromSubprocess: false
