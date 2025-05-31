@@ -18,5 +18,6 @@
     "files.trimFinalNewlines": true,
     "explorer.autoReveal": false,
     "explorer.confirmDragAndDrop": false,
-    "lazygit-vscode.autoMaximizeWindow": true
+    "lazygit-vscode.autoMaximizeWindow": true,
+    "editor.formatOnSave": true
 }
