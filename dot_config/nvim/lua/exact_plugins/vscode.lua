@@ -1,6 +1,6 @@
 if not vim.g.vscode then
-    return {}
-  end
+  return {}
+end
 
 vim.api.nvim_create_autocmd("User", {
   pattern = "LazyVimKeymapsDefaults",
@@ -27,3 +27,5 @@ vim.api.nvim_create_autocmd("User", {
     vim.keymap.set("n", "<leader>gg", [[<cmd>lua require('vscode').action('lazygit-vscode.toggle')<cr>]])
   end,
 })
+
+return {}
