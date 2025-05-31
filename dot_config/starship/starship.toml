@@ -1,0 +1,93 @@
+# Get editor completions based on the config schema
+"$schema" = 'https://starship.rs/config-schema.json'
+
+palette = "catppuccin_mocha"
+format = "$directory $cmd_duration $fill $all"
+
+# move the rest of the prompt to the right
+right_format = """$git_branch $git_status"""
+
+# Inserts a blank line between shell prompts
+add_newline = false
+
+continuation_prompt = '▶▶ '
+
+[character]
+error_symbol = "[❯](fg:red)"
+success_symbol = "[❯](fg:green)"
+vicmd_symbol = "[❯](fg:subtext1)"
+
+[shlvl]
+disabled = false
+format = '[$symbol$shlvl]($style)'
+repeat = true
+symbol = '❯'
+repeat_offset = 1
+threshold = 0
+
+# Disable the package module, hiding it from the prompt completely
+[package]
+disabled = true
+
+[line_break]
+disabled = false
+
+[directory]
+format = "[$path]($style)[$read_only]($read_only_style)"
+style = "bold lavender"
+truncation_length = 5
+truncation_symbol = "…/"
+truncate_to_repo = true
+
+[git_branch]
+format = "[$branch(:$remote_branch)]($style)"
+symbol = ""
+
+[git_status]
+format="$conflicted$stashed$staged$renamed$deleted$modified$untracked"
+conflicted = '='
+ahead = '[⇡$count]() '
+behind = '[⇣$count] '
+diverged = '[⇡$count] [⇣$count] '
+up_to_date = ''
+untracked = '[?$count](blue) '
+stashed = '[*$count](subtext0) '
+modified = '[!$count](peach) '
+staged = '[+$count](green) '
+renamed = '[»$count](green) '
+deleted = '[✘$count](green) '
+
+[fill]
+symbol = " "
+
+[cmd_duration]
+min_time = 500
+format = '[$duration](bold yellow)'
+
+[palettes.catppuccin_mocha]
+rosewater = "#f5e0dc"
+flamingo = "#f2cdcd"
+pink = "#f5c2e7"
+mauve = "#cba6f7"
+red = "#f38ba8"
+maroon = "#eba0ac"
+peach = "#fab387"
+yellow = "#f9e2af"
+green = "#a6e3a1"
+teal = "#94e2d5"
+sky = "#89dceb"
+sapphire = "#74c7ec"
+blue = "#89b4fa"
+lavender = "#b4befe"
+text = "#cdd6f4"
+subtext1 = "#bac2de"
+subtext0 = "#a6adc8"
+overlay2 = "#9399b2"
+overlay1 = "#7f849c"
+overlay0 = "#6c7086"
+surface2 = "#585b70"
+surface1 = "#45475a"
+surface0 = "#313244"
+base = "#1e1e2e"
+mantle = "#181825"
+crust = "#11111b"

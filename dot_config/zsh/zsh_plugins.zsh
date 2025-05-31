@@ -72,9 +72,12 @@ zinit wait'2' lucid for \
   OMZ::plugins/universalarchive
 
 # must load last
-zinit ice depth=1
-zinit light romkatv/powerlevel10k
-[[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+# zinit ice depth=1
+# zinit light romkatv/powerlevel10k
+# [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+
+zinit ice from"gh-r" as"command" atload'export STARSHIP_CONFIG=$XDG_CONFIG_HOME/starship/starship.toml' atload'eval "$(starship init zsh)"'
+zinit load starship/starship
 
 # avoid loading the builtin git completions
 # https://mikebian.co/git-completions-tooling-on-the-command-line/
@@ -83,3 +86,5 @@ rm ${HOMEBREW_PREFIX}/share/zsh/site-functions/_git 2> /dev/null
 # function don't get completions by default, aliases need to be manually assigned
 # zicompdef fdd=fd
 # zicompdef rgg=rg
+
+unalias zi
