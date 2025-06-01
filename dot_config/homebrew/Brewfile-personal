@@ -10,6 +10,7 @@ cask "maestral"
 cask "discord"
 cask "devonthink"
 
+cask "daisydisk"
 cask "backblaze"
 cask "iina"
 
@@ -32,7 +33,6 @@ mas "Service Station", id: 1503136033  # Clean up Services Menu
 mas "Peek", id: 1554235898  # Quicklook
 mas "Amphetamine", id: 937984704
 mas "Streaks", id: 963034692
-mas "DaisyDisk", id: 411643860
 
 # Safari Extensions
 mas "1Password for Safari", id: 1569813296
