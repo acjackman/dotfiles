@@ -218,6 +218,8 @@ alt-shift-j = ['join-with down', 'mode main']
 alt-shift-k = ['join-with up', 'mode main']
 alt-shift-l = ['join-with right', 'mode main']
 
+# Find app-id with `aerospace list-apps`
+
 [[on-window-detected]]
 if.app-id = 'com.apple.Terminal'
 run = 'move-node-to-workspace T'
@@ -239,6 +241,10 @@ if.app-id = 'com.mitchellh.ghostty'
 run = 'move-node-to-workspace T'
 
 [[on-window-detected]]
+if.app-name-regex-substring = "^Cursor$"
+run = 'move-node-to-workspace E'
+
+[[on-window-detected]]
 if.app-id = 'md.obsidian'
 run = 'move-node-to-workspace N'
 
@@ -251,8 +257,32 @@ if.app-id = 'com.apple.Slack'
 run = 'move-node-to-workspace S'
 
 [[on-window-detected]]
+if.app-id = 'me.easygit.EasyGit'
+run = ['layout floating', 'move-node-to-workspace X']
+
+[[on-window-detected]]
 if.app-id = 'com.linear'
 run = 'move-node-to-workspace X'
+
+[[on-window-detected]]
+if.app-id = 'com.apple.finder'
+run = 'move-node-to-workspace F'
+
+[[on-window-detected]]
+if.app-id = 'com.devon-technologies.think3'
+run = 'move-node-to-workspace F'
+
+[[on-window-detected]]
+if.app-id = 'com.devon-technologies.think3'
+run = 'move-node-to-workspace F'
+
+[[on-window-detected]]
+if.app-name-regex-substring = "^Slack$"
+run = 'move-node-to-workspace S'
+
+[[on-window-detected]]
+if.app-id = "com.hnc.Discord"
+run = 'move-node-to-workspace S'
 
 [workspace-to-monitor-force-assignment]
 S = 1
