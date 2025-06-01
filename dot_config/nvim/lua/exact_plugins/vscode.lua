@@ -25,6 +25,12 @@ vim.api.nvim_create_autocmd("User", {
   callback = function()
     -- see https://github.com/tom-pollak/lazygit-vscode
     vim.keymap.set("n", "<leader>gg", [[<cmd>lua require('vscode').action('lazygit-vscode.toggle')<cr>]])
+    vim.keymap.set("n", "<leader>sc", [[<cmd>lua require('vscode').action('workbench.action.showCommands')<cr>]])
+    vim.keymap.set(
+      "n",
+      "-",
+      [[<cmd>lua require('vscode').action('workbench.files.action.showActiveFileInExplorer')<cr>]]
+    )
   end,
 })
 
