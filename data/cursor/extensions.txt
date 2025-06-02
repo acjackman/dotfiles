@@ -1,6 +1,10 @@
 asvetliakov.vscode-neovim
+charliermarsh.ruff
+ibm.output-colorizer
+mquandalle.graphql
 ms-python.debugpy
 ms-python.python
 ms-python.vscode-pylance
 ms-vscode.makefile-tools
+tamasfe.even-better-toml
 tompollak.lazygit-vscode
