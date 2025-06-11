@@ -1,5 +1,6 @@
 asvetliakov.vscode-neovim
 charliermarsh.ruff
+editorconfig.editorconfig
 ibm.output-colorizer
 mquandalle.graphql
 ms-python.debugpy
