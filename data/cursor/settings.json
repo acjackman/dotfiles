@@ -19,5 +19,6 @@
     "explorer.autoReveal": false,
     "explorer.confirmDragAndDrop": false,
     "lazygit-vscode.autoMaximizeWindow": true,
-    "editor.formatOnSave": true
+    "editor.formatOnSave": true,
+    "go.toolsManagement.autoUpdate": true
 }
