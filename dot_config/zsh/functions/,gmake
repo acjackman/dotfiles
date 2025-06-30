@@ -1,0 +1,5 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+pushd $(git rev-parse --show-toplevel) >/dev/null
+make $@
+popd >/dev/null
