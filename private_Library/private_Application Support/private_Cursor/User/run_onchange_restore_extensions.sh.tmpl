@@ -1,6 +1,16 @@
 #!/bin/sh
 
+function show-header() {
+  command -v gum &>/dev/null
+  if [ $? -eq 0 ]; then
+    gum style --border=double --align=left --padding "0 2" --width=75 $@
+  else
+    echo $@
+  fi
+}
+
 # Checksum {{ include "data/cursor/extensions.txt" | sha256sum }}
 if command -v cursor >/dev/null 2>&1; then
-    cat "{{.chezmoi.sourceDir}}/data/cursor/extensions.txt" | xargs -L 1 cursor --install-extension
-fi 
+  show-header Cursor Extensions
+  cat "{{.chezmoi.sourceDir}}/data/cursor/extensions.txt" | xargs -L 1 cursor --install-extension
+fi
