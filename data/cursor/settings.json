@@ -1,24 +1,64 @@
 {
-    "window.commandCenter": 1,
-    "git.confirmSync": false,
-    "extensions.experimental.affinity": {
-        "asvetliakov.vscode-neovim": 1
+  "window.commandCenter": 1,
+  "git.confirmSync": false,
+  "extensions.experimental.affinity": {
+    "asvetliakov.vscode-neovim": 1
+  },
+  "lazygit-vscode.configPath": "~/.config/lazygit/cursor.yml",
+  "editor.accessibilitySupport": "off",
+  "files.exclude": {
+    "**/__pycache__": true,
+    "**/.pytest_cache": true,
+    "**/.ruff_cache": true,
+    "**/.venv": true
+  },
+  "editor.fontFamily": " JetBrainsMono Nerd Font, Menlo, Monaco, 'Courier New', monospace",
+  "files.autoSave": "onFocusChange",
+  "files.insertFinalNewline": true,
+  "files.trimFinalNewlines": true,
+  "explorer.autoReveal": false,
+  "explorer.confirmDragAndDrop": false,
+  "lazygit-vscode.autoMaximizeWindow": true,
+  "editor.formatOnSave": true,
+  "go.toolsManagement.autoUpdate": true,
+  "terminal.integrated.profiles.osx": {
+    "bash": {
+      "path": "bash",
+      "args": [
+        "-l"
+      ],
+      "icon": "terminal-bash"
     },
-    "lazygit-vscode.configPath": "~/.config/lazygit/cursor.yml",
-    "editor.accessibilitySupport": "off",
-    "files.exclude": {
-        "**/__pycache__": true,
-        "**/.pytest_cache": true,
-        "**/.ruff_cache": true,
-        "**/.venv": true
+    "zsh": {
+      "path": "zsh",
+      "args": [
+        "-l"
+      ]
     },
-    "editor.fontFamily": " JetBrainsMono Nerd Font, Menlo, Monaco, 'Courier New', monospace",
-    "files.autoSave": "onFocusChange",
-    "files.insertFinalNewline": true,
-    "files.trimFinalNewlines": true,
-    "explorer.autoReveal": false,
-    "explorer.confirmDragAndDrop": false,
-    "lazygit-vscode.autoMaximizeWindow": true,
-    "editor.formatOnSave": true,
-    "go.toolsManagement.autoUpdate": true
+    "fish": {
+      "path": "fish",
+      "args": [
+        "-l"
+      ]
+    },
+    "tmux": {
+      "path": "tmux",
+      "icon": "terminal-tmux"
+    },
+    "pwsh": {
+      "path": "pwsh",
+      "icon": "terminal-powershell"
+    },
+    "sh": {
+      "path": "/bin/sh"
+    }
+  },
+  "terminal.integrated.defaultProfile.osx": "zsh",
+  "cursor.cpp.disabledLanguages": [
+    "markdown",
+    "plaintext",
+    "taskpaper",
+    "todo"
+  ],
+  "explorer.confirmDelete": false
 }

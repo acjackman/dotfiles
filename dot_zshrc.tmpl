@@ -1,6 +1,82 @@
 # Based on https://github.com/iloveitaly/dotfiles/tree/master
 
 # =============
+# PATH
+# =============
+
+# Homebrew
+for brew_path in "/opt/homebrew/bin/brew" "/usr/local/bin/brew"; do
+  if [[ -x "$brew_path" ]]; then
+    eval "$($brew_path shellenv)"
+    break
+  fi
+done
+# See https://docs.brew.sh/Manpage#environment
+export HOMEBREW_NO_ENV_HINTS=1
+export HOMEBREW_NO_AUTO_UPDATE=1
+export HOMEBREW_BUNDLE_FILE_GLOBAL="${XDG_CONFIG_HOME:-${HOME}/.config}/homebrew/Brewfile-machine"
+
+# avoid installation via brew, this is not a supported installation method and breaks
+# some directory structure assumptions that exist across the plugin ecosystem.
+ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
+[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
+[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+source "${ZINIT_HOME}/zinit.zsh"
+
+# Golang
+export GOROOT="$(brew --prefix golang)/libexec"
+export GOPATH="$HOME/.local/go"
+export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin"
+
+# Rust
+export PATH="$PATH:$HOME/.cargo/bin"
+
+# Python
+# if ! command -v python &> /dev/null
+# then
+#   export PATH="$PATH:$(brew --prefix python)/libexec/bin"
+# fi
+
+# Scripts
+export PATH="$PATH:$HOME/.local/bin" # pipx and other things put stuff here
+export PATH="$PATH:$HOME/.local/share/jackman/bin" # personal scripts
+[ -d "$HOME/.dotfiles-local/bin" ] && export PATH="$PATH:$HOME/.dotfiles-local/bin"
+export PATH="$PATH:$HOME/.config/emacs/bin" # doom emacs
+
+# Mise for pinned binaries, direnv, and tasks
+zinit as="command" lucid from="gh-r" for \
+    id-as="usage" \
+    atpull="%atclone" \
+    jdx/usage
+    #atload='eval "$(mise activate zsh)"' \
+
+zinit as="command" lucid from="gh-r" for \
+    id-as="mise" mv="mise* -> mise" \
+    atclone="./mise* completion zsh > _mise" \
+    atpull="%atclone" \
+    atload='eval "$(mise activate zsh)"' \
+    jdx/mise
+
+# =============
+# App Settings
+# =============
+
+export HOMEBREW_GITHUB_API_TOKEN='{{ onepasswordRead "op://Private/Github/homebrew_pat" "jackman.1password.com" }}'
+
+export SPACECTL_SKIP_STACK_PROMPT='true'
+
+export NOTI_DEFAULT="slack"
+
+# =============
+# Agent early return
+# =============
+
+# Skip zsh config for agent mode
+if [[ "$PAGER" == "head -n 10000 | cat" || "$COMPOSER_NO_INTERACTION" == "1" ]]; then
+  return
+fi
+
+# =============
 # Completion
 # =============
 
@@ -87,64 +163,16 @@ export MANPAGER="less -FX"
 # https://www.topbug.net/blog/2016/09/27/make-gnu-less-more-powerful/
 export LESS='--quit-if-one-screen --ignore-case --status-column --LONG-PROMPT --RAW-CONTROL-CHARS --HILITE-UNREAD --tabs=4 --window=-4'
 
-export VISUAL=nvim
+if [[ "$TERM_PROGRAM" == "vscode" || "$TERM_PROGRAM" == "cursor" ]]; then
+  export VISUAL=cursor
+else
+  export VISUAL=nvim
+fi
 export EDITOR="$VISUAL"
 
+} =============
+# Functions
 # =============
-# Evals
-# =============
-# Homebrew
-for brew_path in "/opt/homebrew/bin/brew" "/usr/local/bin/brew"; do
-  if [[ -x "$brew_path" ]]; then
-    eval "$($brew_path shellenv)"
-    break
-  fi
-done
-# See https://docs.brew.sh/Manpage#environment
-export HOMEBREW_NO_ENV_HINTS=1
-export HOMEBREW_NO_AUTO_UPDATE=1
-export HOMEBREW_BUNDLE_FILE_GLOBAL="${XDG_CONFIG_HOME:-${HOME}/.config}/homebrew/Brewfile-machine"
-
-# avoid installation via brew, this is not a supported installation method and breaks
-# some directory structure assumptions that exist across the plugin ecosystem.
-ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
-[ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
-[ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
-source "${ZINIT_HOME}/zinit.zsh"
-
-# Golang
-export GOROOT="$(brew --prefix golang)/libexec"
-export GOPATH="$HOME/.local/go"
-export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin"
-
-# Rust
-export PATH="$PATH:$HOME/.cargo/bin"
-
-# Python
-# if ! command -v python &> /dev/null
-# then
-#   export PATH="$PATH:$(brew --prefix python)/libexec/bin"
-# fi
-
-# Scripts
-export PATH="$PATH:$HOME/.local/bin" # pipx and other things put stuff here
-export PATH="$PATH:$HOME/.local/share/jackman/bin" # personal scripts
-[ -d "$HOME/.dotfiles-local/bin" ] && export PATH="$PATH:$HOME/.dotfiles-local/bin"
-export PATH="$PATH:$HOME/.config/emacs/bin" # doom emacs
-
-# Mise for pinned binaries, direnv, and tasks
-zinit as="command" lucid from="gh-r" for \
-    id-as="usage" \
-    atpull="%atclone" \
-    jdx/usage
-    #atload='eval "$(mise activate zsh)"' \
-
-zinit as="command" lucid from="gh-r" for \
-    id-as="mise" mv="mise* -> mise" \
-    atclone="./mise* completion zsh > _mise" \
-    atpull="%atclone" \
-    atload='eval "$(mise activate zsh)"' \
-    jdx/mise
 
 # TODO https://github.com/zdharma/zinit/issues/173#issuecomment-537325714
 # Load ~/.exports, ~/.aliases, ~/.functions and ~/.zshrc_local
@@ -180,6 +208,10 @@ unset -f load_funcs
 # Place any completions here
 fpath+="${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/completions"
 
+# =============
+# Plugins
+# =============
+
 source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/zsh_plugins.zsh"
 
 # ===========
@@ -214,12 +246,6 @@ typeset -U path
 # # https://github.com/ohmyzsh/ohmyzsh/blob/master/lib/misc.zsh
 # autoload -Uz url-quote-magic
 # zle -N self-insert url-quote-magic
-
-export HOMEBREW_GITHUB_API_TOKEN='{{ onepasswordRead "op://Private/Github/homebrew_pat" "jackman.1password.com" }}'
-
-export SPACECTL_SKIP_STACK_PROMPT='true'
-
-export NOTI_DEFAULT="slack"
 
 # =======================================
 # navi
