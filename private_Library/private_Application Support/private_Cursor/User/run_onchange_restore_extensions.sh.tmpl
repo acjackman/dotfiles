@@ -11,6 +11,6 @@ function show-header() {
 
 # Checksum {{ include "data/cursor/extensions.txt" | sha256sum }}
 if command -v cursor >/dev/null 2>&1; then
-  show-header Cursor Extensions
+  show-header "Cursor Extensions"
   cat "{{.chezmoi.sourceDir}}/data/cursor/extensions.txt" | xargs -L 1 cursor --install-extension
 fi
