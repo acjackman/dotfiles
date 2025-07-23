@@ -1,0 +1,134 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+local pr_url="$1"
+
+# Check if URL is provided
+if [[ -z "$pr_url" ]]; then
+  echo "Error: Please provide a GitHub PR URL"
+  echo "Usage: rerun_checks <github_pr_url>"
+  echo "Example: rerun_checks https://github.com/moovfinancial/infra/pull/1234"
+  return 1
+fi
+
+# Extract owner, repo, and PR number from URL
+# Handle different GitHub URL formats:
+# https://github.com/owner/repo/pull/1234
+# https://github.com/owner/repo/pull/1234/files
+# https://github.com/owner/repo/pull/1234/checks
+local pattern='github\.com/([^/]+)/([^/]+)/pull/([0-9]+)'
+
+if [[ "$pr_url" =~ $pattern ]]; then
+  local owner="${match[1]}"
+  local repo="${match[2]}"
+  local pr_number="${match[3]}"
+
+  echo "Extracted: owner=$owner, repo=$repo, PR=$pr_number"
+
+  # Check if gh CLI is installed
+  if ! command -v gh &> /dev/null; then
+    echo "Error: GitHub CLI (gh) is not installed"
+    echo "Please install it from: https://cli.github.com/"
+    return 1
+  fi
+
+  # Check if user is authenticated
+  if ! gh auth status &> /dev/null; then
+    echo "Error: Not authenticated with GitHub CLI"
+    echo "Please run: gh auth login"
+    return 1
+  fi
+
+  echo "Getting latest check suite for PR #$pr_number..."
+
+  # First, get the head commit SHA from the PR
+  local head_sha=$(gh api repos/$owner/$repo/pulls/$pr_number --jq '.head.sha' 2>/dev/null)
+
+  if [[ -z "$head_sha" || "$head_sha" == "null" ]]; then
+    echo "Error: Could not get head commit SHA for PR #$pr_number"
+    echo "This might be because:"
+    echo "  - The PR doesn't exist"
+    echo "  - You don't have access to the repository"
+    return 1
+  fi
+
+  echo "Found head commit SHA: $head_sha"
+
+  # Get check suites for the commit
+  local check_suites_response=$(gh api repos/$owner/$repo/commits/$head_sha/check-suites 2>/dev/null)
+  
+  if [[ -z "$check_suites_response" ]]; then
+    echo "Error: Could not get check suites for commit $head_sha"
+    return 1
+  fi
+
+  # Get the latest check suite ID
+  local check_suite_id=$(echo "$check_suites_response" | jq -r '.check_suites[0].id // empty')
+
+  if [[ -z "$check_suite_id" ]]; then
+    echo "Error: Could not find any check suites for commit $head_sha"
+    echo "This might be because there are no CI checks configured for this repository"
+    return 1
+  fi
+
+  echo "Found check suite ID: $check_suite_id"
+  
+  # Get check suite details for debugging
+  local check_suite_info=$(echo "$check_suites_response" | jq -r '.check_suites[0] | "App: \(.app.name), Status: \(.status), Conclusion: \(.conclusion // "pending")"')
+  echo "Check suite info: $check_suite_info"
+
+  echo "Attempting to rerun check suite..."
+
+  # Try to rerun the check suite
+  local rerun_result=$(gh api repos/$owner/$repo/check-suites/$check_suite_id/rerequest -X POST 2>&1)
+  local rerun_exit_code=$?
+
+  if [[ $rerun_exit_code -eq 0 ]]; then
+    echo "✅ Successfully rerun check suite for PR #$pr_number"
+    echo "You can monitor the progress at: https://github.com/$owner/$repo/pull/$pr_number/checks"
+  else
+    echo "⚠️  Check suite rerequest failed, trying individual check runs..."
+    echo "Error details: $rerun_result"
+    
+    # Get check runs for the check suite and try to rerun them individually
+    local check_runs=$(gh api repos/$owner/$repo/check-suites/$check_suite_id/check-runs --jq '.check_runs[] | select(.status != "completed" or .conclusion == "failure" or .conclusion == "cancelled") | .id' 2>/dev/null)
+    
+    if [[ -z "$check_runs" ]]; then
+      echo "No check runs found that can be rerun"
+      return 1
+    fi
+    
+    local success_count=0
+    local total_count=0
+    
+    while IFS= read -r check_run_id; do
+      if [[ -n "$check_run_id" ]]; then
+        total_count=$((total_count + 1))
+        echo "Attempting to rerun check run: $check_run_id"
+        
+        if gh api repos/$owner/$repo/check-runs/$check_run_id/rerequest -X POST 2>/dev/null; then
+          success_count=$((success_count + 1))
+          echo "  ✅ Successfully rerun check run $check_run_id"
+        else
+          echo "  ❌ Failed to rerun check run $check_run_id"
+        fi
+      fi
+    done <<< "$check_runs"
+    
+    if [[ $success_count -gt 0 ]]; then
+      echo "✅ Successfully rerun $success_count out of $total_count check runs"
+      echo "You can monitor the progress at: https://github.com/$owner/$repo/pull/$pr_number/checks"
+    else
+      echo "❌ Failed to rerun any checks"
+      echo "This might be because:"
+      echo "  - You don't have write access to the repository"
+      echo "  - The checks are managed by a third-party service that doesn't support reruns"
+      echo "  - All checks have already completed successfully"
+      return 1
+    fi
+  fi
+
+else
+  echo "Error: Invalid GitHub PR URL format"
+  echo "Expected format: https://github.com/owner/repo/pull/1234"
+  return 1
+fi
