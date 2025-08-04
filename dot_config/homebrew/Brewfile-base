@@ -49,6 +49,7 @@ cask "font-inclusive-sans"
 brew "direnv"
 brew "fzf"
 brew "tmux"
+brew "sesh"
 
 # Terminal Emulator
 cask "ghostty"
