@@ -24,7 +24,7 @@ enable-normalization-opposite-orientation-for-nested-containers = true
 # See: https://nikitabobko.github.io/AeroSpace/guide#layouts
 # The 'accordion-padding' specifies the size of accordion padding
 # You can set 0 to disable the padding feature
-accordion-padding = 30
+accordion-padding = 20
 
 # Possible values: tiles|accordion
 default-root-container-layout = 'tiles'
@@ -258,18 +258,18 @@ run = 'move-node-to-workspace S'
 
 [[on-window-detected]]
 if.app-id = 'me.easygit.EasyGit'
-run = ['layout floating', 'move-node-to-workspace X']
+run = ['layout tiling', 'move-node-to-workspace X']
 
 [[on-window-detected]]
 if.app-id = 'com.linear'
 run = 'move-node-to-workspace X'
 
 [[on-window-detected]]
-if.app-id = 'com.apple.finder'
-run = 'move-node-to-workspace F'
+if.app-id = 'com.apple.systempreferences'
+run = ['layout tiling', 'move-node-to-workspace F']
 
 [[on-window-detected]]
-if.app-id = 'com.devon-technologies.think3'
+if.app-id = 'com.apple.finder'
 run = 'move-node-to-workspace F'
 
 [[on-window-detected]]
@@ -283,6 +283,10 @@ run = 'move-node-to-workspace S'
 [[on-window-detected]]
 if.app-id = "com.hnc.Discord"
 run = 'move-node-to-workspace S'
+
+[[on-window-detected]]
+if.app-id = 'com.stengo.DeskPad'
+run = ['layout tiling', 'move-node-to-workspace S']
 
 [workspace-to-monitor-force-assignment]
 S = 1
