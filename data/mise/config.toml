@@ -3,6 +3,9 @@ python.uv_venv_auto = true
 idiomatic_version_file_enable_tools = ["python"]
 experimental = true
 
+[settings.npm]
+bun = true
+
 [tools]
 age = "latest"
 "pipx:httpie" = "latest"
@@ -10,3 +13,4 @@ age = "latest"
 sops = "latest"
 watchexec = "latest"
 "pipx:justpath" = "latest"
+bun = "latest"
