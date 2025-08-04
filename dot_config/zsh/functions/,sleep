@@ -1,0 +1,5 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+time=${1:-30}
+title=${2:-"Sleeping for ${time}s..."}
+gum spin --spinner dot --title "$title" -- sleep $time
