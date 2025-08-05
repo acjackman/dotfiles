@@ -60,5 +60,7 @@
     "taskpaper",
     "todo"
   ],
-  "explorer.confirmDelete": false
+  "explorer.confirmDelete": false,
+  "cursor.composer.shouldChimeAfterChatFinishes": true,
+  "cursor.general.enableShadowWorkspace": true
 }
