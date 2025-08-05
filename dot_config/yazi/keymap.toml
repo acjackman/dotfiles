@@ -1,15 +1,15 @@
-[[manager.append_keymap]]
+[[mgr.append_keymap]]
 on = "R"
 run ="rename --empty=stem --cursor=start"
 desc = "New name for selected file(s)"
 
-[[manager.prepend_keymap]]
+[[mgr.prepend_keymap]]
 on = "<C-p>"
 run = '''
   shell 'qlmanage -p "$@"'
 '''
 
-[[manager.prepend_keymap]]
+[[mgr.prepend_keymap]]
 on   = "!"
 run  = 'shell "$SHELL" --block'
 desc = "Open shell here"
