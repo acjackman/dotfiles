@@ -10,6 +10,7 @@ bun = true
 age = "latest"
 "pipx:httpie" = "latest"
 "pipx:pre-commit" = "latest"
+"pipx:llm" = { version = "latest", uvx_args = "--with llm-mlx --with llm-gpt4all --with llm-tools-simpleeval --with llm-cmd --with llm-jq --with llm-python" }
 sops = "latest"
 watchexec = "latest"
 "pipx:justpath" = "latest"
