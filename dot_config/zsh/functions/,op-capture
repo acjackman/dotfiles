@@ -1,0 +1,96 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# Usage: op_capture [content]
+# Creates a new 1Password note titled "Capture YYYY-MM-DDTHH:MM:SS-TZ"
+# Content can be provided via stdin, arguments, or by opening an editor
+
+# Generate timestamp for note title
+local timestamp=$(date '+%Y-%m-%dT%H:%M:%S')
+local title="Capture $timestamp"
+
+local content=""
+
+# Check if content was provided via stdin
+if [ ! -t 0 ]; then
+  # Read from stdin
+  content=$(cat)
+elif [ $# -gt 0 ]; then
+  # Use arguments as file paths and concatenate their contents
+  content=""
+  for file in "$@"; do
+    if [ -f "$file" ]; then
+      content+="$(cat "$file")\n"
+    else
+      echo "Warning: $file is not a file, skipping"
+    fi
+  done
+  content=${content%\\n} # Remove trailing newline
+else
+  # No content provided, open editor with temporary file
+  local tmpfile=$(mktemp -t "op-capture.XXXXXX")
+  local editor="${EDITOR:-vim}"
+
+  # If editor is vim/nvim, add -c 'startinsert' to start in insert mode
+  if [[ "$editor" =~ "vim" ]]; then
+    editor="$editor -c 'startinsert'"
+  fi
+
+  # Open editor with temporary file
+  $editor "$tmpfile"
+
+  # Check if file was modified and has content
+  if [ -s "$tmpfile" ]; then
+      content=$(cat "$tmpfile")
+  fi
+
+  # Clean up temporary file
+  rm -f "$tmpfile"
+fi
+
+# Check if we have content to create the note
+if [ -z "$content" ]; then
+  echo "No content provided, note not created"
+  return 1
+fi
+
+# Create the note using 1Password CLI via JSON template
+# Fetch the Secure Note template, fill it with our title and content, then create the item
+
+# Ensure jq is available for JSON manipulation
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Error: 'jq' is required but not installed. Please install jq to continue."
+  return 1
+fi
+
+# Get template and populate values (embedded to avoid fetching each time)
+local template_json=$(cat <<'JSON'
+{
+  "title": "",
+  "category": "SECURE_NOTE",
+  "fields": [
+    {
+      "id": "notesPlain",
+      "type": "STRING",
+      "purpose": "NOTES",
+      "label": "notesPlain",
+      "value": ""
+    }
+  ]
+}
+JSON
+)
+
+echo "$template_json" | jq \
+  --arg title "$title" \
+  --arg notes "$content" \
+  '.title = $title | .fields |= map(if .id == "notesPlain" then .value = $notes else . end)' | \
+  op item create --vault "Private" --account="jackman.1password.com" - > /dev/null
+
+local create_status=$?
+
+if [ $create_status -eq 0 ]; then
+  echo "Note '$title' created successfully"
+else
+  echo "Failed to create note"
+  return 1
+fi
