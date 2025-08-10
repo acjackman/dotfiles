@@ -277,6 +277,10 @@ if.app-id = 'com.devon-technologies.think3'
 run = 'move-node-to-workspace F'
 
 [[on-window-detected]]
+if.app-id = 'com.devon-technologies.think'
+run = 'move-node-to-workspace F'
+
+[[on-window-detected]]
 if.app-name-regex-substring = "^Slack$"
 run = 'move-node-to-workspace S'
 
