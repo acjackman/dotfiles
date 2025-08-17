@@ -17,6 +17,12 @@ vim.api.nvim_create_autocmd("User", {
     -- Navigate VSCode tabs like lazyvim buffers
     vim.keymap.set("n", "<S-h>", "<Cmd>call VSCodeNotify('workbench.action.previousEditor')<CR>")
     vim.keymap.set("n", "<S-l>", "<Cmd>call VSCodeNotify('workbench.action.nextEditor')<CR>")
+
+    -- Navigate VSCode panes using Ctrl+HJKL
+    vim.keymap.set("n", "<C-h>", "<Cmd>call VSCodeNotify('workbench.action.navigateLeft')<CR>")
+    vim.keymap.set("n", "<C-j>", "<Cmd>call VSCodeNotify('workbench.action.navigateDown')<CR>")
+    vim.keymap.set("n", "<C-k>", "<Cmd>call VSCodeNotify('workbench.action.navigateUp')<CR>")
+    vim.keymap.set("n", "<C-l>", "<Cmd>call VSCodeNotify('workbench.action.navigateRight')<CR>")
   end,
 })
 
