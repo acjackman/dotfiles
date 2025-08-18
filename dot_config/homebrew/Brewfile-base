@@ -9,6 +9,7 @@ tap "homebrew/bundle"
 tap "noahgorstein/tap"
 tap "ttscoff/thelab"
 tap "FelixKratz/formulae"
+tap "yqrashawn/goku"
 
 ######################################
 # Installers
@@ -162,6 +163,7 @@ brew "topgrade"
 cask "nikitabobko/tap/aerospace"           # Tiling window manager
 brew "FelixKratz/formulae/borders"         # Active window indicator
 cask "karabiner-elements"                  # Rebind capslock -> hyper
+brew "yqrashawn/goku/goku"                 # Karabiner EDN compiler
 cask "hammerspoon"                         # Automation
 # cask "bettertouchtool"                     # Input Customization
 cask "linearmouse"                         # Trackpad natural, mouseweel normal scroll

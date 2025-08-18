@@ -1,0 +1,132 @@
+{:global {:show-in-menu-bar false}
+ :profiles
+ {:Default
+  {:default true
+   :virtual-hid-keyboard {:country-code 0 :keyboard-type :ansi}
+   :fn-function-keys {:f3 :mission_control
+                      :f4 :launchpad
+                      :f5 :illumination_decrement
+                      :f6 :illumination_increment}
+   :simple-modifications {:caps_lock :f19}
+   :devices [{:identifiers {:vendor_id 19780 :product_id 21079 :is_keyboard true}
+              :ignore true
+              :manipulate-caps-lock-led false}
+             {:identifiers {:vendor_id 19780 :product_id 21079 :is_keyboard true :is_pointing_device true}
+              :manipulate-caps-lock-led false}]}}
+ :main
+ [{:des "Autoshift Special Characters only: Post key if pressed alone, shifted key if held down"
+   :rules [
+           {:type :basic
+            :from {:key :grave_accent_and_tilde :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :grave_accent_and_tilde :repeat false}]
+            :to-if-held-down [{:halt true :key :grave_accent_and_tilde :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :hyphen :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :hyphen :repeat false}]
+            :to-if-held-down [{:halt true :key :hyphen :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :equal_sign :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :equal_sign :repeat false}]
+            :to-if-held-down [{:halt true :key :equal_sign :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :open_bracket :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :open_bracket :repeat false}]
+            :to-if-held-down [{:halt true :key :open_bracket :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :close_bracket :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :close_bracket :repeat false}]
+            :to-if-held-down [{:halt true :key :close_bracket :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :backslash :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :backslash :repeat false}]
+            :to-if-held-down [{:halt true :key :backslash :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :semicolon :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :semicolon :repeat false}]
+            :to-if-held-down [{:halt true :key :semicolon :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :quote :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :quote :repeat false}]
+            :to-if-held-down [{:halt true :key :quote :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :comma :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :comma :repeat false}]
+            :to-if-held-down [{:halt true :key :comma :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :period :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :period :repeat false}]
+            :to-if-held-down [{:halt true :key :period :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :slash :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :slash :repeat false}]
+            :to-if-held-down [{:halt true :key :slash :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :spacebar :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :spacebar :repeat false}]
+            :to-if-held-down [{:halt true :key :spacebar :modifiers [:left_shift] :repeat false}]}
+           ]}
+
+  {:des "Autoshift Numbers only: Post number if pressed alone, shifted number row key if held down"
+   :rules [
+           {:type :basic
+            :from {:key :1 :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :1 :repeat false}]
+            :to-if-held-down [{:halt true :key :1 :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :2 :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :2 :repeat false}]
+            :to-if-held-down [{:halt true :key :2 :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :3 :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :3 :repeat false}]
+            :to-if-held-down [{:halt true :key :3 :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :4 :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :4 :repeat false}]
+            :to-if-held-down [{:halt true :key :4 :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :5 :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :5 :repeat false}]
+            :to-if-held-down [{:halt true :key :5 :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :6 :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :6 :repeat false}]
+            :to-if-held-down [{:halt true :key :6 :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :7 :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :7 :repeat false}]
+            :to-if-held-down [{:halt true :key :7 :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :8 :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :8 :repeat false}]
+            :to-if-held-down [{:halt true :key :8 :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :9 :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :9 :repeat false}]
+            :to-if-held-down [{:halt true :key :9 :modifiers [:left_shift] :repeat false}]}
+
+           {:type :basic
+            :from {:key :0 :modifiers {:optional [:caps_lock]}}
+            :to-after-key-up [{:key :0 :repeat false}]
+            :to-if-held-down [{:halt true :key :0 :modifiers [:left_shift] :repeat false}]}
+           ]}
+ ]}
