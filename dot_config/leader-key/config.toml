@@ -36,6 +36,7 @@ value = "/Applications/Brave Browser.app"
 # Open
 
 [o]
+label = "Open"
 rank = 50
 
 [o.children.e.action]
@@ -52,13 +53,3 @@ value = "/System/Applications/Music.app"
 rank = 30
 kind = "application"
 value = "/Applications/Messages.app"
-
-# Notes
-
-[n]
-rank = 60
-
-[n.children.n.action]
-rank = 10
-kind = "url"
-value = "obsidian://daily?vault=notes"

@@ -1,9 +1,13 @@
+{{- if has "personal" .extras -}}
 # Notes
 
 [n]
+rank = 60
 label = "Notes"
 
 [n.children.n.action]
 rank = 10
+label = "Today"
 kind = "url"
-value = "obsidian://daily?vault=notes"
+value = "obsidian://open?vault=notes"
+{{- end -}}
