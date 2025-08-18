@@ -23,12 +23,6 @@ v2 node fields supported:
 - children: map[string]node (for groups)
 - rank: optional number to control sibling ordering when emitting v1 (lower first). May be set either on the node or inside action.
 - disabled: optional bool; if true, the node is omitted when emitting v1
-
-Merged file checksums
-
-{{ range (glob "*.toml") }}
-- {{.}}: {{ include . | sha256sum }}
-{{ end }}
 """
 
 from __future__ import annotations
@@ -36,6 +30,9 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import subprocess
+import sys
+import time
 from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, Iterable
@@ -49,6 +46,16 @@ try:  # Fallback for older Pythons
     import tomli  # type: ignore
 except Exception:  # pragma: no cover
     tomli = None  # type: ignore[assignment]
+
+FILES = [
+    line.strip().split(",")
+    for line in """
+{{- $home := .chezmoi.homeDir -}}
+{{- range (glob (printf "%s/.config/leader-key/*.toml" $home)) }}
+{{ . }},{{ include . | sha256sum }}
+{{- end }}
+""".strip().split("\n")
+]
 
 
 def load_toml_bytes(data: bytes) -> Any:
@@ -113,7 +120,7 @@ def v1_group_to_v2_tree(group_obj: Dict[str, Any]) -> Tree:
             # Leaf action
             node = {
                 "action": {
-                    "kind": item_type,
+                    "type": item_type,
                     "value": item.get("value"),
                 }
             }
@@ -232,12 +239,21 @@ def v2_root_to_v1_group(root: Tree) -> Dict[str, Any]:
             return item
         # Leaf
         action = node.get("action", {})
+        assert (
+            action.get("disabled", False) is False
+        ), "disabled should not be set on leaf nodes"
+
         item = {
             "key": key,
-            "type": action.get("kind"),
-            "value": action.get("value"),
+            "type": action.get("type", action.get("kind")),
+            "label": action.get("label", label_value),
+            "value": action["value"],
         }
-        item["label"] = label_value
+        if "iconPath" in action:
+            item["iconPath"] = action["iconPath"]
+        item.pop("kind", None)
+        item.pop("disabled", None)
+        item.pop("rank", None)
         return item
 
     return {
@@ -253,20 +269,24 @@ def v2_root_to_v1_group(root: Tree) -> Dict[str, Any]:
 
 def main() -> int:
     # Print a human-friendly header to stdout (not included in JSON output)
-    header_text = (
-        "\n".join(
-            [
-                "╔═══════════════════════════════════════════════════════════════════════════╗",
-                "║  Leader-key                                                               ║",
-                "╚═══════════════════════════════════════════════════════════════════════════╝",
-            ]
-        )
-        + "\n"
+    header_text = "\n".join(
+        [
+            "╔═══════════════════════════════════════════════════════════════════════════╗",
+            "║  Leader-key                                                               ║",
+            "╚═══════════════════════════════════════════════════════════════════════════╝",
+        ]
     )
     print(header_text)
+    print(f"Mergin {len(FILES)} TOML file(s):")
+    for file, checksum in FILES:
+        print(f"- {file}: {checksum}")
+
+    if len(FILES) == 0:
+        print("No files found.")
+        return 1
 
     src_dir = Path(os.path.expanduser("~/.config/leader-key"))
-    toml_files = sorted(src_dir.rglob("*.toml")) if src_dir.is_dir() else []
+    toml_files = [Path(x[0]) for x in FILES]
 
     # Normalize each TOML to v2 and merge predictably
     v2_root: Tree = {}
@@ -282,6 +302,7 @@ def main() -> int:
     dest_dir.mkdir(parents=True, exist_ok=True)
     dest_path = dest_dir / "config.json"
 
+    config_changed = True  # assume changed when creating fresh file
     # Backup existing file if its logical JSON content differs
     if dest_path.exists():
         try:
@@ -296,6 +317,7 @@ def main() -> int:
             timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
             backup_path = dest_path.with_name(dest_path.name + f".bak.{timestamp}")
             shutil.copy2(dest_path, backup_path)
+        config_changed = not is_same
 
     dest_path.write_text(
         json.dumps(output, ensure_ascii=False, indent=2, separators=(",", " : "))
@@ -303,10 +325,55 @@ def main() -> int:
         encoding="utf-8",
     )
 
-    print(f"Merged {len(toml_files)} TOML file(s) from {src_dir}")
     print(f"Wrote merged config to {dest_path}")
+
+    return 0
+    # On macOS, restart the Leader Key app so it reloads the updated config
+    try:
+        if config_changed and sys.platform == "darwin":
+            app_name = "Leader Key"
+
+            def is_app_running(name: str) -> bool:
+                try:
+                    result = subprocess.run(
+                        [
+                            "osascript",
+                            "-e",
+                            f'application "{name}" is running',
+                        ],
+                        check=False,
+                        capture_output=True,
+                        text=True,
+                    )
+                    return result.stdout.strip().lower() == "true"
+                except Exception:
+                    return False
+
+            # Gracefully quit if currently running
+            if is_app_running(app_name):
+                subprocess.run(
+                    ["osascript", "-e", f'tell application "{app_name}" to quit'],
+                    check=False,
+                )
+                # Wait briefly for the app to terminate
+                deadline = time.time() + 10.0
+                while time.time() < deadline and is_app_running(app_name):
+                    time.sleep(0.25)
+
+            # Re-open the app
+            subprocess.run(["open", "-a", app_name], check=False)
+            print(f"Restarted {app_name} to reload configuration")
+    except Exception as e:
+        print(f"Warning: could not restart app: {type(e).__name__} {e}")
     return 0
 
 
 if __name__ == "__main__":  # pragma: no cover
-    raise SystemExit(main())
+    try:
+        result = main()
+        raise SystemExit(result)
+    except SystemExit as e:
+        raise e from e
+    except Exception as e:
+        print(e)
+        raise SystemExit(5)
