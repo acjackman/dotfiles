@@ -1,0 +1,1 @@
+.config/finicky/finicky.js
