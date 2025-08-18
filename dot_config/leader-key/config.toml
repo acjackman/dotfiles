@@ -1,0 +1,64 @@
+[t.action]
+rank = 10
+kind = "application"
+value = "/Applications/Ghostty.app"
+
+[e.action]
+rank = 20
+kind = "application"
+value = "/Applications/Cursor.app"
+
+# Browsers
+
+[r]
+rank = 30
+
+[r.children.s.action]
+rank = 10
+kind = "application"
+value = "/Applications/Safari.app"
+
+[r.children.c.action]
+rank = 20
+kind = "application"
+value = "/Applications/Chrome.app"
+
+[r.children.a.action]
+rank = 30
+kind = "application"
+value = "/Applications/Arc.app"
+
+[r.children.b.action]
+rank = 40
+kind = "application"
+value = "/Applications/Brave Browser.app"
+
+# Open
+
+[o]
+rank = 50
+
+[o.children.e.action]
+rank = 10
+kind = "application"
+value = "/Applications/Mail.app"
+
+[o.children.i.action]
+rank = 20
+kind = "application"
+value = "/System/Applications/Music.app"
+
+[o.children.m.action]
+rank = 30
+kind = "application"
+value = "/Applications/Messages.app"
+
+# Notes
+
+[n]
+rank = 60
+
+[n.children.n.action]
+rank = 10
+kind = "url"
+value = "obsidian://daily?vault=notes"

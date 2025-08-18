@@ -1,0 +1,312 @@
+#!/usr/bin/env python3
+"""
+After chezmoi generates files, read all TOML configs under
+~/.config/leader-key, merge them, and write the merged JSON to:
+  ~/Library/Application Support/Leader Key/config.json
+
+Supported input formats per file (TOML):
+- v1: legacy group shape { type = "group", actions = [ ... ] }
+- v2: map-based tree for easier merging. Examples supported:
+  - { root = { t = { action = { kind = "application", value = "..." } }, o = { children = { s = { action = ... } } } } }
+  - Or directly a mapping of keys to nodes (assumed as root)
+
+Effective merge flow:
+- Normalize each file to a v2 root tree
+- Merge v2 trees by key: children deep-merge, labels prefer non-empty override, actions override
+- Convert merged v2 tree back to legacy v1 group for the app (output remains unchanged for consumers)
+
+Low-level merge utility still exists for general dict/list merging when needed.
+
+v2 node fields supported:
+- label: optional string
+- action: { kind: string, value: string, rank?: number }
+- children: map[string]node (for groups)
+- rank: optional number to control sibling ordering when emitting v1 (lower first). May be set either on the node or inside action.
+- disabled: optional bool; if true, the node is omitted when emitting v1
+
+Merged file checksums
+
+{{ range (glob "*.toml") }}
+- {{.}}: {{ include . | sha256sum }}
+{{ end }}
+"""
+
+from __future__ import annotations
+
+import json
+import os
+import shutil
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Iterable
+
+# Prefer stdlib tomllib (Python 3.11+), otherwise fall back to tomli if installed
+try:  # Python 3.11+
+    import tomllib  # type: ignore[attr-defined]
+except Exception:  # pragma: no cover
+    tomllib = None  # type: ignore[assignment]
+try:  # Fallback for older Pythons
+    import tomli  # type: ignore
+except Exception:  # pragma: no cover
+    tomli = None  # type: ignore[assignment]
+
+
+def load_toml_bytes(data: bytes) -> Any:
+    if tomllib is not None:
+        return tomllib.loads(data.decode("utf-8"))  # type: ignore[attr-defined]
+    if tomli is not None:
+        return tomli.loads(data.decode("utf-8"))  # type: ignore[misc]
+    raise RuntimeError("Reading TOML requires Python 3.11+ or the 'tomli' package.")
+
+
+def deep_merge(base: Any, override: Any) -> Any:
+    # Dict x Dict: merge per key
+    if isinstance(base, dict) and isinstance(override, dict):
+        result: dict[str, Any] = dict(base)
+        for key, override_value in override.items():
+            if key in result:
+                result[key] = deep_merge(result[key], override_value)
+            else:
+                result[key] = override_value
+        return result
+
+    # List x List: concatenate
+    if isinstance(base, list) and isinstance(override, list):
+        return [*base, *override]
+
+    # Otherwise: override wins (including None)
+    return override
+
+
+def merge_all(files: Iterable[Path]) -> Any:
+    merged: Any = {}
+    for file_path in files:
+        data = file_path.read_bytes()
+        doc = load_toml_bytes(data)
+        merged = deep_merge(merged, doc)
+    return merged
+
+
+# ===== Proposed v2 map-based structure helpers =====
+# v2 tree shape:
+# { 'root': { 't': { 'action': { 'kind': 'application', 'value': '...' }, 'label': '' },
+#             'o': { 'label': '', 'children': { 's': { 'action': {...} }, ... } } } }
+
+Node = Dict[str, Any]
+Tree = Dict[str, Node]
+
+
+def v1_group_to_v2_tree(group_obj: Dict[str, Any]) -> Tree:
+    children: Tree = {}
+    for item in group_obj.get("actions", []) or []:
+        key = item.get("key")
+        if not key:
+            # Skip invalid
+            continue
+        node: Node
+        item_type = item.get("type")
+        if item_type == "group":
+            node = {"children": v1_group_to_v2_tree(item)}
+            if item.get("label") is not None:
+                node["label"] = item.get("label")
+        else:
+            # Leaf action
+            node = {
+                "action": {
+                    "kind": item_type,
+                    "value": item.get("value"),
+                }
+            }
+            if item.get("label") is not None:
+                node["label"] = item.get("label")
+        children[key] = node
+    return children
+
+
+def normalize_to_v2_root(obj: Any) -> Tree:
+    # If it's a v1 group shape
+    if (
+        isinstance(obj, dict)
+        and obj.get("type") == "group"
+        and isinstance(obj.get("actions"), list)
+    ):
+        return v1_group_to_v2_tree(obj)
+
+    # If it looks like v2 with explicit key
+    if isinstance(obj, dict) and isinstance(obj.get("root"), dict):
+        return obj["root"]
+    if isinstance(obj, dict) and isinstance(obj.get("tree"), dict):
+        return obj["tree"]
+
+    # If it is already a mapping of keys to nodes
+    if isinstance(obj, dict):
+        # Heuristic: keys are likely one-char or multi-char shortcuts; values are dicts
+        return obj  # assume it's already a v2 root
+
+    # Fallback to empty
+    return {}
+
+
+def merge_nodes(base: Node, override: Node) -> Node:
+    # Group x Group
+    if "children" in base and "children" in override:
+        merged_children: Tree = dict(base["children"])
+        for k, v in override["children"].items():
+            if k in merged_children:
+                merged_children[k] = merge_nodes(merged_children[k], v)
+            else:
+                merged_children[k] = v
+        result: Node = {"children": merged_children}
+        # Label: take override if non-empty/defined, else base
+        base_label = base.get("label")
+        override_label = override.get("label")
+        if override_label not in (None, ""):
+            result["label"] = override_label
+        elif base_label not in (None, ""):
+            result["label"] = base_label
+
+        # Preserve other metadata fields on groups: disabled, rank
+        for field in ("disabled", "rank"):
+            if field in override:
+                result[field] = override[field]
+            elif field in base:
+                result[field] = base[field]
+        return result
+
+    # Leaf x Leaf: override wins
+    if "action" in base and "action" in override:
+        return override
+
+    # Mixed: override wins (explicitly allows turning a group into a leaf or vice versa)
+    return override
+
+
+def merge_v2_roots(base_root: Tree, override_root: Tree) -> Tree:
+    result: Tree = dict(base_root)
+    for key, override_node in override_root.items():
+        if key in result:
+            result[key] = merge_nodes(result[key], override_node)
+        else:
+            result[key] = override_node
+    return result
+
+
+def v2_root_to_v1_group(root: Tree) -> Dict[str, Any]:
+    def sort_items(items: Iterable[tuple[str, Node]]) -> list[tuple[str, Node]]:
+        def key_fn(kv: tuple[str, Node]):
+            key, node = kv
+            action = node.get("action") or {}
+            rank_value = node.get("rank")
+            if rank_value is None:
+                rank_value = action.get("rank")
+            primary = (
+                float(rank_value)
+                if isinstance(rank_value, (int, float))
+                else float("inf")
+            )
+            return (primary, key)
+
+        return sorted(items, key=key_fn)
+
+    def node_to_item(key: str, node: Node) -> Dict[str, Any]:
+        # Normalize label: ensure every emitted item has a label (default "")
+        label_value = node.get("label")
+        if label_value is None:
+            label_value = ""
+        if "children" in node:
+            item: Dict[str, Any] = {
+                "key": key,
+                "type": "group",
+                "actions": [
+                    node_to_item(k, v)
+                    for k, v in sort_items(
+                        (
+                            kv
+                            for kv in node["children"].items()
+                            if not kv[1].get("disabled")
+                        )
+                    )
+                ],
+            }
+            item["label"] = label_value
+            return item
+        # Leaf
+        action = node.get("action", {})
+        item = {
+            "key": key,
+            "type": action.get("kind"),
+            "value": action.get("value"),
+        }
+        item["label"] = label_value
+        return item
+
+    return {
+        "type": "group",
+        "actions": [
+            node_to_item(k, v)
+            for k, v in sort_items(
+                (kv for kv in root.items() if not kv[1].get("disabled"))
+            )
+        ],
+    }
+
+
+def main() -> int:
+    # Print a human-friendly header to stdout (not included in JSON output)
+    header_text = (
+        "\n".join(
+            [
+                "╔═══════════════════════════════════════════════════════════════════════════╗",
+                "║  Leader-key                                                               ║",
+                "╚═══════════════════════════════════════════════════════════════════════════╝",
+            ]
+        )
+        + "\n"
+    )
+    print(header_text)
+
+    src_dir = Path(os.path.expanduser("~/.config/leader-key"))
+    toml_files = sorted(src_dir.rglob("*.toml")) if src_dir.is_dir() else []
+
+    # Normalize each TOML to v2 and merge predictably
+    v2_root: Tree = {}
+    for file_path in toml_files:
+        doc = load_toml_bytes(file_path.read_bytes())
+        v2_doc_root = normalize_to_v2_root(doc)
+        v2_root = merge_v2_roots(v2_root, v2_doc_root)
+
+    # Convert to legacy v1 group for the app (no extra fields)
+    output: dict[str, Any] = v2_root_to_v1_group(v2_root)
+
+    dest_dir = Path("~/.config/leader-key/").expanduser()
+    dest_dir.mkdir(parents=True, exist_ok=True)
+    dest_path = dest_dir / "config.json"
+
+    # Backup existing file if its logical JSON content differs
+    if dest_path.exists():
+        try:
+            existing_bytes = dest_path.read_bytes()
+            existing_obj = json.loads(existing_bytes.decode("utf-8"))
+            is_same = existing_obj == output
+        except Exception:
+            # If unreadable or invalid JSON, treat as different
+            is_same = False
+
+        if not is_same:
+            timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            backup_path = dest_path.with_name(dest_path.name + f".bak.{timestamp}")
+            shutil.copy2(dest_path, backup_path)
+
+    dest_path.write_text(
+        json.dumps(output, ensure_ascii=False, indent=2, separators=(",", " : "))
+        + "\n",
+        encoding="utf-8",
+    )
+
+    print(f"Merged {len(toml_files)} TOML file(s) from {src_dir}")
+    print(f"Wrote merged config to {dest_path}")
+    return 0
+
+
+if __name__ == "__main__":  # pragma: no cover
+    raise SystemExit(main())
