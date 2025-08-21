@@ -61,5 +61,9 @@
     {
         "key": "cmd+e",
         "command": "composerMode.background"
+    },
+    {
+        "key": "ctrl+q",
+        "command": "-workbench.action.quickOpenView"
     }
 ]
