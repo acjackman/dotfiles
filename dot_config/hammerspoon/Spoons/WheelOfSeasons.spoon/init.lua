@@ -590,8 +590,8 @@ function obj:start(dir, interval, shuffle)
   return true
 end
 
---- Validate seasonal configuration table
---- @param config table Seasonal configuration
+--- Validate seasonal configuration array
+--- @param config table Array of seasonal configurations
 --- @return boolean True if configuration is valid
 function obj:validateSeasonalConfig(config)
   if not config or type(config) ~= "table" then
@@ -599,39 +599,44 @@ function obj:validateSeasonalConfig(config)
     return false
   end
 
-  -- Check for required seasons
-  local requiredSeasons = { "winter", "spring", "summer", "autumn" }
-  for _, season in ipairs(requiredSeasons) do
-    if not config[season] or type(config[season]) ~= "table" then
-      obj.logger.ef("Seasonal configuration missing or invalid for: %s", season)
+  -- Check that we have at least one season
+  if #config == 0 then
+    obj.logger.e("Seasonal configuration must contain at least one season")
+    return false
+  end
+
+  -- Validate each season configuration
+  for i, season in ipairs(config) do
+    if type(season) ~= "table" then
+      obj.logger.ef("Season %d configuration must be a table", i)
       return false
     end
 
-    if not config[season].directory or type(config[season].directory) ~= "string" then
-      obj.logger.ef("Seasonal configuration missing directory for: %s", season)
+    if not season.directory or type(season.directory) ~= "string" then
+      obj.logger.ef("Season %d missing directory", i)
       return false
     end
 
-    if not config[season].start_date or type(config[season].start_date) ~= "string" then
-      obj.logger.ef("Seasonal configuration missing start_date for: %s", season)
+    if not season.start_date or type(season.start_date) ~= "string" then
+      obj.logger.ef("Season %d missing start_date", i)
       return false
     end
 
     -- Validate date format (MM-DD)
-    if not config[season].start_date:match("^(%d%d)-(%d%d)$") then
-      obj.logger.ef("Invalid date format for %s: %s (expected MM-DD)", season, config[season].start_date)
+    if not season.start_date:match("^(%d%d)-(%d%d)$") then
+      obj.logger.ef("Invalid date format for season %d: %s (expected MM-DD)", i, season.start_date)
       return false
     end
 
     -- Check if directory exists and is readable
-    local dir_attr = hs.fs.attributes(config[season].directory)
+    local dir_attr = hs.fs.attributes(season.directory)
     if not dir_attr then
-      obj.logger.ef("Seasonal directory does not exist: %s", config[season].directory)
+      obj.logger.ef("Seasonal directory does not exist: %s", season.directory)
       return false
     end
 
     if not dir_attr.mode or not dir_attr.mode:find("r") then
-      obj.logger.ef("Seasonal directory is not readable: %s", config[season].directory)
+      obj.logger.ef("Seasonal directory is not readable: %s", season.directory)
       return false
     end
   end
@@ -648,39 +653,30 @@ function obj:getCurrentSeasonalDirectory()
 
   local now = os.date("*t")
   local currentDate = string.format("%02d-%02d", now.month, now.day)
-
-  -- Define season order for comparison
-  local seasons = {
-    { name = "winter", start = "12-21" },
-    { name = "spring", start = "03-20" },
-    { name = "summer", start = "06-21" },
-    { name = "autumn", start = "09-22" }
-  }
-
-  -- Find current season
-  local currentSeason = seasons[1].name -- Default to winter
-  for i, season in ipairs(seasons) do
-    local nextSeason = seasons[i % #seasons + 1]
-
-    -- Handle year boundary (winter spans Dec 21 to Mar 19)
-    if season.name == "winter" then
-      if currentDate >= season.start or currentDate < nextSeason.start then
-        currentSeason = season.name
+  
+  -- Find current season based on date
+  local currentSeason = obj.seasonalConfig[1] -- Default to first season
+  for i, season in ipairs(obj.seasonalConfig) do
+    local nextSeason = obj.seasonalConfig[i % #obj.seasonalConfig + 1]
+    
+    -- Handle year boundary (first season spans its start date to next season's start)
+    if i == 1 then
+      if currentDate >= season.start_date or currentDate < nextSeason.start_date then
+        currentSeason = season
         break
       end
     else
-      if currentDate >= season.start and currentDate < nextSeason.start then
-        currentSeason = season.name
+      if currentDate >= season.start_date and currentDate < nextSeason.start_date then
+        currentSeason = season
         break
       end
     end
   end
 
-  local directory = obj.seasonalConfig[currentSeason].directory
-  obj.logger.df("Current date: %s, selected season: %s, directory: %s",
-    currentDate, currentSeason, directory)
-
-  return directory
+  obj.logger.df("Current date: %s, selected season: %s, directory: %s", 
+                currentDate, currentSeason.start_date, currentSeason.directory)
+  
+  return currentSeason.directory
 end
 
 --- Check if seasonal directory has changed and reload if needed
