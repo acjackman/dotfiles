@@ -1,7 +1,7 @@
 -- luacheck: globals hs
 -- hammerspoon console script
--- require("hs.ipc")
--- hs.ipc.cliInstall("/usr/local")
+require("hs.ipc")
+hs.ipc.cliInstall("/usr/local")
 
 local log = hs.logger.new("terminalHyper", "debug")
 hs.logger.defaultLogLevel = "info"
@@ -313,6 +313,17 @@ end
 -- }
 --
 -- hs.hotkey.bind(shift_hyper, "space", spoon.RecursiveBinder.recursiveBind(keyMap))
+
+-- URL event handler for wallpaper rotation
+hs.urlevent.bind("rotate-wallpapers", function(eventName, params, senderPID, fullURL)
+  log.df("URL event received: %s", eventName)
+  if spoon.WheelOfSeasons then
+    spoon.WheelOfSeasons:shiftWallpapers()
+    log.i("Wallpapers rotated via URL event")
+  else
+    log.w("WheelOfSeasons spoon not loaded, cannot rotate wallpapers")
+  end
+end)
 
 hs.loadSpoon("ReloadConfiguration")
 spoon.ReloadConfiguration:start()
