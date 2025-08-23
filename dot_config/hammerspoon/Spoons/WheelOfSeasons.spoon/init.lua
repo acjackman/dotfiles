@@ -82,37 +82,36 @@ local function loadWallpapers()
 
   -- Try to get directory iterator
   obj.logger.i("Attempting to read directory: %s", obj.wheeldir)
-  local iterator = hs.fs.dir(obj.wheeldir)
-  if not iterator then
-    obj.logger.e("Failed to read directory: %s", obj.wheeldir)
-    return false
-  end
-  obj.logger.i("Successfully obtained directory iterator")
-
-  -- Check if directory is actually readable and contains files
-  local hasFiles = false
-  local success, err = pcall(function()
-    for file in iterator do
-      hasFiles = true
+  
+  -- Use a more robust approach to handle directory iteration
+  local success, result = pcall(function()
+    local files = {}
+    for file in hs.fs.dir(obj.wheeldir) do
       if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
         if isImageFile(file) then
-          table.insert(obj.wallpapers, file)
-          n_wallpapers = n_wallpapers + 1
+          table.insert(files, file)
         end
       end
     end
+    return files
   end)
-
+  
   if not success then
-    obj.logger.e("Error iterating directory: %s", err)
+    obj.logger.e("Error reading directory: %s", result)
     return false
   end
+  
+  if not result then
+    obj.logger.e("Failed to read directory: %s", obj.wheeldir)
+    return false
+  end
+  
+  obj.wallpapers = result
+  obj.n_wallpapers = #result
+  obj.logger.i("Loaded %d image files from %s", obj.n_wallpapers, obj.wheeldir)
 
-  obj.n_wallpapers = n_wallpapers
-  obj.logger.i("Loaded %d image files from %s", n_wallpapers, obj.wheeldir)
-
-  if not hasFiles then
-    obj.logger.w("Directory is empty or contains no readable files: %s", obj.wheeldir)
+  if obj.n_wallpapers == 0 then
+    obj.logger.w("Directory is empty or contains no readable image files: %s", obj.wheeldir)
   end
 
   if (obj.shuffle) then
