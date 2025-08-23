@@ -68,23 +68,49 @@ function screensChangedCallback(data)
 end
 
 function obj:start(dir, interval, shuffle)
-  -- print(dir)
+  -- Validate input parameters
+  if not dir or type(dir) ~= "string" then
+    print("Error: Invalid directory parameter")
+    return false
+  end
+  
+  if not interval or type(interval) ~= "number" or interval <= 0 then
+    print("Error: Invalid interval parameter (must be positive number)")
+    return false
+  end
+  
+  if shuffle ~= nil and type(shuffle) ~= "boolean" then
+    print("Error: Invalid shuffle parameter (must be boolean)")
+    return false
+  end
+  
+  -- Check if directory exists and is readable
+  local dir_attr = hs.fs.attributes(dir)
+  if not dir_attr or not dir_attr.mode:find("r") then
+    print("Error: Directory does not exist or is not readable: " .. dir)
+    return false
+  end
+  
   obj.wheeldir = dir
   obj.interval = interval
-  obj.shuffle = shuffle
+  obj.shuffle = shuffle or false
   loadWallpapers()
-  -- obj.selected = math.random(obj.n_wallpapers)
-  obj.selected = -2
+  
+  -- Initialize selected index to 0 for consistent behavior
+  obj.selected = 0
+  
   if obj.timer == nil then
-    obj.timer = hs.timer.doEvery(obj.interval, function() obj:shiftWallpapers() end)
-    obj.timer:setNextTrigger(5)
+      obj.timer = hs.timer.doEvery(obj.interval, function() obj:shiftWallpapers() end)
+      obj.timer:setNextTrigger(5)
   else
-    obj.timer:start()
+      obj.timer:start()
   end
   if obj.spacewatch == nil then
     obj.spacewatch = hs.spaces.watcher.new(screensChangedCallback)
     obj.spacewatch:start()
   end
+  
+  return true
 end
 
 return obj
