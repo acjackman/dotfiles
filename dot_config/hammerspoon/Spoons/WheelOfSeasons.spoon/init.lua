@@ -115,7 +115,7 @@ end
 --- Determine if an image matches the screen orientation
 --- @param filepath string Full path to the image file
 --- @param screen hs.screen The screen to check against
---- @return boolean True if image orientation matches screen orientation
+--- @return boolean True if image should be used for this screen
 local function imageMatchesScreenOrientation(filepath, screen)
   local width, height = getImageDimensions(filepath)
   if not width or not height then
@@ -127,10 +127,26 @@ local function imageMatchesScreenOrientation(filepath, screen)
   -- Determine screen orientation based on current frame dimensions
   -- The frame already reflects any rotation, so we don't need to consider screen:rotate()
   local screenIsLandscape = screenFrame.w > screenFrame.h
+  local screenLongSide = math.max(screenFrame.w, screenFrame.h)
+  local screenShortSide = math.min(screenFrame.w, screenFrame.h)
 
-  -- Determine image orientation
+  -- Determine image orientation and dimensions
   local imageIsLandscape = width > height
+  local imageLongSide = math.max(width, height)
+  local imageShortSide = math.min(width, height)
 
+  -- Always accept square images for both orientations
+  if width == height then
+    return true
+  end
+
+  -- Accept images where the shorter side is longer than the monitor's long side
+  -- This allows using high-resolution images even if they're the wrong orientation
+  if imageShortSide > screenLongSide then
+    return true
+  end
+
+  -- Fall back to original orientation matching logic
   -- Return true if both are landscape or both are portrait
   return screenIsLandscape == imageIsLandscape
 end
@@ -923,7 +939,7 @@ function obj:refreshOrientationFiltering()
 
       obj.wallpapersByScreen[screenId] = matchingImages
       obj.logger.f("Screen %d (%s): detected as %s (%dx%d): selected %d wallpapers",
-        i, screen:name(), orientation, screen:frame().w, screen:frame().h)
+        i, screen:name(), orientation, screen:frame().w, screen:frame().h, #matchingImages)
 
       -- If no matching images for this screen, use all images as fallback
       if #matchingImages == 0 then
