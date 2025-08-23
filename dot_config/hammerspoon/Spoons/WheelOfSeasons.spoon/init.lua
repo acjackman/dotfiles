@@ -524,7 +524,7 @@ function obj:start(dir, interval, shuffle)
     obj.seasonalConfig = dir
     obj.wheeldir = obj:getCurrentSeasonalDirectory()
     obj.logger.f("Initializing Wheel of Seasons with seasonal configuration")
-    
+
     -- Get current season info for better logging
     local now = os.date("*t")
     local currentDate = string.format("%02d-%02d", now.month, now.day)
@@ -539,7 +539,7 @@ function obj:start(dir, interval, shuffle)
         break
       end
     end
-    
+
     local nextSeason = obj.seasonalConfig[1]
     for i, season in ipairs(obj.seasonalConfig) do
       if season == currentSeason then
@@ -547,8 +547,13 @@ function obj:start(dir, interval, shuffle)
         break
       end
     end
-    
-    local dateRange = string.format("%s to %s", currentSeason.start_date, nextSeason.start_date)
+
+    local dateRange
+    if #obj.seasonalConfig == 1 then
+      dateRange = "year-round"
+    else
+      dateRange = string.format("%s to %s", currentSeason.start_date, nextSeason.start_date)
+    end
     obj.logger.f("Current season directory: %s (applies %s)", obj.wheeldir, dateRange)
   else
     -- Single directory (backward compatibility)
@@ -716,9 +721,12 @@ function obj:getCurrentSeasonalDirectory()
       break
     end
   end
-  
+
   local dateRange
-  if currentSeason == obj.seasonalConfig[1] then
+  if #obj.seasonalConfig == 1 then
+    -- Single season applies year-round
+    dateRange = "year-round"
+  elseif currentSeason == obj.seasonalConfig[1] then
     -- First season spans from its start date to the next season's start date (across year boundary)
     dateRange = string.format("%s to %s", currentSeason.start_date, nextSeason.start_date)
   else
