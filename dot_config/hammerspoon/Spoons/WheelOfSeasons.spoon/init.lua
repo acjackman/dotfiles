@@ -120,7 +120,7 @@ local function loadWallpapers()
   local n_wallpapers = 0
 
   -- Try to get directory iterator
-  obj.logger.i("Attempting to read directory: %s", obj.wheeldir)
+  obj.logger.f("Attempting to read directory: %s", obj.wheeldir)
 
   -- Use a more robust approach to handle directory iteration
   local success, result = pcall(function()
@@ -136,21 +136,21 @@ local function loadWallpapers()
   end)
 
   if not success then
-    obj.logger.e("Error reading directory: %s", result)
+    obj.logger.ef("Error reading directory: %s", result)
     return false
   end
 
   if not result then
-    obj.logger.e("Failed to read directory: %s", obj.wheeldir)
+    obj.logger.ef("Failed to read directory: %s", obj.wheeldir)
     return false
   end
 
   obj.wallpapers = result
   obj.n_wallpapers = #result
-  obj.logger.i("Loaded %d image files from %s", obj.n_wallpapers, obj.wheeldir)
+  obj.logger.f("Loaded %d image files from %s", obj.n_wallpapers, obj.wheeldir)
 
   if obj.n_wallpapers == 0 then
-    obj.logger.w("Directory is empty or contains no readable image files: %s", obj.wheeldir)
+    obj.logger.wf("Directory is empty or contains no readable image files: %s", obj.wheeldir)
   end
 
   -- Filter images by orientation for each screen
@@ -159,7 +159,7 @@ local function loadWallpapers()
     local screenId = screen:id()
     local matchingImages = {}
 
-    obj.logger.i("Filtering images for screen %d (%s)", i, screen:name())
+    obj.logger.f("Filtering images for screen %d (%s)", i, screen:name())
 
     for _, file in ipairs(result) do
       local filepath = obj.wheeldir .. "/" .. file
@@ -169,11 +169,11 @@ local function loadWallpapers()
     end
 
     obj.wallpapersByScreen[screenId] = matchingImages
-    obj.logger.i("Screen %d: %d matching images out of %d total", i, #matchingImages, #result)
+    obj.logger.f("Screen %d: %d matching images out of %d total", i, #matchingImages, #result)
 
     -- If no matching images for this screen, use all images as fallback
     if #matchingImages == 0 then
-      obj.logger.w("No orientation-matching images for screen %d, using all images as fallback", i)
+      obj.logger.wf("No orientation-matching images for screen %d, using all images as fallback", i)
       obj.wallpapersByScreen[screenId] = result
     end
   end
@@ -210,7 +210,7 @@ function obj:setWallpapers()
     local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
 
     if #screenWallpapers == 0 then
-      obj.logger.w("No wallpapers available for screen %d", k)
+      obj.logger.wf("No wallpapers available for screen %d", k)
       goto continue
     end
 
@@ -265,7 +265,7 @@ end
 function obj:start(dir, interval, shuffle)
   -- Validate input parameters
   if not dir or type(dir) ~= "string" or dir == "" then
-    obj.logger.e("Invalid directory parameter: %s", tostring(dir))
+    obj.logger.ef("Invalid directory parameter: %s", tostring(dir))
     return false
   end
 
@@ -282,12 +282,12 @@ function obj:start(dir, interval, shuffle)
   -- Check if directory exists and is readable
   local dir_attr = hs.fs.attributes(dir)
   if not dir_attr then
-    obj.logger.e("Directory does not exist: %s", dir)
+    obj.logger.ef("Directory does not exist: %s", dir)
     return false
   end
 
   if not dir_attr.mode or not dir_attr.mode:find("r") then
-    obj.logger.e("Directory is not readable: %s", dir)
+    obj.logger.ef("Directory is not readable: %s", dir)
     return false
   end
 
@@ -295,11 +295,11 @@ function obj:start(dir, interval, shuffle)
   obj.interval = interval
   obj.shuffle = shuffle or false
 
-  obj.logger.i("Initializing Wheel of Seasons with directory: %s", obj.wheeldir)
+  obj.logger.f("Initializing Wheel of Seasons with directory: %s", obj.wheeldir)
 
   -- Load wallpapers with error handling
   if not loadWallpapers() then
-    obj.logger.e("Failed to load wallpapers from directory: %s", obj.wheeldir)
+    obj.logger.ef("Failed to load wallpapers from directory: %s", obj.wheeldir)
     obj.logger.e("Please ensure the directory exists and contains image files")
     return false
   end
@@ -343,7 +343,7 @@ function obj:refreshOrientationFiltering()
       local screenId = screen:id()
       local matchingImages = {}
 
-      obj.logger.i("Re-filtering images for screen %d (%s)", i, screen:name())
+      obj.logger.f("Re-filtering images for screen %d (%s)", i, screen:name())
 
       for _, file in ipairs(obj.wallpapers) do
         local filepath = obj.wheeldir .. "/" .. file
@@ -353,11 +353,11 @@ function obj:refreshOrientationFiltering()
       end
 
       obj.wallpapersByScreen[screenId] = matchingImages
-      obj.logger.i("Screen %d: %d matching images out of %d total", i, #matchingImages, #obj.wallpapers)
+      obj.logger.f("Screen %d: %d matching images out of %d total", i, #matchingImages, #obj.wallpapers)
 
       -- If no matching images for this screen, use all images as fallback
       if #matchingImages == 0 then
-        obj.logger.w("No orientation-matching images for screen %d, using all images as fallback", i)
+        obj.logger.wf("No orientation-matching images for screen %d, using all images as fallback", i)
         obj.wallpapersByScreen[screenId] = obj.wallpapers
       end
     end
@@ -398,12 +398,12 @@ end
 function obj:printScreenInfo()
   local info = obj:getScreenInfo()
   obj.logger.i("Current screen configuration:")
-  obj.logger.i("  Total screens: %d", info.count)
+  obj.logger.f("  Total screens: %d", info.count)
 
   for i, screen in ipairs(info.screens) do
-    obj.logger.i("  Screen %d: %s (ID: %s)", i, screen.name, screen.id)
-    obj.logger.i("    Rotation: %d°", screen.rotation)
-    obj.logger.i("    Frame: x=%d, y=%d, w=%d, h=%d",
+    obj.logger.f("  Screen %d: %s (ID: %s)", i, screen.name, screen.id)
+    obj.logger.f("    Rotation: %d°", screen.rotation)
+    obj.logger.f("    Frame: x=%d, y=%d, w=%d, h=%d",
       screen.frame.x, screen.frame.y, screen.frame.w, screen.frame.h)
   end
 end
@@ -434,11 +434,11 @@ function obj:updateScreen(screenId)
   local screens = hs.screen.allScreens()
   for _, screen in pairs(screens) do
     if screen:id() == screenId then
-      obj.logger.i("Forcing update for screen: %s", screen:name())
+      obj.logger.f("Forcing update for screen: %s", screen:name())
       local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
 
       if #screenWallpapers == 0 then
-        obj.logger.w("No wallpapers available for screen: %s", screen:name())
+        obj.logger.wf("No wallpapers available for screen: %s", screen:name())
         return
       end
 
@@ -449,7 +449,7 @@ function obj:updateScreen(screenId)
       return
     end
   end
-  obj.logger.w("Screen with ID %s not found", screenId)
+  obj.logger.wf("Screen with ID %s not found", screenId)
 end
 
 function obj:stop()
