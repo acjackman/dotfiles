@@ -650,12 +650,37 @@ function obj:validateSeasonalConfig(config)
     end
   end
 
-  -- Sort seasons by start date to ensure chronological order
+  -- Remove duplicates (same start_date and directory)
+  local uniqueSeasons = {}
+  local seen = {}
+  
+  for _, season in ipairs(config) do
+    local key = season.start_date .. "|" .. season.directory
+    if not seen[key] then
+      seen[key] = true
+      table.insert(uniqueSeasons, season)
+    else
+      obj.logger.df("Removing duplicate: %s -> %s", season.start_date, season.directory)
+    end
+  end
+  
+  -- Replace original config with deduplicated version
+  for i = #config, 1, -1 do
+    table.remove(config, i)
+  end
+  for _, season in ipairs(uniqueSeasons) do
+    table.insert(config, season)
+  end
+
+  -- Sort seasons by start date, then alphabetically by directory for same dates
   table.sort(config, function(a, b)
+    if a.start_date == b.start_date then
+      return a.directory < b.directory
+    end
     return a.start_date < b.start_date
   end)
 
-  obj.logger.df("Sorted %d seasons by start date", #config)
+  obj.logger.df("Sorted %d seasons by start date (alphabetical by directory for same dates)", #config)
   for i, season in ipairs(config) do
     obj.logger.df("  Season %d: %s -> %s", i, season.start_date, season.directory)
   end
