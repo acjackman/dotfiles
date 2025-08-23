@@ -515,69 +515,44 @@ function obj:start(dir, interval, shuffle)
     return false
   end
 
-  -- Handle seasonal configuration or single directory
-  if type(dir) == "table" then
-    -- Seasonal configuration
-    if not obj:validateSeasonalConfig(dir) then
-      return false
-    end
-    obj.seasonalConfig = dir
-    obj.wheeldir = obj:getCurrentSeasonalDirectory()
-    obj.logger.f("Initializing Wheel of Seasons with seasonal configuration")
-
-    -- Get current season info for better logging
-    local now = os.date("*t")
-    local currentDate = string.format("%02d-%02d", now.month, now.day)
-    local currentSeason = obj.seasonalConfig[1]
-    for i, season in ipairs(obj.seasonalConfig) do
-      local nextSeason = obj.seasonalConfig[i % #obj.seasonalConfig + 1]
-      if currentDate >= season.start_date and currentDate < nextSeason.start_date then
-        currentSeason = season
-        break
-      elseif i == 1 and (currentDate >= season.start_date or currentDate < nextSeason.start_date) then
-        currentSeason = season
-        break
-      end
-    end
-
-    local nextSeason = obj.seasonalConfig[1]
-    for i, season in ipairs(obj.seasonalConfig) do
-      if season == currentSeason then
-        nextSeason = obj.seasonalConfig[i % #obj.seasonalConfig + 1]
-        break
-      end
-    end
-
-    local dateRange
-    if #obj.seasonalConfig == 1 then
-      dateRange = "year-round"
-    else
-      dateRange = string.format("%s to %s", currentSeason.start_date, nextSeason.start_date)
-    end
-    obj.logger.f("Current season directory: %s (applies %s)", obj.wheeldir, dateRange)
-  else
-    -- Single directory (backward compatibility)
-    if not dir or type(dir) ~= "string" or dir == "" then
-      obj.logger.ef("Invalid directory parameter: %s", tostring(dir))
-      return false
-    end
-
-    -- Check if directory exists and is readable
-    local dir_attr = hs.fs.attributes(dir)
-    if not dir_attr then
-      obj.logger.ef("Directory does not exist: %s", dir)
-      return false
-    end
-
-    if not dir_attr.mode or not dir_attr.mode:find("r") then
-      obj.logger.ef("Directory is not readable: %s", dir)
-      return false
-    end
-
-    obj.wheeldir = dir
-    obj.seasonalConfig = nil
-    obj.logger.f("Initializing Wheel of Seasons with directory: %s", obj.wheeldir)
+  -- Validate and set seasonal configuration
+  if not obj:validateSeasonalConfig(dir) then
+    return false
   end
+  obj.seasonalConfig = dir
+  obj.wheeldir = obj:getCurrentSeasonalDirectory()
+  obj.logger.f("Initializing Wheel of Seasons with seasonal configuration")
+
+  -- Get current season info for better logging
+  local now = os.date("*t")
+  local currentDate = string.format("%02d-%02d", now.month, now.day)
+  local currentSeason = obj.seasonalConfig[1]
+  for i, season in ipairs(obj.seasonalConfig) do
+    local nextSeason = obj.seasonalConfig[i % #obj.seasonalConfig + 1]
+    if currentDate >= season.start_date and currentDate < nextSeason.start_date then
+      currentSeason = season
+      break
+    elseif i == 1 and (currentDate >= season.start_date or currentDate < nextSeason.start_date) then
+      currentSeason = season
+      break
+    end
+  end
+
+  local nextSeason = obj.seasonalConfig[1]
+  for i, season in ipairs(obj.seasonalConfig) do
+    if season == currentSeason then
+      nextSeason = obj.seasonalConfig[i % #obj.seasonalConfig + 1]
+      break
+    end
+  end
+
+  local dateRange
+  if #obj.seasonalConfig == 1 then
+    dateRange = "year-round"
+  else
+    dateRange = string.format("%s to %s", currentSeason.start_date, nextSeason.start_date)
+  end
+  obj.logger.f("Current season directory: %s (applies %s)", obj.wheeldir, dateRange)
 
   obj.interval = interval
   obj.shuffle = shuffle or false
@@ -625,13 +600,13 @@ end
 --- @return boolean True if configuration is valid
 function obj:validateSeasonalConfig(config)
   if not config or type(config) ~= "table" then
-    obj.logger.e("Seasonal configuration must be a table")
+    obj.logger.e("Configuration must be an array of seasonal configurations")
     return false
   end
 
   -- Check that we have at least one season
   if #config == 0 then
-    obj.logger.e("Seasonal configuration must contain at least one season")
+    obj.logger.e("Configuration must contain at least one season")
     return false
   end
 

@@ -103,27 +103,33 @@ elseif hostname == "Odin" then
   -- Seasonal configuration example
   local seasonalConfig = {
     {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/winter",
+      directory = os.getenv("HOME") .. "/.local/share/wallpapers/summer",
       start_date = "12-21"
     },
     {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/spring",
+      directory = os.getenv("HOME") .. "/.local/share/wallpapers/autumn",
       start_date = "03-20"
     },
     {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/summer",
+      directory = os.getenv("HOME") .. "/.local/share/wallpapers/winter",
       start_date = "06-21"
     },
     {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/autumn",
+      directory = os.getenv("HOME") .. "/.local/share/wallpapers/spring",
       start_date = "09-22"
     }
   }
   spoon.WheelOfSeasons:start(seasonalConfig, 60 * 60, true)
 elseif hostname == "Ingvar" then
   hs.loadSpoon("WheelOfSeasons")
-  -- Single directory (backward compatibility)
-  spoon.WheelOfSeasons:start(os.getenv("HOME") .. "/.config/wallpapers/", 60 * 15, true)
+  -- Single season (year-round)
+  local seasonalConfig = {
+    {
+      directory = os.getenv("HOME") .. "/.config/wallpapers/",
+      start_date = "01-01"
+    }
+  }
+  spoon.WheelOfSeasons:start(seasonalConfig, 60 * 15, true)
 end
 
 -- A global variable for the Hyper Mode
