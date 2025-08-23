@@ -622,8 +622,12 @@ function obj:validateSeasonalConfig(config)
       return false
     end
 
-    if not season.start_date or type(season.start_date) ~= "string" then
-      obj.logger.ef("Season %d missing start_date", i)
+    -- Set default start_date if not provided
+    if not season.start_date then
+      season.start_date = "01-01"
+      obj.logger.df("Season %d: using default start_date 01-01", i)
+    elseif type(season.start_date) ~= "string" then
+      obj.logger.ef("Season %d start_date must be a string", i)
       return false
     end
 

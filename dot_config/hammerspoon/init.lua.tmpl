@@ -122,11 +122,10 @@ elseif hostname == "Odin" then
   spoon.WheelOfSeasons:start(seasonalConfig, 60 * 60, true)
 elseif hostname == "Ingvar" then
   hs.loadSpoon("WheelOfSeasons")
-  -- Single season (year-round)
+  -- Single season (year-round) - start_date defaults to "01-01"
   local seasonalConfig = {
     {
-      directory = os.getenv("HOME") .. "/.config/wallpapers/",
-      start_date = "01-01"
+      directory = os.getenv("HOME") .. "/.config/wallpapers/"
     }
   }
   spoon.WheelOfSeasons:start(seasonalConfig, 60 * 15, true)
