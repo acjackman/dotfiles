@@ -21,7 +21,8 @@
 ---
 --- Additional Methods:
 ---   spoon.WheelOfSeasons:refresh()                    -- Manually refresh wallpapers
----   spoon.WheelOfSeasons:refreshOrientationFiltering() -- Refresh orientation filtering
+---   spoon.WheelOfSeasons:refreshOrientationFiltering() -- Refresh orientation filtering for new screens only
+---   spoon.WheelOfSeasons:refreshAllScreens()          -- Force refresh all screens (use sparingly)
 ---   spoon.WheelOfSeasons:getScreenInfo()              -- Get current screen configuration
 ---   spoon.WheelOfSeasons:printScreenInfo()            -- Print screen info to console
 ---   spoon.WheelOfSeasons:getOrientationBreakdown()    -- Get wallpaper orientation statistics
@@ -279,9 +280,27 @@ function obj:handleScreenChange()
   end
 
   screenChangeTimer = hs.timer.doAfter(0.5, function()
-    obj.logger.i("Screen configuration changed (debounced), refreshing orientation filtering and updating wallpapers")
+    obj.logger.i("Screen configuration changed (debounced), checking for new screens")
     obj:refreshOrientationFiltering()
-    obj:setWallpapers()
+    -- Only update wallpapers if there were new screens
+    if obj.wallpapers and #obj.wallpapers > 0 then
+      local screens = hs.screen.allScreens()
+      local hasNewScreens = false
+      for _, screen in pairs(screens) do
+        local screenId = screen:id()
+        if not obj.wallpapersByScreen[screenId] then
+          hasNewScreens = true
+          break
+        end
+      end
+      
+      if hasNewScreens then
+        obj.logger.i("New screens detected, updating wallpapers")
+        obj:setWallpapers()
+      else
+        obj.logger.i("No new screens, skipping wallpaper update")
+      end
+    end
     screenChangeTimer = nil
   end)
 end
@@ -357,10 +376,13 @@ function obj:refresh()
   obj:setWallpapers()
 end
 
---- Refresh orientation filtering for all screens
-function obj:refreshOrientationFiltering()
-  obj.logger.i("Refreshing orientation filtering for all screens")
+--- Force refresh orientation filtering for all screens (use sparingly)
+function obj:refreshAllScreens()
+  obj.logger.i("Force refreshing orientation filtering for all screens")
   if obj.wallpapers and #obj.wallpapers > 0 then
+    -- Clear existing screen wallpaper lists
+    obj.wallpapersByScreen = {}
+    
     -- Re-filter images by orientation for each screen
     local screens = hs.screen.allScreens()
     for i, screen in pairs(screens) do
@@ -391,6 +413,64 @@ function obj:refreshOrientationFiltering()
       for screenId, images in pairs(obj.wallpapersByScreen) do
         shuffleInPlace(images)
       end
+    end
+    
+    obj.logger.i("All screens refreshed, updating wallpapers")
+    obj:setWallpapers()
+  end
+end
+
+--- Refresh orientation filtering for new screens only
+function obj:refreshOrientationFiltering()
+  obj.logger.i("Checking for new screens and updating orientation filtering")
+  if obj.wallpapers and #obj.wallpapers > 0 then
+    local screens = hs.screen.allScreens()
+    local newScreens = {}
+    
+    -- Check for new screens that don't have wallpaper lists yet
+    for i, screen in pairs(screens) do
+      local screenId = screen:id()
+      if not obj.wallpapersByScreen[screenId] then
+        table.insert(newScreens, {index = i, screen = screen, id = screenId})
+        obj.logger.f("New screen detected: %d (%s)", i, screen:name())
+      end
+    end
+    
+    -- Only process new screens
+    for _, screenInfo in ipairs(newScreens) do
+      local screen = screenInfo.screen
+      local screenId = screenInfo.id
+      local i = screenInfo.index
+      local matchingImages = {}
+
+      obj.logger.f("Filtering images for new screen %d (%s)", i, screen:name())
+
+      for _, file in ipairs(obj.wallpapers) do
+        local filepath = obj.wheeldir .. "/" .. file
+        if imageMatchesScreenOrientation(filepath, screen) then
+          table.insert(matchingImages, file)
+        end
+      end
+
+      obj.wallpapersByScreen[screenId] = matchingImages
+      obj.logger.f("Screen %d: %d matching images out of %d total", i, #matchingImages, #obj.wallpapers)
+
+      -- If no matching images for this screen, use all images as fallback
+      if #matchingImages == 0 then
+        obj.logger.wf("No orientation-matching images for screen %d, using all images as fallback", i)
+        obj.wallpapersByScreen[screenId] = obj.wallpapers
+      end
+      
+      -- Shuffle the new screen's wallpaper list if needed
+      if obj.shuffle then
+        shuffleInPlace(obj.wallpapersByScreen[screenId])
+      end
+    end
+    
+    if #newScreens == 0 then
+      obj.logger.i("No new screens detected")
+    else
+      obj.logger.f("Processed %d new screens", #newScreens)
     end
   end
 end
