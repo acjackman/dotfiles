@@ -2,6 +2,7 @@
 ---
 --- A Hammerspoon spoon that rotates desktop wallpapers across multiple screens.
 --- Supports automatic rotation at configurable intervals and shuffling of wallpaper order.
+--- Automatically matches wallpaper orientation to monitor rotation and supports hot-plugging.
 ---
 --- Features:
 --- - Multi-screen wallpaper rotation
@@ -9,6 +10,8 @@
 --- - Optional wallpaper shuffling
 --- - Image file filtering (jpg, jpeg, png, gif, bmp, tiff, webp)
 --- - Automatic screen change detection
+--- - Monitor rotation detection and wallpaper orientation matching
+--- - Hot-plugging monitor support
 --- - Proper resource cleanup
 ---
 --- Usage:
@@ -38,6 +41,12 @@ initRandomSeed()
 -- Constants
 local IMAGE_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp" }
 local DEFAULT_LOG_LEVEL = "info"
+
+-- Screen rotation constants
+local ROTATION_0 = 0    -- Normal orientation
+local ROTATION_90 = 90  -- Clockwise rotation
+local ROTATION_180 = 180 -- Upside down
+local ROTATION_270 = 270 -- Counter-clockwise rotation
 
 
 local function shuffleInPlace(tbl)
@@ -90,6 +99,28 @@ local function loadWallpapers()
   return true
 end
 
+--- Get the appropriate wallpaper rotation based on screen rotation
+--- @param screen hs.screen The screen to check
+--- @return number The rotation angle for the wallpaper
+local function getWallpaperRotation(screen)
+  local screenRotation = screen:rotate()
+  
+  -- Map screen rotation to wallpaper rotation
+  -- When screen is rotated, we want the wallpaper to rotate in the opposite direction
+  -- to maintain the same visual orientation
+  if screenRotation == ROTATION_0 then
+    return ROTATION_0
+  elseif screenRotation == ROTATION_90 then
+    return ROTATION_270  -- Counter-rotate to maintain orientation
+  elseif screenRotation == ROTATION_180 then
+    return ROTATION_180
+  elseif screenRotation == ROTATION_270 then
+    return ROTATION_90   -- Counter-rotate to maintain orientation
+  else
+    return ROTATION_0    -- Default fallback
+  end
+end
+
 function obj:setWallpapers()
   obj.logger.df("Updating wallpapers, selected index: %d", obj.selected)
 
@@ -99,11 +130,20 @@ function obj:setWallpapers()
     return
   end
 
-  for k, screen in pairs(hs.screen.allScreens()) do
+  local screens = hs.screen.allScreens()
+  obj.logger.df("Setting wallpapers for %d screens", #screens)
+  
+  for k, screen in pairs(screens) do
     local selected = ((obj.selected + k) % obj.n_wallpapers) + 1
     local pic = obj.wallpapers[selected]
-    obj.logger.df("Screen %d: wallpaper %d/%d - %s", k, selected, obj.n_wallpapers, pic)
-    screen:desktopImageURL("file://" .. obj.wheeldir .. pic)
+    local wallpaperRotation = getWallpaperRotation(screen)
+    local screenRotation = screen:rotate()
+    
+    obj.logger.df("Screen %d: wallpaper %d/%d - %s (screen rotation: %d°, wallpaper rotation: %d°)", 
+                  k, selected, obj.n_wallpapers, pic, screenRotation, wallpaperRotation)
+    
+    -- Set wallpaper with rotation
+    screen:desktopImageURL("file://" .. obj.wheeldir .. pic, wallpaperRotation)
   end
 end
 
@@ -112,8 +152,31 @@ function obj:shiftWallpapers()
   obj:setWallpapers()
 end
 
+--- Callback for screen changes (hot-plugging, rotation, etc.)
+--- @param data table Screen change data
 function screensChangedCallback(data)
+  obj:handleScreenChange()
+end
+
+--- Callback for screen rotation changes
+--- @param data table Screen rotation data
+function screenRotationCallback(data)
+  obj.logger.i("Screen rotation changed, updating wallpapers")
   obj:setWallpapers()
+end
+
+--- Debounced screen change handler to prevent excessive updates
+local screenChangeTimer = nil
+function obj:handleScreenChange()
+  if screenChangeTimer then
+    screenChangeTimer:stop()
+  end
+  
+  screenChangeTimer = hs.timer.doAfter(0.5, function()
+    obj.logger.i("Screen configuration changed (debounced), updating wallpapers")
+    obj:setWallpapers()
+    screenChangeTimer = nil
+  end)
 end
 
 function obj:start(dir, interval, shuffle)
@@ -158,12 +221,48 @@ function obj:start(dir, interval, shuffle)
   else
     obj.timer:start()
   end
+  -- Set up screen change watchers for hot-plugging and rotation
   if obj.spacewatch == nil then
     obj.spacewatch = hs.spaces.watcher.new(screensChangedCallback)
     obj.spacewatch:start()
   end
+  
+  if obj.screenwatcher == nil then
+    obj.screenwatcher = hs.screen.watcher.new(screensChangedCallback)
+    obj.screenwatcher:start()
+  end
 
   return true
+end
+
+--- Manually refresh wallpapers (useful for testing or manual updates)
+function obj:refresh()
+  obj.logger.i("Manual wallpaper refresh requested")
+  obj:setWallpapers()
+end
+
+--- Get current screen configuration information
+--- @return table Information about current screens and their rotations
+function obj:getScreenInfo()
+  local screens = hs.screen.allScreens()
+  local info = {
+    count = #screens,
+    screens = {}
+  }
+  
+  for i, screen in pairs(screens) do
+    local frame = screen:frame()
+    local rotation = screen:rotate()
+    table.insert(info.screens, {
+      id = screen:id(),
+      name = screen:name(),
+      rotation = rotation,
+      frame = frame,
+      wallpaper_rotation = getWallpaperRotation(screen)
+    })
+  end
+  
+  return info
 end
 
 function obj:stop()
@@ -177,6 +276,11 @@ function obj:stop()
   if obj.spacewatch then
     obj.spacewatch:stop()
     obj.spacewatch = nil
+  end
+  
+  if obj.screenwatcher then
+    obj.screenwatcher:stop()
+    obj.screenwatcher = nil
   end
 
   -- Clear state
