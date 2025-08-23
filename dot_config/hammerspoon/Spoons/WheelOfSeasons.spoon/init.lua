@@ -80,12 +80,15 @@ local function loadWallpapers()
   local n_wallpapers = 0
 
   local success, iterator = pcall(hs.fs.dir, obj.wheeldir)
-  if not success then
+  if not success or not iterator then
     obj.logger.e("Failed to read directory: %s", obj.wheeldir)
     return false
   end
 
+  -- Check if directory is actually readable and contains files
+  local hasFiles = false
   for file in iterator do
+    hasFiles = true
     if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
       if isImageFile(file) then
         table.insert(obj.wallpapers, file)
@@ -96,6 +99,10 @@ local function loadWallpapers()
 
   obj.n_wallpapers = n_wallpapers
   obj.logger.i("Loaded %d image files from %s", n_wallpapers, obj.wheeldir)
+
+  if not hasFiles then
+    obj.logger.w("Directory is empty or contains no readable files: %s", obj.wheeldir)
+  end
 
   if (obj.shuffle) then
     shuffleInPlace(obj.wallpapers)
@@ -187,8 +194,8 @@ end
 
 function obj:start(dir, interval, shuffle)
   -- Validate input parameters
-  if not dir or type(dir) ~= "string" then
-    obj.logger.e("Invalid directory parameter")
+  if not dir or type(dir) ~= "string" or dir == "" then
+    obj.logger.e("Invalid directory parameter: %s", tostring(dir))
     return false
   end
 
@@ -204,8 +211,13 @@ function obj:start(dir, interval, shuffle)
 
   -- Check if directory exists and is readable
   local dir_attr = hs.fs.attributes(dir)
-  if not dir_attr or not dir_attr.mode:find("r") then
-    obj.logger.e("Directory does not exist or is not readable: %s", dir)
+  if not dir_attr then
+    obj.logger.e("Directory does not exist: %s", dir)
+    return false
+  end
+  
+  if not dir_attr.mode or not dir_attr.mode:find("r") then
+    obj.logger.e("Directory is not readable: %s", dir)
     return false
   end
 
