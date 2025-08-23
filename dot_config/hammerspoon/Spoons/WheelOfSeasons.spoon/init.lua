@@ -23,6 +23,7 @@
 ---   spoon.WheelOfSeasons:getScreenInfo()     -- Get current screen configuration
 ---   spoon.WheelOfSeasons:printScreenInfo()   -- Print screen info to console
 ---   spoon.WheelOfSeasons:updateScreen(id)    -- Update specific screen
+---   spoon.WheelOfSeasons:checkDirectory(dir) -- Check if directory exists and is readable
 ---
 
 local obj = {}
@@ -215,7 +216,7 @@ function obj:start(dir, interval, shuffle)
     obj.logger.e("Directory does not exist: %s", dir)
     return false
   end
-  
+
   if not dir_attr.mode or not dir_attr.mode:find("r") then
     obj.logger.e("Directory is not readable: %s", dir)
     return false
@@ -227,6 +228,8 @@ function obj:start(dir, interval, shuffle)
 
   -- Load wallpapers with error handling
   if not loadWallpapers() then
+    obj.logger.e("Failed to load wallpapers from directory: %s", obj.wheeldir)
+    obj.logger.e("Please ensure the directory exists and contains image files")
     return false
   end
 
@@ -295,6 +298,26 @@ function obj:printScreenInfo()
     obj.logger.i("    Frame: x=%d, y=%d, w=%d, h=%d",
       screen.frame.x, screen.frame.y, screen.frame.w, screen.frame.h)
   end
+end
+
+--- Check if wallpaper directory exists and is accessible
+--- @param dir string Directory path to check
+--- @return boolean True if directory exists and is readable
+function obj:checkDirectory(dir)
+  if not dir or type(dir) ~= "string" or dir == "" then
+    return false
+  end
+
+  local attr = hs.fs.attributes(dir)
+  if not attr then
+    return false
+  end
+
+  if not attr.mode or not attr.mode:find("r") then
+    return false
+  end
+
+  return true
 end
 
 --- Force update wallpapers for a specific screen
