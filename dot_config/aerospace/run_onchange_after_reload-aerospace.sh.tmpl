@@ -1,0 +1,16 @@
+#!/bin/bash
+
+# Checksum: {{ include "dot_config/aerospace/aerospace.toml" | sha256sum }}
+function show-header() {
+  command -v gum &>/dev/null
+  if [ $? -eq 0 ]; then
+    gum style --border=double --align=left --padding "0 2" --width=75 $@
+  else
+    echo $@
+  fi
+}
+
+# Reload aerospace configuration after changes
+show-header "Aerospace"
+echo "Reloading aerospace configuration"
+aerospace reload-config

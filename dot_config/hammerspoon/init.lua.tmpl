@@ -339,5 +339,6 @@ hs.urlevent.bind("rotate-wallpapers", function(eventName, params, senderPID, ful
   end
 end)
 
-hs.loadSpoon("ReloadConfiguration")
-spoon.ReloadConfiguration:start()
+-- Hot reload hammerspoon configuration not needed for chezmoi managed hammerspoon
+-- hs.loadSpoon("ReloadConfiguration")
+-- spoon.ReloadConfiguration:start()
