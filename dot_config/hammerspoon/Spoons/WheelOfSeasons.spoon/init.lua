@@ -81,11 +81,13 @@ local function loadWallpapers()
   local n_wallpapers = 0
 
   -- Try to get directory iterator
+  obj.logger.i("Attempting to read directory: %s", obj.wheeldir)
   local iterator = hs.fs.dir(obj.wheeldir)
   if not iterator then
     obj.logger.e("Failed to read directory: %s", obj.wheeldir)
     return false
   end
+  obj.logger.i("Successfully obtained directory iterator")
 
   -- Check if directory is actually readable and contains files
   local hasFiles = false
