@@ -100,9 +100,29 @@ if hostname == "MacBook Pro" then
   log.df("started wheel of seasons", hostname)
 elseif hostname == "Odin" then
   hs.loadSpoon("WheelOfSeasons")
-  spoon.WheelOfSeasons:start(os.getenv("HOME") .. "/.config/wallpapers/", 60 * 60, true)
+  -- Seasonal configuration example
+  local seasonalConfig = {
+    winter = {
+      directory = os.getenv("HOME") .. "/.config/wallpapers/winter",
+      start_date = "12-21"
+    },
+    spring = {
+      directory = os.getenv("HOME") .. "/.config/wallpapers/spring", 
+      start_date = "03-20"
+    },
+    summer = {
+      directory = os.getenv("HOME") .. "/.config/wallpapers/summer",
+      start_date = "06-21"
+    },
+    autumn = {
+      directory = os.getenv("HOME") .. "/.config/wallpapers/autumn",
+      start_date = "09-22"
+    }
+  }
+  spoon.WheelOfSeasons:start(seasonalConfig, 60 * 60, true)
 elseif hostname == "Ingvar" then
   hs.loadSpoon("WheelOfSeasons")
+  -- Single directory (backward compatibility)
   spoon.WheelOfSeasons:start(os.getenv("HOME") .. "/.config/wallpapers/", 60 * 15, true)
 end
 

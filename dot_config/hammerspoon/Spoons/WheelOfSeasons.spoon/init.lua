@@ -505,11 +505,6 @@ end
 
 function obj:start(dir, interval, shuffle)
   -- Validate input parameters
-  if not dir or type(dir) ~= "string" or dir == "" then
-    obj.logger.ef("Invalid directory parameter: %s", tostring(dir))
-    return false
-  end
-
   if not interval or type(interval) ~= "number" or interval <= 0 then
     obj.logger.e("Invalid interval parameter (must be positive number)")
     return false
@@ -520,23 +515,42 @@ function obj:start(dir, interval, shuffle)
     return false
   end
 
-  -- Check if directory exists and is readable
-  local dir_attr = hs.fs.attributes(dir)
-  if not dir_attr then
-    obj.logger.ef("Directory does not exist: %s", dir)
-    return false
+  -- Handle seasonal configuration or single directory
+  if type(dir) == "table" then
+    -- Seasonal configuration
+    if not obj:validateSeasonalConfig(dir) then
+      return false
+    end
+    obj.seasonalConfig = dir
+    obj.wheeldir = obj:getCurrentSeasonalDirectory()
+    obj.logger.f("Initializing Wheel of Seasons with seasonal configuration")
+    obj.logger.f("Current season directory: %s", obj.wheeldir)
+  else
+    -- Single directory (backward compatibility)
+    if not dir or type(dir) ~= "string" or dir == "" then
+      obj.logger.ef("Invalid directory parameter: %s", tostring(dir))
+      return false
+    end
+
+    -- Check if directory exists and is readable
+    local dir_attr = hs.fs.attributes(dir)
+    if not dir_attr then
+      obj.logger.ef("Directory does not exist: %s", dir)
+      return false
+    end
+
+    if not dir_attr.mode or not dir_attr.mode:find("r") then
+      obj.logger.ef("Directory is not readable: %s", dir)
+      return false
+    end
+
+    obj.wheeldir = dir
+    obj.seasonalConfig = nil
+    obj.logger.f("Initializing Wheel of Seasons with directory: %s", obj.wheeldir)
   end
 
-  if not dir_attr.mode or not dir_attr.mode:find("r") then
-    obj.logger.ef("Directory is not readable: %s", dir)
-    return false
-  end
-
-  obj.wheeldir = dir
   obj.interval = interval
   obj.shuffle = shuffle or false
-
-  obj.logger.f("Initializing Wheel of Seasons with directory: %s", obj.wheeldir)
 
   -- Load wallpapers with error handling
   if not loadWallpapers() then
@@ -553,7 +567,11 @@ function obj:start(dir, interval, shuffle)
   end
 
   if obj.timer == nil then
-    obj.timer = hs.timer.doEvery(obj.interval, function() obj:shiftWallpapers() end)
+    obj.timer = hs.timer.doEvery(obj.interval, function()
+      -- Check for seasonal changes before shifting wallpapers
+      obj:checkSeasonalChange()
+      obj:shiftWallpapers()
+    end)
     obj.timer:setNextTrigger(5)
   else
     obj.timer:start()
@@ -570,6 +588,120 @@ function obj:start(dir, interval, shuffle)
   end
 
   return true
+end
+
+--- Validate seasonal configuration table
+--- @param config table Seasonal configuration
+--- @return boolean True if configuration is valid
+function obj:validateSeasonalConfig(config)
+  if not config or type(config) ~= "table" then
+    obj.logger.e("Seasonal configuration must be a table")
+    return false
+  end
+
+  -- Check for required seasons
+  local requiredSeasons = { "winter", "spring", "summer", "autumn" }
+  for _, season in ipairs(requiredSeasons) do
+    if not config[season] or type(config[season]) ~= "table" then
+      obj.logger.ef("Seasonal configuration missing or invalid for: %s", season)
+      return false
+    end
+
+    if not config[season].directory or type(config[season].directory) ~= "string" then
+      obj.logger.ef("Seasonal configuration missing directory for: %s", season)
+      return false
+    end
+
+    if not config[season].start_date or type(config[season].start_date) ~= "string" then
+      obj.logger.ef("Seasonal configuration missing start_date for: %s", season)
+      return false
+    end
+
+    -- Validate date format (MM-DD)
+    if not config[season].start_date:match("^(%d%d)-(%d%d)$") then
+      obj.logger.ef("Invalid date format for %s: %s (expected MM-DD)", season, config[season].start_date)
+      return false
+    end
+
+    -- Check if directory exists and is readable
+    local dir_attr = hs.fs.attributes(config[season].directory)
+    if not dir_attr then
+      obj.logger.ef("Seasonal directory does not exist: %s", config[season].directory)
+      return false
+    end
+
+    if not dir_attr.mode or not dir_attr.mode:find("r") then
+      obj.logger.ef("Seasonal directory is not readable: %s", config[season].directory)
+      return false
+    end
+  end
+
+  return true
+end
+
+--- Get the current seasonal directory based on date
+--- @return string Current seasonal directory path
+function obj:getCurrentSeasonalDirectory()
+  if not obj.seasonalConfig then
+    return obj.wheeldir
+  end
+
+  local now = os.date("*t")
+  local currentDate = string.format("%02d-%02d", now.month, now.day)
+
+  -- Define season order for comparison
+  local seasons = {
+    { name = "winter", start = "12-21" },
+    { name = "spring", start = "03-20" },
+    { name = "summer", start = "06-21" },
+    { name = "autumn", start = "09-22" }
+  }
+
+  -- Find current season
+  local currentSeason = seasons[1].name -- Default to winter
+  for i, season in ipairs(seasons) do
+    local nextSeason = seasons[i % #seasons + 1]
+
+    -- Handle year boundary (winter spans Dec 21 to Mar 19)
+    if season.name == "winter" then
+      if currentDate >= season.start or currentDate < nextSeason.start then
+        currentSeason = season.name
+        break
+      end
+    else
+      if currentDate >= season.start and currentDate < nextSeason.start then
+        currentSeason = season.name
+        break
+      end
+    end
+  end
+
+  local directory = obj.seasonalConfig[currentSeason].directory
+  obj.logger.df("Current date: %s, selected season: %s, directory: %s",
+    currentDate, currentSeason, directory)
+
+  return directory
+end
+
+--- Check if seasonal directory has changed and reload if needed
+function obj:checkSeasonalChange()
+  if not obj.seasonalConfig then
+    return -- Not using seasonal configuration
+  end
+
+  local newDirectory = obj:getCurrentSeasonalDirectory()
+  if newDirectory ~= obj.wheeldir then
+    obj.logger.i("Season changed, switching wallpaper directory")
+    obj.wheeldir = newDirectory
+
+    -- Reload wallpapers with new directory
+    if loadWallpapers() then
+      obj.logger.i("Successfully loaded wallpapers for new season")
+      obj:setWallpapers()
+    else
+      obj.logger.ef("Failed to load wallpapers for new season: %s", obj.wheeldir)
+    end
+  end
 end
 
 --- Manually refresh wallpapers (useful for testing or manual updates)
@@ -967,6 +1099,7 @@ function obj:stop()
   obj.screenPositions = {}
   obj.n_wallpapers = 0
   obj.wheeldir = nil
+  obj.seasonalConfig = nil
   obj.interval = nil
   obj.shuffle = nil
 end
