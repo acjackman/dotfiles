@@ -23,20 +23,33 @@ local function shuffleInPlace(tbl)
   end
 end
 
-local function loadWallpapers()
-  obj.wallpapers = {}
-  local n_wallpapers = 0
-  for file in hs.fs.dir(obj.wheeldir) do
-    if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
-      table.insert(obj.wallpapers, file)
-      n_wallpapers = n_wallpapers + 1
+local function isImageFile(filename)
+  local imageExtensions = {".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp"}
+  local lowerFilename = string.lower(filename)
+  for _, ext in ipairs(imageExtensions) do
+    if string.match(lowerFilename, ext .. "$") then
+      return true
     end
   end
-  obj.n_wallpapers = n_wallpapers
+  return false
+end
 
-  if (obj.shuffle) then
-    shuffleInPlace(obj.wallpapers)
-  end
+local function loadWallpapers()
+    obj.wallpapers = {}
+    local n_wallpapers = 0
+    for file in hs.fs.dir(obj.wheeldir) do
+      if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
+        if isImageFile(file) then
+          table.insert(obj.wallpapers, file)
+          n_wallpapers = n_wallpapers + 1
+        end
+      end
+    end
+    obj.n_wallpapers = n_wallpapers
+
+    if (obj.shuffle) then
+      shuffleInPlace(obj.wallpapers)
+    end
 end
 
 function obj:setWallpapers()
@@ -73,43 +86,43 @@ function obj:start(dir, interval, shuffle)
     print("Error: Invalid directory parameter")
     return false
   end
-  
+
   if not interval or type(interval) ~= "number" or interval <= 0 then
     print("Error: Invalid interval parameter (must be positive number)")
     return false
   end
-  
+
   if shuffle ~= nil and type(shuffle) ~= "boolean" then
     print("Error: Invalid shuffle parameter (must be boolean)")
     return false
   end
-  
+
   -- Check if directory exists and is readable
   local dir_attr = hs.fs.attributes(dir)
   if not dir_attr or not dir_attr.mode:find("r") then
     print("Error: Directory does not exist or is not readable: " .. dir)
     return false
   end
-  
+
   obj.wheeldir = dir
   obj.interval = interval
   obj.shuffle = shuffle or false
   loadWallpapers()
-  
+
   -- Initialize selected index to 0 for consistent behavior
   obj.selected = 0
-  
+
   if obj.timer == nil then
-      obj.timer = hs.timer.doEvery(obj.interval, function() obj:shiftWallpapers() end)
-      obj.timer:setNextTrigger(5)
+    obj.timer = hs.timer.doEvery(obj.interval, function() obj:shiftWallpapers() end)
+    obj.timer:setNextTrigger(5)
   else
-      obj.timer:start()
+    obj.timer:start()
   end
   if obj.spacewatch == nil then
     obj.spacewatch = hs.spaces.watcher.new(screensChangedCallback)
     obj.spacewatch:start()
   end
-  
+
   return true
 end
 
