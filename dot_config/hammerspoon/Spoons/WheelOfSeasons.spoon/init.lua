@@ -3,7 +3,7 @@
 --- Setup Rotating desktops
 ---
 
-local obj={}
+local obj = {}
 obj.__index = obj
 
 -- Metadata
@@ -24,25 +24,31 @@ local function shuffleInPlace(tbl)
 end
 
 local function loadWallpapers()
-    obj.wallpapers = {}
-    local n_wallpapers = 0
-    for file in hs.fs.dir(obj.wheeldir) do
-      if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
-        table.insert(obj.wallpapers, file)
-        n_wallpapers = n_wallpapers + 1
-      end
+  obj.wallpapers = {}
+  local n_wallpapers = 0
+  for file in hs.fs.dir(obj.wheeldir) do
+    if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
+      table.insert(obj.wallpapers, file)
+      n_wallpapers = n_wallpapers + 1
     end
-    obj.n_wallpapers = n_wallpapers
+  end
+  obj.n_wallpapers = n_wallpapers
 
-    if (obj.shuffle) then
-      shuffleInPlace(obj.wallpapers)
-    end
+  if (obj.shuffle) then
+    shuffleInPlace(obj.wallpapers)
+  end
 end
 
 function obj:setWallpapers()
   print("Updating Wallpapers obj.selected=" .. obj.selected)
-  for k, screen in pairs(hs.screen.allScreens()) do
 
+  -- Prevent division by zero
+  if obj.n_wallpapers == 0 then
+    print("Warning: No wallpapers found in directory")
+    return
+  end
+
+  for k, screen in pairs(hs.screen.allScreens()) do
     local selected = ((obj.selected + k) % obj.n_wallpapers) + 1
     print("  finding item " .. selected .. " of " .. obj.n_wallpapers)
     local pic = obj.wallpapers[selected]
@@ -61,7 +67,6 @@ function screensChangedCallback(data)
   obj:setWallpapers()
 end
 
-
 function obj:start(dir, interval, shuffle)
   -- print(dir)
   obj.wheeldir = dir
@@ -71,10 +76,10 @@ function obj:start(dir, interval, shuffle)
   -- obj.selected = math.random(obj.n_wallpapers)
   obj.selected = -2
   if obj.timer == nil then
-      obj.timer = hs.timer.doEvery(obj.interval, function() obj:shiftWallpapers() end)
-      obj.timer:setNextTrigger(5)
+    obj.timer = hs.timer.doEvery(obj.interval, function() obj:shiftWallpapers() end)
+    obj.timer:setNextTrigger(5)
   else
-      obj.timer:start()
+    obj.timer:start()
   end
   if obj.spacewatch == nil then
     obj.spacewatch = hs.spaces.watcher.new(screensChangedCallback)
