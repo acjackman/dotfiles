@@ -27,6 +27,8 @@
 ---   spoon.WheelOfSeasons:printScreenInfo()            -- Print screen info to console
 ---   spoon.WheelOfSeasons:getScreenTrackingInfo()      -- Get screen tracking status
 ---   spoon.WheelOfSeasons:printScreenTrackingInfo()    -- Print screen tracking info to console
+---   spoon.WheelOfSeasons:getDeckInfo()                -- Get deck progress and status
+---   spoon.WheelOfSeasons:printDeckInfo()              -- Print deck information to console
 ---   spoon.WheelOfSeasons:getOrientationBreakdown()    -- Get wallpaper orientation statistics
 ---   spoon.WheelOfSeasons:printOrientationBreakdown()  -- Print orientation breakdown to console
 ---   spoon.WheelOfSeasons:updateScreen(id)             -- Update specific screen
@@ -257,7 +259,39 @@ function obj:setWallpapers()
 end
 
 function obj:shiftWallpapers()
-  obj.selected = (obj.selected + 1) % obj.n_wallpapers
+  -- Check if we need to reshuffle the deck
+  local screens = hs.screen.allScreens()
+  local maxWallpapers = 0
+
+  -- Find the screen with the most wallpapers to determine deck size
+  for _, screen in pairs(screens) do
+    local screenId = screen:id()
+    local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
+    if #screenWallpapers > maxWallpapers then
+      maxWallpapers = #screenWallpapers
+    end
+  end
+
+  -- If we've gone through the entire deck, reshuffle
+  if obj.selected >= maxWallpapers - 1 then
+    obj.logger.i("Deck exhausted, reshuffling all wallpaper lists")
+    obj.selected = 0
+
+    -- Reshuffle all screen wallpaper lists
+    for screenId, wallpapers in pairs(obj.wallpapersByScreen) do
+      shuffleInPlace(wallpapers)
+      obj.logger.df("Reshuffled deck for screen %s (%d wallpapers)", screenId, #wallpapers)
+    end
+
+    -- Also reshuffle the main wallpaper list
+    if obj.wallpapers and #obj.wallpapers > 0 then
+      shuffleInPlace(obj.wallpapers)
+      obj.logger.df("Reshuffled main wallpaper list (%d wallpapers)", #obj.wallpapers)
+    end
+  else
+    obj.selected = obj.selected + 1
+  end
+
   obj:setWallpapers()
 end
 
@@ -676,6 +710,59 @@ function obj:printScreenTrackingInfo()
     for _, screen in ipairs(info.extra_screens) do
       obj.logger.f("    - %s (%s)", screen.id, screen.name)
     end
+  end
+end
+
+--- Get deck information and progress
+--- @return table Information about current deck status
+function obj:getDeckInfo()
+  local screens = hs.screen.allScreens()
+  local deckInfo = {
+    current_position = obj.selected,
+    screens = {}
+  }
+
+  local maxWallpapers = 0
+
+  for _, screen in pairs(screens) do
+    local screenId = screen:id()
+    local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
+    local screenInfo = {
+      id = screenId,
+      name = screen:name(),
+      total_wallpapers = #screenWallpapers,
+      current_wallpaper = screenWallpapers[obj.selected + 1] or "N/A",
+      progress_percent = #screenWallpapers > 0 and math.floor(((obj.selected + 1) / #screenWallpapers) * 100) or 0
+    }
+
+    table.insert(deckInfo.screens, screenInfo)
+
+    if #screenWallpapers > maxWallpapers then
+      maxWallpapers = #screenWallpapers
+    end
+  end
+
+  deckInfo.max_deck_size = maxWallpapers
+  deckInfo.overall_progress_percent = maxWallpapers > 0 and math.floor(((obj.selected + 1) / maxWallpapers) * 100) or 0
+  deckInfo.remaining_wallpapers = maxWallpapers - obj.selected - 1
+
+  return deckInfo
+end
+
+--- Print deck information to console
+function obj:printDeckInfo()
+  local info = obj:getDeckInfo()
+  obj.logger.i("Deck information:")
+  obj.logger.f("  Current position: %d", info.current_position)
+  obj.logger.f("  Max deck size: %d", info.max_deck_size)
+  obj.logger.f("  Overall progress: %d%%", info.overall_progress_percent)
+  obj.logger.f("  Remaining wallpapers: %d", info.remaining_wallpapers)
+
+  obj.logger.i("  Screen details:")
+  for _, screen in ipairs(info.screens) do
+    obj.logger.f("    %s (%s): %d wallpapers, %d%%, current: %s",
+      screen.name, screen.id, screen.total_wallpapers,
+      screen.progress_percent, screen.current_wallpaper)
   end
 end
 
