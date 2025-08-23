@@ -641,6 +641,16 @@ function obj:validateSeasonalConfig(config)
     end
   end
 
+  -- Sort seasons by start date to ensure chronological order
+  table.sort(config, function(a, b)
+    return a.start_date < b.start_date
+  end)
+
+  obj.logger.df("Sorted %d seasons by start date", #config)
+  for i, season in ipairs(config) do
+    obj.logger.df("  Season %d: %s -> %s", i, season.start_date, season.directory)
+  end
+
   return true
 end
 
@@ -653,12 +663,12 @@ function obj:getCurrentSeasonalDirectory()
 
   local now = os.date("*t")
   local currentDate = string.format("%02d-%02d", now.month, now.day)
-  
+
   -- Find current season based on date
   local currentSeason = obj.seasonalConfig[1] -- Default to first season
   for i, season in ipairs(obj.seasonalConfig) do
     local nextSeason = obj.seasonalConfig[i % #obj.seasonalConfig + 1]
-    
+
     -- Handle year boundary (first season spans its start date to next season's start)
     if i == 1 then
       if currentDate >= season.start_date or currentDate < nextSeason.start_date then
@@ -673,9 +683,9 @@ function obj:getCurrentSeasonalDirectory()
     end
   end
 
-  obj.logger.df("Current date: %s, selected season: %s, directory: %s", 
-                currentDate, currentSeason.start_date, currentSeason.directory)
-  
+  obj.logger.df("Current date: %s, selected season: %s, directory: %s",
+    currentDate, currentSeason.start_date, currentSeason.directory)
+
   return currentSeason.directory
 end
 
