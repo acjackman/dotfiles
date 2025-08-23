@@ -1,6 +1,19 @@
 --- === Wheel of Seasons ===
 ---
---- Setup Rotating desktops
+--- A Hammerspoon spoon that rotates desktop wallpapers across multiple screens.
+--- Supports automatic rotation at configurable intervals and shuffling of wallpaper order.
+---
+--- Features:
+--- - Multi-screen wallpaper rotation
+--- - Configurable rotation intervals
+--- - Optional wallpaper shuffling
+--- - Image file filtering (jpg, jpeg, png, gif, bmp, tiff, webp)
+--- - Automatic screen change detection
+--- - Proper resource cleanup
+---
+--- Usage:
+---   hs.loadSpoon("WheelOfSeasons")
+---   spoon.WheelOfSeasons:start("/path/to/wallpapers", 3600, true)
 ---
 
 local obj = {}
@@ -14,13 +27,17 @@ obj.author = "Adam Jackman <adam@acjackman.com>"
 obj.license = "MIT - https://opensource.org/licenses/MIT"
 
 -- Initialize logger
-obj.logger = hs.logger.new("WheelOfSeasons", "info")
+obj.logger = hs.logger.new("WheelOfSeasons", DEFAULT_LOG_LEVEL)
 
 -- Initialize random seed (scoped to module)
 local function initRandomSeed()
   math.randomseed(os.time())
 end
 initRandomSeed()
+
+-- Constants
+local IMAGE_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp" }
+local DEFAULT_LOG_LEVEL = "info"
 
 
 local function shuffleInPlace(tbl)
@@ -30,10 +47,12 @@ local function shuffleInPlace(tbl)
   end
 end
 
+--- Check if a file has a supported image extension
+--- @param filename string The filename to check
+--- @return boolean True if the file is a supported image format
 local function isImageFile(filename)
-  local imageExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp" }
   local lowerFilename = string.lower(filename)
-  for _, ext in ipairs(imageExtensions) do
+  for _, ext in ipairs(IMAGE_EXTENSIONS) do
     if string.match(lowerFilename, ext .. "$") then
       return true
     end
@@ -42,33 +61,33 @@ local function isImageFile(filename)
 end
 
 local function loadWallpapers()
-    obj.wallpapers = {}
-    local n_wallpapers = 0
-    
-    local success, iterator = pcall(hs.fs.dir, obj.wheeldir)
-    if not success then
-      obj.logger.e("Failed to read directory: %s", obj.wheeldir)
-      return false
-    end
-    
-    for file in iterator do
-      if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
-        if isImageFile(file) then
-          table.insert(obj.wallpapers, file)
-          n_wallpapers = n_wallpapers + 1
-        end
+  obj.wallpapers = {}
+  local n_wallpapers = 0
+
+  local success, iterator = pcall(hs.fs.dir, obj.wheeldir)
+  if not success then
+    obj.logger.e("Failed to read directory: %s", obj.wheeldir)
+    return false
+  end
+
+  for file in iterator do
+    if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
+      if isImageFile(file) then
+        table.insert(obj.wallpapers, file)
+        n_wallpapers = n_wallpapers + 1
       end
     end
-    
-    obj.n_wallpapers = n_wallpapers
-    obj.logger.i("Loaded %d image files from %s", n_wallpapers, obj.wheeldir)
+  end
 
-    if (obj.shuffle) then
-      shuffleInPlace(obj.wallpapers)
-      obj.logger.d("Shuffled wallpaper order")
-    end
-    
-    return true
+  obj.n_wallpapers = n_wallpapers
+  obj.logger.i("Loaded %d image files from %s", n_wallpapers, obj.wheeldir)
+
+  if (obj.shuffle) then
+    shuffleInPlace(obj.wallpapers)
+    obj.logger.d("Shuffled wallpaper order")
+  end
+
+  return true
 end
 
 function obj:setWallpapers()
@@ -121,15 +140,15 @@ function obj:start(dir, interval, shuffle)
     return false
   end
 
-    obj.wheeldir = dir
+  obj.wheeldir = dir
   obj.interval = interval
   obj.shuffle = shuffle or false
-  
+
   -- Load wallpapers with error handling
   if not loadWallpapers() then
     return false
   end
-  
+
   -- Initialize selected index to 0 for consistent behavior
   obj.selected = 0
 
