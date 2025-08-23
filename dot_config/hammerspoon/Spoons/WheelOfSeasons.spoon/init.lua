@@ -653,7 +653,7 @@ function obj:validateSeasonalConfig(config)
   -- Remove duplicates (same start_date and directory)
   local uniqueSeasons = {}
   local seen = {}
-  
+
   for _, season in ipairs(config) do
     local key = season.start_date .. "|" .. season.directory
     if not seen[key] then
@@ -663,7 +663,7 @@ function obj:validateSeasonalConfig(config)
       obj.logger.df("Removing duplicate: %s -> %s", season.start_date, season.directory)
     end
   end
-  
+
   -- Replace original config with deduplicated version
   for i = #config, 1, -1 do
     table.remove(config, i)
