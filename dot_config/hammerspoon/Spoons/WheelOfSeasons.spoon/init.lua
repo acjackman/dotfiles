@@ -86,22 +86,22 @@ function screensChangedCallback(data)
 end
 
 function obj:start(dir, interval, shuffle)
-    -- Validate input parameters
+  -- Validate input parameters
   if not dir or type(dir) ~= "string" then
     obj.logger.e("Invalid directory parameter")
     return false
   end
-  
+
   if not interval or type(interval) ~= "number" or interval <= 0 then
     obj.logger.e("Invalid interval parameter (must be positive number)")
     return false
   end
-  
+
   if shuffle ~= nil and type(shuffle) ~= "boolean" then
     obj.logger.e("Invalid shuffle parameter (must be boolean)")
     return false
   end
-  
+
   -- Check if directory exists and is readable
   local dir_attr = hs.fs.attributes(dir)
   if not dir_attr or not dir_attr.mode:find("r") then
@@ -129,6 +129,28 @@ function obj:start(dir, interval, shuffle)
   end
 
   return true
+end
+
+function obj:stop()
+  obj.logger.i("Stopping Wheel of Seasons")
+
+  if obj.timer then
+    obj.timer:stop()
+    obj.timer = nil
+  end
+
+  if obj.spacewatch then
+    obj.spacewatch:stop()
+    obj.spacewatch = nil
+  end
+
+  -- Clear state
+  obj.wallpapers = {}
+  obj.n_wallpapers = 0
+  obj.selected = 0
+  obj.wheeldir = nil
+  obj.interval = nil
+  obj.shuffle = nil
 end
 
 return obj
