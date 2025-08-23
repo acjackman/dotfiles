@@ -43,8 +43,8 @@ local IMAGE_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".w
 local DEFAULT_LOG_LEVEL = "info"
 
 -- Screen rotation constants
-local ROTATION_0 = 0    -- Normal orientation
-local ROTATION_90 = 90  -- Clockwise rotation
+local ROTATION_0 = 0     -- Normal orientation
+local ROTATION_90 = 90   -- Clockwise rotation
 local ROTATION_180 = 180 -- Upside down
 local ROTATION_270 = 270 -- Counter-clockwise rotation
 
@@ -104,20 +104,20 @@ end
 --- @return number The rotation angle for the wallpaper
 local function getWallpaperRotation(screen)
   local screenRotation = screen:rotate()
-  
+
   -- Map screen rotation to wallpaper rotation
   -- When screen is rotated, we want the wallpaper to rotate in the opposite direction
   -- to maintain the same visual orientation
   if screenRotation == ROTATION_0 then
     return ROTATION_0
   elseif screenRotation == ROTATION_90 then
-    return ROTATION_270  -- Counter-rotate to maintain orientation
+    return ROTATION_270 -- Counter-rotate to maintain orientation
   elseif screenRotation == ROTATION_180 then
     return ROTATION_180
   elseif screenRotation == ROTATION_270 then
-    return ROTATION_90   -- Counter-rotate to maintain orientation
+    return ROTATION_90 -- Counter-rotate to maintain orientation
   else
-    return ROTATION_0    -- Default fallback
+    return ROTATION_0  -- Default fallback
   end
 end
 
@@ -132,16 +132,16 @@ function obj:setWallpapers()
 
   local screens = hs.screen.allScreens()
   obj.logger.df("Setting wallpapers for %d screens", #screens)
-  
+
   for k, screen in pairs(screens) do
     local selected = ((obj.selected + k) % obj.n_wallpapers) + 1
     local pic = obj.wallpapers[selected]
     local wallpaperRotation = getWallpaperRotation(screen)
     local screenRotation = screen:rotate()
-    
-    obj.logger.df("Screen %d: wallpaper %d/%d - %s (screen rotation: %d°, wallpaper rotation: %d°)", 
-                  k, selected, obj.n_wallpapers, pic, screenRotation, wallpaperRotation)
-    
+
+    obj.logger.df("Screen %d: wallpaper %d/%d - %s (screen rotation: %d°, wallpaper rotation: %d°)",
+      k, selected, obj.n_wallpapers, pic, screenRotation, wallpaperRotation)
+
     -- Set wallpaper with rotation
     screen:desktopImageURL("file://" .. obj.wheeldir .. pic, wallpaperRotation)
   end
@@ -171,7 +171,7 @@ function obj:handleScreenChange()
   if screenChangeTimer then
     screenChangeTimer:stop()
   end
-  
+
   screenChangeTimer = hs.timer.doAfter(0.5, function()
     obj.logger.i("Screen configuration changed (debounced), updating wallpapers")
     obj:setWallpapers()
@@ -226,7 +226,7 @@ function obj:start(dir, interval, shuffle)
     obj.spacewatch = hs.spaces.watcher.new(screensChangedCallback)
     obj.spacewatch:start()
   end
-  
+
   if obj.screenwatcher == nil then
     obj.screenwatcher = hs.screen.watcher.new(screensChangedCallback)
     obj.screenwatcher:start()
@@ -265,6 +265,37 @@ function obj:getScreenInfo()
   return info
 end
 
+--- Print current screen configuration to console (useful for debugging)
+function obj:printScreenInfo()
+  local info = obj:getScreenInfo()
+  obj.logger.i("Current screen configuration:")
+  obj.logger.i("  Total screens: %d", info.count)
+  
+  for i, screen in ipairs(info.screens) do
+    obj.logger.i("  Screen %d: %s (ID: %s)", i, screen.name, screen.id)
+    obj.logger.i("    Rotation: %d°, Wallpaper rotation: %d°", screen.rotation, screen.wallpaper_rotation)
+    obj.logger.i("    Frame: x=%d, y=%d, w=%d, h=%d", 
+                 screen.frame.x, screen.frame.y, screen.frame.w, screen.frame.h)
+  end
+end
+
+--- Force update wallpapers for a specific screen
+--- @param screenId string The screen ID to update
+function obj:updateScreen(screenId)
+  local screens = hs.screen.allScreens()
+  for _, screen in pairs(screens) do
+    if screen:id() == screenId then
+      obj.logger.i("Forcing update for screen: %s", screen:name())
+      local selected = ((obj.selected + 1) % obj.n_wallpapers) + 1
+      local pic = obj.wallpapers[selected]
+      local wallpaperRotation = getWallpaperRotation(screen)
+      screen:desktopImageURL("file://" .. obj.wheeldir .. pic, wallpaperRotation)
+      return
+    end
+  end
+  obj.logger.w("Screen with ID %s not found", screenId)
+end
+
 function obj:stop()
   obj.logger.i("Stopping Wheel of Seasons")
 
@@ -277,7 +308,7 @@ function obj:stop()
     obj.spacewatch:stop()
     obj.spacewatch = nil
   end
-  
+
   if obj.screenwatcher then
     obj.screenwatcher:stop()
     obj.screenwatcher = nil
