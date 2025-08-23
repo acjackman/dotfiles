@@ -18,6 +18,12 @@
 ---   hs.loadSpoon("WheelOfSeasons")
 ---   spoon.WheelOfSeasons:start("/path/to/wallpapers", 3600, true)
 ---
+--- Additional Methods:
+---   spoon.WheelOfSeasons:refresh()           -- Manually refresh wallpapers
+---   spoon.WheelOfSeasons:getScreenInfo()     -- Get current screen configuration
+---   spoon.WheelOfSeasons:printScreenInfo()   -- Print screen info to console
+---   spoon.WheelOfSeasons:updateScreen(id)    -- Update specific screen
+---
 
 local obj = {}
 obj.__index = obj
@@ -249,7 +255,7 @@ function obj:getScreenInfo()
     count = #screens,
     screens = {}
   }
-  
+
   for i, screen in pairs(screens) do
     local frame = screen:frame()
     local rotation = screen:rotate()
@@ -261,7 +267,7 @@ function obj:getScreenInfo()
       wallpaper_rotation = getWallpaperRotation(screen)
     })
   end
-  
+
   return info
 end
 
@@ -270,12 +276,12 @@ function obj:printScreenInfo()
   local info = obj:getScreenInfo()
   obj.logger.i("Current screen configuration:")
   obj.logger.i("  Total screens: %d", info.count)
-  
+
   for i, screen in ipairs(info.screens) do
     obj.logger.i("  Screen %d: %s (ID: %s)", i, screen.name, screen.id)
     obj.logger.i("    Rotation: %d°, Wallpaper rotation: %d°", screen.rotation, screen.wallpaper_rotation)
-    obj.logger.i("    Frame: x=%d, y=%d, w=%d, h=%d", 
-                 screen.frame.x, screen.frame.y, screen.frame.w, screen.frame.h)
+    obj.logger.i("    Frame: x=%d, y=%d, w=%d, h=%d",
+      screen.frame.x, screen.frame.y, screen.frame.w, screen.frame.h)
   end
 end
 
