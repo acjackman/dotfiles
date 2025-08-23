@@ -524,7 +524,32 @@ function obj:start(dir, interval, shuffle)
     obj.seasonalConfig = dir
     obj.wheeldir = obj:getCurrentSeasonalDirectory()
     obj.logger.f("Initializing Wheel of Seasons with seasonal configuration")
-    obj.logger.f("Current season directory: %s", obj.wheeldir)
+    
+    -- Get current season info for better logging
+    local now = os.date("*t")
+    local currentDate = string.format("%02d-%02d", now.month, now.day)
+    local currentSeason = obj.seasonalConfig[1]
+    for i, season in ipairs(obj.seasonalConfig) do
+      local nextSeason = obj.seasonalConfig[i % #obj.seasonalConfig + 1]
+      if currentDate >= season.start_date and currentDate < nextSeason.start_date then
+        currentSeason = season
+        break
+      elseif i == 1 and (currentDate >= season.start_date or currentDate < nextSeason.start_date) then
+        currentSeason = season
+        break
+      end
+    end
+    
+    local nextSeason = obj.seasonalConfig[1]
+    for i, season in ipairs(obj.seasonalConfig) do
+      if season == currentSeason then
+        nextSeason = obj.seasonalConfig[i % #obj.seasonalConfig + 1]
+        break
+      end
+    end
+    
+    local dateRange = string.format("%s to %s", currentSeason.start_date, nextSeason.start_date)
+    obj.logger.f("Current season directory: %s (applies %s)", obj.wheeldir, dateRange)
   else
     -- Single directory (backward compatibility)
     if not dir or type(dir) ~= "string" or dir == "" then
@@ -683,8 +708,26 @@ function obj:getCurrentSeasonalDirectory()
     end
   end
 
-  obj.logger.df("Current date: %s, selected season: %s, directory: %s",
-    currentDate, currentSeason.start_date, currentSeason.directory)
+  -- Calculate the date range for this season
+  local nextSeason = obj.seasonalConfig[1] -- Default to first season (handles year boundary)
+  for i, season in ipairs(obj.seasonalConfig) do
+    if season == currentSeason then
+      nextSeason = obj.seasonalConfig[i % #obj.seasonalConfig + 1]
+      break
+    end
+  end
+  
+  local dateRange
+  if currentSeason == obj.seasonalConfig[1] then
+    -- First season spans from its start date to the next season's start date (across year boundary)
+    dateRange = string.format("%s to %s", currentSeason.start_date, nextSeason.start_date)
+  else
+    -- Other seasons span from their start date to the next season's start date
+    dateRange = string.format("%s to %s", currentSeason.start_date, nextSeason.start_date)
+  end
+
+  obj.logger.df("Current date: %s, selected season: %s (%s), directory: %s",
+    currentDate, currentSeason.start_date, dateRange, currentSeason.directory)
 
   return currentSeason.directory
 end
