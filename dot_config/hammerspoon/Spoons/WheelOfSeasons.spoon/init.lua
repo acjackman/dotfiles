@@ -2,15 +2,16 @@
 ---
 --- A Hammerspoon spoon that rotates desktop wallpapers across multiple screens.
 --- Supports automatic rotation at configurable intervals and shuffling of wallpaper order.
---- Automatically matches wallpaper orientation to monitor rotation and supports hot-plugging.
+--- Automatically matches image orientation to monitor orientation and supports hot-plugging.
 ---
 --- Features:
 --- - Multi-screen wallpaper rotation
 --- - Configurable rotation intervals
 --- - Optional wallpaper shuffling
 --- - Image file filtering (jpg, jpeg, png, gif, bmp, tiff, webp)
+--- - Automatic image orientation detection and filtering
+--- - Monitor orientation matching (landscape/portrait)
 --- - Automatic screen change detection
---- - Monitor rotation detection and wallpaper orientation matching
 --- - Hot-plugging monitor support
 --- - Proper resource cleanup
 ---
@@ -19,11 +20,12 @@
 ---   spoon.WheelOfSeasons:start("/path/to/wallpapers", 3600, true)
 ---
 --- Additional Methods:
----   spoon.WheelOfSeasons:refresh()           -- Manually refresh wallpapers
----   spoon.WheelOfSeasons:getScreenInfo()     -- Get current screen configuration
----   spoon.WheelOfSeasons:printScreenInfo()   -- Print screen info to console
----   spoon.WheelOfSeasons:updateScreen(id)    -- Update specific screen
----   spoon.WheelOfSeasons:checkDirectory(dir) -- Check if directory exists and is readable
+---   spoon.WheelOfSeasons:refresh()                    -- Manually refresh wallpapers
+---   spoon.WheelOfSeasons:refreshOrientationFiltering() -- Refresh orientation filtering
+---   spoon.WheelOfSeasons:getScreenInfo()              -- Get current screen configuration
+---   spoon.WheelOfSeasons:printScreenInfo()            -- Print screen info to console
+---   spoon.WheelOfSeasons:updateScreen(id)             -- Update specific screen
+---   spoon.WheelOfSeasons:checkDirectory(dir)          -- Check if directory exists and is readable
 ---
 
 local obj = {}
@@ -49,12 +51,6 @@ initRandomSeed()
 local IMAGE_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp" }
 local DEFAULT_LOG_LEVEL = "info"
 
--- Screen rotation constants
-local ROTATION_0 = 0     -- Normal orientation
-local ROTATION_90 = 90   -- Clockwise rotation
-local ROTATION_180 = 180 -- Upside down
-local ROTATION_270 = 270 -- Counter-clockwise rotation
-
 
 local function shuffleInPlace(tbl)
   for i = #tbl, 2, -1 do
@@ -76,13 +72,56 @@ local function isImageFile(filename)
   return false
 end
 
+--- Get image dimensions using hs.image
+--- @param filepath string Full path to the image file
+--- @return number|nil width, number|nil height, or nil if failed
+local function getImageDimensions(filepath)
+  local success, image = pcall(hs.image.imageFromPath, filepath)
+  if not success or not image then
+    return nil, nil
+  end
+
+  local size = image:size()
+  if size then
+    return size.w, size.h
+  end
+  return nil, nil
+end
+
+--- Determine if an image matches the screen orientation
+--- @param filepath string Full path to the image file
+--- @param screen hs.screen The screen to check against
+--- @return boolean True if image orientation matches screen orientation
+local function imageMatchesScreenOrientation(filepath, screen)
+  local width, height = getImageDimensions(filepath)
+  if not width or not height then
+    return false -- Skip images we can't read
+  end
+
+  local screenFrame = screen:frame()
+  local screenRotation = screen:rotate()
+
+  -- Determine screen orientation based on rotation and frame
+  local screenIsLandscape = screenFrame.w > screenFrame.h
+  if screenRotation == 90 or screenRotation == 270 then
+    screenIsLandscape = not screenIsLandscape -- Rotated screens have swapped dimensions
+  end
+
+  -- Determine image orientation
+  local imageIsLandscape = width > height
+
+  -- Return true if both are landscape or both are portrait
+  return screenIsLandscape == imageIsLandscape
+end
+
 local function loadWallpapers()
   obj.wallpapers = {}
+  obj.wallpapersByScreen = {} -- Store wallpapers filtered by screen orientation
   local n_wallpapers = 0
 
   -- Try to get directory iterator
   obj.logger.i("Attempting to read directory: %s", obj.wheeldir)
-  
+
   -- Use a more robust approach to handle directory iteration
   local success, result = pcall(function()
     local files = {}
@@ -95,17 +134,17 @@ local function loadWallpapers()
     end
     return files
   end)
-  
+
   if not success then
     obj.logger.e("Error reading directory: %s", result)
     return false
   end
-  
+
   if not result then
     obj.logger.e("Failed to read directory: %s", obj.wheeldir)
     return false
   end
-  
+
   obj.wallpapers = result
   obj.n_wallpapers = #result
   obj.logger.i("Loaded %d image files from %s", obj.n_wallpapers, obj.wheeldir)
@@ -114,35 +153,45 @@ local function loadWallpapers()
     obj.logger.w("Directory is empty or contains no readable image files: %s", obj.wheeldir)
   end
 
+  -- Filter images by orientation for each screen
+  local screens = hs.screen.allScreens()
+  for i, screen in pairs(screens) do
+    local screenId = screen:id()
+    local matchingImages = {}
+
+    obj.logger.i("Filtering images for screen %d (%s)", i, screen:name())
+
+    for _, file in ipairs(result) do
+      local filepath = obj.wheeldir .. "/" .. file
+      if imageMatchesScreenOrientation(filepath, screen) then
+        table.insert(matchingImages, file)
+      end
+    end
+
+    obj.wallpapersByScreen[screenId] = matchingImages
+    obj.logger.i("Screen %d: %d matching images out of %d total", i, #matchingImages, #result)
+
+    -- If no matching images for this screen, use all images as fallback
+    if #matchingImages == 0 then
+      obj.logger.w("No orientation-matching images for screen %d, using all images as fallback", i)
+      obj.wallpapersByScreen[screenId] = result
+    end
+  end
+
   if (obj.shuffle) then
     shuffleInPlace(obj.wallpapers)
     obj.logger.d("Shuffled wallpaper order")
+
+    -- Also shuffle the screen-specific lists
+    for screenId, images in pairs(obj.wallpapersByScreen) do
+      shuffleInPlace(images)
+    end
   end
 
   return true
 end
 
---- Get the appropriate wallpaper rotation based on screen rotation
---- @param screen hs.screen The screen to check
---- @return number The rotation angle for the wallpaper
-local function getWallpaperRotation(screen)
-  local screenRotation = screen:rotate()
 
-  -- Map screen rotation to wallpaper rotation
-  -- When screen is rotated, we want the wallpaper to rotate in the opposite direction
-  -- to maintain the same visual orientation
-  if screenRotation == ROTATION_0 then
-    return ROTATION_0
-  elseif screenRotation == ROTATION_90 then
-    return ROTATION_270 -- Counter-rotate to maintain orientation
-  elseif screenRotation == ROTATION_180 then
-    return ROTATION_180
-  elseif screenRotation == ROTATION_270 then
-    return ROTATION_90 -- Counter-rotate to maintain orientation
-  else
-    return ROTATION_0  -- Default fallback
-  end
-end
 
 function obj:setWallpapers()
   obj.logger.df("Updating wallpapers, selected index: %d", obj.selected)
@@ -157,17 +206,26 @@ function obj:setWallpapers()
   obj.logger.df("Setting wallpapers for %d screens", #screens)
 
   for k, screen in pairs(screens) do
-    local selected = ((obj.selected + k) % obj.n_wallpapers) + 1
-    local pic = obj.wallpapers[selected]
-    local wallpaperRotation = getWallpaperRotation(screen)
+    local screenId = screen:id()
+    local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
+
+    if #screenWallpapers == 0 then
+      obj.logger.w("No wallpapers available for screen %d", k)
+      goto continue
+    end
+
+    local selected = ((obj.selected + k) % #screenWallpapers) + 1
+    local pic = screenWallpapers[selected]
     local screenRotation = screen:rotate()
 
-    obj.logger.df("Screen %d: wallpaper %d/%d - %s (screen rotation: %d°, wallpaper rotation: %d°)",
-      k, selected, obj.n_wallpapers, pic, screenRotation, wallpaperRotation)
+    obj.logger.df("Screen %d: wallpaper %d/%d - %s (screen rotation: %d°)",
+      k, selected, #screenWallpapers, pic, screenRotation)
 
-    -- Set wallpaper with rotation
+    -- Set wallpaper (rotation is handled automatically by the system)
     local filePath = "file://" .. obj.wheeldir .. "/" .. pic
-    screen:desktopImageURL(filePath, wallpaperRotation)
+    screen:desktopImageURL(filePath)
+
+    ::continue::
   end
 end
 
@@ -197,7 +255,8 @@ function obj:handleScreenChange()
   end
 
   screenChangeTimer = hs.timer.doAfter(0.5, function()
-    obj.logger.i("Screen configuration changed (debounced), updating wallpapers")
+    obj.logger.i("Screen configuration changed (debounced), refreshing orientation filtering and updating wallpapers")
+    obj:refreshOrientationFiltering()
     obj:setWallpapers()
     screenChangeTimer = nil
   end)
@@ -274,6 +333,44 @@ function obj:refresh()
   obj:setWallpapers()
 end
 
+--- Refresh orientation filtering for all screens
+function obj:refreshOrientationFiltering()
+  obj.logger.i("Refreshing orientation filtering for all screens")
+  if obj.wallpapers and #obj.wallpapers > 0 then
+    -- Re-filter images by orientation for each screen
+    local screens = hs.screen.allScreens()
+    for i, screen in pairs(screens) do
+      local screenId = screen:id()
+      local matchingImages = {}
+
+      obj.logger.i("Re-filtering images for screen %d (%s)", i, screen:name())
+
+      for _, file in ipairs(obj.wallpapers) do
+        local filepath = obj.wheeldir .. "/" .. file
+        if imageMatchesScreenOrientation(filepath, screen) then
+          table.insert(matchingImages, file)
+        end
+      end
+
+      obj.wallpapersByScreen[screenId] = matchingImages
+      obj.logger.i("Screen %d: %d matching images out of %d total", i, #matchingImages, #obj.wallpapers)
+
+      -- If no matching images for this screen, use all images as fallback
+      if #matchingImages == 0 then
+        obj.logger.w("No orientation-matching images for screen %d, using all images as fallback", i)
+        obj.wallpapersByScreen[screenId] = obj.wallpapers
+      end
+    end
+
+    -- Re-shuffle if needed
+    if obj.shuffle then
+      for screenId, images in pairs(obj.wallpapersByScreen) do
+        shuffleInPlace(images)
+      end
+    end
+  end
+end
+
 --- Get current screen configuration information
 --- @return table Information about current screens and their rotations
 function obj:getScreenInfo()
@@ -290,8 +387,7 @@ function obj:getScreenInfo()
       id = screen:id(),
       name = screen:name(),
       rotation = rotation,
-      frame = frame,
-      wallpaper_rotation = getWallpaperRotation(screen)
+      frame = frame
     })
   end
 
@@ -306,7 +402,7 @@ function obj:printScreenInfo()
 
   for i, screen in ipairs(info.screens) do
     obj.logger.i("  Screen %d: %s (ID: %s)", i, screen.name, screen.id)
-    obj.logger.i("    Rotation: %d°, Wallpaper rotation: %d°", screen.rotation, screen.wallpaper_rotation)
+    obj.logger.i("    Rotation: %d°", screen.rotation)
     obj.logger.i("    Frame: x=%d, y=%d, w=%d, h=%d",
       screen.frame.x, screen.frame.y, screen.frame.w, screen.frame.h)
   end
@@ -339,11 +435,17 @@ function obj:updateScreen(screenId)
   for _, screen in pairs(screens) do
     if screen:id() == screenId then
       obj.logger.i("Forcing update for screen: %s", screen:name())
-      local selected = ((obj.selected + 1) % obj.n_wallpapers) + 1
-      local pic = obj.wallpapers[selected]
-      local wallpaperRotation = getWallpaperRotation(screen)
+      local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
+
+      if #screenWallpapers == 0 then
+        obj.logger.w("No wallpapers available for screen: %s", screen:name())
+        return
+      end
+
+      local selected = ((obj.selected + 1) % #screenWallpapers) + 1
+      local pic = screenWallpapers[selected]
       local filePath = "file://" .. obj.wheeldir .. "/" .. pic
-      screen:desktopImageURL(filePath, wallpaperRotation)
+      screen:desktopImageURL(filePath)
       return
     end
   end
@@ -370,6 +472,7 @@ function obj:stop()
 
   -- Clear state
   obj.wallpapers = {}
+  obj.wallpapersByScreen = {}
   obj.n_wallpapers = 0
   obj.selected = 0
   obj.wheeldir = nil
