@@ -298,15 +298,15 @@ end
 --- Reshuffle all decks with collision avoidance
 function obj:reshuffleAllDecksWithCollisionAvoidance()
   local screens = hs.screen.allScreens()
-  
+
   -- Group screens by orientation to avoid collisions within orientation groups
   local landscapeScreens = {}
   local portraitScreens = {}
-  
+
   for _, screen in pairs(screens) do
     local screenId = screen:id()
     local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
-    
+
     if #screenWallpapers > 0 then
       local screenInfo = {
         id = screenId,
@@ -314,7 +314,7 @@ function obj:reshuffleAllDecksWithCollisionAvoidance()
         wallpapers = screenWallpapers,
         isLandscape = screen:frame().w > screen:frame().h
       }
-      
+
       if screenInfo.isLandscape then
         table.insert(landscapeScreens, screenInfo)
       else
@@ -322,25 +322,25 @@ function obj:reshuffleAllDecksWithCollisionAvoidance()
       end
     end
   end
-  
+
   -- Reshuffle landscape screens with collision avoidance
   if #landscapeScreens > 1 then
     obj:reshuffleOrientationGroupWithCollisionAvoidance(landscapeScreens, "landscape")
   elseif #landscapeScreens == 1 then
     shuffleInPlace(landscapeScreens[1].wallpapers)
     obj.screenPositions[landscapeScreens[1].id] = 0
-    obj.logger.df("Reshuffled landscape deck for screen %s (%d wallpapers)", 
-                  landscapeScreens[1].name, #landscapeScreens[1].wallpapers)
+    obj.logger.df("Reshuffled landscape deck for screen %s (%d wallpapers)",
+      landscapeScreens[1].name, #landscapeScreens[1].wallpapers)
   end
-  
+
   -- Reshuffle portrait screens with collision avoidance
   if #portraitScreens > 1 then
     obj:reshuffleOrientationGroupWithCollisionAvoidance(portraitScreens, "portrait")
   elseif #portraitScreens == 1 then
     shuffleInPlace(portraitScreens[1].wallpapers)
     obj.screenPositions[portraitScreens[1].id] = 0
-    obj.logger.df("Reshuffled portrait deck for screen %s (%d wallpapers)", 
-                  portraitScreens[1].name, #portraitScreens[1].wallpapers)
+    obj.logger.df("Reshuffled portrait deck for screen %s (%d wallpapers)",
+      portraitScreens[1].name, #portraitScreens[1].wallpapers)
   end
 end
 
@@ -349,11 +349,11 @@ end
 --- @param orientation string "landscape" or "portrait"
 function obj:reshuffleOrientationGroupWithCollisionAvoidance(screens, orientation)
   obj.logger.i("Reshuffling %d %s screens with collision avoidance", #screens, orientation)
-  
+
   -- Collect all available wallpapers from all screens in this orientation
   local allWallpapers = {}
   local wallpaperCounts = {}
-  
+
   for _, screen in ipairs(screens) do
     for _, wallpaper in ipairs(screen.wallpapers) do
       if not wallpaperCounts[wallpaper] then
@@ -363,17 +363,17 @@ function obj:reshuffleOrientationGroupWithCollisionAvoidance(screens, orientatio
       wallpaperCounts[wallpaper] = wallpaperCounts[wallpaper] + 1
     end
   end
-  
+
   -- Shuffle the master list
   shuffleInPlace(allWallpapers)
-  
+
   -- Distribute wallpapers to screens, avoiding collisions
   local usedWallpapers = {}
   local screenIndex = 1
-  
+
   for _, wallpaper in ipairs(allWallpapers) do
     local screen = screens[screenIndex]
-    
+
     -- Check if this wallpaper is already used by this screen
     local alreadyUsed = false
     for _, used in ipairs(usedWallpapers) do
@@ -382,12 +382,12 @@ function obj:reshuffleOrientationGroupWithCollisionAvoidance(screens, orientatio
         break
       end
     end
-    
+
     if not alreadyUsed then
       -- Add to this screen's deck
       table.insert(screen.wallpapers, wallpaper)
-      table.insert(usedWallpapers, {screenId = screen.id, wallpaper = wallpaper})
-      
+      table.insert(usedWallpapers, { screenId = screen.id, wallpaper = wallpaper })
+
       -- Move to next screen
       screenIndex = screenIndex + 1
       if screenIndex > #screens then
@@ -395,33 +395,33 @@ function obj:reshuffleOrientationGroupWithCollisionAvoidance(screens, orientatio
       end
     end
   end
-  
+
   -- Reset positions and log results
   for _, screen in ipairs(screens) do
     obj.screenPositions[screen.id] = 0
     obj.wallpapersByScreen[screen.id] = screen.wallpapers
-    obj.logger.df("Reshuffled %s deck for screen %s (%d wallpapers)", 
-                  orientation, screen.name, #screen.wallpapers)
+    obj.logger.df("Reshuffled %s deck for screen %s (%d wallpapers)",
+      orientation, screen.name, #screen.wallpapers)
   end
-  
+
   -- Check for collisions
   local collisionCount = 0
   for i = 1, #screens do
     for j = i + 1, #screens do
       local screen1 = screens[i]
       local screen2 = screens[j]
-      
+
       if screen1.wallpapers[1] == screen2.wallpapers[1] then
         collisionCount = collisionCount + 1
-        obj.logger.wf("Collision detected: %s and %s both have %s", 
-                     screen1.name, screen2.name, screen1.wallpapers[1])
+        obj.logger.wf("Collision detected: %s and %s both have %s",
+          screen1.name, screen2.name, screen1.wallpapers[1])
       end
     end
   end
-  
+
   if collisionCount > 0 then
-    obj.logger.wf("Warning: %d collisions detected in %s orientation (insufficient wallpapers)", 
-                  collisionCount, orientation)
+    obj.logger.wf("Warning: %d collisions detected in %s orientation (insufficient wallpapers)",
+      collisionCount, orientation)
   else
     obj.logger.i("No collisions detected in %s orientation", orientation)
   end
@@ -661,7 +661,7 @@ function obj:refreshOrientationFiltering()
 
       -- Initialize position for new screen
       obj.screenPositions[screenId] = 0
-      
+
       -- Shuffle the new screen's wallpaper list if needed
       if obj.shuffle then
         shuffleInPlace(obj.wallpapersByScreen[screenId])
@@ -868,7 +868,7 @@ function obj:getDeckInfo()
     local screenId = screen:id()
     local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
     local screenPosition = obj.screenPositions[screenId] or 0
-    
+
     local screenInfo = {
       id = screenId,
       name = screen:name(),
@@ -884,7 +884,7 @@ function obj:getDeckInfo()
     if #screenWallpapers > maxWallpapers then
       maxWallpapers = #screenWallpapers
     end
-    
+
     totalProgress = totalProgress + screenPosition
     totalWallpapers = totalWallpapers + #screenWallpapers
   end
@@ -907,8 +907,8 @@ function obj:printDeckInfo()
   obj.logger.i("  Screen details:")
   for _, screen in ipairs(info.screens) do
     obj.logger.f("    %s (%s): position %d/%d (%d%%), remaining: %d, current: %s",
-                 screen.name, screen.id, screen.current_position, screen.total_wallpapers,
-                 screen.progress_percent, screen.remaining_wallpapers, screen.current_wallpaper)
+      screen.name, screen.id, screen.current_position, screen.total_wallpapers,
+      screen.progress_percent, screen.remaining_wallpapers, screen.current_wallpaper)
   end
 end
 
