@@ -53,7 +53,7 @@ end
 
 function obj:shiftWallpapers()
   -- print("obj.selected = " .. obj.selected)
-  obj.selected = math.ceil((obj.selected + 1), 0)
+  obj.selected = (obj.selected + 1) % obj.n_wallpapers
   obj:setWallpapers()
 end
 
