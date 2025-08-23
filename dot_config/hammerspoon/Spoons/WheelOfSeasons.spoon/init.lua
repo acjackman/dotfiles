@@ -25,6 +25,8 @@
 ---   spoon.WheelOfSeasons:refreshAllScreens()          -- Force refresh all screens (use sparingly)
 ---   spoon.WheelOfSeasons:getScreenInfo()              -- Get current screen configuration
 ---   spoon.WheelOfSeasons:printScreenInfo()            -- Print screen info to console
+---   spoon.WheelOfSeasons:getScreenTrackingInfo()      -- Get screen tracking status
+---   spoon.WheelOfSeasons:printScreenTrackingInfo()    -- Print screen tracking info to console
 ---   spoon.WheelOfSeasons:getOrientationBreakdown()    -- Get wallpaper orientation statistics
 ---   spoon.WheelOfSeasons:printOrientationBreakdown()  -- Print orientation breakdown to console
 ---   spoon.WheelOfSeasons:updateScreen(id)             -- Update specific screen
@@ -281,19 +283,45 @@ function obj:handleScreenChange()
 
   screenChangeTimer = hs.timer.doAfter(0.5, function()
     obj.logger.i("Screen configuration changed (debounced), checking for new screens")
+
+    -- Clean up disconnected screens from our tracking
+    local currentScreens = hs.screen.allScreens()
+    local currentScreenIds = {}
+    for _, screen in pairs(currentScreens) do
+      currentScreenIds[screen:id()] = true
+    end
+
+    -- Remove disconnected screens from tracking
+    local disconnectedScreens = {}
+    for screenId, _ in pairs(obj.wallpapersByScreen) do
+      if not currentScreenIds[screenId] then
+        table.insert(disconnectedScreens, screenId)
+        obj.logger.f("Screen disconnected: %s", screenId)
+      end
+    end
+
+    for _, screenId in ipairs(disconnectedScreens) do
+      obj.wallpapersByScreen[screenId] = nil
+    end
+
+    if #disconnectedScreens > 0 then
+      obj.logger.f("Cleaned up %d disconnected screens", #disconnectedScreens)
+    end
+
+    -- Check for new screens
     obj:refreshOrientationFiltering()
+
     -- Only update wallpapers if there were new screens
     if obj.wallpapers and #obj.wallpapers > 0 then
-      local screens = hs.screen.allScreens()
       local hasNewScreens = false
-      for _, screen in pairs(screens) do
+      for _, screen in pairs(currentScreens) do
         local screenId = screen:id()
         if not obj.wallpapersByScreen[screenId] then
           hasNewScreens = true
           break
         end
       end
-      
+
       if hasNewScreens then
         obj.logger.i("New screens detected, updating wallpapers")
         obj:setWallpapers()
@@ -382,7 +410,7 @@ function obj:refreshAllScreens()
   if obj.wallpapers and #obj.wallpapers > 0 then
     -- Clear existing screen wallpaper lists
     obj.wallpapersByScreen = {}
-    
+
     -- Re-filter images by orientation for each screen
     local screens = hs.screen.allScreens()
     for i, screen in pairs(screens) do
@@ -414,7 +442,7 @@ function obj:refreshAllScreens()
         shuffleInPlace(images)
       end
     end
-    
+
     obj.logger.i("All screens refreshed, updating wallpapers")
     obj:setWallpapers()
   end
@@ -426,16 +454,16 @@ function obj:refreshOrientationFiltering()
   if obj.wallpapers and #obj.wallpapers > 0 then
     local screens = hs.screen.allScreens()
     local newScreens = {}
-    
+
     -- Check for new screens that don't have wallpaper lists yet
     for i, screen in pairs(screens) do
       local screenId = screen:id()
       if not obj.wallpapersByScreen[screenId] then
-        table.insert(newScreens, {index = i, screen = screen, id = screenId})
+        table.insert(newScreens, { index = i, screen = screen, id = screenId })
         obj.logger.f("New screen detected: %d (%s)", i, screen:name())
       end
     end
-    
+
     -- Only process new screens
     for _, screenInfo in ipairs(newScreens) do
       local screen = screenInfo.screen
@@ -460,13 +488,13 @@ function obj:refreshOrientationFiltering()
         obj.logger.wf("No orientation-matching images for screen %d, using all images as fallback", i)
         obj.wallpapersByScreen[screenId] = obj.wallpapers
       end
-      
+
       -- Shuffle the new screen's wallpaper list if needed
       if obj.shuffle then
         shuffleInPlace(obj.wallpapersByScreen[screenId])
       end
     end
-    
+
     if #newScreens == 0 then
       obj.logger.i("No new screens detected")
     else
@@ -585,6 +613,70 @@ function obj:printOrientationBreakdown()
   obj.logger.f("  Horizontal: %d (%d%%)", breakdown.horizontal, breakdown.horizontal_percent)
   obj.logger.f("  Vertical: %d (%d%%)", breakdown.vertical, breakdown.vertical_percent)
   obj.logger.f("  Unreadable: %d (%d%%)", breakdown.unreadable, breakdown.unreadable_percent)
+end
+
+--- Get information about tracked screens vs current screens
+--- @return table Information about screen tracking status
+function obj:getScreenTrackingInfo()
+  local currentScreens = hs.screen.allScreens()
+  local currentScreenIds = {}
+  local trackedScreenIds = {}
+
+  for _, screen in pairs(currentScreens) do
+    currentScreenIds[screen:id()] = screen:name()
+  end
+
+  for screenId, _ in pairs(obj.wallpapersByScreen) do
+    trackedScreenIds[screenId] = true
+  end
+
+  local missingScreens = {}
+  local extraScreens = {}
+
+  -- Find screens that are tracked but not current (disconnected)
+  for screenId, _ in pairs(trackedScreenIds) do
+    if not currentScreenIds[screenId] then
+      table.insert(missingScreens, screenId)
+    end
+  end
+
+  -- Find screens that are current but not tracked (new)
+  for screenId, name in pairs(currentScreenIds) do
+    if not trackedScreenIds[screenId] then
+      table.insert(extraScreens, { id = screenId, name = name })
+    end
+  end
+
+  return {
+    current_screens = currentScreenIds,
+    tracked_screens = trackedScreenIds,
+    missing_screens = missingScreens,
+    extra_screens = extraScreens,
+    current_count = #currentScreens,
+    tracked_count = #missingScreens + #extraScreens
+  }
+end
+
+--- Print screen tracking information to console
+function obj:printScreenTrackingInfo()
+  local info = obj:getScreenTrackingInfo()
+  obj.logger.i("Screen tracking information:")
+  obj.logger.f("  Current screens: %d", info.current_count)
+  obj.logger.f("  Tracked screens: %d", info.tracked_count)
+
+  if #info.missing_screens > 0 then
+    obj.logger.f("  Disconnected screens: %d", #info.missing_screens)
+    for _, screenId in ipairs(info.missing_screens) do
+      obj.logger.f("    - %s", screenId)
+    end
+  end
+
+  if #info.extra_screens > 0 then
+    obj.logger.f("  New screens: %d", #info.extra_screens)
+    for _, screen in ipairs(info.extra_screens) do
+      obj.logger.f("    - %s (%s)", screen.id, screen.name)
+    end
+  end
 end
 
 --- Force update wallpapers for a specific screen
