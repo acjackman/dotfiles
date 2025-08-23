@@ -106,7 +106,7 @@ local function imageMatchesScreenOrientation(filepath, screen)
   end
 
   local screenFrame = screen:frame()
-  
+
   -- Determine screen orientation based on current frame dimensions
   -- The frame already reflects any rotation, so we don't need to consider screen:rotate()
   local screenIsLandscape = screenFrame.w > screenFrame.h
