@@ -1,0 +1,178 @@
+name: SSH Connectivity Test to TrueNAS Scale
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+  schedule:
+    # Run daily at 6 AM UTC to monitor connectivity
+    - cron: '0 6 * * *'
+
+jobs:
+  test-ssh-connectivity:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Tailscale
+      uses: tailscale/github-action@v2
+      with:
+        oauth-client-id: ${{ secrets.TS_OAUTH_CLIENT_ID }}
+        oauth-secret: ${{ secrets.TS_OAUTH_SECRET }}
+        tags: tag:ci
+        version: 1.76.6
+
+    - name: Wait for Tailscale to be ready
+      run: |
+        echo "Waiting for Tailscale to establish connection..."
+        timeout 60 bash -c 'until tailscale status --json | jq -e ".BackendState == \"Running\"" > /dev/null 2>&1; do sleep 2; done'
+        echo "Tailscale is ready"
+        tailscale status
+
+    - name: Setup SSH key
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.TRUENAS_SSH_PRIVATE_KEY }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        
+        # Create SSH config for the TrueNAS host
+        cat >> ~/.ssh/config << EOF
+        Host truenas-scale
+          HostName truenas-scale
+          User ${{ secrets.TRUENAS_SSH_USER }}
+          Port ${{ secrets.TRUENAS_SSH_PORT || '22' }}
+          IdentityFile ~/.ssh/id_rsa
+          StrictHostKeyChecking no
+          UserKnownHostsFile /dev/null
+          ConnectTimeout 30
+        EOF
+
+    - name: Test Tailscale connectivity to TrueNAS
+      run: |
+        echo "Testing Tailscale network connectivity..."
+        
+        # Get TrueNAS IP from Tailscale
+        TRUENAS_IP=$(tailscale status --json | jq -r '.Peer[] | select(.HostName == "truenas-scale") | .TailscaleIPs[0]')
+        
+        if [ "$TRUENAS_IP" = "null" ] || [ -z "$TRUENAS_IP" ]; then
+          echo "❌ TrueNAS Scale not found in Tailscale network"
+          echo "Available peers:"
+          tailscale status
+          exit 1
+        fi
+        
+        echo "✅ Found TrueNAS Scale at IP: $TRUENAS_IP"
+        
+        # Test basic connectivity
+        echo "Testing ping connectivity..."
+        if ping -c 3 -W 5 "$TRUENAS_IP"; then
+          echo "✅ Ping successful to $TRUENAS_IP"
+        else
+          echo "❌ Ping failed to $TRUENAS_IP"
+          exit 1
+        fi
+
+    - name: Test SSH connectivity
+      run: |
+        echo "Testing SSH connectivity to TrueNAS Scale..."
+        
+        # Test SSH connection with timeout
+        if timeout 30 ssh -o ConnectTimeout=15 truenas-scale 'echo "SSH connection successful" && hostname && uptime'; then
+          echo "✅ SSH connection to TrueNAS Scale successful"
+        else
+          echo "❌ SSH connection to TrueNAS Scale failed"
+          exit 1
+        fi
+
+    - name: Test basic system commands
+      run: |
+        echo "Testing basic system commands on TrueNAS Scale..."
+        
+        # Test various commands to ensure full connectivity
+        ssh truenas-scale '
+          echo "=== System Information ==="
+          echo "Hostname: $(hostname)"
+          echo "OS: $(cat /etc/os-release | grep PRETTY_NAME | cut -d= -f2 | tr -d \")"
+          echo "Uptime: $(uptime)"
+          echo "Disk usage:"
+          df -h / | head -2
+          echo "Memory usage:"
+          free -h
+          echo "=== TrueNAS Scale Services ==="
+          systemctl is-active middlewared || echo "middlewared service status check failed"
+          echo "=== Network connectivity test completed ==="
+        '
+        
+        echo "✅ All system commands executed successfully"
+
+    - name: Test deployment preparation commands
+      run: |
+        echo "Testing deployment-related commands..."
+        
+        ssh truenas-scale '
+          echo "=== Testing deployment preparation ==="
+          # Test if we can create temporary directories
+          TEMP_DIR="/tmp/github-actions-test-$(date +%s)"
+          mkdir -p "$TEMP_DIR" && echo "✅ Can create directories"
+          
+          # Test if we can write files
+          echo "test file" > "$TEMP_DIR/test.txt" && echo "✅ Can write files"
+          
+          # Test if we can read files
+          cat "$TEMP_DIR/test.txt" >/dev/null && echo "✅ Can read files"
+          
+          # Clean up
+          rm -rf "$TEMP_DIR" && echo "✅ Can clean up files"
+          
+          # Test Docker availability (if installed)
+          if command -v docker >/dev/null 2>&1; then
+            echo "✅ Docker is available"
+            docker version --format "{{.Server.Version}}" 2>/dev/null || echo "Docker daemon not accessible"
+          else
+            echo "ℹ️ Docker not installed"
+          fi
+          
+          # Test if systemctl works for service management
+          if systemctl list-units --type=service --state=active >/dev/null 2>&1; then
+            echo "✅ Can query system services"
+          else
+            echo "⚠️ Cannot query system services"
+          fi
+        '
+
+    - name: Generate connectivity report
+      if: always()
+      run: |
+        echo "=== SSH Connectivity Test Report ===" >> connectivity-report.txt
+        echo "Date: $(date)" >> connectivity-report.txt
+        echo "GitHub Actions Runner: $(hostname)" >> connectivity-report.txt
+        echo "Workflow: ${{ github.workflow }}" >> connectivity-report.txt
+        echo "Repository: ${{ github.repository }}" >> connectivity-report.txt
+        echo "Commit: ${{ github.sha }}" >> connectivity-report.txt
+        echo "" >> connectivity-report.txt
+        
+        echo "=== Tailscale Status ===" >> connectivity-report.txt
+        tailscale status >> connectivity-report.txt 2>&1 || echo "Failed to get Tailscale status" >> connectivity-report.txt
+        echo "" >> connectivity-report.txt
+        
+        if [ "${{ job.status }}" = "success" ]; then
+          echo "✅ SSH connectivity test PASSED" >> connectivity-report.txt
+        else
+          echo "❌ SSH connectivity test FAILED" >> connectivity-report.txt
+        fi
+        
+        cat connectivity-report.txt
+
+    - name: Upload connectivity report
+      if: always()
+      uses: actions/upload-artifact@v4
+      with:
+        name: ssh-connectivity-report-${{ github.run_number }}
+        path: connectivity-report.txt
+        retention-days: 30
