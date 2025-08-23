@@ -187,8 +187,11 @@ local function loadWallpapers()
   for i, screen in pairs(screens) do
     local screenId = screen:id()
     local matchingImages = {}
+    local isLandscape = screen:frame().w > screen:frame().h
+    local orientation = isLandscape and "landscape" or "portrait"
 
-    obj.logger.f("Filtering images for screen %d (%s)", i, screen:name())
+    obj.logger.f("Filtering images for screen %d (%s): detected as %s (%dx%d)", 
+                 i, screen:name(), orientation, screen:frame().w, screen:frame().h)
 
     for _, file in ipairs(result) do
       local filepath = obj.wheeldir .. "/" .. file
@@ -308,11 +311,17 @@ function obj:reshuffleAllDecksWithCollisionAvoidance()
     local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
 
     if #screenWallpapers > 0 then
+      local isLandscape = screen:frame().w > screen:frame().h
+      local orientation = isLandscape and "landscape" or "portrait"
+      
+      obj.logger.df("Screen %s (%s): detected as %s (%dx%d)", 
+                   screen:name(), screenId, orientation, screen:frame().w, screen:frame().h)
+      
       local screenInfo = {
         id = screenId,
         name = screen:name(),
         wallpapers = screenWallpapers,
-        isLandscape = screen:frame().w > screen:frame().h
+        isLandscape = isLandscape
       }
 
       if screenInfo.isLandscape then
@@ -586,8 +595,11 @@ function obj:refreshAllScreens()
     for i, screen in pairs(screens) do
       local screenId = screen:id()
       local matchingImages = {}
+      local isLandscape = screen:frame().w > screen:frame().h
+      local orientation = isLandscape and "landscape" or "portrait"
 
-      obj.logger.f("Re-filtering images for screen %d (%s)", i, screen:name())
+      obj.logger.f("Re-filtering images for screen %d (%s): detected as %s (%dx%d)", 
+                   i, screen:name(), orientation, screen:frame().w, screen:frame().h)
 
       for _, file in ipairs(obj.wallpapers) do
         local filepath = obj.wheeldir .. "/" .. file
@@ -641,7 +653,11 @@ function obj:refreshOrientationFiltering()
       local i = screenInfo.index
       local matchingImages = {}
 
-      obj.logger.f("Filtering images for new screen %d (%s)", i, screen:name())
+      local isLandscape = screen:frame().w > screen:frame().h
+      local orientation = isLandscape and "landscape" or "portrait"
+      
+      obj.logger.f("Filtering images for new screen %d (%s): detected as %s (%dx%d)", 
+                   i, screen:name(), orientation, screen:frame().w, screen:frame().h)
 
       for _, file in ipairs(obj.wallpapers) do
         local filepath = obj.wheeldir .. "/" .. file
