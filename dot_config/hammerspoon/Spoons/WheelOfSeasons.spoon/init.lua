@@ -37,7 +37,7 @@ obj.author = "Adam Jackman <adam@acjackman.com>"
 obj.license = "MIT - https://opensource.org/licenses/MIT"
 
 -- Initialize logger
-obj.logger = hs.logger.new("WheelOfSeasons", DEFAULT_LOG_LEVEL)
+obj.logger = hs.logger.new("WheelOfSeasons", "info")
 
 -- Initialize random seed (scoped to module)
 local function initRandomSeed()
@@ -80,22 +80,30 @@ local function loadWallpapers()
   obj.wallpapers = {}
   local n_wallpapers = 0
 
-  local success, iterator = pcall(hs.fs.dir, obj.wheeldir)
-  if not success or not iterator then
+  -- Try to get directory iterator
+  local iterator = hs.fs.dir(obj.wheeldir)
+  if not iterator then
     obj.logger.e("Failed to read directory: %s", obj.wheeldir)
     return false
   end
 
   -- Check if directory is actually readable and contains files
   local hasFiles = false
-  for file in iterator do
-    hasFiles = true
-    if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
-      if isImageFile(file) then
-        table.insert(obj.wallpapers, file)
-        n_wallpapers = n_wallpapers + 1
+  local success, err = pcall(function()
+    for file in iterator do
+      hasFiles = true
+      if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
+        if isImageFile(file) then
+          table.insert(obj.wallpapers, file)
+          n_wallpapers = n_wallpapers + 1
+        end
       end
     end
+  end)
+
+  if not success then
+    obj.logger.e("Error iterating directory: %s", err)
+    return false
   end
 
   obj.n_wallpapers = n_wallpapers
