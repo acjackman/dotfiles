@@ -657,8 +657,8 @@ function obj:refreshOrientationFiltering()
       end
 
       obj.wallpapersByScreen[screenId] = matchingImages
-      obj.logger.f("Screen %d (%s): detected as %s (%dx%d): %d matching images out of %d total", 
-                   i, screen:name(), orientation, screen:frame().w, screen:frame().h, #matchingImages, #obj.wallpapers)
+      obj.logger.f("Screen %d (%s): detected as %s (%dx%d): selected %d wallpapers",
+        i, screen:name(), orientation, screen:frame().w, screen:frame().h)
 
       -- If no matching images for this screen, use all images as fallback
       if #matchingImages == 0 then
