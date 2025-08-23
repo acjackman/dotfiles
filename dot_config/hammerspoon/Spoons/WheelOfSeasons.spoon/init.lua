@@ -157,7 +157,8 @@ function obj:setWallpapers()
       k, selected, obj.n_wallpapers, pic, screenRotation, wallpaperRotation)
 
     -- Set wallpaper with rotation
-    screen:desktopImageURL("file://" .. obj.wheeldir .. pic, wallpaperRotation)
+    local filePath = "file://" .. obj.wheeldir .. "/" .. pic
+    screen:desktopImageURL(filePath, wallpaperRotation)
   end
 end
 
@@ -225,6 +226,8 @@ function obj:start(dir, interval, shuffle)
   obj.wheeldir = dir
   obj.interval = interval
   obj.shuffle = shuffle or false
+
+  obj.logger.i("Initializing Wheel of Seasons with directory: %s", obj.wheeldir)
 
   -- Load wallpapers with error handling
   if not loadWallpapers() then
@@ -330,7 +333,8 @@ function obj:updateScreen(screenId)
       local selected = ((obj.selected + 1) % obj.n_wallpapers) + 1
       local pic = obj.wallpapers[selected]
       local wallpaperRotation = getWallpaperRotation(screen)
-      screen:desktopImageURL("file://" .. obj.wheeldir .. pic, wallpaperRotation)
+      local filePath = "file://" .. obj.wheeldir .. "/" .. pic
+      screen:desktopImageURL(filePath, wallpaperRotation)
       return
     end
   end
