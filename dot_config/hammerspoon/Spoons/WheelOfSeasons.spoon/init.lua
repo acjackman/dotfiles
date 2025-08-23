@@ -42,21 +42,33 @@ local function isImageFile(filename)
 end
 
 local function loadWallpapers()
-  obj.wallpapers = {}
-  local n_wallpapers = 0
-  for file in hs.fs.dir(obj.wheeldir) do
-    if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
-      if isImageFile(file) then
-        table.insert(obj.wallpapers, file)
-        n_wallpapers = n_wallpapers + 1
+    obj.wallpapers = {}
+    local n_wallpapers = 0
+    
+    local success, iterator = pcall(hs.fs.dir, obj.wheeldir)
+    if not success then
+      obj.logger.e("Failed to read directory: %s", obj.wheeldir)
+      return false
+    end
+    
+    for file in iterator do
+      if (file ~= "." and file ~= ".." and file ~= ".DS_Store" and file ~= nil and file ~= '') then
+        if isImageFile(file) then
+          table.insert(obj.wallpapers, file)
+          n_wallpapers = n_wallpapers + 1
+        end
       end
     end
-  end
-  obj.n_wallpapers = n_wallpapers
+    
+    obj.n_wallpapers = n_wallpapers
+    obj.logger.i("Loaded %d image files from %s", n_wallpapers, obj.wheeldir)
 
-  if (obj.shuffle) then
-    shuffleInPlace(obj.wallpapers)
-  end
+    if (obj.shuffle) then
+      shuffleInPlace(obj.wallpapers)
+      obj.logger.d("Shuffled wallpaper order")
+    end
+    
+    return true
 end
 
 function obj:setWallpapers()
@@ -109,11 +121,15 @@ function obj:start(dir, interval, shuffle)
     return false
   end
 
-  obj.wheeldir = dir
+    obj.wheeldir = dir
   obj.interval = interval
   obj.shuffle = shuffle or false
-  loadWallpapers()
-
+  
+  -- Load wallpapers with error handling
+  if not loadWallpapers() then
+    return false
+  end
+  
   -- Initialize selected index to 0 for consistent behavior
   obj.selected = 0
 
