@@ -24,6 +24,8 @@
 ---   spoon.WheelOfSeasons:refreshOrientationFiltering() -- Refresh orientation filtering
 ---   spoon.WheelOfSeasons:getScreenInfo()              -- Get current screen configuration
 ---   spoon.WheelOfSeasons:printScreenInfo()            -- Print screen info to console
+---   spoon.WheelOfSeasons:getOrientationBreakdown()    -- Get wallpaper orientation statistics
+---   spoon.WheelOfSeasons:printOrientationBreakdown()  -- Print orientation breakdown to console
 ---   spoon.WheelOfSeasons:updateScreen(id)             -- Update specific screen
 ---   spoon.WheelOfSeasons:checkDirectory(dir)          -- Check if directory exists and is readable
 ---
@@ -151,6 +153,28 @@ local function loadWallpapers()
 
   if obj.n_wallpapers == 0 then
     obj.logger.wf("Directory is empty or contains no readable image files: %s", obj.wheeldir)
+  else
+    -- Analyze orientation distribution
+    local horizontalCount = 0
+    local verticalCount = 0
+    local unreadableCount = 0
+
+    for _, file in ipairs(result) do
+      local filepath = obj.wheeldir .. "/" .. file
+      local width, height = getImageDimensions(filepath)
+      if width and height then
+        if width > height then
+          horizontalCount = horizontalCount + 1
+        else
+          verticalCount = verticalCount + 1
+        end
+      else
+        unreadableCount = unreadableCount + 1
+      end
+    end
+
+    obj.logger.f("Image orientation breakdown: %d horizontal, %d vertical, %d unreadable",
+      horizontalCount, verticalCount, unreadableCount)
   end
 
   -- Filter images by orientation for each screen
@@ -426,6 +450,61 @@ function obj:checkDirectory(dir)
   end
 
   return true
+end
+
+--- Get orientation breakdown of wallpapers
+--- @return table Information about wallpaper orientations
+function obj:getOrientationBreakdown()
+  if not obj.wallpapers or #obj.wallpapers == 0 then
+    return {
+      total = 0,
+      horizontal = 0,
+      vertical = 0,
+      unreadable = 0,
+      horizontal_percent = 0,
+      vertical_percent = 0,
+      unreadable_percent = 0
+    }
+  end
+
+  local horizontalCount = 0
+  local verticalCount = 0
+  local unreadableCount = 0
+
+  for _, file in ipairs(obj.wallpapers) do
+    local filepath = obj.wheeldir .. "/" .. file
+    local width, height = getImageDimensions(filepath)
+    if width and height then
+      if width > height then
+        horizontalCount = horizontalCount + 1
+      else
+        verticalCount = verticalCount + 1
+      end
+    else
+      unreadableCount = unreadableCount + 1
+    end
+  end
+
+  local total = #obj.wallpapers
+  return {
+    total = total,
+    horizontal = horizontalCount,
+    vertical = verticalCount,
+    unreadable = unreadableCount,
+    horizontal_percent = total > 0 and math.floor((horizontalCount / total) * 100) or 0,
+    vertical_percent = total > 0 and math.floor((verticalCount / total) * 100) or 0,
+    unreadable_percent = total > 0 and math.floor((unreadableCount / total) * 100) or 0
+  }
+end
+
+--- Print orientation breakdown to console
+function obj:printOrientationBreakdown()
+  local breakdown = obj:getOrientationBreakdown()
+  obj.logger.i("Wallpaper orientation breakdown:")
+  obj.logger.f("  Total images: %d", breakdown.total)
+  obj.logger.f("  Horizontal: %d (%d%%)", breakdown.horizontal, breakdown.horizontal_percent)
+  obj.logger.f("  Vertical: %d (%d%%)", breakdown.vertical, breakdown.vertical_percent)
+  obj.logger.f("  Unreadable: %d (%d%%)", breakdown.unreadable, breakdown.unreadable_percent)
 end
 
 --- Force update wallpapers for a specific screen
