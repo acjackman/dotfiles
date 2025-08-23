@@ -33,6 +33,9 @@
 ---   spoon.WheelOfSeasons:printOrientationBreakdown()  -- Print orientation breakdown to console
 ---   spoon.WheelOfSeasons:updateScreen(id)             -- Update specific screen
 ---   spoon.WheelOfSeasons:checkDirectory(dir)          -- Check if directory exists and is readable
+---   spoon.WheelOfSeasons:cleanupImageCache()          -- Clear image dimension cache
+---   spoon.WheelOfSeasons:getImageCacheStats()         -- Get image cache statistics
+---   spoon.WheelOfSeasons:printImageCacheStats()       -- Print image cache statistics to console
 ---
 
 local obj = {}
@@ -58,6 +61,11 @@ initRandomSeed()
 local IMAGE_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".gif", ".bmp", ".tiff", ".webp" }
 local DEFAULT_LOG_LEVEL = "info"
 
+-- Performance optimization: Cache for image dimensions
+local imageDimensionCache = {}
+local cacheHits = 0
+local cacheMisses = 0
+
 
 local function shuffleInPlace(tbl)
   for i = #tbl, 2, -1 do
@@ -79,10 +87,17 @@ local function isImageFile(filename)
   return false
 end
 
---- Get image dimensions using hs.image
+--- Get image dimensions using hs.image with caching
 --- @param filepath string Full path to the image file
 --- @return number|nil width, number|nil height, or nil if failed
 local function getImageDimensions(filepath)
+  -- Check cache first
+  if imageDimensionCache[filepath] then
+    cacheHits = cacheHits + 1
+    return table.unpack(imageDimensionCache[filepath])
+  end
+
+  cacheMisses = cacheMisses + 1
   local success, image = pcall(hs.image.imageFromPath, filepath)
   if not success or not image then
     return nil, nil
@@ -90,6 +105,8 @@ local function getImageDimensions(filepath)
 
   local size = image:size()
   if size then
+    -- Cache the result
+    imageDimensionCache[filepath] = { size.w, size.h }
     return size.w, size.h
   end
   return nil, nil
@@ -685,7 +702,59 @@ function obj:validateSeasonalConfig(config)
     obj.logger.df("  Season %d: %s -> %s", i, season.start_date, season.directory)
   end
 
+  -- Validate date ranges for potential issues
+  obj:validateDateRanges(config)
+
   return true
+end
+
+--- Validate date ranges for potential configuration issues
+--- @param config table Array of seasonal configurations
+function obj:validateDateRanges(config)
+  if #config <= 1 then
+    return -- No date range issues with single season
+  end
+
+  local warnings = {}
+
+  for i = 1, #config - 1 do
+    local current = config[i]
+    local next = config[i + 1]
+
+    if current.start_date >= next.start_date then
+      table.insert(warnings, string.format("Season %d (%s) starts after or on Season %d (%s)",
+        i, current.start_date, i + 1, next.start_date))
+    end
+  end
+
+  -- Check for gaps (optional warning)
+  for i = 1, #config - 1 do
+    local current = config[i]
+    local next = config[i + 1]
+
+    -- Convert MM-DD to comparable number (MMDD)
+    local currentNum = tonumber(current.start_date:gsub("-", ""))
+    local nextNum = tonumber(next.start_date:gsub("-", ""))
+
+    -- Handle year boundary (December to January)
+    if currentNum > nextNum then
+      -- This is expected for year boundary, skip gap check
+    else
+      -- Check for large gaps (more than 3 months)
+      local gap = nextNum - currentNum
+      if gap > 300 then -- Roughly 3 months
+        table.insert(warnings, string.format("Large gap between Season %d (%s) and Season %d (%s)",
+          i, current.start_date, i + 1, next.start_date))
+      end
+    end
+  end
+
+  if #warnings > 0 then
+    obj.logger.w("Seasonal configuration warnings:")
+    for _, warning in ipairs(warnings) do
+      obj.logger.wf("  - %s", warning)
+    end
+  end
 end
 
 --- Get the current seasonal directory based on date
@@ -754,6 +823,9 @@ function obj:checkSeasonalChange()
   if newDirectory ~= obj.wheeldir then
     obj.logger.i("Season changed, switching wallpaper directory")
     obj.wheeldir = newDirectory
+
+    -- Clear image cache when directory changes (images are different)
+    obj:cleanupImageCache()
 
     -- Reload wallpapers with new directory
     if loadWallpapers() then
@@ -1112,6 +1184,59 @@ function obj:printDeckInfo()
   end
 end
 
+--- Clear the image dimension cache
+function obj:cleanupImageCache()
+  local cacheSize = 0
+  for _ in pairs(imageDimensionCache) do
+    cacheSize = cacheSize + 1
+  end
+
+  imageDimensionCache = {}
+  local oldHits = cacheHits
+  local oldMisses = cacheMisses
+  cacheHits = 0
+  cacheMisses = 0
+
+  obj.logger.i("Cleared image dimension cache")
+  obj.logger.f("  Cache size: %d entries", cacheSize)
+  obj.logger.f("  Cache hits: %d, misses: %d", oldHits, oldMisses)
+  if oldHits + oldMisses > 0 then
+    local hitRate = math.floor((oldHits / (oldHits + oldMisses)) * 100)
+    obj.logger.f("  Hit rate: %d%%", hitRate)
+  end
+end
+
+--- Get image cache statistics
+--- @return table Cache statistics
+function obj:getImageCacheStats()
+  local cacheSize = 0
+  for _ in pairs(imageDimensionCache) do
+    cacheSize = cacheSize + 1
+  end
+
+  local totalRequests = cacheHits + cacheMisses
+  local hitRate = totalRequests > 0 and math.floor((cacheHits / totalRequests) * 100) or 0
+
+  return {
+    cache_size = cacheSize,
+    cache_hits = cacheHits,
+    cache_misses = cacheMisses,
+    total_requests = totalRequests,
+    hit_rate_percent = hitRate
+  }
+end
+
+--- Print image cache statistics to console
+function obj:printImageCacheStats()
+  local stats = obj:getImageCacheStats()
+  obj.logger.i("Image cache statistics:")
+  obj.logger.f("  Cache size: %d entries", stats.cache_size)
+  obj.logger.f("  Cache hits: %d", stats.cache_hits)
+  obj.logger.f("  Cache misses: %d", stats.cache_misses)
+  obj.logger.f("  Total requests: %d", stats.total_requests)
+  obj.logger.f("  Hit rate: %d%%", stats.hit_rate_percent)
+end
+
 --- Force update wallpapers for a specific screen
 --- @param screenId string The screen ID to update
 function obj:updateScreen(screenId)
@@ -1163,6 +1288,9 @@ function obj:stop()
   obj.seasonalConfig = nil
   obj.interval = nil
   obj.shuffle = nil
+
+  -- Clear image cache when stopping
+  obj:cleanupImageCache()
 end
 
 return obj
