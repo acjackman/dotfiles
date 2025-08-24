@@ -331,10 +331,17 @@ function obj:shiftWallpapers()
     local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
     local screenPosition = obj.screenPositions[screenId] or 0
 
+    -- Skip Elgato displays - they only have one wallpaper (black) so they never need reshuffling
+    if isElgatoDisplay(screen) then
+      goto continue
+    end
+
     if screenPosition >= #screenWallpapers - 1 then
       needsReshuffle = true
       break
     end
+
+    ::continue::
   end
 
   if needsReshuffle then
@@ -347,9 +354,16 @@ function obj:shiftWallpapers()
       local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
       local currentPosition = obj.screenPositions[screenId] or 0
 
+      -- Skip Elgato displays - they should stay on the black wallpaper
+      if isElgatoDisplay(screen) then
+        goto continue
+      end
+
       if currentPosition < #screenWallpapers - 1 then
         obj.screenPositions[screenId] = currentPosition + 1
       end
+
+      ::continue::
     end
   end
 
@@ -367,6 +381,12 @@ function obj:reshuffleAllDecksWithCollisionAvoidance()
   for _, screen in pairs(screens) do
     local screenId = screen:id()
     local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
+
+    -- Skip Elgato displays - they should keep their black wallpaper deck
+    if isElgatoDisplay(screen) then
+      obj.logger.df("Screen %s (%s): Elgato display, skipping reshuffle", screen:name(), screenId)
+      goto continue
+    end
 
     if #screenWallpapers > 0 then
       local isLandscape = screen:frame().w > screen:frame().h
@@ -388,6 +408,8 @@ function obj:reshuffleAllDecksWithCollisionAvoidance()
         table.insert(portraitScreens, screenInfo)
       end
     end
+
+    ::continue::
   end
 
   -- Reshuffle landscape screens with collision avoidance
@@ -932,10 +954,13 @@ function obj:refreshAllScreens()
       ::continue::
     end
 
-    -- Re-shuffle if needed
+    -- Re-shuffle if needed (skip Elgato displays)
     if obj.shuffle then
       for screenId, images in pairs(obj.wallpapersByScreen) do
-        shuffleInPlace(images)
+        -- Skip shuffling for Elgato displays (they only have one wallpaper)
+        if images[1] ~= "Black.png" then
+          shuffleInPlace(images)
+        end
       end
     end
 
@@ -998,8 +1023,8 @@ function obj:refreshOrientationFiltering()
       -- Initialize position for new screen
       obj.screenPositions[screenId] = 0
 
-      -- Shuffle the new screen's wallpaper list if needed
-      if obj.shuffle then
+      -- Shuffle the new screen's wallpaper list if needed (skip Elgato displays)
+      if obj.shuffle and obj.wallpapersByScreen[screenId][1] ~= "Black.png" then
         shuffleInPlace(obj.wallpapersByScreen[screenId])
       end
 
