@@ -1,3 +1,4 @@
+# -*- mode: lua; -*- vim: set ft=lua
 -- luacheck: globals hs
 -- hammerspoon console script
 require("hs.ipc")
@@ -22,17 +23,6 @@ ctrl_cmd_shift = { "cmd", "ctrl", "shift" }
 -- hs.loadSpoon("SpoonInstall")
 -- Install=spoon.SpoonInstall
 
--- chromeBrowser = appID('/Applications/Google Chrome.app')
--- -- edgeBrowser = appID('/Applications/Microsoft Edge.app')
--- braveBrowser = appID('/Applications/Brave Browser Dev.app')
-
--- DefaultBrowser = braveBrowser
--- WorkBrowser = edgeBrowser
-
--- -- JiraApp = appID('~/Applications/Epichrome SSBs/Jira.app')
--- -- WikiApp = appID('~/Applications/Epichrome SSBs/Wiki.app')
--- OpsGenieApp = WorkBrowser
-
 editor = "Cursor"
 terminal = "Ghostty"
 browser = "{{ .default_browser }}"
@@ -48,6 +38,42 @@ if hs.console.darkMode() then
   hs.console.consoleCommandColor({ white = 1 })
   hs.console.alpha(1)
 end
+
+-- {{if has "work" .extras}}
+rotation_time = 60 * 60 -- 1 hour
+-- {{else}}
+-- rotation_time = 60 * 15 -- 15 minutes
+rotation_time = 60 * 2 -- fast rotation for testing
+-- {{end}}
+
+hs.loadSpoon("WheelOfSeasons")
+spoon.WheelOfSeasons:start(
+  {
+    -- {{if has "work" .extras}}
+    {
+      directory = os.getenv("HOME") .. "/.local/share/wallpapers/summer",
+      start_date = "12-21"
+    },
+    {
+      directory = os.getenv("HOME") .. "/.local/share/wallpapers/autumn",
+      start_date = "03-20"
+    },
+    {
+      directory = os.getenv("HOME") .. "/.local/share/wallpapers/winter",
+      start_date = "06-21"
+    },
+    {
+      directory = os.getenv("HOME") .. "/.local/share/wallpapers/spring",
+      start_date = "09-22"
+    }
+    -- {{else}}
+    -- {directory = os.getenv("HOME") .. "/.local/share/wallpapers"},
+    {directory = os.getenv("HOME") .. "/.config/wallpapers"},
+    -- {{end}}
+  },
+  rotation_time,
+  true
+)
 
 --
 hs.loadSpoon("RecursiveBinder")
@@ -92,42 +118,6 @@ rotate_screen_counterclockwise = function()
   screen:rotate(new_rotation)
   k.triggered = true
 end
-
--- {{if has "work" .extras}}
-rotation_time = 60 * 60 -- 1 hour
--- {{else}}
--- rotation_time = 60 * 15 -- 15 minutes
-rotation_time = 60 * 2 -- fast rotation for testing
--- {{end}}
-
-hs.loadSpoon("WheelOfSeasons")
-spoon.WheelOfSeasons:start(
-  {
-    -- {{if has "work" .extras}}
-    {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/summer",
-      start_date = "12-21"
-    },
-    {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/autumn",
-      start_date = "03-20"
-    },
-    {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/winter",
-      start_date = "06-21"
-    },
-    {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/spring",
-      start_date = "09-22"
-    }
-    -- {{else}}
-    -- {directory = os.getenv("HOME") .. "/.local/share/wallpapers"},
-    {directory = os.getenv("HOME") .. "/.config/wallpapers"},
-    -- {{end}}
-  },
-  rotation_time,
-  true
-)
 
 -- A global variable for the Hyper Mode
 k = hs.hotkey.modal.new({}, "F18")
