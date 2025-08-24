@@ -66,6 +66,20 @@ local imageDimensionCache = {}
 local cacheHits = 0
 local cacheMisses = 0
 
+--- Check if a screen is an Elgato display
+--- @param screen hs.screen The screen to check
+--- @return boolean True if the screen name starts with "elgato"
+local function isElgatoDisplay(screen)
+  local screenName = screen:name():lower()
+  return string.match(screenName, "^elgato") ~= nil
+end
+
+--- Get the black wallpaper path for Elgato displays
+--- @return string Path to the black wallpaper
+local function getBlackWallpaperPath()
+  return "file:///System/Library/Desktop Pictures/Solid Colors/Black.png"
+end
+
 
 local function shuffleInPlace(tbl)
   for i = #tbl, 2, -1 do
@@ -216,6 +230,14 @@ local function loadWallpapers()
   local screens = hs.screen.allScreens()
   for i, screen in pairs(screens) do
     local screenId = screen:id()
+
+    -- Give Elgato displays a deck with just the black image
+    if isElgatoDisplay(screen) then
+      obj.logger.f("Screen %d (%s): Elgato display detected, assigning black wallpaper deck", i, screen:name())
+      obj.wallpapersByScreen[screenId] = { "Black.png" }
+      goto continue
+    end
+
     local matchingImages = {}
     local isLandscape = screen:frame().w > screen:frame().h
     local orientation = isLandscape and "landscape" or "portrait"
@@ -236,6 +258,8 @@ local function loadWallpapers()
       obj.logger.wf("No orientation-matching images for screen %d, using all images as fallback", i)
       obj.wallpapersByScreen[screenId] = result
     end
+
+    ::continue::
   end
 
   if (obj.shuffle) then
@@ -283,7 +307,13 @@ function obj:setWallpapers()
       k, selected, #screenWallpapers, pic, screenRotation)
 
     -- Set wallpaper (rotation is handled automatically by the system)
-    local filePath = "file://" .. obj.wheeldir .. "/" .. pic
+    local filePath
+    if pic == "Black.png" then
+      -- Special case for Elgato displays - use system black image
+      filePath = getBlackWallpaperPath()
+    else
+      filePath = "file://" .. obj.wheeldir .. "/" .. pic
+    end
     screen:desktopImageURL(filePath)
 
     ::continue::
@@ -870,6 +900,14 @@ function obj:refreshAllScreens()
     local screens = hs.screen.allScreens()
     for i, screen in pairs(screens) do
       local screenId = screen:id()
+
+      -- Give Elgato displays a deck with just the black image
+      if isElgatoDisplay(screen) then
+        obj.logger.f("Screen %d (%s): Elgato display detected, assigning black wallpaper deck", i, screen:name())
+        obj.wallpapersByScreen[screenId] = { "Black.png" }
+        goto continue
+      end
+
       local matchingImages = {}
       local isLandscape = screen:frame().w > screen:frame().h
       local orientation = isLandscape and "landscape" or "portrait"
@@ -890,6 +928,8 @@ function obj:refreshAllScreens()
         obj.logger.wf("No orientation-matching images for screen %d, using all images as fallback", i)
         obj.wallpapersByScreen[screenId] = obj.wallpapers
       end
+
+      ::continue::
     end
 
     -- Re-shuffle if needed
@@ -925,8 +965,16 @@ function obj:refreshOrientationFiltering()
       local screen = screenInfo.screen
       local screenId = screenInfo.id
       local i = screenInfo.index
-      local matchingImages = {}
 
+      -- Give Elgato displays a deck with just the black image
+      if isElgatoDisplay(screen) then
+        obj.logger.f("Screen %d (%s): Elgato display detected, assigning black wallpaper deck", i, screen:name())
+        obj.wallpapersByScreen[screenId] = { "Black.png" }
+        obj.screenPositions[screenId] = 0
+        goto continue
+      end
+
+      local matchingImages = {}
       local isLandscape = screen:frame().w > screen:frame().h
       local orientation = isLandscape and "landscape" or "portrait"
 
@@ -954,6 +1002,8 @@ function obj:refreshOrientationFiltering()
       if obj.shuffle then
         shuffleInPlace(obj.wallpapersByScreen[screenId])
       end
+
+      ::continue::
     end
 
     if #newScreens == 0 then
@@ -1269,7 +1319,13 @@ function obj:updateScreen(screenId)
 
       local selected = ((obj.selected + 1) % #screenWallpapers) + 1
       local pic = screenWallpapers[selected]
-      local filePath = "file://" .. obj.wheeldir .. "/" .. pic
+      local filePath
+      if pic == "Black.png" then
+        -- Special case for Elgato displays - use system black image
+        filePath = getBlackWallpaperPath()
+      else
+        filePath = "file://" .. obj.wheeldir .. "/" .. pic
+      end
       screen:desktopImageURL(filePath)
       return
     end
