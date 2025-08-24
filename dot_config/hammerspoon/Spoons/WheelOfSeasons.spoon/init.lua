@@ -837,17 +837,25 @@ function obj:getCurrentSeasonalDirectory()
 
   -- Find current season based on date
   local currentSeason = obj.seasonalConfig[1] -- Default to first season
+
+  -- Convert current date to comparable number (MMDD)
+  local currentDateNum = tonumber(currentDate:gsub("-", ""), 10)
+
   for i, season in ipairs(obj.seasonalConfig) do
     local nextSeason = obj.seasonalConfig[i % #obj.seasonalConfig + 1]
 
+    -- Convert season dates to comparable numbers
+    local seasonStartNum = tonumber(season.start_date:gsub("-", ""), 10)
+    local nextSeasonStartNum = tonumber(nextSeason.start_date:gsub("-", ""), 10)
+
     -- Handle year boundary (first season spans its start date to next season's start)
     if i == 1 then
-      if currentDate >= season.start_date or currentDate < nextSeason.start_date then
+      if currentDateNum >= seasonStartNum or currentDateNum < nextSeasonStartNum then
         currentSeason = season
         break
       end
     else
-      if currentDate >= season.start_date and currentDate < nextSeason.start_date then
+      if currentDateNum >= seasonStartNum and currentDateNum < nextSeasonStartNum then
         currentSeason = season
         break
       end
