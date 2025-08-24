@@ -801,8 +801,8 @@ function obj:validateDateRanges(config)
     local next = config[i + 1]
 
     -- Convert MM-DD to comparable number (MMDD)
-    local currentNum = tonumber(current.start_date:gsub("-", ""))
-    local nextNum = tonumber(next.start_date:gsub("-", ""))
+    local currentNum = tonumber(current.start_date:gsub("-", ""), 10)
+    local nextNum = tonumber(next.start_date:gsub("-", ""), 10)
 
     -- Handle year boundary (December to January)
     if currentNum > nextNum then
