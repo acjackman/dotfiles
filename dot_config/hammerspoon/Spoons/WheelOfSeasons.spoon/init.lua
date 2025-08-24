@@ -323,9 +323,8 @@ end
 function obj:shiftWallpapers()
   -- Each screen has its own independent deck position
   local screens = hs.screen.allScreens()
-  local needsReshuffle = false
 
-  -- Check if any screen needs reshuffling
+  -- Check each screen and shuffle individual decks as needed
   for _, screen in pairs(screens) do
     local screenId = screen:id()
     local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
@@ -336,35 +335,24 @@ function obj:shiftWallpapers()
       goto continue
     end
 
+    -- Check if this screen's deck is exhausted
     if screenPosition >= #screenWallpapers - 1 then
-      needsReshuffle = true
-      break
+      obj.logger.i(string.format("Screen %s deck exhausted, shuffling individual deck", screen:name()))
+
+      -- Shuffle only this screen's deck
+      if obj.shuffle then
+        shuffleInPlace(screenWallpapers)
+        obj.logger.df("Shuffled deck for screen %s (%d wallpapers)", screen:name(), #screenWallpapers)
+      end
+
+      -- Reset position to 0 for this screen
+      obj.screenPositions[screenId] = 0
+    else
+      -- Advance this screen's position
+      obj.screenPositions[screenId] = screenPosition + 1
     end
 
     ::continue::
-  end
-
-  if needsReshuffle then
-    obj.logger.i("One or more decks exhausted, reshuffling with collision avoidance")
-    obj:reshuffleAllDecksWithCollisionAvoidance()
-  else
-    -- Advance each screen's position independently
-    for _, screen in pairs(screens) do
-      local screenId = screen:id()
-      local screenWallpapers = obj.wallpapersByScreen[screenId] or obj.wallpapers
-      local currentPosition = obj.screenPositions[screenId] or 0
-
-      -- Skip Elgato displays - they should stay on the black wallpaper
-      if isElgatoDisplay(screen) then
-        goto continue
-      end
-
-      if currentPosition < #screenWallpapers - 1 then
-        obj.screenPositions[screenId] = currentPosition + 1
-      end
-
-      ::continue::
-    end
   end
 
   obj:setWallpapers()
@@ -637,7 +625,7 @@ function obj:start(dir, interval, shuffle)
   else
     dateRange = string.format("%s to %s", currentSeason.start_date, nextSeason.start_date)
   end
-  obj.logger.f("Current season directory: %s (applies %s)", obj.wheeldir, dateRange)
+  obj.logger.f("Current season directory: %s", obj.wheeldir)
 
   obj.interval = interval
   obj.shuffle = shuffle or false
@@ -792,35 +780,6 @@ function obj:validateDateRanges(config)
     if current.start_date >= next.start_date then
       table.insert(warnings, string.format("Season %d (%s) starts after or on Season %d (%s)",
         i, current.start_date, i + 1, next.start_date))
-    end
-  end
-
-  -- Check for gaps (optional warning)
-  for i = 1, #config - 1 do
-    local current = config[i]
-    local next = config[i + 1]
-
-    -- Convert MM-DD to comparable number (MMDD)
-    local currentNum = tonumber(current.start_date:gsub("-", ""), 10)
-    local nextNum = tonumber(next.start_date:gsub("-", ""), 10)
-
-    -- Handle year boundary (December to January)
-    if currentNum > nextNum then
-      -- This is expected for year boundary, skip gap check
-    else
-      -- Check for large gaps (more than 3 months)
-      local gap = nextNum - currentNum
-      if gap > 300 then -- Roughly 3 months
-        table.insert(warnings, string.format("Large gap between Season %d (%s) and Season %d (%s)",
-          i, current.start_date, i + 1, next.start_date))
-      end
-    end
-  end
-
-  if #warnings > 0 then
-    obj.logger.w("Seasonal configuration warnings:")
-    for _, warning in ipairs(warnings) do
-      obj.logger.wf("  - %s", warning)
     end
   end
 end
