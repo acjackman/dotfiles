@@ -68,11 +68,10 @@ outer.bottom = [{ monitor."^[Ee]lgato.*" = 0 }, 10]
 outer.top = [
   { monitor."^built-in retina display$" = 10 },
   { monitor."[Dd]esk[Pp]ad" = 10 },
-  { monitor."^[Ee]lgato.*" = 10 },
   { monitor."^[Ee]lgato.*" = 0 },
   50,
 ]
-outer.right = 10
+outer.right = [{ monitor."^[Ee]lgato.*" = 0 }, 10]
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
