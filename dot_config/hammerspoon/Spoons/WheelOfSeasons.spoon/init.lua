@@ -848,14 +848,16 @@ function obj:getCurrentSeasonalDirectory()
     local seasonStartNum = tonumber(season.start_date:gsub("-", ""), 10)
     local nextSeasonStartNum = tonumber(nextSeason.start_date:gsub("-", ""), 10)
 
-    -- Handle year boundary (first season spans its start date to next season's start)
-    if i == 1 then
-      if currentDateNum >= seasonStartNum or currentDateNum < nextSeasonStartNum then
-        currentSeason = season
-        break
-      end
-    else
-      if currentDateNum >= seasonStartNum and currentDateNum < nextSeasonStartNum then
+    -- Check if current date falls within this season's range
+    if currentDateNum >= seasonStartNum and currentDateNum < nextSeasonStartNum then
+      currentSeason = season
+      break
+    end
+
+    -- Handle year boundary for the last season (spans from its start to the first season's start)
+    if i == #obj.seasonalConfig then
+      local firstSeasonStartNum = tonumber(obj.seasonalConfig[1].start_date:gsub("-", ""), 10)
+      if currentDateNum >= seasonStartNum or currentDateNum < firstSeasonStartNum then
         currentSeason = season
         break
       end
@@ -875,9 +877,10 @@ function obj:getCurrentSeasonalDirectory()
   if #obj.seasonalConfig == 1 then
     -- Single season applies year-round
     dateRange = "year-round"
-  elseif currentSeason == obj.seasonalConfig[1] then
-    -- First season spans from its start date to the next season's start date (across year boundary)
-    dateRange = string.format("%s to %s", currentSeason.start_date, nextSeason.start_date)
+  elseif currentSeason == obj.seasonalConfig[#obj.seasonalConfig] then
+    -- Last season spans from its start date to the first season's start date (across year boundary)
+    local firstSeason = obj.seasonalConfig[1]
+    dateRange = string.format("%s to %s", currentSeason.start_date, firstSeason.start_date)
   else
     -- Other seasons span from their start date to the next season's start date
     dateRange = string.format("%s to %s", currentSeason.start_date, nextSeason.start_date)

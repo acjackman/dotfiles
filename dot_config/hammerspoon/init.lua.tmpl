@@ -50,11 +50,9 @@ hs.loadSpoon("WheelOfSeasons")
 spoon.WheelOfSeasons:start(
   {
     -- {{if has "work" .extras}}
+    {directory = os.getenv("HOME") .. "/.local/share/wallpapers/fun"},
+    -- {{else}}
     -- Seasons offset to provide contrast, see WOT Knife of Dreams chapter 14
-    {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/seasons/summer",
-      start_date = "12-21"
-    },
     {
       directory = os.getenv("HOME") .. "/.local/share/wallpapers/seasons/autumn",
       start_date = "03-20"
@@ -66,9 +64,11 @@ spoon.WheelOfSeasons:start(
     {
       directory = os.getenv("HOME") .. "/.local/share/wallpapers/seasons/spring",
       start_date = "09-22"
+    },
+    {
+      directory = os.getenv("HOME") .. "/.local/share/wallpapers/seasons/summer",
+      start_date = "12-21"
     }
-    -- {{else}}
-    {directory = os.getenv("HOME") .. "/.local/share/wallpapers/fun"},
     -- {{end}}
   },
   rotation_time,
