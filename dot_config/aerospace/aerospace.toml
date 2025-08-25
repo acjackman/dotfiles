@@ -302,7 +302,7 @@ if.app-id = 'com.stengo.DeskPad'
 run = ['layout tiling', 'move-node-to-workspace S']
 
 [workspace-to-monitor-force-assignment]
-S = 1
+S = ['secondary', 3, '^HP Z27 \\(2\\)$']
 T = 'main'
 P = ['^[Ee]lgato.*']
 X = ['^built-in retina display$', '^[Dd]esk[Pp]ad$']
