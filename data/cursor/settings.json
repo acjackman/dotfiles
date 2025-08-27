@@ -64,5 +64,6 @@
   "cursor.composer.shouldChimeAfterChatFinishes": true,
   "cursor.general.enableShadowWorkspace": true,
   "workbench.editor.showTabs": "single",
-  "makefile.configureOnOpen": true
+  "makefile.configureOnOpen": true,
+  "python.terminal.activateEnvironment": false
 }
