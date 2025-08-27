@@ -21,7 +21,7 @@ value = "/Applications/Safari.app"
 [r.children.c.action]
 rank = 20
 kind = "application"
-value = "/Applications/Chrome.app"
+value = "/Applications/Google Chrome.app"
 
 [r.children.a.action]
 rank = 30
