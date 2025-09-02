@@ -211,7 +211,11 @@ def v2_root_to_v1_group(root: Tree) -> Dict[str, Any]:
                 if isinstance(rank_value, (int, float))
                 else float("inf")
             )
-            return (primary, key)
+            # Get label for secondary sorting, default to empty string
+            label = node.get("label", "")
+            if label is None:
+                label = ""
+            return (primary, label.lower(), key)
 
         return sorted(items, key=key_fn)
 
@@ -278,7 +282,11 @@ def main() -> int:
     )
     print(header_text)
     print(f"Mergin {len(FILES)} TOML file(s):")
-    for file, checksum in FILES:
+    for file_info in FILES:
+        if len(file_info) != 2:
+            print(f"Warning: skipping malformed file entry: {file_info}")
+            continue
+        file, checksum = file_info
         print(f"- {file}: {checksum}")
 
     if len(FILES) == 0:
