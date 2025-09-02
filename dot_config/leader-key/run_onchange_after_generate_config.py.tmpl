@@ -335,7 +335,6 @@ def main() -> int:
 
     print(f"Wrote merged config to {dest_path}")
 
-    return 0
     # On macOS, restart the Leader Key app so it reloads the updated config
     try:
         if config_changed and sys.platform == "darwin":
