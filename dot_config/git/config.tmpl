@@ -115,6 +115,13 @@
 [user]
     email = adam@acjackman.com
     name = Adam Jackman
+    signingkey = ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIPVP4hFJcN6xvaxEYdnMhcfQB+aH3nkl8hh0aWTXSTJ/
+
+[gpg]
+    format = ssh
+
+[gpg "ssh"]
+    program = "/Applications/1Password.app/Contents/MacOS/op-ssh-sign"
 
 [push]
     default = simple
@@ -143,6 +150,7 @@
     updateRefs = true
 
 [commit]
+    gpgsign = true
     verbose = true
 
 [color]
