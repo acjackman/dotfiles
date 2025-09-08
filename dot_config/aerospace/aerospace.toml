@@ -305,4 +305,4 @@ run = ['layout tiling', 'move-node-to-workspace G']
 S = ['^HP Z27 \(2\)$',]
 T = 'main'
 P = ['^[Ee]lgato.*']
-X = ['^built-in retina display$', '^[Dd]esk[Pp]ad']
+X = ['^[Dd]esk[Pp]ad', '^built-in retina display$', 'main']
