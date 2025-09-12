@@ -31,9 +31,7 @@ export ZVM_INIT_MODE=sourcing
 #   - fzf-tab: load order is important, must go last
 #   - forgit needs _git to be loaded in order for the additional src to work, which is why we zicompinit
 # TODO https://github.com/felipec/git-completion/issues/8
-# TODO: remove fzf history from key-bindings (overdone by atuin)
 # blockf ver"zinit-fixed" as"completion" nocompile mv'git-completion.zsh -> _git' iloveitaly/git-completion \
-# TODO  'https://github.com/junegunn/fzf/blob/master/shell/key-bindings.zsh' \
 zinit wait lucid for \
   mafredri/zsh-async \
   zpm-zsh/zsh-better-npm-completion \
