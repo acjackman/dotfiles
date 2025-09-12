@@ -1,3 +1,4 @@
+{{- if has "personal" .extras -}}
 # -*- mode: ruby; -*- vim: set ft=ruby;
 
 cask "fantastical"
@@ -50,3 +51,4 @@ mas "Friendly Streaming Browser", id: 553245401
 mas "Xcode", id: 497799835
 
 # brew "ttscoff/thelab/gather-cli" # requires Xcode
+{{- end -}}

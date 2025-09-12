@@ -1,3 +1,4 @@
+{{- if eq .hostname "Odin" -}}
 # -*- mode: ruby; -*- vim: set ft=ruby
 
 cask "hazel"
@@ -15,3 +16,4 @@ brew "cairo"
 brew "pcre2"
 brew "r"
 cask "rstudio"
+{{- end -}}

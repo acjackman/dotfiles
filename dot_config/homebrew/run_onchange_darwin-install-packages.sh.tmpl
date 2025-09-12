@@ -12,20 +12,25 @@ function show-header() {
   fi
 }
 
-show-header "Homebrew Base"
-# Checksum {{ include "dot_config/homebrew/Brewfile-base" | sha256sum }}
-brew bundle --file=Brewfile-base
+# Define array of Brewfiles to install based on computer name
+brewfiles=(
+{{- range (glob (printf "%s/.config/homebrew/Brewfile-*" .chezmoi.homeDir)) }}
+"{{ . }}" # Checksum {{ include . | sha256sum }}
+{{- end }}
+)
 
-{{ if eq $computerName "Odin" "Ingvar" }}
-show-header "Homebrew Personal"
-# Checksum {{ include "dot_config/homebrew/Brewfile-personal" | sha256sum }}
-brew bundle --file=Brewfile-personal
-{{ end -}}
+# Loop through and install each Brewfile
+for filename in "${brewfiles[@]}"; do
+  # Skip .lock files
+  if [[ "$filename" == *.lock.json ]]; then
+    continue
+  fi
 
-{{- if eq $computerName "Odin" }}
-show-header "Homebrew Odin"
-# Checksum {{ include "dot_config/homebrew/Brewfile-odin" | sha256sum }}
-brew bundle --file=Brewfile-odin
-{{ end -}}
+  # Convert filename to display name (remove "Brewfile-" prefix and capitalize)
+  display_name="Homebrew ${filename#Brewfile-}"
+
+  show-header "$display_name"
+  brew bundle --file="$filename"
+done
 
 {{ end -}}

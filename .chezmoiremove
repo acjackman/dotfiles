@@ -1,1 +1,5 @@
 ~/.local/share/tmux/plugins/catppuccin
+{{ if ne .hostname "Odin" }}~/.config/homebrew/Brewfile-odin{{ end }}
+{{ if ne .hostname "Odin" }}~/.config/homebrew/Brewfile-odin.lock.json{{ end }}
+{{ if not (has "personal" .extras) }}~/.config/homebrew/Brewfile-personal{{ end }}
+{{ if not (has "personal" .extras) }}~/.config/homebrew/Brewfile-personal.lock.json{{ end }}
