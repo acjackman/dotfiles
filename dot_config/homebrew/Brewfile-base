@@ -124,7 +124,7 @@ brew "uv"
 
 # Go
 brew "go"
-brew "goreleaser/tap/goreleaser"
+cask "goreleaser/tap/goreleaser"
 
 # k8s
 brew "kubectx"

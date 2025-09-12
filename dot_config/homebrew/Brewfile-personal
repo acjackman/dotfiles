@@ -20,10 +20,10 @@ cask "cirrus"  # Debug icloud
 
 mas "Day One", id: 1055511498
 mas "Patterns", id: 429449079
-mas "GoodNotes 5", id: 1444383602
+# mas "GoodNotes 5", id: 1444383602
 mas "Drafts", id: 1435957248
-mas "Things 3", id: 904280696
-mas "Timery for Toggl", id: 1425368544
+# mas "Things 3", id: 904280696
+# mas "Timery for Toggl", id: 1425368544
 mas "CARROT Weather", id: 993487541
 mas "Tailscale", id: 1475387142
 mas "Speedtest", id: 1153157709
@@ -32,7 +32,7 @@ mas "Shareful", id: 1522267256  # Make share menu useful
 mas "Service Station", id: 1503136033  # Clean up Services Menu
 mas "Peek", id: 1554235898  # Quicklook
 mas "Amphetamine", id: 937984704
-mas "Streaks", id: 963034692
+# mas "Streaks", id: 963034692
 
 # Safari Extensions
 mas "1Password for Safari", id: 1569813296
