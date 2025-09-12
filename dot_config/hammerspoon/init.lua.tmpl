@@ -1,11 +1,12 @@
 # -*- mode: lua; -*- vim: set ft=lua
 -- luacheck: globals hs
 -- hammerspoon console script
-require("hs.ipc")
-hs.ipc.cliInstall("/usr/local")
-
 local log = hs.logger.new("terminalHyper", "debug")
 hs.logger.defaultLogLevel = "info"
+
+HOME = os.getenv("HOME")
+require("hs.ipc")
+hs.ipc.cliInstall(HOME .. "/.local/", true)
 
 -- Easy access variables:
 hostname = hs.host.localizedName()
@@ -52,23 +53,23 @@ spoon.WheelOfSeasons:start(
     -- {{if has "work" .extras}}
     -- Seasons offset to provide contrast, see WOT Knife of Dreams chapter 14
     {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/seasons/autumn",
+      directory = HOME .. "/.local/share/wallpapers/seasons/autumn",
       start_date = "03-20"
     },
     {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/seasons/winter",
+      directory = HOME .. "/.local/share/wallpapers/seasons/winter",
       start_date = "06-21"
     },
     {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/seasons/spring",
+      directory = HOME .. "/.local/share/wallpapers/seasons/spring",
       start_date = "09-22"
     },
     {
-      directory = os.getenv("HOME") .. "/.local/share/wallpapers/seasons/summer",
+      directory = HOME .. "/.local/share/wallpapers/seasons/summer",
       start_date = "12-21"
     }
     -- {{else}}
-    {directory = os.getenv("HOME") .. "/.local/share/wallpapers/fun"},
+    {directory = HOME .. "/.local/share/wallpapers/fun"},
     -- {{end}}
   },
   rotation_time,
