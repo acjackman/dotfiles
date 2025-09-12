@@ -1,7 +1,7 @@
 {{ if eq .chezmoi.os "darwin" -}}{{- $computerName := output "scutil" "--get" "ComputerName" | trim -}}
 #!/bin/bash
 
-# Install for {{ $computerName }}
+# Install for {{ .hostname }}
 
 function show-header() {
   command -v gum &>/dev/null
