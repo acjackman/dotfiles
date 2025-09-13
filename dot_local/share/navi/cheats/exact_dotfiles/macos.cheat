@@ -1,0 +1,15 @@
+% macos
+
+# Get app identifier
+osascript -e 'id of app "<app_name>"'
+
+$ app_name: /bin/ls /Applications | sed 's/\.app//'
+
+% macos, default-app
+; brew install duti
+
+# Get default application for extension
+duti -x <extension>
+
+# Set default application for extension
+duti -s <app_id> .<extension> all
