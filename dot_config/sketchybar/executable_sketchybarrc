@@ -121,9 +121,6 @@ sketchybar --add item clock right \
            --add item volume right \
            --set volume script="$PLUGIN_DIR/volume.sh" \
            --subscribe volume volume_change \
-           --add alias "MuteMe-Client,Item-0" right \
-           --add alias "Little Snitch Agent,Item-0" right \
-           --add alias "Stats,CombinedModules" right \
            --add item battery right \
            --set battery update_freq=300 script="$PLUGIN_DIR/battery.sh" \
            --subscribe battery system_woke power_source_change \
