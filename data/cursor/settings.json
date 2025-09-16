@@ -62,8 +62,5 @@
   "cursor.general.enableShadowWorkspace": true,
   "workbench.editor.showTabs": "single",
   "makefile.configureOnOpen": true,
-  "python.terminal.activateEnvironment": false,
-  "extensions.experimental.affinity": {
-    "asvetliakov.vscode-neovim": 1
-  }
+  "python.terminal.activateEnvironment": false
 }
