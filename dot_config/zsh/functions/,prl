@@ -1,17 +1,24 @@
 # -*- mode: zsh -*- vim: ft=zsh
 
-remote_url=$(git remote get-url origin)
+remote_url=${1:-$(git remote get-url origin)}
 
 if [[ "$remote_url" =~ github\.com ]]; then
-  # Check if PR is in draft status
-  is_draft=$(gh pr view --json isDraft -t "{{.isDraft}}")
+  # Fetch all PR data in a single call
+  pr_data=$(gh pr view --json=isDraft,title,number,url,headRepository $1 2>/dev/null)
+
+  if [[ $? -ne 0 || -z "$pr_data" ]]; then
+    >&2 echo "No PR found or failed to fetch PR data"
+    return 1
+  fi
+
+  is_draft=$(echo "$pr_data" | jq -r '.isDraft')
 
   if [[ "$is_draft" == "true" ]]; then
     >&2 echo "PR is in draft status, mark ready with 'gh pr ready'"
-    gh pr view --json=title,number,url,headRepository -t ":pencil: {{.title}}: [{{.headRepository.name}}#{{.number}}]({{.url}})" | pbcopy
+    echo "$pr_data" | jq -r '":pencil: \(.title): [\(.headRepository.name)#\(.number)](\(.url))"' | pbcopy
     return 2
   else
-    gh pr view --json=title,number,url,headRepository -t ":pr: {{.title}}: [{{.headRepository.name}}#{{.number}}]({{.url}})" | pbcopy
+    echo "$pr_data" | jq -r '":pr: \(.title): [\(.headRepository.name)#\(.number)](\(.url))"' | pbcopy
   fi
 else;
   >&2 echo "unsupported origin $remote_url"
