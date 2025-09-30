@@ -91,3 +91,6 @@ node_modules
 # mise
 mise.local.toml
 .mise.local.toml
+
+# claude code
+**/.claude/settings.local.json
