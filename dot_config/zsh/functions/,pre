@@ -1,0 +1,132 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+
+# Create a new git worktree from a PR URL
+
+
+# slugify from https://stackoverflow.com/a/63286099
+slugify () {
+    echo "$1" | iconv -c -t ascii//TRANSLIT | sed -E 's/[~^]+//g' | sed -E 's/\//-/g' | sed -E 's/[^a-zA-Z0-9._]+/-/g' | sed -E 's/^-+|-+$//g' | tr A-Z a-z
+}
+
+# Function to find bare repository for a given repo name
+find_bare_repo() {
+    local repo_name="$1"
+
+    # Check current directory first
+    if [ -d ".bare" ]; then
+        echo "$(pwd)"
+        return 0
+    fi
+
+    # Check if we're in a worktree of a bare repo
+    local root=$(git rev-parse --show-toplevel 2>/dev/null || echo "")
+    if [ -n "$root" ]; then
+        local bare="$root/../.bare"
+        if [ -d "$bare" ]; then
+            echo "$root/.."
+            return 0
+        fi
+    fi
+
+    # Search in ~/dev for matching repo (structure: ~/dev/$NAMESPACE/$REPO/.bare)
+    if [ -d "$HOME/dev" ]; then
+        local found_repo=$(fd -t d -d 3 '.bare' "$HOME/dev" 2>/dev/null | while read bare_dir; do
+            local repo_dir=$(dirname "$bare_dir")
+            local current_repo_name=$(basename "$repo_dir")
+            if [ "$current_repo_name" = "$repo_name" ]; then
+                echo "$repo_dir"
+                return 0
+            fi
+        done | head -1)
+
+        if [ -n "$found_repo" ]; then
+            echo "$found_repo"
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+# Check if PR URL is provided
+if [ -z "$1" ]; then
+    >&2 echo "Usage: ,pre <PR_URL>"
+    >&2 echo "Example: ,pre https://github.com/owner/repo/pull/123"
+    return 1
+fi
+
+pr_url="$1"
+
+# Verify it's a GitHub URL
+if [[ ! "$pr_url" =~ github\.com ]]; then
+    >&2 echo "Error: Only GitHub URLs are supported"
+    >&2 echo "Provided URL: $pr_url"
+    return 1
+fi
+
+# Extract PR information using gh CLI
+echo "Fetching PR information..."
+pr_data=$(gh pr view "$pr_url" --json=headRefName,number,title,headRepository,isCrossRepository 2>/dev/null)
+
+if [[ $? -ne 0 || -z "$pr_data" ]]; then
+    >&2 echo "Failed to fetch PR data. Make sure the URL is valid and you have access to the repository."
+    return 1
+fi
+
+# Parse PR data
+pr_branch=$(echo "$pr_data" | jq -r '.headRefName')
+pr_number=$(echo "$pr_data" | jq -r '.number')
+pr_title=$(echo "$pr_data" | jq -r '.title')
+repo_name=$(echo "$pr_data" | jq -r '.headRepository.name')
+is_cross_repo=$(echo "$pr_data" | jq -r '.isCrossRepository')
+
+# Check if PR is from a fork
+if [[ "$is_cross_repo" == "true" ]]; then
+    >&2 echo "Error: This PR is from a fork, which is not currently supported."
+    >&2 echo "Fork PRs require additional setup to fetch branches from external repositories."
+    return 1
+fi
+
+echo "PR: #$pr_number - $pr_title"
+echo "Branch: $pr_branch"
+
+# Find the bare repository
+repo_root=$(find_bare_repo "$repo_name")
+
+if [ -z "$repo_root" ]; then
+    >&2 echo "Could not find bare repository for '$repo_name'."
+    >&2 echo "Make sure you're in the repository directory or it exists in ~/dev/"
+    return 1
+fi
+
+echo "Found repository at: $repo_root"
+
+# Change to repository directory
+pushd "$repo_root" > /dev/null
+
+# Create directory name from PR
+dir_name="pr-$pr_number-$(slugify "$pr_branch")"
+
+# Check if worktree already exists
+if [ -d "$dir_name" ]; then
+    >&2 echo "Worktree '$dir_name' already exists"
+    pushd "$dir_name"
+    return 0
+fi
+
+# Fetch the PR branch from origin
+echo "Fetching branch '$pr_branch' from origin..."
+git fetch origin "$pr_branch:$pr_branch" 2>/dev/null || {
+    >&2 echo "Branch '$pr_branch' not found in origin. It may have been deleted or merged."
+    return 1
+}
+
+# Create worktree
+echo "Creating worktree '$dir_name'..."
+git worktree add "$dir_name" "$pr_branch"
+
+# Switch to the new worktree
+pushd "$dir_name"
+
+echo "Successfully created and switched to worktree for PR #$pr_number"

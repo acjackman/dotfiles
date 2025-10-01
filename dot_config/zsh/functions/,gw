@@ -1,6 +1,16 @@
 #!/usr/bin/env zsh
 
 # Create a new git worktree
+# Usage: ,gw <branch-name> [directory-name]
+#
+# Arguments:
+#   branch-name: Name of the new branch to create
+#   directory-name: Name of the worktree directory (default: slugified branch-name)
+#
+# Base branch priority:
+#   1. Current branch (if in a worktree)
+#   2. Environment variable BASE_BRANCH
+#   3. Single remote's HEAD (if only one remote exists)
 
 # slugify from https://stackoverflow.com/a/63286099
 slugify () {
@@ -8,13 +18,117 @@ slugify () {
 }
 
 branch=${1}
-dir_name=${2:-$(slugify branch)}
+dir_name=${2:-$(slugify "$branch")}
 
-root=$(git rev-parse --show-toplevel)
-bare="$root/../.bare"
-if [ -d "$bare" ]; then
-    path="${root}/../${dir_name}"
-    git worktree add -b "$branch" "$path" $@ && pushd "$path"
-else
-    echo "TODO: Configure for non-bare repository"
+# Find git executable
+GIT_CMD="$(command -v git 2>/dev/null)"
+if [ -z "$GIT_CMD" ]; then
+    echo "ERROR: git command not found" >&2
+    return 1
 fi
+
+# Detect base branch
+detect_base_branch() {
+    # Priority 1: Current branch (if in a worktree)
+    if ! ($GIT_CMD rev-parse --is-bare-repository >/dev/null 2>&1 && [ "$($GIT_CMD rev-parse --is-bare-repository)" = "true" ]); then
+        # We're in a worktree, get current branch
+        local current_branch=$($GIT_CMD branch --show-current 2>/dev/null)
+        if [ -n "$current_branch" ]; then
+            echo "$current_branch"
+            return 0
+        fi
+    fi
+
+    # Priority 2: Environment variable
+    if [ -n "$BASE_BRANCH" ]; then
+        echo "$BASE_BRANCH"
+        return 0
+    fi
+
+    # Priority 3: Single remote's HEAD (if only one remote exists)
+    local remotes=($($GIT_CMD remote 2>/dev/null))
+    if [ ${#remotes[@]} -eq 1 ]; then
+        local remote_name="${remotes[1]}"
+        local remote_head=$($GIT_CMD symbolic-ref "refs/remotes/$remote_name/HEAD" 2>/dev/null | sed "s|refs/remotes/$remote_name/||")
+        if [ -n "$remote_head" ]; then
+            echo "$remote_name/$remote_head"
+            return 0
+        fi
+    fi
+
+    return 1
+}
+
+base_branch=$(detect_base_branch)
+if [ -z "$base_branch" ]; then
+    echo "ERROR: No suitable base branch found" >&2
+    echo "Please set BASE_BRANCH environment variable to specify a base branch" >&2
+    echo "Or ensure your repository has a single remote with HEAD properly configured" >&2
+    return 1
+fi
+
+# Display worktree info
+display_worktree_info() {
+    local target_path="$1"
+    local context_msg="$2"
+
+    [ -n "$context_msg" ] && echo "$context_msg" >&2
+    echo "Target path: $target_path" >&2
+
+    # Determine base branch source for display (check in priority order)
+    local current_branch=""
+    if ! ($GIT_CMD rev-parse --is-bare-repository >/dev/null 2>&1 && [ "$($GIT_CMD rev-parse --is-bare-repository)" = "true" ]); then
+        current_branch=$($GIT_CMD branch --show-current 2>/dev/null)
+    fi
+
+    if [ -n "$current_branch" ] && [ "$base_branch" = "$current_branch" ]; then
+        echo "Base branch: $base_branch (current branch)" >&2
+    elif [ -n "$BASE_BRANCH" ] && [ "$base_branch" = "$BASE_BRANCH" ]; then
+        echo "Base branch: $base_branch (from BASE_BRANCH)" >&2
+    else
+        # Must be from single remote HEAD (only remaining option)
+        echo "Base branch: $base_branch (remote HEAD)" >&2
+    fi
+}
+
+# Create worktree and handle result
+create_worktree() {
+    local target_path="$1"
+
+    if $GIT_CMD worktree add --no-track -b "$branch" "$target_path" "$base_branch"; then
+        echo "Worktree created successfully" >&2
+        pushd "$target_path" >/dev/null
+        return 0
+    else
+        echo "ERROR: Failed to create worktree" >&2
+        return 1
+    fi
+}
+
+
+# Determine repository type and setup path
+if $GIT_CMD rev-parse --is-bare-repository >/dev/null 2>&1 && [ "$($GIT_CMD rev-parse --is-bare-repository)" = "true" ]; then
+    # Bare repository
+    bare="$($GIT_CMD rev-parse --absolute-git-dir)"
+    root="$(dirname "$bare")"
+    target_path="${root}/${dir_name}"
+
+    context_msg=""
+else
+    # Worktree
+    git_dir="$($GIT_CMD rev-parse --absolute-git-dir)"
+    root="$(dirname "$(dirname "$git_dir")")"
+
+    if [ -d "$root/.bare" ]; then
+      target_path="${root}/${dir_name}"
+    else
+      # create worktree as sibling of non-bare repository
+      target_path="$root/../${dir_name}"
+    fi
+
+    context_msg="adding worktree $dir_name from worktree $root"
+fi
+
+# Create the worktree (common logic)
+display_worktree_info "$target_path" "$context_msg"
+create_worktree "$target_path" || return 1
