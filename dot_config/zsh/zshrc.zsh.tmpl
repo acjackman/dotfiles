@@ -260,6 +260,11 @@ eval "$(navi widget zsh)"
 # =======================================
 eval "$(atuin init zsh)"
 
+# Workaround to make vi-mode work with atuin
+function zvm_after_init() {
+  zvm_bindkey viins '^R' atuin-search
+}
+
 # =======================================
 # zsh-autosuggest & bracketed-paste-magic
 # =======================================
