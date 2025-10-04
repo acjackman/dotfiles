@@ -178,8 +178,7 @@ export EDITOR="$VISUAL"
 # =============
 
 # TODO https://github.com/zdharma/zinit/issues/173#issuecomment-537325714
-# Load ~/.exports, ~/.aliases, ~/.functions and ~/.zshrc_local
-# ~/.zshrc_local can be used for settings you don’t want to commit
+# ~/.config/zsh/zshrc_local.zsh can be used for settings you don’t want to commit
 for file in aliases zshrc_local aliases_local; do
   local file="${XDG_CONFIG_HOME:-$HOME/.config}/zsh/$file.zsh"
   [ -e "$file" ] && source "$file"
