@@ -58,8 +58,11 @@ zinit as="command" lucid from="gh-r" for \
     jdx/mise
 
 # =============
-# App Settings
+# ENV Vairables & App Settings
 # =============
+{{ $env_exports := (onepasswordItemFields "env" "Private" "jackman.1password.com") -}}
+{{range $value := $env_exports }}export {{ $value.label }}='{{ $value.value }}'
+{{end}}
 
 export HOMEBREW_GITHUB_API_TOKEN='{{ onepasswordRead "op://Private/Github/homebrew_pat" "jackman.1password.com" }}'
 
