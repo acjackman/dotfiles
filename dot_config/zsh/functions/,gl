@@ -1,0 +1,177 @@
+#!/usr/bin/env zsh
+
+# Get a Git forge link to the current directory
+# Supports: GitHub, GitLab, Forgejo/Gitea, Bitbucket
+# Usage: ,gl [-p|-h]
+#
+# Options:
+#   -p: Generate a permalink using the current commit hash instead of branch
+#   -h: Link to current path on the remote's HEAD branch
+
+# Parse command line arguments
+permalink=false
+use_head=false
+if [[ "$1" == "-p" ]]; then
+    permalink=true
+elif [[ "$1" == "-h" ]]; then
+    use_head=true
+fi
+
+# Detect Git forge from remote URL and extract repository information
+# Returns: forge_type|host|repo_path
+detect_forge() {
+    local url="$1"
+
+    # GitHub patterns
+    if [[ "$url" =~ ^git@github\.com:(.+)\.git$ ]]; then
+        echo "github|github.com|${match[1]}"
+    elif [[ "$url" =~ ^https://github\.com/(.+)\.git$ ]]; then
+        echo "github|github.com|${match[1]}"
+    elif [[ "$url" =~ ^https://github\.com/(.+)/?$ ]]; then
+        echo "github|github.com|${match[1]%/}"
+
+    # GitLab patterns (gitlab.com and self-hosted)
+    elif [[ "$url" =~ ^git@([^:]+):(.+)\.git$ ]] && [[ "${match[1]}" == *"gitlab"* ]]; then
+        echo "gitlab|${match[1]}|${match[2]}"
+    elif [[ "$url" =~ ^https://([^/]+)/(.+)\.git$ ]] && [[ "${match[1]}" == *"gitlab"* ]]; then
+        echo "gitlab|${match[1]}|${match[2]}"
+    elif [[ "$url" =~ ^https://([^/]+)/(.+)/?$ ]] && [[ "${match[1]}" == *"gitlab"* ]]; then
+        echo "gitlab|${match[1]}|${match[2]%/}"
+
+    # Forgejo/Gitea patterns (codeberg.org and others)
+    elif [[ "$url" =~ ^git@([^:]+):(.+)\.git$ ]] && [[ "${match[1]}" == *"codeberg"* || "${match[1]}" == *"gitea"* || "${match[1]}" == *"forgejo"* ]]; then
+        echo "forgejo|${match[1]}|${match[2]}"
+    elif [[ "$url" =~ ^https://([^/]+)/(.+)\.git$ ]] && [[ "${match[1]}" == *"codeberg"* || "${match[1]}" == *"gitea"* || "${match[1]}" == *"forgejo"* ]]; then
+        echo "forgejo|${match[1]}|${match[2]}"
+    elif [[ "$url" =~ ^https://([^/]+)/(.+)/?$ ]] && [[ "${match[1]}" == *"codeberg"* || "${match[1]}" == *"gitea"* || "${match[1]}" == *"forgejo"* ]]; then
+        echo "forgejo|${match[1]}|${match[2]%/}"
+
+    # Bitbucket patterns
+    elif [[ "$url" =~ ^git@bitbucket\.org:(.+)\.git$ ]]; then
+        echo "bitbucket|bitbucket.org|${match[1]}"
+    elif [[ "$url" =~ ^https://bitbucket\.org/(.+)\.git$ ]]; then
+        echo "bitbucket|bitbucket.org|${match[1]}"
+    elif [[ "$url" =~ ^https://bitbucket\.org/(.+)/?$ ]]; then
+        echo "bitbucket|bitbucket.org|${match[1]%/}"
+
+    # Generic Git hosting (fallback to Gitea-style URLs)
+    elif [[ "$url" =~ ^git@([^:]+):(.+)\.git$ ]]; then
+        echo "generic|${match[1]}|${match[2]}"
+    elif [[ "$url" =~ ^https://([^/]+)/(.+)\.git$ ]]; then
+        echo "generic|${match[1]}|${match[2]}"
+    elif [[ "$url" =~ ^https://([^/]+)/(.+)/?$ ]]; then
+        echo "generic|${match[1]}|${match[2]%/}"
+    else
+        return 1
+    fi
+}
+
+# Build forge-specific URL for viewing files/directories
+# Arguments: forge_type host repo_path ref relative_path
+build_forge_url() {
+    local forge_type="$1"
+    local host="$2"
+    local repo_path="$3"
+    local ref="$4"
+    local relative_path="$5"
+
+    local base_url="https://${host}/${repo_path}"
+    local path_suffix=""
+    if [ -n "$relative_path" ]; then
+        path_suffix="/$relative_path"
+    fi
+
+    case "$forge_type" in
+        "github")
+            echo "${base_url}/tree/${ref}${path_suffix}"
+            ;;
+        "gitlab")
+            echo "${base_url}/-/tree/${ref}${path_suffix}"
+            ;;
+        "forgejo"|"bitbucket"|"generic")
+            echo "${base_url}/src/branch/${ref}${path_suffix}"
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# Find git executable
+GIT_CMD="$(command -v git 2>/dev/null)"
+if [ -z "$GIT_CMD" ]; then
+    echo "ERROR: git command not found" >&2
+    return 1
+fi
+
+# Check if we're in a git repository
+if ! $GIT_CMD rev-parse --is-inside-work-tree >/dev/null 2>&1; then
+    echo "ERROR: Not inside a git repository" >&2
+    return 1
+fi
+
+# Get repository root and current relative path
+repo_root=$($GIT_CMD rev-parse --show-toplevel)
+current_path=$(pwd)
+relative_path=${current_path#$repo_root}
+
+# Remove leading slash if present
+relative_path=${relative_path#/}
+
+# Get remote URL (prefer origin, fallback to first remote)
+remote_url=""
+remote_name="origin"
+if $GIT_CMD remote get-url origin >/dev/null 2>&1; then
+    remote_url=$($GIT_CMD remote get-url origin)
+elif [ -n "$($GIT_CMD remote 2>/dev/null)" ]; then
+    remote_name=$($GIT_CMD remote | head -n1)
+    remote_url=$($GIT_CMD remote get-url "$remote_name")
+else
+    echo "ERROR: No git remote found" >&2
+    return 1
+fi
+
+# Detect forge type and parse repository information
+forge_info=$(detect_forge "$remote_url")
+if [ -z "$forge_info" ]; then
+    echo "ERROR: Unable to parse repository URL: $remote_url" >&2
+    echo "Supported forges: GitHub, GitLab, Forgejo/Gitea, Bitbucket" >&2
+    return 1
+fi
+
+# Parse forge information
+IFS='|' read -r forge_type forge_host repo_path <<< "$forge_info"
+
+# Determine reference (branch or commit)
+if [[ "$permalink" == true ]]; then
+    # Use current commit hash for permalink
+    ref=$($GIT_CMD rev-parse HEAD)
+elif [[ "$use_head" == true ]]; then
+    # Use remote HEAD branch
+    ref=$($GIT_CMD symbolic-ref "refs/remotes/$remote_name/HEAD" 2>/dev/null | sed "s|refs/remotes/$remote_name/||")
+    if [ -z "$ref" ]; then
+        # Fallback: try to get default branch from remote
+        ref=$($GIT_CMD remote show "$remote_name" 2>/dev/null | sed -n '/HEAD branch/s/.*: //p')
+        if [ -z "$ref" ]; then
+            echo "ERROR: Unable to determine remote HEAD branch" >&2
+            return 1
+        fi
+    fi
+else
+    # Use current branch name
+    ref=$($GIT_CMD branch --show-current)
+    if [ -z "$ref" ]; then
+        # Fallback to commit hash if no current branch (detached HEAD)
+        ref=$($GIT_CMD rev-parse HEAD)
+    fi
+fi
+
+# Construct forge URL
+forge_url=$(build_forge_url "$forge_type" "$forge_host" "$repo_path" "$ref" "$relative_path")
+if [ -z "$forge_url" ]; then
+    echo "ERROR: Unable to build URL for forge type: $forge_type" >&2
+    return 1
+fi
+
+echo "$forge_url" | pbcopy
+echo "$forge_url"
