@@ -301,6 +301,10 @@ run = 'move-node-to-workspace S'
 if.app-id = 'com.stengo.DeskPad'
 run = ['layout tiling', 'move-node-to-workspace G']
 
+[[on-window-detected]]
+if.app-id = 'com.ikryanov.clipbook'
+run = ['layout floating']
+
 [workspace-to-monitor-force-assignment]
 S = ['^HP Z27 \(2\)$',]
 T = 'main'
