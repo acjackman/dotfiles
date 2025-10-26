@@ -1,6 +1,7 @@
 {{ .chezmoi.destDir }}/.local/share/tmux/plugins/catppuccin
 {{ .chezmoi.destDir }}/.config/karabiner/karabiner.edn
 {{ .chezmoi.destDir }}/finicky.js
+{{ .chezmoi.destDir }}/.config/alacritty
 {{ if ne .hostname "Odin" }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-odin{{ end }}
 {{ if ne .hostname "Odin" }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-odin.lock.json{{ end }}
 {{ if not (has "personal" .extras) }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-personal{{ end }}
