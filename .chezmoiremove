@@ -1,6 +1,7 @@
-~/.local/share/tmux/plugins/catppuccin
-~/.config/karabiner/karabiner.edn
-{{ if ne .hostname "Odin" }}~/.config/homebrew/Brewfile-odin{{ end }}
-{{ if ne .hostname "Odin" }}~/.config/homebrew/Brewfile-odin.lock.json{{ end }}
-{{ if not (has "personal" .extras) }}~/.config/homebrew/Brewfile-personal{{ end }}
-{{ if not (has "personal" .extras) }}~/.config/homebrew/Brewfile-personal.lock.json{{ end }}
+{{ .chezmoi.destDir }}/.local/share/tmux/plugins/catppuccin
+{{ .chezmoi.destDir }}/.config/karabiner/karabiner.edn
+{{ .chezmoi.destDir }}/finicky.js
+{{ if ne .hostname "Odin" }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-odin{{ end }}
+{{ if ne .hostname "Odin" }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-odin.lock.json{{ end }}
+{{ if not (has "personal" .extras) }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-personal{{ end }}
+{{ if not (has "personal" .extras) }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-personal.lock.json{{ end }}
