@@ -1,0 +1,12 @@
+{
+  "general": {
+    "disableAutoUpdate": true,
+    "vimMode": true
+  },
+  "ui": {
+    "showMemoryUsage": false
+  },
+  "privacy": {
+    "usageStatisticsEnabled": true
+  }
+}
