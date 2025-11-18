@@ -26,8 +26,6 @@ require("lazy").setup({
     { import = "lazyvim.plugins.extras.util.chezmoi" },
     -- { import = "lazyvim.plugins.extras.util.rest" },
     { import = "lazyvim.plugins.extras.vscode" },
-    { import = "lazyvim.plugins.extras.ai.copilot" },
-    { import = "lazyvim.plugins.extras.ai.sidekick" },
     -- import/override with your plugins
     { import = "plugins" },
   },
