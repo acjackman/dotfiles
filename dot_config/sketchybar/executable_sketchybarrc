@@ -59,9 +59,12 @@ PY
 )
 
 if [[ -n "$INCLUDE_DISPLAYS" ]]; then
-  sketchybar --bar display="$INCLUDE_DISPLAYS" position=top height=40 blur_radius=30 color=0xff000000
+  echo "Setting bar to displays: $INCLUDE_DISPLAYS" >&2
+  sketchybar --bar position=top height=40 blur_radius=30 color=0xff000000
+  sketchybar --bar display="$INCLUDE_DISPLAYS"
 else
-  # Fallback if detection fails
+  # Fallback if detection fails - show on all displays
+  echo "Display detection failed, showing on all displays" >&2
   sketchybar --bar position=top height=40 blur_radius=30 color=0xff000000
 fi
 
