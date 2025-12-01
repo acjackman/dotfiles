@@ -41,14 +41,18 @@ export PATH="$PATH:$HOME/.cargo/bin"
 export PATH="$PATH:$HOME/.local/bin" # pipx and other things put stuff here
 export PATH="$PATH:$HOME/.local/share/jackman/bin" # personal scripts
 [ -d "$HOME/.dotfiles-local/bin" ] && export PATH="$PATH:$HOME/.dotfiles-local/bin"
+
+# Application Bins
 export PATH="$PATH:$HOME/.config/emacs/bin" # doom emacs
+{{ if eq .chezmoi.os "darwin" -}}
+[ -d "/Applications/Antigravity.app/" ] && export PATH="$PATH:$HOME/.antigravity/antigravity/bin"
+{{ end }}
 
 # Mise for pinned binaries, direnv, and tasks
 zinit as="command" lucid from="gh-r" for \
     id-as="usage" \
     atpull="%atclone" \
     jdx/usage
-    #atload='eval "$(mise activate zsh)"' \
 
 zinit as="command" lucid from="gh-r" for \
     id-as="mise" mv="mise* -> mise" \
