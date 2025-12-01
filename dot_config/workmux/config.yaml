@@ -1,0 +1,9 @@
+window_prefix: wm-
+
+agent: claude
+
+panes:
+  - command: nvim .
+    focus: true
+  # Just a default shell (command omitted)
+  - split: horizontal

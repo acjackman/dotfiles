@@ -16,6 +16,8 @@ alias o=open
 
 alias rgf="rg --files-with-matches"
 
+alias wm="workmux"
+
 # Tools
 alias lspath='tr ":" "\n" <<< "$PATH"'
 alias lspathu='tr ":" "\n" <<< "$PATH" | awk "!seen[\$0]++"'

@@ -9,6 +9,7 @@ tap "noahgorstein/tap"
 tap "ttscoff/thelab"
 tap "FelixKratz/formulae"
 tap "yqrashawn/goku"
+tap "raine/workmux"
 
 ######################################
 # Installers
@@ -50,6 +51,7 @@ brew "direnv"
 brew "fzf"
 brew "tmux"
 brew "sesh"
+brew "raine/workmux/workmux"
 
 # Terminal Emulator
 cask "ghostty"

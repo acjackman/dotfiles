@@ -94,3 +94,7 @@ mise.local.toml
 
 # claude code
 **/.claude/settings.local.json
+
+# Workmux
+.workmux.yaml
+.workmux.yml
