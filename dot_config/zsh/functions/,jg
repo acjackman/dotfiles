@@ -1,0 +1,5 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# ,j - cd to an fzf-selected directory
+
+local dir=$(,jg-helper) && [[ -d "$dir" ]] && pushd "$dir"

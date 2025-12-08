@@ -1,0 +1,9 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# ,j - cd to an fzf-selected directory
+
+if [[ "$(git rev-parse --is-inside-work-tree)" != "true" ]]; then
+  exit 1
+fi
+
+pushd "$( git rev-parse --show-toplevel )" > /dev/null
