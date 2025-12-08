@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+
+# Get the main branch (usually master or main)
+main_branch=$(git rev-parse --abbrev-ref origin/HEAD 2>/dev/null | sed 's/origin\///')
+
+# Fallback to master if origin/HEAD is not set
+if [ -z "$main_branch" ]; then
+    main_branch="master"
+fi
+
+# Check if dyff is available
+if command -v dyff >/dev/null 2>&1; then
+    has_dyff=true
+else
+    has_dyff=false
+fi
+
+# Get all files modified in this branch compared to the main branch
+modified_files=$(git diff --name-only "${main_branch}...HEAD")
+
+if [ -z "$modified_files" ]; then
+    echo "No modified files found in this branch compared to ${main_branch}"
+    exit 1
+fi
+
+# Present the files in fzf and capture selection(s)
+if [ "$has_dyff" = true ]; then
+    preview_cmd="if [[ {} =~ \.(yaml|yml|json)$ ]]; then dyff between --color=on --omit-header <(git show ${main_branch}:{}) <(git show HEAD:{}) 2>/dev/null || git diff --color=always ${main_branch}...HEAD -- {}; else git diff --color=always ${main_branch}...HEAD -- {}; fi | head -200"
+else
+    preview_cmd="git diff --color=always ${main_branch}...HEAD -- {} | head -200"
+fi
+
+selected=$(echo "$modified_files" | fzf -m --prompt="Modified files in branch: " \
+    --preview="$preview_cmd" \
+    --preview-window=right:60%:wrap \
+    --height=100%)
+
+# Exit if no files were selected
+if [ -z "$selected" ]; then
+    echo "No files selected"
+    exit 0
+fi
+
+# Use $EDITOR or fallback to vi
+editor="${EDITOR:-vi}"
+
+# Open selected files in editor
+$editor $selected
