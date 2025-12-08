@@ -1,7 +1,11 @@
 # -*- mode: zsh -*- vim: ft=zsh
 
 
-# Create a new git worktree from a PR URL
+# Create a new git worktree from a PR URL or branch name
+#
+# Usage:
+#   ,pre <PR_URL>          # Create worktree from PR
+#   ,pre <branch-name>     # Create worktree from existing branch
 
 
 # slugify from https://stackoverflow.com/a/63286099
@@ -49,53 +53,81 @@ find_bare_repo() {
     return 1
 }
 
-# Check if PR URL is provided
+# Check if input is provided
 if [ -z "$1" ]; then
-    >&2 echo "Usage: ,pre <PR_URL>"
-    >&2 echo "Example: ,pre https://github.com/owner/repo/pull/123"
+    >&2 echo "Usage: ,pre <PR_URL|branch-name>"
+    >&2 echo "Examples:"
+    >&2 echo "  ,pre https://github.com/owner/repo/pull/123"
+    >&2 echo "  ,pre feature/my-branch"
     return 1
 fi
 
-pr_url="$1"
+input="$1"
 
-# Verify it's a GitHub URL
-if [[ ! "$pr_url" =~ github\.com ]]; then
-    >&2 echo "Error: Only GitHub URLs are supported"
-    >&2 echo "Provided URL: $pr_url"
-    return 1
+# Detect input type
+if [[ "$input" =~ github\.com.*/pull/[0-9]+ ]]; then
+    input_type="pr_url"
+else
+    input_type="branch"
 fi
 
-# Extract PR information using gh CLI
-echo "Fetching PR information..."
-pr_data=$(gh pr view "$pr_url" --json=headRefName,number,title,headRepository,isCrossRepository 2>/dev/null)
+if [[ "$input_type" == "pr_url" ]]; then
+    # Extract PR information using gh CLI
+    echo "Fetching PR information..."
+    pr_data=$(gh pr view "$input" --json=headRefName,number,title,headRepository,isCrossRepository 2>/dev/null)
 
-if [[ $? -ne 0 || -z "$pr_data" ]]; then
-    >&2 echo "Failed to fetch PR data. Make sure the URL is valid and you have access to the repository."
-    return 1
+    if [[ $? -ne 0 || -z "$pr_data" ]]; then
+        >&2 echo "Failed to fetch PR data. Make sure the URL is valid and you have access to the repository."
+        return 1
+    fi
+
+    # Parse PR data
+    pr_branch=$(echo "$pr_data" | jq -r '.headRefName')
+    pr_number=$(echo "$pr_data" | jq -r '.number')
+    pr_title=$(echo "$pr_data" | jq -r '.title')
+    repo_name=$(echo "$pr_data" | jq -r '.headRepository.name')
+    is_cross_repo=$(echo "$pr_data" | jq -r '.isCrossRepository')
+
+    # Check if PR is from a fork
+    if [[ "$is_cross_repo" == "true" ]]; then
+        >&2 echo "Error: This PR is from a fork, which is not currently supported."
+        >&2 echo "Fork PRs require additional setup to fetch branches from external repositories."
+        return 1
+    fi
+
+    echo "PR: #$pr_number - $pr_title"
+    echo "Branch: $pr_branch"
+elif [[ "$input_type" == "branch" ]]; then
+    # Branch-based worktree
+    branch_name="$input"
+    echo "Creating worktree for branch: $branch_name"
+
+    # Extract repo name from current git context
+    if git rev-parse --git-dir >/dev/null 2>&1; then
+        remote_url=$(git remote get-url origin 2>/dev/null)
+        if [[ -n "$remote_url" ]]; then
+            # Extract repo name from various URL formats
+            # SSH: git@github.com:owner/repo.git
+            # HTTPS: https://github.com/owner/repo.git
+            repo_name=$(echo "$remote_url" | sed -E 's#.*/([^/]+)\.git$#\1#' | sed -E 's#.*/([^/]+)$#\1#')
+        fi
+    fi
 fi
-
-# Parse PR data
-pr_branch=$(echo "$pr_data" | jq -r '.headRefName')
-pr_number=$(echo "$pr_data" | jq -r '.number')
-pr_title=$(echo "$pr_data" | jq -r '.title')
-repo_name=$(echo "$pr_data" | jq -r '.headRepository.name')
-is_cross_repo=$(echo "$pr_data" | jq -r '.isCrossRepository')
-
-# Check if PR is from a fork
-if [[ "$is_cross_repo" == "true" ]]; then
-    >&2 echo "Error: This PR is from a fork, which is not currently supported."
-    >&2 echo "Fork PRs require additional setup to fetch branches from external repositories."
-    return 1
-fi
-
-echo "PR: #$pr_number - $pr_title"
-echo "Branch: $pr_branch"
 
 # Find the bare repository
-repo_root=$(find_bare_repo "$repo_name")
+if [[ -n "$repo_name" ]]; then
+    repo_root=$(find_bare_repo "$repo_name")
+else
+    # Try to find bare repo from current location
+    repo_root=$(find_bare_repo "")
+fi
 
 if [ -z "$repo_root" ]; then
-    >&2 echo "Could not find bare repository for '$repo_name'."
+    if [[ -n "$repo_name" ]]; then
+        >&2 echo "Could not find bare repository for '$repo_name'."
+    else
+        >&2 echo "Could not find bare repository."
+    fi
     >&2 echo "Make sure you're in the repository directory or it exists in ~/dev/"
     return 1
 fi
@@ -105,8 +137,12 @@ echo "Found repository at: $repo_root"
 # Change to repository directory
 pushd "$repo_root" > /dev/null
 
-# Create directory name from PR
-dir_name="pr-$pr_number-$(slugify "$pr_branch")"
+# Create directory name
+if [[ "$input_type" == "pr_url" ]]; then
+    dir_name="pr-$pr_number-$(slugify "$pr_branch")"
+else
+    dir_name="$(slugify "$branch_name")"
+fi
 
 # Check if worktree already exists
 if [ -d "$dir_name" ]; then
@@ -115,18 +151,59 @@ if [ -d "$dir_name" ]; then
     return 0
 fi
 
-# Fetch the PR branch from origin
-echo "Fetching branch '$pr_branch' from origin..."
-git fetch origin "$pr_branch:$pr_branch" 2>/dev/null || {
-    >&2 echo "Branch '$pr_branch' not found in origin. It may have been deleted or merged."
-    return 1
-}
+# Determine target branch
+if [[ "$input_type" == "pr_url" ]]; then
+    target_branch="$pr_branch"
+else
+    target_branch="$branch_name"
+fi
+
+# Check if branch exists locally
+if ! git rev-parse --verify "$target_branch" >/dev/null 2>&1; then
+    # Branch doesn't exist locally, try to fetch from origin
+    echo "Fetching branch '$target_branch' from origin..."
+    git fetch origin "$target_branch:$target_branch" 2>/dev/null || {
+        >&2 echo "Branch '$target_branch' not found locally or in origin."
+        if [[ "$input_type" == "pr_url" ]]; then
+            >&2 echo "It may have been deleted or merged."
+        else
+            >&2 echo "Make sure the branch name is correct."
+        fi
+        return 1
+    }
+else
+    echo "Using existing local branch '$target_branch'"
+fi
 
 # Create worktree
 echo "Creating worktree '$dir_name'..."
-git worktree add "$dir_name" "$pr_branch"
+git worktree add "$dir_name" "$target_branch"
 
 # Switch to the new worktree
 pushd "$dir_name"
 
-echo "Successfully created and switched to worktree for PR #$pr_number"
+if [[ "$input_type" == "pr_url" ]]; then
+    echo "Successfully created and switched to worktree for PR #$pr_number"
+else
+    echo "Successfully created and switched to worktree for branch '$branch_name'"
+fi
+
+# If running in tmux, rename the window to the branch name if it doesn't have a custom name
+if [[ -n "$TMUX" ]]; then
+    # Get the current window name
+    current_window_name=$(tmux display-message -p '#W')
+
+    # Check if the window name is automatically generated (typically matches the running command or directory)
+    # If the window name is 'zsh', 'bash', or matches common shell patterns, it's considered unnamed
+    if [[ "$current_window_name" =~ ^(zsh|bash|sh|ksh)$ ]] || [[ "$current_window_name" == "$(basename "$SHELL")" ]]; then
+        # Get the actual branch name to use for the window
+        if [[ "$input_type" == "pr_url" ]]; then
+            window_name="pr-$pr_number"
+        else
+            window_name="$(slugify "$branch_name")"
+        fi
+
+        tmux rename-window "$window_name"
+        echo "Renamed tmux window to: $window_name"
+    fi
+fi
