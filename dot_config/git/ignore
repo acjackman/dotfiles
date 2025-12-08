@@ -72,11 +72,14 @@ Desktop.ini
 # javascript
 node_modules
 
+# python
+.python-version
+__pycache__
+
 # Rlang
 .Rapp.history
 .Rhistory
 .atomignore
-.python-version
 .httr-oauth
 
 # Direnv
