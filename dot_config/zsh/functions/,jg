@@ -2,4 +2,4 @@
 
 # ,j - cd to an fzf-selected directory
 
-local dir=$(,jg-helper) && [[ -d "$dir" ]] && pushd "$dir"
+local dir=$(,jg-helper) && [[ -d "$dir" ]] && pushd "$dir" > /dev/null
