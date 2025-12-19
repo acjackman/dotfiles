@@ -1,0 +1,178 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+
+# Wait for a PR to merge before continuing, with a spinner and timer
+#
+# Usage:
+#   ,pr-merged <PR_URL|PR_NUMBER>    # Wait for PR to merge
+#   ,pr-merged 123                   # Wait for PR #123 in current repo
+#   ,pr-merged https://github.com/owner/repo/pull/123
+
+
+# Check if gum is installed
+if ! command -v gum &> /dev/null; then
+    >&2 echo "Error: gum is not installed. Install it with: brew install gum"
+    return 1
+fi
+
+# Check if input is provided
+if [ -z "$1" ]; then
+    >&2 echo "Usage: ,pr-merged <PR_URL|PR_NUMBER>"
+    >&2 echo "Examples:"
+    >&2 echo "  ,pr-merged https://github.com/owner/repo/pull/123"
+    >&2 echo "  ,pr-merged 123"
+    return 1
+fi
+
+input="$1"
+pr_url=""
+
+# Detect if input is a URL or PR number
+if [[ "$input" =~ ^https?:// ]]; then
+    pr_url="$input"
+elif [[ "$input" =~ ^[0-9]+$ ]]; then
+    # Just a PR number, need to construct URL from current repo
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        >&2 echo "Error: Not in a git repository. Please provide a full PR URL."
+        return 1
+    fi
+    pr_url="$input"
+else
+    >&2 echo "Error: Invalid input. Provide a PR URL or PR number."
+    return 1
+fi
+
+# Fetch initial PR information
+echo "Fetching PR information..."
+pr_data=$(gh pr view "$pr_url" --json=number,title,state,merged,url 2>/dev/null)
+
+if [[ $? -ne 0 || -z "$pr_data" ]]; then
+    >&2 echo "Failed to fetch PR data. Make sure the URL is valid and you have access to the repository."
+    return 1
+fi
+
+pr_number=$(echo "$pr_data" | jq -r '.number')
+pr_title=$(echo "$pr_data" | jq -r '.title')
+pr_state=$(echo "$pr_data" | jq -r '.state')
+pr_merged=$(echo "$pr_data" | jq -r '.merged')
+pr_url_full=$(echo "$pr_data" | jq -r '.url')
+
+echo ""
+gum style --border rounded --padding "0 1" --margin "1" \
+    "PR #${pr_number}: ${pr_title}" \
+    "URL: ${pr_url_full}" \
+    "Current state: ${pr_state}"
+echo ""
+
+# Check if already merged
+if [[ "$pr_merged" == "true" ]]; then
+    gum style --foreground 2 "✓ PR is already merged!"
+    return 0
+fi
+
+# Check if PR is closed but not merged
+if [[ "$pr_state" == "CLOSED" && "$pr_merged" == "false" ]]; then
+    gum style --foreground 1 "✗ PR is closed but not merged"
+    return 1
+fi
+
+# Wait for merge with spinner and timer
+start_time=$(date +%s)
+check_interval=10  # Check every 10 seconds
+
+# Function to format elapsed time
+format_time() {
+    local total_seconds=$1
+    local hours=$((total_seconds / 3600))
+    local minutes=$(((total_seconds % 3600) / 60))
+    local seconds=$((total_seconds % 60))
+    
+    if [ $hours -gt 0 ]; then
+        printf "%02d:%02d:%02d" $hours $minutes $seconds
+    else
+        printf "%02d:%02d" $minutes $seconds
+    fi
+}
+
+# Create a temporary script for the spinner
+spinner_script=$(mktemp)
+cat > "$spinner_script" << 'SPINNER_EOF'
+#!/usr/bin/env zsh
+
+pr_url="$1"
+check_interval="$2"
+start_time="$3"
+
+format_time() {
+    local total_seconds=$1
+    local hours=$((total_seconds / 3600))
+    local minutes=$(((total_seconds % 3600) / 60))
+    local seconds=$((total_seconds % 60))
+    
+    if [ $hours -gt 0 ]; then
+        printf "%02d:%02d:%02d" $hours $minutes $seconds
+    else
+        printf "%02d:%02d" $minutes $seconds
+    fi
+}
+
+while true; do
+    current_time=$(date +%s)
+    elapsed=$((current_time - start_time))
+    elapsed_str=$(format_time $elapsed)
+    
+    # Check PR status
+    pr_data=$(gh pr view "$pr_url" --json=merged,state 2>/dev/null)
+    
+    if [[ $? -ne 0 ]]; then
+        echo "error"
+        exit 1
+    fi
+    
+    pr_merged=$(echo "$pr_data" | jq -r '.merged')
+    pr_state=$(echo "$pr_data" | jq -r '.state')
+    
+    if [[ "$pr_merged" == "true" ]]; then
+        echo "merged:$elapsed_str"
+        exit 0
+    fi
+    
+    if [[ "$pr_state" == "CLOSED" ]]; then
+        echo "closed:$elapsed_str"
+        exit 1
+    fi
+    
+    echo "waiting:$elapsed_str"
+    sleep "$check_interval"
+done
+SPINNER_EOF
+
+chmod +x "$spinner_script"
+
+# Run with gum spinner
+result=$("$spinner_script" "$pr_url_full" "$check_interval" "$start_time" | \
+    gum spin --spinner dot --title "Waiting for PR to merge..." --show-output)
+
+# Clean up
+rm -f "$spinner_script"
+
+# Parse result
+if [[ "$result" =~ ^merged:(.+)$ ]]; then
+    elapsed_str="${match[1]}"
+    echo ""
+    gum style --foreground 2 "✓ PR merged after ${elapsed_str}!"
+    return 0
+elif [[ "$result" =~ ^closed:(.+)$ ]]; then
+    elapsed_str="${match[1]}"
+    echo ""
+    gum style --foreground 1 "✗ PR was closed without merging after ${elapsed_str}"
+    return 1
+elif [[ "$result" == "error" ]]; then
+    echo ""
+    >&2 echo "Error checking PR status"
+    return 1
+else
+    echo ""
+    >&2 echo "Unknown error occurred"
+    return 1
+fi
