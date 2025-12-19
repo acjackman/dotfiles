@@ -6,13 +6,10 @@
   "permission": {
     "edit": "allow",
     "bash": {
-      "git status": "allow",
-      "git diff": "allow",
-      "git commit *": "allow",
       "git push": "ask",
-      "ls": "allow",
-      "pwd": "allow",
-      "*": "ask"
+      "op": "ask",
+      "tofu *": "ask",
+      "*": "allow"
     },
     "external_directory": "ask"
   }
