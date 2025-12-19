@@ -207,3 +207,12 @@ if [[ -n "$TMUX" ]]; then
         echo "Renamed tmux window to: $window_name"
     fi
 fi
+
+# Set the terminal window title to the workspace folder name
+if [[ "$input_type" == "pr_url" ]]; then
+    title_name="$dir_name"
+else
+    title_name="$dir_name"
+fi
+print -Pn "\e]0;$title_name\a"
+echo "Set terminal title to: $title_name"
