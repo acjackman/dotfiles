@@ -1,0 +1,8 @@
+#!/usr/bin/env bash
+# hash: {{ include "dot_config/tmux/tmux.conf" | sha256sum }}
+# hash: {{ include "dot_config/tmux/tmux.reset.conf" | sha256sum }}
+
+if tmux list-sessions &>/dev/null; then
+  tmux source-file ~/.config/tmux/tmux.conf
+  tmux display-message "Config reloaded"
+fi
