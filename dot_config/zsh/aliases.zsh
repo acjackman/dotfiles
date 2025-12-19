@@ -10,6 +10,8 @@ alias ,clear='clear && if [ -v TMUX ]; then; tmux clear-history; fi'
 
 alias trim='tr -d "\n"'
 
+alias oc="opencode"
+
 # Command Shortcuts
 alias dcmp="docker-compose"
 alias o=open
