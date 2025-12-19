@@ -1,0 +1,23 @@
+[[session]]
+name = "home"
+path = "~"
+
+[[session]]
+name = "dotfiles"
+path = "~/.local/share/chezmoi/"
+startup_command = "nvim -c 'lua require(\"lazyvim.util\").pick(\"files\")()'"
+windows = ["config"]
+
+[[window]]
+name = "config"
+path = "~/.config/chezmoi/"
+startup_command = "nvim chezmoi.toml"
+
+[[session]]
+name = "notes"
+path = "~/notes"
+
+[[session]]
+name = "Downloads 📥"
+path = "~/Downloads"
+startup_command = "yazi"
