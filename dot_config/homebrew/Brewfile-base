@@ -141,6 +141,7 @@ cask "arc"
 # files
 brew "yazi"
 brew "chafa"
+brew "entr"
 cask "transmit"
 
 # Document creation
