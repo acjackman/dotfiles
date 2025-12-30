@@ -1,0 +1,50 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+local config_dir="${XDG_CONFIG_HOME:-$HOME/.config}"
+local editor="${EDITOR:-vim}"
+
+pushd $config_dir
+
+# Check if bat is available for preview, otherwise use cat
+local preview_cmd
+if command -v bat &>/dev/null; then
+  preview_cmd="bat --style=numbers --color=always --line-range :500 {}"
+else
+  preview_cmd="cat {}"
+fi
+
+# Get chezmoi-managed files in config directory (convert to relative paths)
+local managed_files
+managed_files=$(chezmoi managed -i files --path-style=absolute 2>/dev/null | grep "^${config_dir}/" | sed "s|^${config_dir}/||" || true)
+
+# Build fd exclusion arguments (using relative paths)
+local -a fd_args
+fd_args=(
+  --type f
+  # Exclude specific directories
+  --exclude 'alfred/*'
+  --exclude 'alacritty/themes/*'
+  --exclude 'karabiner/*'
+  --exclude 'tmux/plugins/*'
+  --exclude 'emacs/modules*' --exclude 'emacs/lisp*' --exclude 'emacs/docs*' --exclude 'emacs/bin*'
+  # Exclude binary/non-editable file types
+  --exclude '*.png' --exclude '*.jpg' --exclude '*.jpeg' --exclude '*.gif' --exclude '*.ico' --exclude '*.svg' --exclude '*.webp'
+  --exclude '*.so' --exclude '*.dylib' --exclude '*.a' --exclude '*.o' --exclude '*.pyc'
+  --exclude '*.zip' --exclude '*.tar' --exclude '*.gz' --exclude '*.bz2' --exclude '*.xz'
+  --exclude '*.db' --exclude '*.sqlite' --exclude '*.sqlite3' --exclude '*.boltdb'
+  --exclude '*.pdf' --exclude '*.woff' --exclude '*.woff2' --exclude '*.ttf' --exclude '*.eot' --exclude '*.otf'
+  --exclude '*.bin' --exclude '*.exe' --exclude '*.dmg' --exclude '*.pkg'
+)
+
+# Use fd to find files and exclude chezmoi-managed ones
+local selected
+if [[ -n "$managed_files" ]]; then
+  selected=$(fd ${fd_args[@]} . | grep -vFf <(echo "$managed_files") | fzf --preview "$preview_cmd" --multi)
+else
+  selected=$(fd ${fd_args[@]} . | fzf --preview "$preview_cmd" --multi)
+fi
+
+# Open selected files in editor
+if [[ -n "$selected" ]]; then
+  $editor ${(f)selected}
+fi

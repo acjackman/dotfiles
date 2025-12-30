@@ -90,10 +90,6 @@ alias splogin='unset SPACELIFT_API_TOKEN; spacectl whoami > /dev/null || spacect
 alias chezmoi-local="chezmoi -S ~/.local/share/chezmoi-local --config ~/.config/chezmoi-local/chezmoi.toml"
 alias ,c='chezmoi'
 alias ,cl='chezmoi-local'
-function ,ce() (
-  pushd ~/.local/share/chezmoi > /dev/null
-  chezmoi edit $@
-)
 function ,cle() (
   pushd ~/.local/share/chezmoi-local > /dev/null
   chezmoi-local edit $@
