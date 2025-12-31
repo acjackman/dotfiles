@@ -1,9 +1,15 @@
 # -*- mode: zsh -*- vim: ft=zsh
 
-# ,j - cd to an fzf-selected directory
+# ,jgh - Jump Git Home
+#
+# Pushd to the root of the current worktree
 
 if [[ "$(git rev-parse --is-inside-work-tree)" != "true" ]]; then
-  exit 1
+  echo "Not in a git repository" >&2
+  return 1
 fi
 
-pushd "$( git rev-parse --show-toplevel )" > /dev/null
+local dir
+dir="$( git rev-parse --show-toplevel )"
+
+pushd "${dir}" >/dev/null

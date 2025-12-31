@@ -1,0 +1,18 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# ,jgb - Jump to Git Bare
+#
+# Pushd to the parent directory of the git bare repository
+
+local bare_dir
+bare_dir=$(git worktree list --porcelain | awk '/^worktree /{p=$2} /^bare$/{print p}' | head -1)
+
+if [[ -z "$bare_dir" ]]; then
+    echo "No git bare repository found" >&2
+    return 1
+fi
+
+# Navigate to the parent directory of the bare repo
+local target_dir=$(dirname "$bare_dir")
+
+[[ -d "$target_dir" ]] && pushd "$target_dir" > /dev/null

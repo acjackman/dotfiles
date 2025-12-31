@@ -1,5 +1,65 @@
 # -*- mode: zsh -*- vim: ft=zsh
 
-# ,j - cd to an fzf-selected directory
+# ,jg - Jump to Git
+#
+# Pushd to a modified directory in the current branch
 
-local dir=$(,jg-helper) && [[ -d "$dir" ]] && pushd "$dir" > /dev/null
+# Get the repo root
+local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+if [[ -z "$repo_root" ]]; then
+    echo "Not in a git repository" >&2
+    return 1
+fi
+
+# Get the main branch (usually master or main)
+local main_branch=$(git rev-parse --abbrev-ref origin/HEAD 2>/dev/null | sed 's/origin\///')
+
+# Fallback to master if origin/HEAD is not set
+if [[ -z "$main_branch" ]]; then
+    # TODO: Fetch default branch from git
+    main_branch="main"
+fi
+
+# Get all files modified in this branch compared to the main branch
+local modified_files=$(git diff --name-only "${main_branch}...HEAD")
+
+# Get unique directories from modified files
+local modified_dirs=""
+if [[ -n "$modified_files" ]]; then
+    modified_dirs=$(echo "$modified_files" | xargs -I{} dirname {} | sort -u)
+fi
+
+# Filter directories to only include those that still exist
+local existing_dirs=""
+if [[ -n "$modified_dirs" ]]; then
+    while IFS= read -r dir; do
+        if [[ -d "${repo_root}/${dir}" ]]; then
+            existing_dirs="${existing_dirs}${dir}"$'\n'
+        fi
+    done <<< "$modified_dirs"
+    modified_dirs=$(echo "$existing_dirs" | grep -v '^$')
+fi
+
+# Always include repo root (shown as "." for current repo root)
+local all_dirs=$(printf ".\n%s\n" "$modified_dirs" | grep -v '^$' | sort -u)
+
+# Use central fzf picker to select directory
+local selected
+selected=$(,j-fzf-picker "Jump to directory: " "$all_dirs")
+
+# Exit if no directory was selected
+if [[ -z "$selected" ]]; then
+    echo "No directory selected" >&2
+    return 0
+fi
+
+# Convert to absolute path
+local target_dir
+if [[ "$selected" = "." ]]; then
+    target_dir="$repo_root"
+else
+    target_dir="${repo_root}/${selected}"
+fi
+
+# Pushd to target directory
+[[ -d "$target_dir" ]] && pushd "$target_dir" > /dev/null

@@ -1,0 +1,36 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# ,j-fzf-picker - Central fzf picker helper for ,j* functions
+#
+# Usage: ,j-fzf-picker <prompt> <items> [preview_command]
+# Returns: selected item
+
+local prompt="$1"
+local items="$2"
+local preview_cmd="$3"
+
+# Set default preview command if not provided
+if [[ -z "$preview_cmd" ]]; then
+    if command -v eza >/dev/null 2>&1; then
+        preview_cmd="eza --long --group-directories-first --color=always {}"
+    else
+        preview_cmd="ls -la {}"
+    fi
+fi
+
+# Use fzf to select item
+local selected
+local line_count=$(echo "$items" | wc -l | tr -d ' ')
+if [[ "$line_count" -eq 1 && -n "$items" ]]; then
+    # If only one item, return it directly
+    selected=$(echo "$items" | head -1)
+else
+    # Use fzf for multiple items
+    selected=$(echo "$items" | fzf --prompt="$prompt" \
+        --preview="$preview_cmd" \
+        --preview-window=right:50%:wrap \
+        --height=100% \
+        --no-multi)
+fi
+
+echo "$selected"

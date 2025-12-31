@@ -103,10 +103,6 @@ alias dotfiles="tat dotfiles"
 alias notes="tat notes"
 
 # Jump points
-alias ,jump-git-worktree='pushd "$( git worktree list | sed '"'"'/\.bare/d'"'"' | fzf | awk '"'"'{print $1}'"'"' )" > /dev/null'
-alias ,jgw=,jump-git-worktree
-alias ,jump-git-bare='pushd "$( git worktree list --porcelain | awk '"'"'/^worktree /{p=$2} /^bare$/{print p}'"'"' )/../" > /dev/null'
-alias ,jgb=,jump-git-bare
 alias ,jc="pushd ~/.local/share/chezmoi > /dev/null"
 alias ,jcl="pushd ~/.local/share/chezmoi-local > /dev/null"
 alias ,jn="pushd ~/notes > /dev/null"

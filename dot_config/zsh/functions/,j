@@ -1,8 +1,12 @@
 # -*- mode: zsh -*- vim: ft=zsh
 
-# ,j - cd to an fzf-selected directory
+# ,j - Jump
+#
+# Pushd to an fzf-selected directory
+
+local items
+items=$(find ${1:-.} -path '*/\.*' -prune -o -type d -print 2> /dev/null)
 
 local dir
-dir=$(find ${1:-.} -path '*/\.*' -prune \
-                -o -type d -print 2> /dev/null | fzf +m) &&
-cd "$dir"
+dir=$(,j-fzf-picker "Jump to directory: " "$items")
+[[ -n "$dir" ]] && pushd "$dir" >/dev/null

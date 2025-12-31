@@ -1,16 +1,16 @@
 # -*- mode: zsh -*- vim: ft=zsh
 
-# ,j - cd to an fzf-selected directory
+# ,jj - Jump (fd version)
+#
+# Pushd to an fzf-selected directory using fd
 
-local FZF_DEFAULT_COMMAND
-# is path provided
-if [[ "$1" != "" && -d $1 ]]
-then
-        export FZF_DEFAULT_COMMAND="fd . $1 --type dir"
+local items
+if [[ -n "$1" && -d "$1" ]]; then
+    items=$(fd . "$1" --type dir)
 else
-        export FZF_DEFAULT_COMMAND='fd . $HOME --type dir'
+    items=$(fd . "$HOME" --type dir)
 fi
 
 local dir
-dir=$(fzf --no-multi --preview 'eza --long --group-directories-first --color=always {}' --preview-window '~3')
-cd "$dir"
+dir=$(,j-fzf-picker "Jump to directory: " "$items")
+[[ -n "$dir" ]] && pushd "$dir" >/dev/null
