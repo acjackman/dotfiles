@@ -101,3 +101,4 @@ mise.local.toml
 # Workmux
 .workmux.yaml
 .workmux.yml
+**/.worktrees
