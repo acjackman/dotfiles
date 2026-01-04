@@ -1,6 +1,7 @@
 # -*- mode: sh -*-
 alias enw="emacs -nw"
 alias e="$VISUAL"
+alias ,e=" nvim -c 'lua require(\"lazyvim.util\").pick(\"files\")()'"
 
 alias ls='eza --group-directories-first'
 alias ll='eza --group-directories-first -lah'
