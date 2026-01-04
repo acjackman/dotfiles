@@ -3,7 +3,4 @@ window_prefix: ""
 agent: claude
 
 panes:
-  - command: nvim .
-    focus: true
-  # Just a default shell (command omitted)
-  - split: horizontal
+  - focus: true
