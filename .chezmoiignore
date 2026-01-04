@@ -3,3 +3,13 @@ bootstrap.sh
 homebrew
 
 data
+
+# Alfred remote directory (gallery images, not needed in dotfiles)
+.config/alfred/Alfred.alfredpreferences/remote
+.config/alfred/Alfred.alfredpreferences/remote/**
+
+# Alfred workflows (personal only)
+{{ if not (has "personal" .extras) }}
+.config/alfred/Alfred.alfredpreferences/workflows/user.workflow.8EC472DB-D4CA-48C3-A64B-8B8832FAD944
+.config/alfred/Alfred.alfredpreferences/workflows/user.workflow.8EC472DB-D4CA-48C3-A64B-8B8832FAD944/**
+{{ end }}

@@ -1,0 +1,110 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Configures machine-specific Alfred settings in local/{hash}/ directory
+# Alfred generates a unique hash per machine for local settings that shouldn't sync
+#
+# This script detects the existing hash and writes machine-specific preferences
+# like hotkeys, clipboard settings, and appearance.
+
+set -euo pipefail
+
+ALFRED_PREFS="${HOME}/.config/alfred/Alfred.alfredpreferences"
+LOCAL_DIR="${ALFRED_PREFS}/preferences/local"
+
+# Find existing machine hash (Alfred generates this on first run)
+get_machine_hash() {
+    if [[ -d "$LOCAL_DIR" ]]; then
+        local hash_dir
+        hash_dir=$(find "$LOCAL_DIR" -maxdepth 1 -type d -name '[a-f0-9]*' 2>/dev/null | head -1)
+        if [[ -n "$hash_dir" ]]; then
+            basename "$hash_dir"
+        fi
+    fi
+}
+
+MACHINE_HASH=$(get_machine_hash)
+
+if [[ -z "$MACHINE_HASH" ]]; then
+    echo "Warning: Alfred machine hash not found. Run Alfred at least once to generate it."
+    echo "After running Alfred, run 'chezmoi apply' again to configure local settings."
+    exit 0
+fi
+
+echo "Configuring Alfred local settings for machine hash: ${MACHINE_HASH}"
+
+TARGET_DIR="${LOCAL_DIR}/${MACHINE_HASH}"
+
+# Create directories
+mkdir -p "${TARGET_DIR}/appearance"
+mkdir -p "${TARGET_DIR}/features/clipboard"
+mkdir -p "${TARGET_DIR}/features/webbookmarks"
+mkdir -p "${TARGET_DIR}/gallery"
+mkdir -p "${TARGET_DIR}/hotkey"
+
+# Hotkey settings (Cmd+Space for Alfred)
+cat > "${TARGET_DIR}/hotkey/prefs.plist" << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>default</key>
+	<dict>
+		<key>key</key>
+		<integer>49</integer>
+		<key>mod</key>
+		<integer>1048576</integer>
+		<key>string</key>
+		<string> </string>
+	</dict>
+</dict>
+</plist>
+EOF
+
+# Local clipboard feature settings (enable clipboard history)
+cat > "${TARGET_DIR}/features/clipboard/prefs.plist" << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>enabled</key>
+	<true/>
+	<key>enabledFiles</key>
+	<true/>
+	<key>enabledImages</key>
+	<true/>
+</dict>
+</plist>
+EOF
+
+# Gallery settings
+cat > "${TARGET_DIR}/gallery/prefs.plist" << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>continueAfterVerification</key>
+	<true/>
+</dict>
+</plist>
+EOF
+
+# Appearance settings (empty - uses defaults)
+cat > "${TARGET_DIR}/appearance/prefs.plist" << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict/>
+</plist>
+EOF
+
+# Web bookmarks settings (empty - uses defaults)
+cat > "${TARGET_DIR}/features/webbookmarks/prefs.plist" << 'EOF'
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict/>
+</plist>
+EOF
+
+echo "Alfred local settings configured successfully."
+{{ end -}}

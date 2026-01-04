@@ -34,3 +34,44 @@ pull = { args = ["--ff-only"] }
 # [".config/hammerspoon/Spoons/Rcmd.spoon"]
 #     type = "git-repo"
 #     url = "https://github.com/gnudad/Rcmd.spoon.git"
+
+# Alfred Workflows (external sources)
+# Note: .alfredworkflow files are zip archives that extract workflow contents
+
+# 1Password (all machines)
+[".config/alfred/Alfred.alfredpreferences/workflows/user.workflow.451252E7-3980-44D1-80C6-2BE5DB120B4D"]
+type = "archive"
+url = "https://github.com/alfredapp/1password-workflow/releases/download/25.1/1Password.alfredworkflow"
+refreshPeriod = "168h"
+
+# IP Address (all machines)
+[".config/alfred/Alfred.alfredpreferences/workflows/user.workflow.939577E3-C044-426B-9BA3-6501575FDE5F"]
+type = "archive"
+url = "https://github.com/alexchantastic/alfred-ip-address-workflow/releases/download/v1.2.0/alfred-ip-address-workflow.alfredworkflow"
+refreshPeriod = "168h"
+
+# {{if has "personal" .extras}}
+# Shimmering Obsidian (personal only)
+[".config/alfred/Alfred.alfredpreferences/workflows/user.workflow.A544099F-7822-4369-86DA-E9EEFC8F8C16"]
+type = "archive"
+url = "https://github.com/chrisgrieser/shimmering-obsidian/releases/download/4.14.0/shimmering-obsidian.alfredworkflow"
+refreshPeriod = "168h"
+
+# Menu Bar Search (personal only)
+[".config/alfred/Alfred.alfredpreferences/workflows/user.workflow.3F6511D5-B3F5-46F8-B763-8F00B33A8ADA"]
+type = "archive"
+url = "https://github.com/BenziAhamed/Menu-Bar-Search/releases/download/v2.0/Menu.Bar.Search.alfredworkflow"
+refreshPeriod = "168h"
+
+# Safari Control (personal only)
+[".config/alfred/Alfred.alfredpreferences/workflows/user.workflow.8FD1F42C-F985-48FD-9A9A-4536011C30AF"]
+type = "archive"
+url = "https://github.com/vanstrouble/safari-control-alfred-workflow/releases/download/v2.4.1/safari-control-v2.4.1.alfredworkflow"
+refreshPeriod = "168h"
+
+# Maps Suggest (personal only)
+[".config/alfred/Alfred.alfredpreferences/workflows/user.workflow.930D4B02-0002-464A-88C1-90F1A938A082"]
+type = "archive"
+url = "https://github.com/chrisgrieser/alfred-maps-suggest/releases/download/1.2.0/alfred-maps-suggest.alfredworkflow"
+refreshPeriod = "168h"
+#{{end}}

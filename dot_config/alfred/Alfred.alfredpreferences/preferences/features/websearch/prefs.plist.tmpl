@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>customSites</key>
+	<dict>
+		<key>21974D0C-D312-42B5-A44C-9692B0744DC8</key>
+		<dict>
+			<key>enabled</key>
+			<true/>
+			<key>keyword</key>
+			<string>callsheet||cs||imdb</string>
+			<key>text</key>
+			<string>Search Callsheet for '{query}'</string>
+			<key>url</key>
+			<string>callsheet://search?q={query}</string>
+		</dict>
+		<key>48CB6998-EE94-4FD6-B172-0D001038E760</key>
+		<dict>
+			<key>enabled</key>
+			<true/>
+			<key>keyword</key>
+			<string>kagi||k</string>
+			<key>text</key>
+			<string>Search Kagi for '{query}'</string>
+			<key>url</key>
+			<string>https://kagi.com/search?token={{ onepasswordRead "op://Private/Kagi/alfred_search_token" "jackman.1password.com" }}&amp;q={query}</string>
+		</dict>
+	</dict>
+	<key>onlyShowEnabledInPrefs</key>
+	<true/>
+</dict>
+</plist>
