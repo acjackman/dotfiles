@@ -10,6 +10,7 @@ tap "ttscoff/thelab"
 tap "FelixKratz/formulae"
 tap "yqrashawn/goku"
 tap "raine/workmux"
+tap "max-sixty/worktrunk"
 
 ######################################
 # Installers
@@ -52,6 +53,7 @@ brew "fzf"
 brew "tmux"
 brew "sesh"
 brew "raine/workmux/workmux"
+brew "max-sixty/worktrunk/wt"
 
 # Terminal Emulator
 cask "ghostty"
