@@ -1,46 +1,46 @@
 {{- if has "personal" .extras -}}
 # Notes
 
-[n]
+[l]
 rank = 60
 label = "Notes"
 
-[n.children.n.action]
+[l.children.l.action]
 rank = 10
 label = "Notes Vault"
 value = "open 'obsidian://open?vault=notes' && open -a Obsidian"
 kind = "command"
 iconPath = "/Applications/Obsidian.app"
 
-[n.children.t.action]
+[l.children.t.action]
 rank = 20
 label = "Today"
 kind = "command"
 value = "open 'obsidian://adv-uri?vault=notes&commandid=periodic-notes:open-daily-note' && open -a Obsidian"
 iconPath = "/Applications/Obsidian.app"
 
-[n.children.w.action]
+[l.children.w.action]
 rank = 30
 label = "Weekly"
 kind = "command"
 value = "open 'obsidian://adv-uri?vault=notes&commandid=periodic-notes:open-weekly-note' && open -a Obsidian"
 iconPath = "/Applications/Obsidian.app"
 
-[n.children.q.action]
+[l.children.q.action]
 rank = 40
 label = "Quarterly"
 kind = "command"
 value = "open 'obsidian://adv-uri?vault=notes&commandid=periodic-notes:open-quarterly-note' && open -a Obsidian"
 iconPath = "/Applications/Obsidian.app"
 
-[n.children.h.action]
+[l.children.h.action]
 rank = 50
 label = "Launchpad"
 kind = "command"
 value = "open 'obsidian://adv-uri?vault=notes&filepath=Launchpad.md' && open -a Obsidian"
 iconPath = "/Applications/Obsidian.app"
 
-[n.children.a.action]
+[l.children.a.action]
 rank = 60
 label = "Atlas"
 kind = "command"
