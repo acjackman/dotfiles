@@ -1,0 +1,48 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+__gr_init() {
+  setopt localoptions errexit
+
+  local PROJECT_DIR=${1}
+  if [[ -z "$PROJECT_DIR" ]]; then
+    if command -v gum &> /dev/null; then
+      PROJECT_DIR=$(gum input --placeholder "Project name")
+    else
+      read -r "PROJECT_DIR?Project directory: "
+    fi
+  fi
+
+  if [[ -z "$PROJECT_DIR" ]]; then
+    echo "Error: Project directory required"
+    return 1
+  fi
+
+  local DEFAULT_BRANCH=${2:-$(git config --get init.defaultBranch || echo "main")}
+
+  echo "Creating bare repository in ${PROJECT_DIR}/.bare"
+
+  mkdir -p "$PROJECT_DIR"
+  cd "$PROJECT_DIR"
+
+  # Use mise to configure worktrunk paths
+  mkdir -p .config
+  cat >.config/mise.local.toml <<EOF
+[env]
+WORKTRUNK_WORKTREE_PATH = "{% raw %}../{{ branch | sanitize }}{% endraw %}"
+EOF
+  mise trust .config/mise.local.toml
+
+  # Initialize bare repository
+  git init --bare .bare
+  echo "gitdir: ./.bare" > .git
+
+  # Setup default branch worktree with initial commit
+  git worktree add "$DEFAULT_BRANCH"
+  pushd "$DEFAULT_BRANCH"
+  git commit --allow-empty -m "chore: initial commit"
+  popd
+
+  echo "Created bare repository with initial commit in $PROJECT_DIR/$DEFAULT_BRANCH"
+}
+
+__gr_init "$@"

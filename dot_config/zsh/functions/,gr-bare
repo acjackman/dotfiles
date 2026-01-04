@@ -1,0 +1,112 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+__gr_bare() {
+  setopt localoptions errexit
+
+  # Verify we're in a git repo
+  if ! git rev-parse --git-dir &>/dev/null; then
+    echo "Error: Not in a git repository"
+    return 1
+  fi
+
+  # Get repo root and current subpath (resolve symlinks for consistent paths)
+  local REPO_ROOT=$(cd "$(git rev-parse --show-toplevel)" && pwd -P)
+  local CURRENT_PATH=$(pwd -P)
+  local SUBPATH="${CURRENT_PATH#$REPO_ROOT}"
+  SUBPATH="${SUBPATH#/}"  # Remove leading slash if present
+
+  cd "$REPO_ROOT"
+
+  # Verify this is a regular repo (not already a bare worktree)
+  if [[ ! -d ".git" ]]; then
+    if [[ -f ".git" ]]; then
+      echo "Error: Already appears to be a bare worktree setup (.git is a file)"
+      return 1
+    fi
+    echo "Error: No .git directory found at repo root"
+    return 1
+  fi
+
+  # Get current branch
+  local CURRENT_BRANCH=$(git branch --show-current)
+  if [[ -z "$CURRENT_BRANCH" ]]; then
+    echo "Error: Could not determine current branch (detached HEAD?)"
+    return 1
+  fi
+
+  # Check for remote
+  local HAS_REMOTE=false
+  if git remote | grep -q .; then
+    HAS_REMOTE=true
+  fi
+
+  # Warn about uncommitted changes
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    echo "Warning: You have uncommitted changes. They will be preserved but staged changes will need to be re-staged."
+  fi
+
+  echo "Converting repository to bare worktree structure..."
+  echo "Current branch: $CURRENT_BRANCH"
+
+  # Get list of files to move (everything except .git)
+  local TEMP_DIR=$(mktemp -d)
+  trap "rm -rf '$TEMP_DIR'" EXIT
+  echo "Moving working files to temp location..."
+
+  # Move all files except .git to temp
+  local item
+  for item in *(DN); do
+    [[ "$item" == ".git" ]] && continue
+    mv "$item" "$TEMP_DIR/"
+  done
+
+  # Convert .git directory to .bare
+  echo "Converting .git to .bare..."
+  mv .git .bare
+  echo "gitdir: ./.bare" > .git
+
+  # Mark as bare repo so git doesn't think the branch is checked out
+  git config core.bare true
+
+  # Configure fetch refspec if remote exists
+  if $HAS_REMOTE; then
+    echo "Configuring fetch refspec..."
+    git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+  fi
+
+  # Setup mise config
+  echo "Setting up mise config..."
+  mkdir -p .config
+  cat >.config/mise.local.toml <<EOF
+[env]
+WORKTRUNK_WORKTREE_PATH = "{% raw %}../{{ branch | sanitize }}{% endraw %}"
+EOF
+  mise trust .config/mise.local.toml
+
+  # Create worktree for current branch (no checkout since we'll restore our files)
+  echo "Creating worktree for $CURRENT_BRANCH..."
+  git worktree add --no-checkout "$CURRENT_BRANCH"
+
+  # Move files from temp to worktree
+  echo "Restoring working files to worktree..."
+  mv "$TEMP_DIR"/*(DN) "$CURRENT_BRANCH/"
+
+  # Set upstream tracking if remote exists
+  if $HAS_REMOTE; then
+    pushd "$CURRENT_BRANCH" > /dev/null
+    git branch --set-upstream-to=origin/$CURRENT_BRANCH $CURRENT_BRANCH 2>/dev/null || true
+    popd > /dev/null
+  fi
+
+  # Navigate to equivalent path in new worktree
+  if [[ -n "$SUBPATH" ]]; then
+    cd "$CURRENT_BRANCH/$SUBPATH"
+  else
+    cd "$CURRENT_BRANCH"
+  fi
+
+  echo "Successfully converted to bare worktree structure!"
+  echo "Now in: $(pwd)"
+}
+
+__gr_bare "$@"

@@ -1,0 +1,39 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+__gr_clone() {
+  setopt localoptions errexit
+
+  local PROJECT_DIR=${1}
+  local REPO_URL=${2}
+
+  if [[ -z "$PROJECT_DIR" || -z "$REPO_URL" ]]; then
+    echo "Usage: ,gr-clone <project-dir> <repo-url>"
+    return 1
+  fi
+
+  echo "Cloning $REPO_URL into ${PROJECT_DIR}/.bare"
+
+  mkdir "$PROJECT_DIR"
+  pushd "$PROJECT_DIR"
+  git clone --bare "$REPO_URL" .bare
+  echo "gitdir: ./.bare" > .git
+  git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
+  git fetch
+
+  # Setup mise config
+  mkdir -p .config
+  cat >.config/mise.local.toml <<EOF
+[env]
+WORKTRUNK_WORKTREE_PATH = "{% raw %}../{{ branch | sanitize }}{% endraw %}"
+EOF
+  mise trust .config/mise.local.toml
+
+  # Setup default branch worktree
+  local DEFAULT_BRANCH=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
+  git worktree add "$DEFAULT_BRANCH"
+  pushd "$DEFAULT_BRANCH"
+  git branch --set-upstream-to=origin/"$DEFAULT_BRANCH" "$DEFAULT_BRANCH"
+  popd
+}
+
+__gr_clone "$@"
