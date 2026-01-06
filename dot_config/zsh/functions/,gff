@@ -1,0 +1,46 @@
+#!/usr/bin/env zsh
+
+# Fast-forward the default branch without switching to it
+# Works whether the branch has a worktree or not
+#
+# Usage: ,gff
+
+# Find default branch
+# Priority 1: Try worktrunk if available
+if command -v wt >/dev/null 2>&1; then
+    default_branch=$(wt config state default-branch 2>/dev/null)
+fi
+
+# Priority 2: Try git symbolic-ref
+if [ -z "$default_branch" ]; then
+    default_branch=$(git symbolic-ref refs/remotes/origin/HEAD 2>/dev/null | sed 's@^refs/remotes/origin/@@')
+fi
+
+# Priority 3: Fallback to common names
+if [ -z "$default_branch" ]; then
+    if git show-ref --verify --quiet refs/heads/main; then
+        default_branch="main"
+    elif git show-ref --verify --quiet refs/heads/master; then
+        default_branch="master"
+    else
+        echo "ERROR: Could not determine default branch" >&2
+        return 1
+    fi
+fi
+
+echo "Default branch: $default_branch" >&2
+
+# Check if branch has a worktree
+worktree_path=$(git worktree list --porcelain | grep -B 2 "branch refs/heads/$default_branch" | grep "^worktree" | cut -d' ' -f2)
+
+if [ -n "$worktree_path" ]; then
+    # Branch has a worktree - update it
+    echo "Updating worktree at: $worktree_path" >&2
+    echo "Fetching $default_branch from origin..." >&2
+    git -C "$worktree_path" fetch origin "$default_branch" && \
+    git -C "$worktree_path" merge --ff-only "origin/$default_branch"
+else
+    # No worktree - update branch ref directly
+    echo "Updating branch ref (no worktree)" >&2
+    git fetch origin "$default_branch:$default_branch"
+fi
