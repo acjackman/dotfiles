@@ -1,0 +1,83 @@
+#!/usr/bin/env zsh
+
+# Create or switch to a worktrunk worktree for a GitHub PR
+# Usage: wtpr <pr-number-or-url>
+#
+# Arguments:
+#   pr-number-or-url: GitHub PR number (e.g., 123) or full PR URL
+#
+# Examples:
+#   wtpr 123
+#   wtpr https://github.com/owner/repo/pull/123
+
+# Extract PR number from argument (handles both number and URL)
+extract_pr_number() {
+    local input="$1"
+
+    # If it's just a number, return it
+    if [[ "$input" =~ ^[0-9]+$ ]]; then
+        echo "$input"
+        return 0
+    fi
+
+    # Extract from URL pattern
+    if [[ "$input" =~ /pull/([0-9]+) ]]; then
+        echo "${match[1]}"
+        return 0
+    fi
+
+    echo "ERROR: Invalid PR number or URL: $input" >&2
+    return 1
+}
+
+pr_number=$(extract_pr_number "$1")
+if [ -z "$pr_number" ]; then
+    echo "Usage: wtpr <pr-number-or-url>" >&2
+    return 1
+fi
+
+# Get PR information using gh cli
+echo "Fetching PR #$pr_number information..." >&2
+pr_info=$(gh pr view "$pr_number" --json headRefName,headRepository,headRepositoryOwner,isCrossRepository 2>&1)
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to fetch PR information" >&2
+    echo "$pr_info" >&2
+    return 1
+fi
+
+# Parse JSON response
+branch_name=$(echo "$pr_info" | jq -r '.headRefName')
+is_fork=$(echo "$pr_info" | jq -r '.isCrossRepository')
+head_repo=$(echo "$pr_info" | jq -r '.headRepository.name')
+head_owner=$(echo "$pr_info" | jq -r '.headRepositoryOwner.login')
+
+if [ -z "$branch_name" ] || [ "$branch_name" = "null" ]; then
+    echo "ERROR: Could not determine branch name from PR" >&2
+    return 1
+fi
+
+echo "PR branch: $branch_name" >&2
+
+# Fetch the PR branch without checking it out
+echo "Fetching PR branch..." >&2
+if [ "$is_fork" = "true" ]; then
+    # For fork PRs, fetch from the fork repository
+    fork_url="https://github.com/${head_owner}/${head_repo}.git"
+    echo "Fetching from fork: $fork_url" >&2
+    git fetch "$fork_url" "$branch_name:$branch_name" 2>&1
+else
+    # For same-repo PRs, fetch from origin
+    git fetch origin "pull/${pr_number}/head:${branch_name}" 2>&1
+fi
+
+if [ $? -ne 0 ]; then
+    echo "ERROR: Failed to fetch PR branch" >&2
+    return 1
+fi
+
+echo "Branch fetched successfully" >&2
+
+# Create or switch to worktree using worktrunk
+# Don't use --create since the branch already exists from the fetch
+echo "Creating/switching to worktree..." >&2
+wt switch "$branch_name"

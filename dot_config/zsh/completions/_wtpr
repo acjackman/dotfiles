@@ -1,0 +1,23 @@
+#compdef wtpr
+
+_wtpr() {
+    local -a prs
+    local pr_list
+
+    # Fetch open PRs using gh cli
+    # Format: number:title (e.g., "123:Add new feature")
+    pr_list=$(gh pr list --state open --json number,title --jq '.[] | "\(.number):\(.title)"' 2>/dev/null)
+
+    if [[ -n "$pr_list" ]]; then
+        # Convert to array format for _describe
+        while IFS= read -r line; do
+            prs+=("$line")
+        done <<< "$pr_list"
+
+        _describe 'open pull requests' prs
+    else
+        _message 'no open pull requests found'
+    fi
+}
+
+compdef _wtpr wtpr
