@@ -21,6 +21,11 @@ alias rgf="rg --files-with-matches"
 
 alias wm="workmux"
 
+# Worktrunk
+alias wts="wt switch"
+alias wtsd="wt switch '^'"
+alias wtss="wt select"
+
 # Tools
 alias lspath='tr ":" "\n" <<< "$PATH"'
 alias lspathu='tr ":" "\n" <<< "$PATH" | awk "!seen[\$0]++"'
