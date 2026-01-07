@@ -132,6 +132,12 @@ zstyle ':completion:*' menu select=2
 # preview directory's content with exa when completing cd
 zstyle ':fzf-tab:complete:cd:*' fzf-preview 'eza -1 --color=always $realpath'
 
+# wtpr completion: show PR details in preview, use wtprd to include drafts
+zstyle ':fzf-tab:complete:wtpr:*' fzf-preview 'gh pr view ${word%:*} 2>/dev/null'
+zstyle ':fzf-tab:complete:wtpr:*' fzf-flags '--header="Tip: use wtprd instead to include draft PRs"'
+zstyle ':fzf-tab:complete:wtprd:*' fzf-preview 'gh pr view ${word%:*} 2>/dev/null'
+zstyle ':fzf-tab:complete:wtprd:*' fzf-flags '--header="Including draft PRs"'
+
 # don't show fzf unless there are more than 4 items
 # zstyle ':fzf-tab:*' ignore false 4
 

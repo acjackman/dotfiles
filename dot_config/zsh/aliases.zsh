@@ -25,6 +25,7 @@ alias wm="workmux"
 alias wts="wt switch"
 alias wtsd="wt switch '^'"
 alias wtss="wt select"
+alias wtprd="WTPR_INCLUDE_DRAFTS=true wtpr"
 
 # Tools
 alias lspath='tr ":" "\n" <<< "$PATH"'

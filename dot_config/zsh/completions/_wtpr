@@ -3,10 +3,15 @@
 _wtpr() {
     local -a prs
     local pr_list
+    local include_drafts=${WTPR_INCLUDE_DRAFTS:-false}
 
     # Fetch open PRs using gh cli
-    # Format: number:title (e.g., "123:Add new feature")
-    pr_list=$(gh pr list --state open --json number,title --jq '.[] | "\(.number):\(.title)"' 2>/dev/null)
+    # Format: number:title [DRAFT] (e.g., "123:Add new feature")
+    if [[ "$include_drafts" == "true" ]]; then
+        pr_list=$(gh pr list --state open --limit 1000 --json number,title,isDraft --jq '.[] | "\(.number):\(.title)" + (if .isDraft then " [DRAFT]" else "" end)' 2>/dev/null)
+    else
+        pr_list=$(gh pr list --state open --limit 1000 --json number,title,isDraft --jq '.[] | select(.isDraft == false) | "\(.number):\(.title)"' 2>/dev/null)
+    fi
 
     if [[ -n "$pr_list" ]]; then
         # Convert to array format for _describe
@@ -21,3 +26,10 @@ _wtpr() {
 }
 
 compdef _wtpr wtpr
+
+# wtprd alias completion (includes drafts)
+_wtprd() {
+    WTPR_INCLUDE_DRAFTS=true _wtpr "$@"
+}
+
+compdef _wtprd wtprd
