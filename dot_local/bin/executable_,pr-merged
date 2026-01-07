@@ -1,10 +1,10 @@
-# -*- mode: zsh -*- vim: ft=zsh
-
+#!/usr/bin/env zsh
 
 # Wait for a PR to merge before continuing, with a spinner and timer
 #
 # Usage:
-#   ,pr-merged <PR_URL|PR_NUMBER>    # Wait for PR to merge
+#   ,pr-merged                       # Wait for current branch's PR to merge
+#   ,pr-merged <PR_URL|PR_NUMBER>    # Wait for specific PR to merge
 #   ,pr-merged 123                   # Wait for PR #123 in current repo
 #   ,pr-merged https://github.com/owner/repo/pull/123
 
@@ -12,19 +12,27 @@
 # Check if gum is installed
 if ! command -v gum &> /dev/null; then
     >&2 echo "Error: gum is not installed. Install it with: brew install gum"
-    return 1
+    exit 1
 fi
 
-# Check if input is provided
+# Check if input is provided, otherwise try to get current branch's PR
 if [ -z "$1" ]; then
-    >&2 echo "Usage: ,pr-merged <PR_URL|PR_NUMBER>"
-    >&2 echo "Examples:"
-    >&2 echo "  ,pr-merged https://github.com/owner/repo/pull/123"
-    >&2 echo "  ,pr-merged 123"
-    return 1
+    # Try to get PR URL for current branch (URL works better than number in worktrees)
+    input=$(gh pr view --json=url -t "{{.url}}" 2>/dev/null)
+    if [[ $? -ne 0 || -z "$input" ]]; then
+        >&2 echo "Usage: ,pr-merged [PR_URL|PR_NUMBER]"
+        >&2 echo ""
+        >&2 echo "If no argument is provided, uses the current branch's PR."
+        >&2 echo ""
+        >&2 echo "Examples:"
+        >&2 echo "  ,pr-merged                    # Use current branch's PR"
+        >&2 echo "  ,pr-merged https://github.com/owner/repo/pull/123"
+        >&2 echo "  ,pr-merged 123"
+        exit 1
+    fi
+else
+    input="$1"
 fi
-
-input="$1"
 pr_url=""
 
 # Detect if input is a URL or PR number
@@ -34,28 +42,35 @@ elif [[ "$input" =~ ^[0-9]+$ ]]; then
     # Just a PR number, need to construct URL from current repo
     if ! git rev-parse --git-dir >/dev/null 2>&1; then
         >&2 echo "Error: Not in a git repository. Please provide a full PR URL."
-        return 1
+        exit 1
     fi
     pr_url="$input"
 else
     >&2 echo "Error: Invalid input. Provide a PR URL or PR number."
-    return 1
+    exit 1
 fi
 
 # Fetch initial PR information
 echo "Fetching PR information..."
-pr_data=$(gh pr view "$pr_url" --json=number,title,state,merged,url 2>/dev/null)
+pr_data=$(gh pr view "$pr_url" --json=number,title,state,mergedAt,url 2>/dev/null)
 
 if [[ $? -ne 0 || -z "$pr_data" ]]; then
     >&2 echo "Failed to fetch PR data. Make sure the URL is valid and you have access to the repository."
-    return 1
+    exit 1
 fi
 
 pr_number=$(echo "$pr_data" | jq -r '.number')
 pr_title=$(echo "$pr_data" | jq -r '.title')
 pr_state=$(echo "$pr_data" | jq -r '.state')
-pr_merged=$(echo "$pr_data" | jq -r '.merged')
+pr_merged_at=$(echo "$pr_data" | jq -r '.mergedAt')
 pr_url_full=$(echo "$pr_data" | jq -r '.url')
+
+# Determine if merged (mergedAt is non-null)
+if [[ "$pr_merged_at" != "null" && -n "$pr_merged_at" ]]; then
+    pr_merged="true"
+else
+    pr_merged="false"
+fi
 
 echo ""
 gum style --border rounded --padding "0 1" --margin "1" \
@@ -67,13 +82,13 @@ echo ""
 # Check if already merged
 if [[ "$pr_merged" == "true" ]]; then
     gum style --foreground 2 "✓ PR is already merged!"
-    return 0
+    exit 0
 fi
 
 # Check if PR is closed but not merged
 if [[ "$pr_state" == "CLOSED" && "$pr_merged" == "false" ]]; then
     gum style --foreground 1 "✗ PR is closed but not merged"
-    return 1
+    exit 1
 fi
 
 # Wait for merge with spinner and timer
@@ -86,7 +101,7 @@ format_time() {
     local hours=$((total_seconds / 3600))
     local minutes=$(((total_seconds % 3600) / 60))
     local seconds=$((total_seconds % 60))
-    
+
     if [ $hours -gt 0 ]; then
         printf "%02d:%02d:%02d" $hours $minutes $seconds
     else
@@ -108,7 +123,7 @@ format_time() {
     local hours=$((total_seconds / 3600))
     local minutes=$(((total_seconds % 3600) / 60))
     local seconds=$((total_seconds % 60))
-    
+
     if [ $hours -gt 0 ]; then
         printf "%02d:%02d:%02d" $hours $minutes $seconds
     else
@@ -120,28 +135,28 @@ while true; do
     current_time=$(date +%s)
     elapsed=$((current_time - start_time))
     elapsed_str=$(format_time $elapsed)
-    
+
     # Check PR status
-    pr_data=$(gh pr view "$pr_url" --json=merged,state 2>/dev/null)
-    
+    pr_data=$(gh pr view "$pr_url" --json=mergedAt,state 2>/dev/null)
+
     if [[ $? -ne 0 ]]; then
         echo "error"
         exit 1
     fi
-    
-    pr_merged=$(echo "$pr_data" | jq -r '.merged')
+
+    pr_merged_at=$(echo "$pr_data" | jq -r '.mergedAt')
     pr_state=$(echo "$pr_data" | jq -r '.state')
-    
-    if [[ "$pr_merged" == "true" ]]; then
+
+    if [[ "$pr_merged_at" != "null" && -n "$pr_merged_at" ]]; then
         echo "merged:$elapsed_str"
         exit 0
     fi
-    
+
     if [[ "$pr_state" == "CLOSED" ]]; then
         echo "closed:$elapsed_str"
         exit 1
     fi
-    
+
     echo "waiting:$elapsed_str"
     sleep "$check_interval"
 done
@@ -150,29 +165,31 @@ SPINNER_EOF
 chmod +x "$spinner_script"
 
 # Run with gum spinner
-result=$("$spinner_script" "$pr_url_full" "$check_interval" "$start_time" | \
-    gum spin --spinner dot --title "Waiting for PR to merge..." --show-output)
+full_output=$(gum spin --spinner dot --title "Waiting for PR to merge..." --show-output -- "$spinner_script" "$pr_url_full" "$check_interval" "$start_time")
 
 # Clean up
 rm -f "$spinner_script"
+
+# Get the last line of output (the final status)
+result=$(echo "$full_output" | tail -n 1)
 
 # Parse result
 if [[ "$result" =~ ^merged:(.+)$ ]]; then
     elapsed_str="${match[1]}"
     echo ""
     gum style --foreground 2 "✓ PR merged after ${elapsed_str}!"
-    return 0
+    exit 0
 elif [[ "$result" =~ ^closed:(.+)$ ]]; then
     elapsed_str="${match[1]}"
     echo ""
     gum style --foreground 1 "✗ PR was closed without merging after ${elapsed_str}"
-    return 1
+    exit 1
 elif [[ "$result" == "error" ]]; then
     echo ""
     >&2 echo "Error checking PR status"
-    return 1
+    exit 1
 else
     echo ""
     >&2 echo "Unknown error occurred"
-    return 1
+    exit 1
 fi

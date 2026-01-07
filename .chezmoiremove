@@ -6,3 +6,4 @@
 {{ if ne .hostname "Odin" }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-odin.lock.json{{ end }}
 {{ if not (has "personal" .extras) }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-personal{{ end }}
 {{ if not (has "personal" .extras) }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-personal.lock.json{{ end }}
+{{ .chezmoi.destDir }}/.config/zsh/functions/,pr-merged
