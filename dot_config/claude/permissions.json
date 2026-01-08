@@ -1,0 +1,15 @@
+{
+  "allow": [
+    "Bash(gh:*)",
+    "Bash(git status:*)",
+    "Bash(git log:*)",
+    "Bash(git diff:*)",
+    "Bash(git branch:*)",
+    "Bash(git show:*)",
+    "Bash(git remote:*)",
+    "Bash(git rev-parse:*)",
+    "Bash(git ls-files:*)",
+    "Bash(git config --get:*)",
+    "Bash(git config --list:*)"
+  ]
+}

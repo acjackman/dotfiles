@@ -1,0 +1,20 @@
+#!/bin/bash
+# hash: {{ include "dot_config/claude/permissions.json" | sha256sum }}
+
+SETTINGS_FILE="$HOME/.config/claude/settings.json"
+PERMISSIONS_FILE="{{ .chezmoi.sourceDir }}/dot_config/claude/permissions.json"
+
+# Create settings file if it doesn't exist
+if [ ! -f "$SETTINGS_FILE" ]; then
+    echo '{}' > "$SETTINGS_FILE"
+fi
+
+# Use jq to merge permissions into settings, preserving other fields
+if command -v jq &> /dev/null; then
+    PERMISSIONS=$(cat "$PERMISSIONS_FILE")
+    jq --argjson perms "$PERMISSIONS" '.permissions = $perms' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && \
+        mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
+else
+    echo "Warning: jq not found. Cannot update Claude permissions automatically."
+    exit 1
+fi
