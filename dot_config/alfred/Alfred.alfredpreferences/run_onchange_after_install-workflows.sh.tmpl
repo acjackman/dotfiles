@@ -68,7 +68,7 @@ install_workflow() {
     # Extract workflow
     cd "$TEMP_DIR"
     if [[ "$is_zip" == "true" ]]; then
-        unzip -q "$filename" -x '__MACOSX/*'
+        unzip -q "$filename" -x '__MACOSX/*' 2>&1 | grep -v "caution: excluded filename not matched" || true
         # Find the .alfredworkflow file inside
         local workflow_file
         workflow_file=$(find . -name "*.alfredworkflow" -type f | head -1)
@@ -76,9 +76,9 @@ install_workflow() {
             echo "  ✗ No .alfredworkflow file found in zip"
             return 1
         fi
-        unzip -q "$workflow_file" -x '__MACOSX/*'
+        unzip -q "$workflow_file" -x '__MACOSX/*' 2>&1 | grep -v "caution: excluded filename not matched" || true
     else
-        unzip -q "$filename" -x '__MACOSX/*'
+        unzip -q "$filename" -x '__MACOSX/*' 2>&1 | grep -v "caution: excluded filename not matched" || true
     fi
 
     # Verify info.plist exists
