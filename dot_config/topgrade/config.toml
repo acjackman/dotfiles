@@ -62,6 +62,7 @@ no_retry = true
 # Custom commands
 [commands]
 #"Python Environment" = "~/dev/.env/bin/pip install -i https://pypi.python.org/simple -U --upgrade-strategy eager jupyter"
+"Cleanup Zinit Completions" = "find ~/.local/share/zinit/completions/ -type l ! -exec test -e {} \\; -delete 2>/dev/null; rm -f ~/.zcompdump* 2>/dev/null; true"
 
 [brew]
 #greedy_cask = true
