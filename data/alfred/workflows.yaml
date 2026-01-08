@@ -1,0 +1,42 @@
+# Alfred Workflows - Declarative Installation
+# Workflows are installed based on their tags and your .chezmoi.yaml.tmpl configuration
+
+workflows:
+  # DEVONthink Integration
+  - name: "DEVONthink 4"
+    uuid: "D4E7C8A3-9B2F-4E1D-A5C6-3F8B7D9E1A2C"
+    url: "https://github.com/zeitlings/alfred-devonthink/releases/download/v2.0.0/DEVONthink.Portal.v2.0.0.alfredworkflow"
+    tags: ["personal", "devonthink"]
+    description: "Search and interact with DEVONthink databases"
+
+  # Share with AirDrop
+  - name: "Share with AirDrop"
+    uuid: "A1A8B8DF-A1D6-4AA9-BB47-B5B539BDC960"
+    url: "https://github.com/alfredapp/share-with-airdrop-workflow/releases/download/2025.1/Share.with.AirDrop.alfredworkflow"
+    tags: ["base", "sharing"]
+    description: "Share files, text, and URLs via AirDrop"
+
+  # Soulver
+  - name: "Soulver"
+    uuid: "8EC472DB-D4CA-48C3-A64B-8B8832FAD944"
+    url: "https://www.soulver.app/mac/alfred/soulver-alfred.zip"
+    is_zip: true
+    tags: ["base", "calculator"]
+    description: "Quick calculations with Soulver engine"
+
+  # Color Picker
+  # Note: zeitlings workflows from Alfred Gallery may need manual download
+  # URL format for Alfred Gallery is not publicly documented
+  - name: "Color Picker"
+    uuid: "7305AD33-0501-4BEB-A1F1-AA9A2EDD7A66"
+    # Uncomment and update URL when available
+    # url: "https://alfred.app/workflows/zeitlings/color-picker/download/"
+    manual: true
+    tags: ["base", "utilities"]
+    description: "Pick colors and get hex, rgba, hsl representations"
+    notes: "Download from: https://alfred.app/workflows/zeitlings/color-picker/"
+
+# Tag definitions
+# - base: Install on all machines
+# - personal: Install only on personal machines (when .personal is set in chezmoi config)
+# - work: Install only on work machines (when .work is set in chezmoi config)

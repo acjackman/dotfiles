@@ -1,0 +1,125 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Declarative Alfred Workflow Installation
+# Installs workflows defined in data/alfred/workflows.yaml
+# hash: {{ include "data/alfred/workflows.yaml" | sha256sum }}
+
+set -euo pipefail
+
+WORKFLOWS_CONFIG="{{ .chezmoi.sourceDir }}/data/alfred/workflows.yaml"
+ALFRED_PREFS="${HOME}/.config/alfred/Alfred.alfredpreferences"
+WORKFLOWS_DIR="${ALFRED_PREFS}/workflows"
+
+# Check if yq is available
+if ! command -v yq &> /dev/null; then
+    echo "Error: yq is required for workflow installation"
+    echo "Install with: brew install yq"
+    exit 1
+fi
+
+# Determine which tags to install based on chezmoi config
+INSTALL_TAGS=("base")
+{{- range .extras }}
+INSTALL_TAGS+=("{{ . }}")
+{{- end }}
+
+echo "Installing Alfred workflows for tags: ${INSTALL_TAGS[*]}"
+echo
+
+# Function to check if workflow should be installed
+should_install() {
+    local workflow_tags="$1"
+    for install_tag in "${INSTALL_TAGS[@]}"; do
+        if echo "$workflow_tags" | grep -q "\b$install_tag\b"; then
+            return 0
+        fi
+    done
+    return 1
+}
+
+# Function to install a workflow
+install_workflow() {
+    local name="$1"
+    local uuid="$2"
+    local url="$3"
+    local is_zip="${4:-false}"
+    local manual="${5:-false}"
+
+    if [[ "$manual" == "true" ]]; then
+        echo "⊘ $name - Manual installation required"
+        return 0
+    fi
+
+    echo "→ Installing: $name"
+
+    WORKFLOW_DIR="${WORKFLOWS_DIR}/user.workflow.${uuid}"
+    TEMP_DIR=$(mktemp -d)
+    trap 'rm -rf "$TEMP_DIR"' EXIT
+
+    # Download workflow
+    local filename
+    filename=$(basename "$url")
+
+    if ! curl -L -f -s -o "${TEMP_DIR}/${filename}" "$url"; then
+        echo "  ✗ Failed to download from $url"
+        return 1
+    fi
+
+    # Extract workflow
+    cd "$TEMP_DIR"
+    if [[ "$is_zip" == "true" ]]; then
+        unzip -q "$filename" -x '__MACOSX/*'
+        # Find the .alfredworkflow file inside
+        local workflow_file
+        workflow_file=$(find . -name "*.alfredworkflow" -type f | head -1)
+        if [[ -z "$workflow_file" ]]; then
+            echo "  ✗ No .alfredworkflow file found in zip"
+            return 1
+        fi
+        unzip -q "$workflow_file" -x '__MACOSX/*'
+    else
+        unzip -q "$filename" -x '__MACOSX/*'
+    fi
+
+    # Verify info.plist exists
+    if [[ ! -f "info.plist" ]]; then
+        echo "  ✗ info.plist not found in workflow"
+        return 1
+    fi
+
+    # Remove old installation
+    if [[ -d "$WORKFLOW_DIR" ]]; then
+        rm -rf "$WORKFLOW_DIR"
+    fi
+
+    # Install workflow
+    mkdir -p "$WORKFLOW_DIR"
+    cp -R "$TEMP_DIR"/* "$WORKFLOW_DIR/"
+
+    echo "  ✓ Installed successfully"
+}
+
+# Read workflows from YAML and install
+workflow_count=$(yq eval '.workflows | length' "$WORKFLOWS_CONFIG")
+
+for ((i=0; i<workflow_count; i++)); do
+    name=$(yq eval ".workflows[$i].name" "$WORKFLOWS_CONFIG")
+    uuid=$(yq eval ".workflows[$i].uuid" "$WORKFLOWS_CONFIG")
+    url=$(yq eval ".workflows[$i].url" "$WORKFLOWS_CONFIG")
+    tags=$(yq eval ".workflows[$i].tags | join(\" \")" "$WORKFLOWS_CONFIG")
+    is_zip=$(yq eval ".workflows[$i].is_zip // false" "$WORKFLOWS_CONFIG")
+    manual=$(yq eval ".workflows[$i].manual // false" "$WORKFLOWS_CONFIG")
+
+    # Check if workflow should be installed based on tags
+    if ! should_install "$tags"; then
+        echo "⊘ $name - Skipped (tags: $tags)"
+        continue
+    fi
+
+    # Install workflow
+    install_workflow "$name" "$uuid" "$url" "$is_zip" "$manual" || true
+done
+
+echo
+echo "Alfred workflow installation complete!"
+{{ end -}}
