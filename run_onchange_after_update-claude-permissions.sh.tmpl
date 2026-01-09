@@ -9,10 +9,10 @@ if [ ! -f "$SETTINGS_FILE" ]; then
     echo '{}' > "$SETTINGS_FILE"
 fi
 
-# Use jq to merge permissions into settings, preserving other fields
+# Use jq to merge permissions into settings and disable auto-update
 if command -v jq &> /dev/null; then
     PERMISSIONS=$(cat "$PERMISSIONS_FILE")
-    jq --argjson perms "$PERMISSIONS" '.permissions = $perms' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && \
+    jq --argjson perms "$PERMISSIONS" '.permissions = $perms | .autoUpdaterStatus = "disabled"' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && \
         mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
 else
     echo "Warning: jq not found. Cannot update Claude permissions automatically."
