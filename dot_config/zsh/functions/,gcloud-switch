@@ -1,0 +1,46 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# ,gcloud-switch - Switch gcloud configurations with fzf picker
+#
+# Lists available gcloud configurations and allows selection via fzf
+# Activates the selected configuration
+
+local configs
+configs=$(gcloud config configurations list --format="value(name,is_active,properties.core.account,properties.core.project)" 2>/dev/null)
+
+if [[ -z "$configs" ]]; then
+    echo "No gcloud configurations found"
+    return 1
+fi
+
+# Build parallel arrays for display and config names
+local -a display_lines
+local -a config_names
+while IFS=$'\t' read -r name is_active account project; do
+    local indicator=" "
+    [[ "$is_active" == "True" ]] && indicator="*"
+    # Store the config name
+    config_names+=("$name")
+    # Use printf for better column alignment
+    display_lines+=("$(printf "%-1s %-30s %-40s %s" "$indicator" "$name" "$account" "$project")")
+done <<< "$configs"
+
+local selected
+selected=$(printf '%s\n' "${display_lines[@]}" | nl -w1 -s'|' | fzf \
+    --prompt="Select gcloud config: " \
+    --height=100% \
+    --no-multi \
+    --with-nth=2.. \
+    --delimiter='|' \
+    --preview="gcloud config configurations describe \$(echo {2} | awk '{print \$2}')" \
+    --preview-window=right:50%:wrap)
+
+if [[ -n "$selected" ]]; then
+    # Extract line number and use it to get config name from array
+    local line_num=$(echo "$selected" | cut -d'|' -f1 | tr -d ' ')
+    local config_name="${config_names[$line_num]}"
+    if [[ -n "$config_name" ]]; then
+        echo "Running: gcloud config configurations activate $config_name"
+        gcloud config configurations activate "$config_name"
+    fi
+fi
