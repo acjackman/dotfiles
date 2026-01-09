@@ -21,7 +21,14 @@ if [[ -z "$main_branch" ]]; then
 fi
 
 # Get all files modified in this branch compared to the main branch
-local modified_files=$(git diff --name-only "${main_branch}...HEAD")
+# Include: committed changes, staged changes, and unstaged changes
+local modified_files=$(
+    {
+        git diff --name-only "${main_branch}...HEAD"  # Committed changes
+        git diff --name-only --cached                  # Staged changes
+        git diff --name-only                           # Unstaged changes
+    } | sort -u
+)
 
 # Get unique directories from modified files
 local modified_dirs=""
