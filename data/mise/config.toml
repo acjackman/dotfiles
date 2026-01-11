@@ -18,3 +18,9 @@ claude-code = "latest"
 "npm:@ast-grep/napi" = "latest"
 prek = "latest"
 opencode = "latest"
+
+# Go packages
+"go:gotest.tools/gotestsum" = "latest"
+"go:github.com/spf13/cobra-cli" = "latest"
+"go:github.com/bonnefoa/kubectl-fzf/v3/cmd/kubectl-fzf-completion" = "latest"
+"go:github.com/bonnefoa/kubectl-fzf/v3/cmd/kubectl-fzf-server" = "latest"
