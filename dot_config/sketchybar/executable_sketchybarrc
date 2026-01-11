@@ -18,7 +18,7 @@ PLUGIN_DIR="$CONFIG_DIR/plugins"
 INCLUDE_DISPLAYS=$(python3 - <<'PY'
 import json, subprocess, sys
 
-exclude_names = ["deskpad", "elgato"]
+exclude_names = ["deskpad", "elgato", "prompter"]
 
 sp = subprocess.run(["system_profiler", "SPDisplaysDataType", "-json"], capture_output=True, text=True)
 if sp.returncode != 0:
