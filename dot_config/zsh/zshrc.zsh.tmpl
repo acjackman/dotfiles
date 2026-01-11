@@ -226,6 +226,11 @@ unset -f load_funcs
 COMPLETIONS_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/completions"
 fpath+="${COMPLETIONS_DIR}"
 
+# kubectl completion (required for kubectl-fzf)
+if command -v kubectl &> /dev/null; then
+  source <(kubectl completion zsh)
+fi
+
 # =============
 # Plugins
 # =============

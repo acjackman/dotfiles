@@ -36,6 +36,7 @@ zinit wait lucid for \
   mafredri/zsh-async \
   zpm-zsh/zsh-better-npm-completion \
   'https://github.com/junegunn/fzf/blob/master/shell/completion.zsh' \
+  pick"shell/kubectl_fzf.plugin.zsh" bonnefoa/kubectl-fzf \
   atinit'zicompinit' atpull'zinit creinstall .' wfxr/forgit \
   blockf atpull'zinit creinstall  .' zsh-users/zsh-completions \
   RobSis/zsh-completion-generator \
