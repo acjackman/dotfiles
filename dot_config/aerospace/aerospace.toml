@@ -61,17 +61,17 @@ exec-on-workspace-change = [
 #                 Monitor pattern is the same as for 'workspace-to-monitor-force-assignment'.
 #                 See: https://nikitabobko.github.io/AeroSpace/guide#assign-workspaces-to-monitors
 [gaps]
-inner.horizontal = [{ monitor.".*[Pp]rompter.*" = 0 }, 10]
-inner.vertical = [{ monitor.".*[Pp]rompter.*" = 0 }, 10]
-outer.left = [{ monitor.".*[Pp]rompter.*" = 0 }, 10]
-outer.bottom = [{ monitor.".*[Pp]rompter.*" = 0 }, 10]
+inner.horizontal = [{ monitor.".*[Pp]romp.*" = 0 }, 10]
+inner.vertical = [{ monitor.".*[Pp]romp.*" = 0 }, 10]
+outer.left = [{ monitor.".*[Pp]romp.*" = 0 }, 10]
+outer.bottom = [{ monitor.".*[Pp]romp.*" = 0 }, 10]
 outer.top = [
   { monitor."^built-in retina display$" = 10 },
   { monitor."[Dd]esk[Pp]ad" = 10 },
-  { monitor.".*[Pp]rompter.*" = 0 },
+  { monitor.".*[Pp]romp.*" = 0 },
   50,
 ]
-outer.right = [{ monitor.".*[Pp]rompter.*" = 0 }, 10]
+outer.right = [{ monitor.".*[Pp]romp.*" = 0 }, 10]
 
 # 'main' binding mode declaration
 # See: https://nikitabobko.github.io/AeroSpace/guide#binding-modes
@@ -308,5 +308,5 @@ run = ['layout floating']
 [workspace-to-monitor-force-assignment]
 S = ['^HP Z27 \(2\)$',]
 T = 'main'
-P = ['.*[Pp]rompter.*']
+P = ['.*[Pp]romp.*']
 X = ['^[Dd]esk[Pp]ad', '^built-in retina display$', 'main']

@@ -66,12 +66,12 @@ local imageDimensionCache = {}
 local cacheHits = 0
 local cacheMisses = 0
 
---- Check if a screen is an Elgato display (Prompter or Prompter XL)
+--- Check if a screen is an Elgato display (Elgato Prompter or Prompter XL)
 --- @param screen hs.screen The screen to check
---- @return boolean True if the screen name contains "prompter" or starts with "elgato"
+--- @return boolean True if the screen name contains "prompt"
 local function isElgatoDisplay(screen)
   local screenName = screen:name():lower()
-  return string.match(screenName, "prompter") ~= nil
+  return string.match(screenName, "prompt") ~= nil
 end
 
 --- Get the black wallpaper path for Elgato displays
