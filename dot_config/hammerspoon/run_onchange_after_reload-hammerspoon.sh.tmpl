@@ -1,6 +1,10 @@
 #!/bin/bash
 
-# Checksum: {{ include "dot_config/hammerspoon/init.lua.tmpl" | sha256sum }}
+# Checksums of all hammerspoon files (dynamically generated):
+# - init.lua.tmpl: {{ include "dot_config/hammerspoon/init.lua.tmpl" | sha256sum }}
+{{- range glob "dot_config/hammerspoon/Spoons/*/init.lua" }}
+# - {{ base (dir .) }}: {{ include . | sha256sum }}
+{{- end }}
 
 function show-header() {
   command -v gum &>/dev/null
@@ -11,8 +15,11 @@ function show-header() {
   fi
 }
 
+# Reload hammerspoon configuration after changes
 show-header "Hammerspoon"
-echo "Reloading Hammerspoon configuration"
+echo "Reloading hammerspoon configuration"
 
-# Reload Hammerspoon configuration after changes
-hs -c "hs.reload()"
+# Reload hammerspoon if it's running
+if pgrep -q Hammerspoon; then
+  osascript -e 'tell application "Hammerspoon" to reload end tell' 2>/dev/null || true
+fi
