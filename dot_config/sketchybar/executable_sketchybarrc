@@ -18,7 +18,7 @@ PLUGIN_DIR="$CONFIG_DIR/plugins"
 INCLUDE_DISPLAYS=$(python3 - <<'PY'
 import json, subprocess, sys
 
-exclude_names = ["deskpad", "prompt"]
+exclude_names = ["deskpad", "elgato prom"]
 
 sp = subprocess.run(["system_profiler", "SPDisplaysDataType", "-json"], capture_output=True, text=True)
 if sp.returncode != 0:
@@ -35,7 +35,7 @@ except Exception:
 exclude_ids = set()
 for d in nds:
     name = d.get("_name", "").lower()
-    if any(name.startswith(x) for x in exclude_names):
+    if any(x in name for x in exclude_names):
         id_hex = d.get("_spdisplays_displayID")
         try:
             exclude_ids.add(int(id_hex, 16))
