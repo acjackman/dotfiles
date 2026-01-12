@@ -21,5 +21,14 @@ echo "Reloading hammerspoon configuration"
 
 # Reload hammerspoon if it's running
 if pgrep -q Hammerspoon; then
-  osascript -e 'tell application "Hammerspoon" to reload end tell' 2>/dev/null || true
+  if command -v hs &>/dev/null && hs -c "hs.reload()" 2>/dev/null; then
+    echo "✓ Hammerspoon reloaded successfully via CLI"
+  elif osascript -e 'tell application "Hammerspoon" to reload end tell' 2>/dev/null; then
+    echo "✓ Hammerspoon reloaded successfully via AppleScript"
+  else
+    echo "✗ Failed to reload Hammerspoon using both CLI and AppleScript"
+    exit 1
+  fi
+else
+  echo "⚠ Hammerspoon is not running (skipped reload)"
 fi
