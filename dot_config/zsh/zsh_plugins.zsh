@@ -42,11 +42,12 @@ zinit wait lucid for \
   RobSis/zsh-completion-generator \
   atload'_zsh_autosuggest_start' zsh-users/zsh-autosuggestions \
   atuinsh/atuin \
-  'https://gist.githubusercontent.com/acjackman/9cd7094031c67bb304b74c51714c46eb/raw/worktrunk.plugin.zsh' \
+  pick"worktrunk.plugin.zsh" ~/.config/zsh/plugins \
   atinit"zicompinit; zicdreplay" zsh-users/zsh-syntax-highlighting \
   Aloxaf/fzf-tab \
   iloveitaly/zsh-github-cli \
-  depth:1 jeffreytse/zsh-vi-mode
+  depth:1 jeffreytse/zsh-vi-mode \
+  pick"kubectl-completion.plugin.zsh" ~/.config/zsh/plugins
 
 # must be loaded after syntax completion
 zinit load zsh-users/zsh-history-substring-search
