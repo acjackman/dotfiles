@@ -7,3 +7,9 @@
 {{ if not (has "personal" .extras) }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-personal{{ end }}
 {{ if not (has "personal" .extras) }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-personal.lock.json{{ end }}
 {{ .chezmoi.destDir }}/.config/zsh/functions/,pr-merged
+{{ .chezmoi.destDir }}/.config/zsh/functions/,jgw
+{{ .chezmoi.destDir }}/.config/zsh/functions/,jgwh
+{{ .chezmoi.destDir }}/.config/zsh/functions/_jgw_relativize_path
+{{ .chezmoi.destDir }}/.config/zsh/functions/_jgw_absolutize_path
+{{ .chezmoi.destDir }}/.local/bin/_jgw_relativize_path
+{{ .chezmoi.destDir }}/.local/bin/_jgw_absolutize_path
