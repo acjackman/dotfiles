@@ -23,6 +23,7 @@ alias wm="workmux"
 
 # Worktrunk
 alias wts="wt switch"
+alias wtc="wt switch --create"
 alias wtsd="wt switch '^'"
 alias wtss="wt select"
 alias wtprd="WTPR_INCLUDE_DRAFTS=true wtpr"
