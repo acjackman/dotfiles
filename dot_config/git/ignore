@@ -94,6 +94,7 @@ __pycache__
 # mise
 mise.local.toml
 .mise.local.toml
+**/.mise/config.local.toml
 
 # claude code
 **/.claude/settings.local.json
