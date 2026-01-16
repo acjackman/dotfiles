@@ -61,6 +61,9 @@ alias ,gho='gh repo view --web'
 alias ,ghpro="gh pr view --web"
 alias ,ghprn="gh pr view --json number --jq number"
 
+# claude
+alias claude-tmp="claude -p --no-session-persistence"
+
 # fancier ping
 alias ping='prettyping --nolegend'
 
