@@ -79,6 +79,10 @@
     hew-worktree = "!hew_worktree() { git worktree list | tail -n +2 | sed -E '/\\[(main|master)\\]/d' | fzf -m | sed -E 's/[[:space:]].*//' | xargs --verbose -I _ git worktree remove _ ; }; hew_worktree"
     hew-worktree-force = "!hew_worktree() { git worktree list | tail -n +2 | sed -E '/\\[(main|master)\\]/d' | fzf -m | sed -E 's/[[:space:]].*//' | xargs --verbose -I _ git worktree remove --force _ ; }; hew_worktree"
 
+    # ai commits
+    ca = "!(git commit -m \"$(git diff --cached | llm -m claude-haiku-4.5 -s 'Write a commit message for the included diff. Output only the message')\" && git log --stat -1)"
+    cc = "!(git commit -m \"$(git diff --cached | claude -m claude-sonnet-4.5 -p --no-session-persistence 'Write a commit message for the inlcuded diff. aoutput only the message')\" && git log --stat -1)"
+
 [core]
     excludesfile = ~/.config/git/ignore
     editor = "nvim -f"
