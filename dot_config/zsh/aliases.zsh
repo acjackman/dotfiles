@@ -40,9 +40,6 @@ alias yaml2json="yq eval --tojson"
 
 alias ,show-aliases="export ZSH_PLUGINS_ALIAS_TIPS_REVEAL=1"
 
-alias ,k9s='k9s --context=$(yq -r '"'"'.contexts[] | .name'"'"' ~/.kube/config | fzf --layout reverse --height=10% --border) --namespace=all'
-alias k9ss=',k9s'
-
 # mise
 alias ,r="mise run"
 
