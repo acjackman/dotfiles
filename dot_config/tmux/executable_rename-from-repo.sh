@@ -16,15 +16,8 @@ toplevel=$(git rev-parse --show-toplevel)
 
 # Check if this is a linked worktree (handles both .git/worktrees/ and .bare/worktrees/)
 if [[ "$git_dir" == */worktrees/* ]]; then
-  # Extract the path before /worktrees/
-  # For .git/worktrees/ or .bare/worktrees/
-  base_path="${git_dir%/worktrees/*}"
-
-  # Get the repo directory (parent of .git or .bare)
-  main_repo_path=$(dirname "$base_path")
-  repo_name=$(basename "$main_repo_path")
-  worktree_name=$(basename "$toplevel")
-  echo "$repo_name/$worktree_name"
+  # Worktree - use just the worktree name
+  basename "$toplevel"
 else
   # Main worktree - just use repo name
   basename "$toplevel"

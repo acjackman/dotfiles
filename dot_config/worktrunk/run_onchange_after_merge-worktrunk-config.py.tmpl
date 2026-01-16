@@ -1,0 +1,98 @@
+#!/usr/bin/env python3
+"""
+Merge chezmoi-managed worktrunk settings with machine-local [projects] section.
+"""
+# hash: {{ include "dot_config/worktrunk/run_onchange_after_merge-worktrunk-config.py.tmpl" | sha256sum }}
+
+from __future__ import annotations
+
+import os
+from pathlib import Path
+from typing import Any
+
+try:
+    import tomllib
+except ImportError:
+    tomllib = None
+
+try:
+    import tomli
+except ImportError:
+    tomli = None
+
+
+def load_toml(path: Path) -> dict[str, Any]:
+    data = path.read_bytes()
+    if tomllib is not None:
+        return tomllib.loads(data.decode("utf-8"))
+    if tomli is not None:
+        return tomli.loads(data.decode("utf-8"))
+    raise RuntimeError("Reading TOML requires Python 3.11+ or the 'tomli' package.")
+
+
+def format_toml_value(value: Any) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, str):
+        return f'"{value}"'
+    if isinstance(value, list):
+        items = ", ".join(format_toml_value(v) for v in value)
+        return f"[{items}]"
+    return str(value)
+
+
+def write_projects_section(projects: dict[str, Any]) -> str:
+    if not projects:
+        return "[projects]\n"
+
+    lines = ["[projects]"]
+    for key, value in projects.items():
+        if isinstance(value, dict):
+            lines.append(f"[projects.{key}]")
+            for k, v in value.items():
+                lines.append(f"{k} = {format_toml_value(v)}")
+        else:
+            lines.append(f"{key} = {format_toml_value(value)}")
+    return "\n".join(lines) + "\n"
+
+
+def main() -> int:
+    config_path = Path(os.path.expanduser("~/.config/worktrunk/config.toml"))
+
+    # Extract existing [projects] section if file exists
+    projects: dict[str, Any] = {}
+    if config_path.exists():
+        try:
+            existing = load_toml(config_path)
+            projects = existing.get("projects", {})
+        except Exception as e:
+            print(f"Warning: could not parse existing config: {e}")
+
+    # Chezmoi-managed settings (worktrunk template syntax preserved with raw strings)
+    managed_config = """\
+worktree-path = ".worktrees/{{ "{{" }} branch | sanitize {{ "}}" }}"
+skip-shell-integration-prompt = true
+
+[commit-generation]
+command = "llm"
+args = ["-m", "claude-haiku-4.5"]
+
+[post-switch]
+tmux = "[ -n \\"$TMUX\\" ] && tmux rename-window \\"$(~/.config/tmux/rename-from-repo.sh \\"$PWD\\")\\""
+"""
+
+    # Combine managed config with preserved projects
+    config_path.parent.mkdir(parents=True, exist_ok=True)
+
+    full_config = managed_config + "\n" + write_projects_section(projects)
+    config_path.write_text(full_config)
+
+    print(f"Wrote worktrunk config to {config_path}")
+    if projects:
+        print(f"Preserved {len(projects)} project(s)")
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
