@@ -40,9 +40,10 @@ __gr_bare() {
     HAS_REMOTE=true
   fi
 
-  # Warn about uncommitted changes
+  # Require clean working tree
   if ! git diff --quiet || ! git diff --cached --quiet; then
-    echo "Warning: You have uncommitted changes. They will be preserved but staged changes will need to be re-staged."
+    echo "Error: Working tree is not clean. Commit or stash changes first."
+    return 1
   fi
 
   echo "Converting repository to bare worktree structure..."
@@ -63,7 +64,7 @@ __gr_bare() {
   # Convert .git directory to .bare
   echo "Converting .git to .bare..."
   mv .git .bare
-  echo "gitdir: ./.bare" > .git
+  echo "gitdir: .bare" > .git
 
   # Mark as bare repo so git doesn't think the branch is checked out
   git config core.bare true
@@ -90,6 +91,9 @@ EOF
   # Move files from temp to worktree
   echo "Restoring working files to worktree..."
   mv "$TEMP_DIR"/*(DN) "$CURRENT_BRANCH/"
+
+  # Reset index to match working tree (--no-checkout leaves index in "deleted" state)
+  git -C "$CURRENT_BRANCH" reset --quiet
 
   # Set upstream tracking if remote exists
   if $HAS_REMOTE; then
