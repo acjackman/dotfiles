@@ -1,0 +1,72 @@
+# yaml-language-server: $schema=https://gh-dash.dev/schema.json
+
+defaults:
+  prApproveComment: ""
+  view: prs
+
+keybindings:
+  universal:
+    - key: g
+      name: lazygit
+      command: cd {{ "{{" }}.RepoPath{{ "}}" }} && lazygit
+
+    - key: y
+      name: copy branch name
+      command: >
+        pbcopy "{{ "{{" }}.HeadRefName{{ "}}" }}"
+
+repoPaths:
+  acjackman/dotfiles: ~/.local/share/chezmoi
+  acjackman/*: ~/dev/jackman/*
+{{- if has "moov" .extras }}
+  moovfinancial/*: ~/dev/moov/*
+  moov-io/*: ~/dev/moov/*
+{{- end }}
+
+# PR Filters
+{{- if has "moov" .extras }}
+prSections:
+  - title: Mine
+    filters: >-
+      is:open
+      archived:false
+      org:moovfinancial
+      (author:acjackman OR asignee:acjackman)
+  - title: My Review
+      is:open
+      archived:false
+      review-requested:@me
+      org:moovfinancial
+  - title: Infra Review
+    filters: >-
+      is:open
+      archived:false
+      review-requested:@moovfinancial/infra
+  - title: All
+    filters: >-
+      is:open
+      archived:false
+      org:moovfinancial
+      draft:false
+{{- else if has "personal" .extras}}
+prSections:
+  - title: Mine
+    filters: >-
+      is:open
+      user:acjackman
+      archived:false
+      draft:false
+      -org:moovfinancial
+  - title: To Review
+    filters: >-
+      is:open
+      review-requested:@me
+      -org:moovfinancial
+  - title: drafts Drafts
+    filters: >-
+      is:open
+      user:acjackman
+      archived:false
+      draft:true
+      -org:moovfinancial
+{{- end }}
