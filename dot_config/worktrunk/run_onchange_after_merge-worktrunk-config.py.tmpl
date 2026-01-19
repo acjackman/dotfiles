@@ -57,6 +57,15 @@ def write_projects_section(projects: dict[str, Any]) -> str:
 
 
 def main() -> int:
+    header_text = "\n".join(
+        [
+            "╔═══════════════════════════════════════════════════════════════════════════╗",
+            "║  Worktrunk                                                                ║",
+            "╚═══════════════════════════════════════════════════════════════════════════╝",
+        ]
+    )
+    print(header_text)
+
     config_path = Path(os.path.expanduser("~/.config/worktrunk/config.toml"))
 
     # Extract existing [projects] section if file exists
