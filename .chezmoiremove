@@ -13,3 +13,6 @@
 {{ .chezmoi.destDir }}/.config/zsh/functions/_jgw_absolutize_path
 {{ .chezmoi.destDir }}/.local/bin/_jgw_relativize_path
 {{ .chezmoi.destDir }}/.local/bin/_jgw_absolutize_path
+{{ .chezmoi.destDir }}/.tool-versions
+{{ .chezmoi.destDir }}/.asdf
+{{ .chezmoi.destDir }}/.config/asdf
