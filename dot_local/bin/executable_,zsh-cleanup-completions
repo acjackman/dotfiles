@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+
+# Clean up zinit completions - removes broken symlinks and zcompdump cache
+# Same action as topgrade's "Cleanup Zinit Completions" command
+
+find ~/.local/share/zinit/completions/ -type l ! -exec test -e {} \; -delete 2>/dev/null
+rm -f ~/.zcompdump* 2>/dev/null
+
+echo "Cleaned up zinit completions and zcompdump cache"
