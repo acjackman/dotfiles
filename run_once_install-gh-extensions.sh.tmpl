@@ -1,0 +1,12 @@
+#!/bin/bash
+
+set -e
+
+{{- range .gh_extensions }}
+if ! gh extension list | grep -q "{{ . }}"; then
+    echo "Installing gh extension: {{ . }}"
+    gh extension install {{ . }}
+else
+    echo "gh extension already installed: {{ . }}"
+fi
+{{- end }}
