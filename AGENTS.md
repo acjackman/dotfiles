@@ -1,5 +1,34 @@
 # Chezmoi Dotfiles - Development Guide
 
+## IMPORTANT: Working with Chezmoi
+
+**ALWAYS edit the chezmoi source files, not the deployed files.**
+
+Chezmoi manages dotfiles by keeping source files in `~/.local/share/chezmoi/` and deploying them to their target locations (e.g., `~/.config/`, `~/`, etc.).
+
+### Critical Workflow
+
+1. **Edit source files** in `~/.local/share/chezmoi/`
+   - Example: Edit `~/.local/share/chezmoi/dot_config/zsh/zshenv.zsh`
+   - NOT: `~/.config/zsh/zshenv.zsh` (this will be overwritten)
+
+2. **Apply changes** with `chezmoi apply`
+   - This deploys your changes to the target locations
+   - Preview first with `chezmoi diff`
+
+3. **Verify** the deployed file has your changes
+
+### Why This Matters
+
+If you edit deployed files directly (e.g., `~/.config/zsh/zshenv.zsh`), your changes will be lost the next time `chezmoi apply` runs. Always edit the source in the chezmoi directory to make changes persistent.
+
+### File Name Mapping
+
+- `dot_` prefix → `.` (e.g., `dot_zshrc` → `~/.zshrc`)
+- `private_` prefix → file mode 0600
+- `executable_` prefix → file mode 0755
+- Path separators: `~/.local/share/chezmoi/dot_config/zsh/` → `~/.config/zsh/`
+
 ## Commands
 
 ### Chezmoi Management
