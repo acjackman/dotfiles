@@ -19,6 +19,9 @@ claude-code = "latest"
 prek = "latest"
 opencode = "latest"
 
+# Cargo packages
+"cargo:cargo-update" = "latest"
+
 # Go packages
 "go:gotest.tools/gotestsum" = "latest"
 "go:github.com/spf13/cobra-cli" = "latest"
