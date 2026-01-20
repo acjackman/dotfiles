@@ -1,0 +1,41 @@
+#!/bin/sh
+# Concatenate all TOML files from sessions.d/ into sesh.toml
+
+SESSIONS_D="$HOME/.config/sesh/sessions.d"
+CONFIG="$HOME/.config/sesh/sesh.toml"
+
+if [ ! -d "$SESSIONS_D" ]; then
+    echo "sessions.d directory not found: $SESSIONS_D"
+    exit 1
+fi
+
+# Concatenate all .toml files in alphabetical order
+NEW_CONTENT=$(cat "$SESSIONS_D"/*.toml 2>/dev/null)
+
+if [ -z "$NEW_CONTENT" ]; then
+    echo "No .toml files found in sessions.d/"
+    exit 1
+fi
+
+# Validate TOML before writing
+if ! echo "$NEW_CONTENT" | python3 -c "import sys, tomllib; tomllib.loads(sys.stdin.read())" 2>&1; then
+    echo "ERROR: Invalid TOML - config not updated"
+    exit 1
+fi
+
+# Check if content changed
+if [ -f "$CONFIG" ]; then
+    OLD_CONTENT=$(cat "$CONFIG")
+    if [ "$NEW_CONTENT" = "$OLD_CONTENT" ]; then
+        echo "No changes"
+        exit 0
+    fi
+    # Backup before overwriting
+    BACKUP="$HOME/.config/sesh/sesh.toml.$(date +%Y%m%d-%H%M%S).bak"
+    cp "$CONFIG" "$BACKUP"
+    echo "  Backed up to $BACKUP"
+fi
+
+# Write new config
+echo "$NEW_CONTENT" > "$CONFIG"
+echo "Merged $(ls -1 "$SESSIONS_D"/*.toml 2>/dev/null | wc -l | tr -d ' ') files into sesh.toml"
