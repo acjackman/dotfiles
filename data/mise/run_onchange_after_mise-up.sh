@@ -15,3 +15,8 @@ if [ $? -eq 0 ]; then
   show-header "Mise"
   mise update && echo "Mise tools updated" || echo "Mise failed update"
 fi
+
+# Set llm key
+# {{ if "personal" .extras}}
+llm keys set anthropic --value $(op read "op://Private/Claude/api-keys/llm")
+# {{ end }}
