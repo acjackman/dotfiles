@@ -6,6 +6,10 @@ assume_yes = true
 #disable = ["system", "emacs"]
 disable = [
     "tlmgr", # Super long update process
+    "containers", # Don't update Docker containers
+    # {{ if has "moov" .extras }}
+    "mas", # Corprate managed
+    # {{ end }}
 ]
 
 # Ignore failures for these steps
