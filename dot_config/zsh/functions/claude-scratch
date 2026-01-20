@@ -1,0 +1,7 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+local datestamp=$(date '+%Y-%m-%d-%H%M%S')
+local scratch_dir="$HOME/scratch/$datestamp"
+mkdir -p "$scratch_dir"
+pushd "$scratch_dir" > /dev/null
+claude
