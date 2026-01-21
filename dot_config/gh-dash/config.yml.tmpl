@@ -33,6 +33,7 @@ prSections:
       org:moovfinancial
       (author:acjackman OR asignee:acjackman)
   - title: My Review
+    filters: >-
       is:open
       archived:false
       review-requested:@me
@@ -41,7 +42,7 @@ prSections:
     filters: >-
       is:open
       archived:false
-      review-requested:@moovfinancial/infra
+      team-review-requested:moovfinancial/infra
   - title: All
     filters: >-
       is:open
