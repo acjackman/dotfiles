@@ -12,8 +12,15 @@ if [ ! -d "$SESSIONS_D" ]; then
   exit 1
 fi
 
-# Concatenate all .toml files in alphabetical order
-NEW_CONTENT=$(cat "$SESSIONS_D"/*.toml 2>/dev/null)
+# Concatenate all .toml files in alphabetical order with newlines between them
+NEW_CONTENT=""
+for f in "$SESSIONS_D"/*.toml; do
+  [ -f "$f" ] || continue
+  [ -n "$NEW_CONTENT" ] && NEW_CONTENT="$NEW_CONTENT
+
+"
+  NEW_CONTENT="$NEW_CONTENT$(cat "$f")"
+done
 
 if [ -z "$NEW_CONTENT" ]; then
   echo "No .toml files found in sessions.d/"
