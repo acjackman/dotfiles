@@ -102,6 +102,8 @@ brew "hub"
 # semantic version utility
 cask "caarlos0/tap/svu"
 
+brew "claude"
+
 ######################################
 # Dev tools
 ######################################
