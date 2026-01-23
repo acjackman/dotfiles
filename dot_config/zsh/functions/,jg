@@ -20,39 +20,36 @@ if [[ -z "$main_branch" ]]; then
     main_branch="main"
 fi
 
-# Get all files modified in this branch compared to the main branch
-# Include: committed changes, staged changes, and unstaged changes
-local modified_files=$(
-    {
-        git diff --name-only "${main_branch}...HEAD"  # Committed changes
-        git diff --name-only --cached                  # Staged changes
-        git diff --name-only                           # Unstaged changes
-    } | sort -u
-)
-
-# Get unique directories from modified files
-local modified_dirs=""
-if [[ -n "$modified_files" ]]; then
-    modified_dirs=$(echo "$modified_files" | xargs -I{} dirname {} | sort -u)
+# Set up preview command
+local preview_cmd
+if command -v eza >/dev/null 2>&1; then
+    preview_cmd="eza --long --group-directories-first --color=always {}"
+else
+    preview_cmd="ls -la {}"
 fi
 
-# Filter directories to only include those that still exist
-local existing_dirs=""
-if [[ -n "$modified_dirs" ]]; then
-    while IFS= read -r dir; do
-        if [[ -d "${repo_root}/${dir}" ]]; then
-            existing_dirs="${existing_dirs}${dir}"$'\n'
-        fi
-    done <<< "$modified_dirs"
-    modified_dirs=$(echo "$existing_dirs" | grep -v '^$')
-fi
-
-# Always include repo root (shown as "." for current repo root)
-local all_dirs=$(printf ".\n%s\n" "$modified_dirs" | grep -v '^$' | sort -u)
-
-# Use central fzf picker to select directory
+# Stream directories to fzf as they're discovered
+# Pipes git diffs -> extracts dirnames -> filters existing -> dedupes -> fzf
 local selected
-selected=$(,j-fzf-picker "Jump to directory: " "$all_dirs")
+selected=$(
+    {
+        echo "."  # Always include repo root first
+        {
+            git diff --name-only "${main_branch}...HEAD" 2>/dev/null
+            git diff --name-only --cached 2>/dev/null
+            git diff --name-only 2>/dev/null
+        } | while IFS= read -r file; do
+            dir=$(dirname "$file")
+            if [[ -d "${repo_root}/${dir}" ]]; then
+                echo "$dir"
+            fi
+        done
+    } | awk '!seen[$0]++' | fzf --prompt="Jump to directory: " \
+        --preview="$preview_cmd" \
+        --preview-window=right:50%:wrap \
+        --height=100% \
+        --no-multi
+)
 
 # Exit if no directory was selected
 if [[ -z "$selected" ]]; then
