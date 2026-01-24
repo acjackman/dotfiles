@@ -9,8 +9,10 @@
     "Bash(git remote:*)",
     "Bash(git rev-parse:*)",
     "Bash(git ls-files:*)",
+    "Bash(git ls-tree:*)",
     "Bash(git config --get:*)",
     "Bash(git config --list:*)",
-    "Bash(git describe:*)"
+    "Bash(git describe:*)",
+    "Bash(tofu fmt:*)"
   ]
 }

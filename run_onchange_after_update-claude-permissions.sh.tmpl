@@ -1,5 +1,6 @@
 #!/bin/bash
-# hash: {{ include "dot_config/claude/permissions.json" | sha256sum }}
+# permissions hash: {{ include "dot_config/claude/permissions.json" | sha256sum }}
+# settings hash: {{ output "sha256sum" (joinPath .chezmoi.homeDir ".config/claude/settings.json") | trim | splitList " " | first }}
 
 SETTINGS_FILE="$HOME/.config/claude/settings.json"
 PERMISSIONS_FILE="{{ .chezmoi.sourceDir }}/dot_config/claude/permissions.json"

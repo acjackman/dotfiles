@@ -97,6 +97,7 @@ mise.local.toml
 **/.mise/config.local.toml
 
 # claude code
+.claude.json
 **/.claude/settings.local.json
 
 # Workmux
