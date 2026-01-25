@@ -35,10 +35,10 @@ export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin"
 export PATH="$PATH:$HOME/.cargo/bin"
 
 # Python
-# if ! command -v python &> /dev/null
-# then
-#   export PATH="$PATH:$(brew --prefix python)/libexec/bin"
-# fi
+if ! command -v python &> /dev/null
+then
+  export PATH="$PATH:$(brew --prefix python)/libexec/bin"
+fi
 
 # Scripts
 export PATH="$PATH:$HOME/.local/bin" # pipx and other things put stuff here
