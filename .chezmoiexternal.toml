@@ -64,10 +64,11 @@ url = "https://github.com/BenziAhamed/Menu-Bar-Search/releases/download/v2.0/Men
 refreshPeriod = "168h"
 
 # Safari Control (personal only)
-[".config/alfred/Alfred.alfredpreferences/workflows/user.workflow.8FD1F42C-F985-48FD-9A9A-4536011C30AF"]
-type = "archive"
-url = "https://github.com/vanstrouble/safari-control-alfred-workflow/releases/download/v2.4.1/safari-control-v2.4.1.alfredworkflow"
-refreshPeriod = "168h"
+# Commented out - using local customized version with custom key bindings
+# [".config/alfred/Alfred.alfredpreferences/workflows/user.workflow.8FD1F42C-F985-48FD-9A9A-4536011C30AF"]
+# type = "archive"
+# url = "https://github.com/vanstrouble/safari-control-alfred-workflow/releases/download/v2.4.1/safari-control-v2.4.1.alfredworkflow"
+# refreshPeriod = "168h"
 
 # Maps Suggest (personal only)
 [".config/alfred/Alfred.alfredpreferences/workflows/user.workflow.930D4B02-0002-464A-88C1-90F1A938A082"]
