@@ -40,5 +40,3 @@ if [[ -z "${ASDF_DIR+x}" ]]; then
 fi
 git clone https://github.com/asdf-vm/asdf.git "$ASDF_DIR" --branch v0.14.1
 export PATH="$PATH:$ASDF_DIR/bin"
-asdf plugin-add direnv
-asdf direnv setup --no-touch-rc-file --shell zsh --version system

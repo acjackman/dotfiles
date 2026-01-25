@@ -48,7 +48,6 @@ cask "font-inclusive-sans"
 # Terminal environment
 ######################################
 # brew "asdf # Installed via git
-brew "direnv"
 brew "fzf"
 brew "tmux"
 brew "sesh"
@@ -102,7 +101,7 @@ brew "hub"
 # semantic version utility
 cask "caarlos0/tap/svu"
 
-brew "claude"
+cask "claude-code"
 
 ######################################
 # Dev tools
