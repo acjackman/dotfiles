@@ -1,3 +1,11 @@
 matches:
   - trigger: ":snowflake:"
     replace: "❄️"
+  - trigger: ":cross:"
+    replace: "❌"
+  - trigger: ":x:"
+    replace: "❌"
+  - trigger: ":check:"
+    replace: "✅"
+  - trigger: ":checkmark:"
+    replace: "✅"

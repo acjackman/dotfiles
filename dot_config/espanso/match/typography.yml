@@ -2,13 +2,23 @@ matches:
   # Em dash (—)
   - trigger: "::em-dash:"
     replace: "—"
-
   - trigger: "::emdash:"
+    replace: "—"
+  - trigger: "::em:"
     replace: "—"
 
   # En dash (–)
   - trigger: "::en-dash:"
     replace: "–"
-
   - trigger: "::endash:"
     replace: "–"
+  - trigger: "::en:"
+    replace: "–"
+
+  # Ellipsis (…)
+  - trigger: "::ellipsis:"
+    replace: "…"
+  - trigger: "::ellipses:"
+    replace: "…"
+  - trigger: "::...:"
+    replace: "…"
