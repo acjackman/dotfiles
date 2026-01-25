@@ -1,0 +1,14 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+local dir="$PWD"
+if [[ "$dir" == "$HOME/scratch/"* ]]; then
+  local subdir="${dir#$HOME/scratch/}"
+  local top="${subdir%%/*}"
+  gum confirm "Delete $HOME/scratch/$top?" && {
+    cd "$HOME/scratch"
+    rm -rf "$HOME/scratch/$top"
+  }
+else
+  echo "Not in a scratch directory: $dir" >&2
+  return 1
+fi
