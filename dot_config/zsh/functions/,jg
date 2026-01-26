@@ -29,7 +29,7 @@ else
 fi
 
 # Stream directories to fzf as they're discovered
-# Pipes git diffs -> extracts dirnames -> filters existing -> dedupes -> fzf
+# Pipes git diffs -> extracts dirnames -> filters existing -> dedupes -> filters ancestors -> fzf
 local selected
 selected=$(
     {
@@ -44,7 +44,27 @@ selected=$(
                 echo "$dir"
             fi
         done
-    } | awk '!seen[$0]++' | fzf --prompt="Jump to directory: " \
+    } | awk '!seen[$0]++' | awk '
+        # Store all directories
+        { dirs[NR] = $0 }
+        END {
+            # For each directory
+            for (i = 1; i <= NR; i++) {
+                is_parent = 0
+                # Check if any other directory is a subdirectory of it
+                for (j = 1; j <= NR; j++) {
+                    if (i != j && dirs[i] != "." && index(dirs[j], dirs[i] "/") == 1) {
+                        is_parent = 1
+                        break
+                    }
+                }
+                # Print if it is not a parent of another directory, or if it is the root
+                if (!is_parent || dirs[i] == ".") {
+                    print dirs[i]
+                }
+            }
+        }
+    ' | fzf --prompt="Jump to directory: " \
         --preview="$preview_cmd" \
         --preview-window=right:50%:wrap \
         --height=100% \
