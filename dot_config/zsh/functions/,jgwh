@@ -4,6 +4,8 @@
 #
 # Pushd to the root of a git worktree
 
+autoload -Uz _jgw_relativize_path _jgw_absolutize_path
+
 # Get all worktrees
 local worktrees=$(git worktree list 2>/dev/null)
 if [[ -z "$worktrees" ]]; then

@@ -4,6 +4,8 @@
 #
 # Pushd to the current relative directory in a different git worktree
 
+autoload -Uz _jgw_relativize_path _jgw_absolutize_path
+
 # Get the current worktree root (might be a linked worktree)
 local current_wt_root=$(git rev-parse --show-toplevel 2>/dev/null)
 if [[ -z "$current_wt_root" ]]; then
