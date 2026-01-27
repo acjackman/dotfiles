@@ -12,11 +12,13 @@ Chezmoi manages dotfiles by keeping source files in this repository and deployin
    - Example: Edit `dot_config/zsh/zshenv.zsh`
    - NOT: `~/.config/zsh/zshenv.zsh` (this will be overwritten)
 
-2. **Apply changes** with `chezmoi apply`
-   - This deploys your changes to the target locations
-   - Preview first with `chezmoi diff`
+2. **Preview changes** with `chezmoi diff`
+   - Always review changes before applying
 
-3. **Verify** the deployed file has your changes
+3. **Apply changes** with `chezmoi apply`
+   - This deploys your changes to the target locations
+
+4. **Verify** the deployed file has your changes
 
 ### Why This Matters
 
