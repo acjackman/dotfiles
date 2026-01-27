@@ -1,0 +1,22 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+local dir="$PWD"
+if [[ "$dir" == "$HOME/scratch/"* ]]; then
+  local subdir="${dir#$HOME/scratch/}"
+  local top="${subdir%%/*}"
+  local target="$HOME/scratch/$top"
+
+  if [[ -z "$(ls -A "$target")" ]]; then
+    cd "$HOME/scratch"
+    rm -rf "$target"
+  else
+    tree -C "$target" 2>/dev/null || ls -la "$target"
+    gum confirm "Delete $target?" && {
+      cd "$HOME/scratch"
+      rm -rf "$target"
+    }
+  fi
+else
+  echo "Not in a scratch directory: $dir" >&2
+  return 1
+fi

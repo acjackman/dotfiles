@@ -1,0 +1,3 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+,scratch && claude --permission-mode bypassPermissions

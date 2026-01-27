@@ -1,0 +1,8 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# ,scratch - Jump to Scratch
+#
+# Creates a new timestamped directory in $HOME/scratch and pushd to it
+
+local scratch_dir="$HOME/scratch/$(date +%Y-%m-%dT%H-%M)"
+mkdir -p "$scratch_dir" && pushd "$scratch_dir" >/dev/null
