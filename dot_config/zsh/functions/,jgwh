@@ -1,0 +1,42 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# ,jgwh - Jump to Git Worktree Home
+#
+# Pushd to the root of a git worktree
+
+# Get all worktrees
+local worktrees=$(git worktree list 2>/dev/null)
+if [[ -z "$worktrees" ]]; then
+    echo "No git worktrees found" >&2
+    return 1
+fi
+
+# Get the main repo root (first entry in worktree list)
+local main_repo_root=$(echo "$worktrees" | head -1 | awk '{print $1}')
+
+# Extract worktree paths and convert to relative
+local relative_worktrees=""
+while IFS= read -r line; do
+    # Skip bare repositories
+    if echo "$line" | grep -q '\.bare'; then
+        continue
+    fi
+
+    local wt_path=$(echo "$line" | awk '{print $1}')
+    # Convert to relative display path using helper
+    local rel_path=$(_jgw_relativize_path "$wt_path" "$main_repo_root")
+    relative_worktrees+="$rel_path"$'\n'
+done <<< "$worktrees"
+relative_worktrees="${relative_worktrees%$'\n'}"  # Remove trailing newline
+
+# Select worktree
+local selected_worktree=$(,j-fzf-picker "Select worktree: " "$relative_worktrees")
+if [[ -z "$selected_worktree" ]]; then
+    return 0
+fi
+
+# Convert selected path back to absolute using helper
+local dir=$(_jgw_absolutize_path "$selected_worktree" "$main_repo_root")
+
+# Pushd to worktree root
+[[ -n "$dir" ]] && pushd "$dir" >/dev/null
