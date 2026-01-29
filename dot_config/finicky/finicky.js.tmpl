@@ -22,19 +22,19 @@ export default {
       browser: "Discord",
     },
     {
-      match: "https://linear.app/[a-z0-9_-]+/*",
+      match: /https:\/\/linear\.app\/.+/,
       url: { protocol: "linear" },
       browser: "Linear",
     },
     {
-      match: ({ url }) => url.protocol === "slack",
+      match: (url) => url.protocol === "slack",
       browser: "/Applications/Slack.app"
     }
   ],
   rewrite: [
     {
       match: () => true, // Execute rewrite on all incoming urls to make this example easier to understand
-      url: ({url}) => {
+      url: (url) => {
           const removeKeysStartingWith = ["utm_", "uta_"]; // Remove all query parameters beginning with these strings
           const removeKeys = ["fbclid", "gclid"]; // Remove all query parameters matching these keys
 
@@ -51,12 +51,8 @@ export default {
       },
     },
     {
-      match: ({
-        url
-      }) => url.host.includes("zoom.us") && url.pathname.includes("/j/"),
-      url({
-        url
-      }) {
+      match: (url) => url.host.includes("zoom.us") && url.pathname.includes("/j/"),
+      url(url) {
         try {
           var pass = '&pwd=' + url.search.match(/pwd=(\w*)/)[1];
         } catch {
@@ -75,7 +71,8 @@ export default {
       match: [
         '*.slack.com/*',
       ],
-      url: function({ url, urlString }) {
+      url: function(url) {
+        const urlString = url.href;
         const subdomain = url.host.slice(0, -10)
         const pathParts = url.pathname.split("/")
 
