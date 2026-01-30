@@ -189,3 +189,4 @@ brew "duti"                                # Set macOS default apps
 cask "marked-app"                          # Markdown Viewer
 cask "soulver"                             # Calculator
 cask "cleanshot"                           # Screanshots
+cask "suspicious-package"                  # Inspect .pkg installers
