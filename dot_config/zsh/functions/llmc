@@ -1,0 +1,46 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# llmc - use LLM to generate shell commands and copy to clipboard
+# source: https://gist.github.com/montasaurus/5ccbe453ef863f702291e763b1b63daf
+# via: https://simonwillison.net/2024/Feb/16/llmcsh/
+
+local system_prompt='Output a command that I can run in a ZSH terminal on macOS to accomplish the following task. Try to make the command self-documenting, using the long version of flags where possible. Output the command first enclosed in a "```zsh" codeblock followed by a concise explanation of how it accomplishes it.'
+
+local temp_file=$(mktemp)
+local capturing=true
+local command_buffer=""
+local first_line=true
+local cleaned_up=false
+
+cleanup() {
+    if [[ "$cleaned_up" == false ]]; then
+        cleaned_up=true
+        if [[ -f "$temp_file" ]]; then
+            while IFS= read -r line; do
+                if [[ "$line" == '```zsh' ]]; then
+                    command_buffer=""
+                    first_line=true
+                elif [[ "$line" == '```' && "$capturing" == true ]]; then
+                    if [[ "$first_line" == true ]]; then
+                        echo -n "$command_buffer" | pbcopy
+                    else
+                        echo -n "${command_buffer//$'\n'/\\n}" | pbcopy
+                    fi
+                    break
+                elif [[ "$capturing" == true ]]; then
+                    if [[ "$first_line" == false ]]; then
+                        command_buffer+=$'\n'
+                    fi
+                    command_buffer+="$line"
+                    first_line=false
+                fi
+            done <"$temp_file"
+        fi
+        [[ -f "$temp_file" ]] && rm "$temp_file"
+        trap - SIGINT
+    fi
+}
+
+trap cleanup SIGINT
+llm -s "$system_prompt" "$*" | tee >(cat >"$temp_file")
+cleanup
