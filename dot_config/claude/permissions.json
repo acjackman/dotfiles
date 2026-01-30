@@ -1,5 +1,7 @@
 {
   "allow": [
+    "Bash(find:*)",
+    "Bash(grep:*)",
     "Bash(ls:*)",
     "Bash(gh:*)",
     "Bash(git status:*)",
