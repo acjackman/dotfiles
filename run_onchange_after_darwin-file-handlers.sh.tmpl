@@ -1,0 +1,77 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+set -euo pipefail
+
+if ! command -v duti &>/dev/null; then
+  echo "duti not installed, skipping file handlers"
+  exit 0
+fi
+
+# Text files → TextEdit
+duti -s com.neovide.neovide public.plain-text all
+duti -s com.neovide.neovide public.text all
+
+# Data formats
+duti -s com.neovide.neovide public.yaml all
+duti -s com.neovide.neovide public.json all
+duti -s com.neovide.neovide public.xml all
+duti -s com.neovide.neovide public.comma-separated-values-text all
+duti -s com.neovide.neovide .toml all
+
+# Source code
+duti -s com.neovide.neovide public.source-code all
+duti -s com.neovide.neovide public.shell-script all
+duti -s com.neovide.neovide public.python-script all
+duti -s com.neovide.neovide public.lua-source all
+duti -s com.neovide.neovide com.netscape.javascript-source all
+duti -s com.neovide.neovide public.c-source all
+duti -s com.neovide.neovide public.c-header all
+duti -s com.neovide.neovide public.c-plus-plus-source all
+duti -s com.neovide.neovide public.ruby-script all
+duti -s com.neovide.neovide public.perl-script all
+duti -s com.neovide.neovide public.php-script all
+duti -s com.neovide.neovide net.daringfireball.markdown all
+
+# Additional languages (by extension)
+duti -s com.neovide.neovide .go all
+duti -s com.neovide.neovide .rs all
+duti -s com.neovide.neovide .swift all
+duti -s com.neovide.neovide .java all
+duti -s com.neovide.neovide .ts all
+duti -s com.neovide.neovide .tsx all
+duti -s com.neovide.neovide .jsx all
+duti -s com.neovide.neovide .clj all
+duti -s com.neovide.neovide .cljs all
+duti -s com.neovide.neovide .groovy all
+duti -s com.neovide.neovide .r all
+duti -s com.neovide.neovide .m all
+duti -s com.neovide.neovide .mm all
+duti -s com.neovide.neovide .ml all
+duti -s com.neovide.neovide .bat all
+duti -s com.neovide.neovide .ps1 all
+duti -s com.neovide.neovide .bash all
+
+# Web
+duti -s com.neovide.neovide .vue all
+duti -s com.neovide.neovide .scss all
+duti -s com.neovide.neovide .sass all
+duti -s com.neovide.neovide .less all
+duti -s com.neovide.neovide .hbs all
+duti -s com.neovide.neovide .pug all
+duti -s com.neovide.neovide .jade all
+
+# Build/Config
+duti -s com.neovide.neovide .cfg all
+duti -s com.neovide.neovide .dockerfile all
+duti -s com.neovide.neovide .makefile all
+duti -s com.neovide.neovide .cmake all
+duti -s com.neovide.neovide .gradle all
+duti -s com.neovide.neovide .plist all
+
+# Other
+duti -s com.neovide.neovide .hpp all
+duti -s com.neovide.neovide .hxx all
+duti -s com.neovide.neovide .rst all
+duti -s com.neovide.neovide .tex all
+duti -s com.neovide.neovide .svg all
+{{ end -}}
