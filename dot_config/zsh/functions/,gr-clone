@@ -3,22 +3,55 @@
 __gr_clone() {
   setopt localoptions errexit
 
+  local usage="Usage: ,gr-clone <project-dir> <repo-url>
+
+Clone a git repository into a bare worktree structure.
+
+Arguments:
+  project-dir  Directory to create for the project
+  repo-url     Git repository URL to clone"
+
+  if [[ "$1" == "-h" || "$1" == "--help" ]]; then
+    echo "$usage"
+    return 0
+  fi
+
+  if [[ -z "$1" || -z "$2" ]]; then
+    echo "$usage"
+    return 1
+  fi
+
   local PROJECT_DIR=${1}
   local REPO_URL=${2}
 
-  if [[ -z "$PROJECT_DIR" || -z "$REPO_URL" ]]; then
-    echo "Usage: ,gr-clone <project-dir> <repo-url>"
+  if [[ -e "$PROJECT_DIR" ]]; then
+    echo "Error: $PROJECT_DIR already exists"
     return 1
   fi
 
   echo "Cloning $REPO_URL into ${PROJECT_DIR}/.bare"
 
-  mkdir "$PROJECT_DIR"
-  pushd "$PROJECT_DIR"
-  git clone --bare "$REPO_URL" .bare
+  if ! mkdir "$PROJECT_DIR"; then
+    echo "Error: Failed to create directory $PROJECT_DIR"
+    return 1
+  fi
+
+  pushd "$PROJECT_DIR" > /dev/null
+
+  if ! git clone --bare "$REPO_URL" .bare; then
+    popd > /dev/null
+    rm -rf "$PROJECT_DIR"
+    echo "Error: Failed to clone $REPO_URL"
+    return 1
+  fi
+
   echo "gitdir: ./.bare" > .git
   git config remote.origin.fetch "+refs/heads/*:refs/remotes/origin/*"
-  git fetch
+
+  if ! git fetch; then
+    echo "Error: Failed to fetch from remote"
+    return 1
+  fi
 
   # Setup mise config
   mkdir -p .config
@@ -30,10 +63,25 @@ EOF
 
   # Setup default branch worktree
   local DEFAULT_BRANCH=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
-  git worktree add "$DEFAULT_BRANCH"
-  pushd "$DEFAULT_BRANCH"
-  git branch --set-upstream-to=origin/"$DEFAULT_BRANCH" "$DEFAULT_BRANCH"
-  popd
+  if [[ -z "$DEFAULT_BRANCH" ]]; then
+    echo "Error: Could not determine default branch"
+    return 1
+  fi
+
+  if ! git worktree add "$DEFAULT_BRANCH"; then
+    echo "Error: Failed to create worktree for $DEFAULT_BRANCH"
+    return 1
+  fi
+
+  pushd "$DEFAULT_BRANCH" > /dev/null
+  git branch --set-upstream-to=origin/"$DEFAULT_BRANCH" "$DEFAULT_BRANCH" 2>/dev/null || true
+  popd > /dev/null
+  popd > /dev/null
+
+  echo "Successfully cloned to bare worktree structure!"
+  echo "Default branch worktree: $PROJECT_DIR/$DEFAULT_BRANCH"
 }
 
-__gr_clone "$@"
+if ! __gr_clone "$@"; then
+  return 1
+fi
