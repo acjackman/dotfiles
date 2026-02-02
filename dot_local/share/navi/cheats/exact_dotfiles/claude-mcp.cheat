@@ -4,7 +4,7 @@
 claude mcp add spacectl -- spacectl mcp server
 
 # Add Notion MCP server to project
-claude mcp add --transport http Notion https\://mcp.notion.com/mcp
+claude mcp add --transport http Notion https://mcp.notion.com/mcp
 
 # Add Linear MCP server to project
-claude mcp add --transport http linear-server https\://mcp.linear.app/mcp
+claude mcp add --transport http linear-server https://mcp.linear.app/mcp
