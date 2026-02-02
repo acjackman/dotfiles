@@ -11,6 +11,7 @@ tap "FelixKratz/formulae"
 tap "yqrashawn/goku"
 tap "raine/workmux"
 tap "max-sixty/worktrunk"
+tap "steipete/tap"
 
 ######################################
 # Installers
@@ -182,11 +183,12 @@ cask "leader-key"                          # Leader Key
 brew "FelixKratz/formulae/sketchybar"      # Custom Menu bar
 cask "jordanbaird-ice"                     # Hide menubar items
 cask "stats"                               # Menubar stats
+cask "steipete/tap/codexbar"               # AI coding assistant menubar
 # cask "hpedrorodrigues/tools/dockutil"    # Control dock positions
 
 # Utilties
 brew "duti"                                # Set macOS default apps
-cask "neovide"                             # Neovim GUI
+cask "neovide-app"                         # Neovim GUI
 cask "marked-app"                          # Markdown Viewer
 cask "soulver"                             # Calculator
 cask "cleanshot"                           # Screanshots
