@@ -86,7 +86,7 @@ skip-shell-integration-prompt = true
 command = "llm -m claude-haiku-4.5"
 
 [post-switch]
-tmux = "[ -n \\"$TMUX\\" ] && [ $(tmux list-panes | wc -l) -eq 1 ] && tmux rename-window \\"$(~/.config/tmux/rename-from-repo.sh \\"$PWD\\")\\""
+tmux = "[ -n \\"$TMUX_PANE\\" ] && [ $(tmux list-panes 2>/dev/null | wc -l) -eq 1 ] && { tmux rename-window -t \\"$TMUX_PANE\\" \\"$(~/.config/tmux/rename-from-repo.sh \\"$PWD\\")\\" 2>/dev/null || true; }"
 """
 
     # Combine managed config with preserved projects
