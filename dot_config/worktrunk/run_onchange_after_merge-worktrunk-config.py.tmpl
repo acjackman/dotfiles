@@ -82,9 +82,8 @@ def main() -> int:
 worktree-path = ".worktrees/{{ "{{" }} branch | sanitize {{ "}}" }}"
 skip-shell-integration-prompt = true
 
-[commit-generation]
-command = "llm"
-args = ["-m", "claude-haiku-4.5"]
+[commit.generation]
+command = "llm -m claude-haiku-4.5"
 
 [post-switch]
 tmux = "[ -n \\"$TMUX\\" ] && [ $(tmux list-panes | wc -l) -eq 1 ] && tmux rename-window \\"$(~/.config/tmux/rename-from-repo.sh \\"$PWD\\")\\""
