@@ -1,0 +1,49 @@
+#!/usr/bin/env bash
+
+# Send push notifications via Pushcut webhook
+# Only sends if terminal is not focused OR display is sleeping
+
+set -euo pipefail
+
+TITLE="${1:-Notification}"
+MESSAGE="${2:-}"
+
+# Check if display is sleeping
+is_display_sleeping() {
+    local idle_time
+    idle_time=$(ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print $NF/1000000000; exit}')
+    # Consider display sleeping if idle for more than 5 minutes
+    (( $(echo "$idle_time > 300" | bc -l) ))
+}
+
+# Check if a terminal app is currently focused
+is_terminal_focused() {
+    local focused_app
+    focused_app=$(osascript -e 'tell application "System Events" to get name of first application process whose frontmost is true' 2>/dev/null || echo "")
+
+    case "$focused_app" in
+        iTerm2|Terminal|kitty|Ghostty|Alacritty|Hyper|WezTerm)
+            return 0
+            ;;
+        *)
+            return 1
+            ;;
+    esac
+}
+
+# Only send notification if terminal is NOT focused OR display is sleeping
+if is_terminal_focused && ! is_display_sleeping; then
+    exit 0
+fi
+
+# Fetch Pushcut URL from 1Password
+PUSHCUT_URL=$(op read "op://Private/Pushcut-LocalClaude/full-url" 2>/dev/null) || {
+    echo "Error: Failed to fetch Pushcut URL from 1Password" >&2
+    exit 1
+}
+
+# Send notification
+curl -s -X POST "$PUSHCUT_URL" \
+    -H "Content-Type: application/json" \
+    -d "$(jq -n --arg title "$TITLE" --arg text "$MESSAGE" '{title: $title, text: $text}')" \
+    >/dev/null

@@ -1,0 +1,26 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "jq -r '.message // empty' | xargs -I {} $HOME/.local/bin/notify-pushcut \"Claude Code\" \"{}\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "$HOME/.local/bin/notify-pushcut \"Claude Code Finished\" \"Claude has completed your task\""
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,19 +1,24 @@
 #!/bin/bash
 # permissions hash: {{ include "dot_config/claude/permissions.json" | sha256sum }}
+# hooks hash: {{ include "dot_config/claude/hooks.json" | sha256sum }}
 # settings hash: {{ output "sha256sum" (joinPath .chezmoi.homeDir ".config/claude/settings.json") | trim | splitList " " | first }}
 
 SETTINGS_FILE="$HOME/.config/claude/settings.json"
 PERMISSIONS_FILE="{{ .chezmoi.sourceDir }}/dot_config/claude/permissions.json"
+HOOKS_FILE="{{ .chezmoi.sourceDir }}/dot_config/claude/hooks.json"
 
 # Create settings file if it doesn't exist
 if [ ! -f "$SETTINGS_FILE" ]; then
     echo '{}' > "$SETTINGS_FILE"
 fi
 
-# Use jq to merge permissions into settings and disable auto-update
+# Use jq to merge permissions and hooks into settings and disable auto-update
 if command -v jq &> /dev/null; then
     PERMISSIONS=$(cat "$PERMISSIONS_FILE")
-    jq --argjson perms "$PERMISSIONS" '.permissions = $perms | .autoUpdaterStatus = "disabled"' "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && \
+    HOOKS=$(jq '.hooks' "$HOOKS_FILE")
+    jq --argjson perms "$PERMISSIONS" --argjson hooks "$HOOKS" \
+        '.permissions = $perms | .hooks = $hooks | .autoUpdaterStatus = "disabled"' \
+        "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && \
         mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
 else
     echo "Warning: jq not found. Cannot update Claude permissions automatically."
