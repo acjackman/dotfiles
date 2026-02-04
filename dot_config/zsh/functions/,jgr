@@ -1,0 +1,13 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# ,jgr - Jump to Git Root
+#
+# Pushd to the root of the current git repository
+
+local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+if [[ -z "$repo_root" ]]; then
+    echo "Not in a git repository" >&2
+    return 1
+fi
+
+pushd "$repo_root" > /dev/null
