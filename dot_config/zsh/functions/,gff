@@ -5,6 +5,56 @@
 #
 # Usage: ,gff
 
+# Lock variables and helper functions
+local LOCK_FILE GIT_DIR
+
+__acquire_lock() {
+    # Get absolute git directory path (handles worktrees correctly)
+    GIT_DIR=$(git rev-parse --absolute-git-dir 2>/dev/null)
+    [[ -z "$GIT_DIR" ]] && { echo "ERROR: Not in a git repository" >&2; return 1; }
+
+    LOCK_FILE="${GIT_DIR}/,gff.lock"
+
+    # Retry loop (60 seconds max)
+    local max_retries=60 retry_count=0 lock_pid
+    while (( retry_count < max_retries )); do
+        # Check if lock exists
+        if [[ ! -f "$LOCK_FILE" ]]; then
+            # Create lock with current PID and timestamp
+            echo "$$" > "$LOCK_FILE"
+            date +%s >> "$LOCK_FILE"
+            return 0
+        fi
+
+        # Lock exists - check if stale
+        lock_pid=$(head -1 "$LOCK_FILE" 2>/dev/null)
+        if [[ "$lock_pid" =~ ^[0-9]+$ ]] && ! kill -0 "$lock_pid" 2>/dev/null; then
+            # Stale lock (PID not running) - remove and retry
+            rm -f "$LOCK_FILE"
+            continue
+        fi
+
+        # Lock held by running process - wait
+        (( retry_count == 0 )) && echo "Waiting for other ,gff instance to finish..." >&2
+        sleep 1
+        (( retry_count++ ))
+    done
+
+    # Timeout
+    echo "ERROR: Failed to acquire lock after ${max_retries}s (held by PID: $lock_pid)" >&2
+    return 1
+}
+
+__cleanup_lock() {
+    [[ -f "$LOCK_FILE" ]] && rm -f "$LOCK_FILE"
+}
+
+# Acquire lock before proceeding
+__acquire_lock || return 1
+
+# Register cleanup handler
+trap '__cleanup_lock' EXIT INT TERM
+
 # Find default branch
 # Priority 1: Try worktrunk if available
 if command -v wt >/dev/null 2>&1; then
