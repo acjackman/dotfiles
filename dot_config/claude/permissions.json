@@ -19,6 +19,7 @@
     "Bash(git status:*)",
     "Bash(git log:*)",
     "Bash(git diff:*)",
+    "Bash(git grep:*)",
     "Bash(git branch:*)",
     "Bash(git show:*)",
     "Bash(git remote:*)",
