@@ -31,6 +31,17 @@
     "Bash(git config --list:*)",
     "Bash(git check-ignore:*)",
     "Bash(git describe:*)",
-    "Bash(tofu fmt:*)"
+    "Bash(tofu fmt:*)",
+    "Bash(mise ls:*)",
+    "Bash(mise list:*)",
+    "Bash(mise current:*)",
+    "Bash(mise where:*)",
+    "Bash(mise which:*)",
+    "Bash(mise config:*)",
+    "Bash(mise settings ls:*)",
+    "Bash(mise env:*)",
+    "Bash(mise doctor:*)",
+    "Bash(mise help:*)",
+    "Bash(chezmoi diff:*)"
   ]
 }
