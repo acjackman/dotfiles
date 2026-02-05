@@ -8,3 +8,6 @@ claude mcp add --transport http Notion https://mcp.notion.com/mcp
 
 # Add Linear MCP server to project
 claude mcp add --transport http linear-server https://mcp.linear.app/mcp
+
+# Add Honeyocmb MCP server to project
+claude mcp add honeycomb --transport http https://mcp.honeycomb.io/mcp
