@@ -3,6 +3,7 @@
     "Bash(find:*)",
     "Bash(grep:*)",
     "Bash(ls:*)",
+    "Bash(which:*)",
     "Bash(gh repo view:*)",
     "Bash(gh pr view:*)",
     "Bash(gh pr list:*)",
