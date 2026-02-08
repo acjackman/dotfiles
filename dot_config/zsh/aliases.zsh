@@ -60,6 +60,7 @@ alias ,ghprn="gh pr view --json number --jq number"
 
 # claude
 alias claude-tmp="claude -p --no-session-persistence"
+alias claude-yolo="claude --dangerously-skip-permissions"
 
 # fancier ping
 alias ping='prettyping --nolegend'
