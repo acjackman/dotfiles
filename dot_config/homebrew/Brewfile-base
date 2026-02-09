@@ -12,6 +12,7 @@ tap "yqrashawn/goku"
 tap "raine/workmux"
 tap "max-sixty/worktrunk"
 tap "steipete/tap"
+tap "yakitrak/yakitrak"
 
 ######################################
 # Installers
@@ -159,6 +160,7 @@ cask "1password-cli"
 
 # Doucmentation
 cask "dash" # Offline Documentation
+brew "yakitrak/yakitrak/obsidian-cli"
 
 # Maintenance
 brew "topgrade"
