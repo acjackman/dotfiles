@@ -276,9 +276,14 @@ eval "$(navi widget zsh)"
 # =======================================
 eval "$(atuin init zsh)"
 
-# Workaround to make vi-mode work with atuin
+# Source fzf key-bindings to define widgets (Ctrl+T file picker, Alt+C cd)
+export FZF_CTRL_T_COMMAND="fd --type f --hidden --follow --exclude .git"
+source "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh"
+
+# Workaround to make vi-mode work with atuin & fzf
 function zvm_after_init() {
   zvm_bindkey viins '^R' atuin-search
+  zvm_bindkey viins '^T' fzf-file-widget
 }
 
 # =======================================
