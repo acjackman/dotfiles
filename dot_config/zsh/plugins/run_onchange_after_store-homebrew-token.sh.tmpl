@@ -1,0 +1,20 @@
+#!/bin/bash
+
+function show-header() {
+  command -v gum &>/dev/null
+  if [ $? -eq 0 ]; then
+    gum style --border=double --align=left --padding "0 2" --width=75 $@
+  else
+    echo $@
+  fi
+}
+
+show-header "Homebrew Token"
+TOKEN="$(op read "op://Private/GitHub/pat-homebrew/2026-02-08")"
+if [ -n "$TOKEN" ]; then
+  security add-generic-password -a "$USER" -s "HOMEBREW_GITHUB_API_TOKEN" -w "$TOKEN" -U
+  echo "Stored HOMEBREW_GITHUB_API_TOKEN in Keychain"
+else
+  echo "Failed to read token from 1Password" >&2
+  exit 1
+fi

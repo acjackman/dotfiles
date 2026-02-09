@@ -48,7 +48,8 @@ zinit wait lucid for \
   iloveitaly/zsh-github-cli \
   depth:1 jeffreytse/zsh-vi-mode \
   pick"kubectl-completion.plugin.zsh" ~/.config/zsh/plugins \
-  pick"k9s.plugin.zsh" ~/.config/zsh/plugins
+  pick"k9s.plugin.zsh" ~/.config/zsh/plugins \
+  pick"homebrew-token.plugin.zsh" ~/.config/zsh/plugins
 
 # must be loaded after syntax completion
 zinit load zsh-users/zsh-history-substring-search
