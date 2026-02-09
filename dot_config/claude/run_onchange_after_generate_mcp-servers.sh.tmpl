@@ -1,0 +1,21 @@
+#!/bin/bash
+# mcp-servers hash: {{ include "dot_config/claude/mcp-servers.json" | sha256sum }}
+# claude.json hash: {{ output "sha256sum" (joinPath .chezmoi.homeDir ".config/claude/.claude.json") | trim | splitList " " | first }}
+
+CLAUDE_JSON="$HOME/.config/claude/.claude.json"
+MCP_SERVERS_FILE="{{ .chezmoi.sourceDir }}/dot_config/claude/mcp-servers.json"
+
+# Create .claude.json if it doesn't exist
+if [ ! -f "$CLAUDE_JSON" ]; then
+    echo '{}' > "$CLAUDE_JSON"
+fi
+
+# Use jq to merge MCP servers into .claude.json
+if command -v jq &> /dev/null; then
+    MCP_SERVERS=$(cat "$MCP_SERVERS_FILE")
+    jq --argjson servers "$MCP_SERVERS" '.mcpServers = $servers' "$CLAUDE_JSON" > "$CLAUDE_JSON.tmp" && \
+        mv "$CLAUDE_JSON.tmp" "$CLAUDE_JSON"
+else
+    echo "Warning: jq not found. Cannot update Claude MCP servers automatically."
+    exit 1
+fi
