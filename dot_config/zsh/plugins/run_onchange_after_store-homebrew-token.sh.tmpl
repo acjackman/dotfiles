@@ -10,7 +10,7 @@ function show-header() {
 }
 
 show-header "Homebrew Token"
-TOKEN="$(op read "op://Private/GitHub/pat-homebrew/2026-02-08")"
+TOKEN="$(op read --account jackman.1password.com "op://Private/GitHub/pat-homebrew/2026-02-08")"
 if [ -n "$TOKEN" ]; then
   security add-generic-password -a "$USER" -s "HOMEBREW_GITHUB_API_TOKEN" -w "$TOKEN" -U
   echo "Stored HOMEBREW_GITHUB_API_TOKEN in Keychain"

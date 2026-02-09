@@ -18,5 +18,5 @@ fi
 
 # Set llm key
 # {{ if "personal" .extras}}
-llm keys set anthropic --value $(op read "op://Private/Claude/api-keys/llm")
+llm keys set anthropic --value $(op read --account jackman.1password.com "op://Private/Claude/api-keys/llm")
 # {{ end }}
