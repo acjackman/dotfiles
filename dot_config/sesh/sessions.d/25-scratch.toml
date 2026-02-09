@@ -1,0 +1,4 @@
+[[session]]
+name = "scratch"
+path = "~/scratch"
+startup_command = "d=$(date +%Y-%m-%dT%H-%M) && mkdir -p $d && cd $d && tmux rename-session scratch-$d"
