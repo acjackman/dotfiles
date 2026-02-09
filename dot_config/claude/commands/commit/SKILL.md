@@ -1,8 +1,7 @@
 ---
 allowed-tools:
+  - Bash(bash *git-commit-info.sh:*)
   - Bash(git status:*)
-  - Bash(git diff:*)
-  - Bash(git log:*)
   - Bash(git add:*)
   - Bash(git commit:*)
 ---
@@ -13,10 +12,10 @@ Create a git commit with a well-structured commit message.
 
 ## Instructions
 
-1. First, gather information about the current state by running these commands in parallel:
-   - `git status` to see all untracked and modified files
-   - `git diff` to see staged and unstaged changes
-   - `git log -5 --oneline` to see recent commit message style
+1. Run the `git-commit-info.sh` script from this skill directory to gather branch, status, diff, recent commits, and warnings in one call:
+   ```bash
+   bash ~/.config/claude/commands/commit/git-commit-info.sh
+   ```
 
 2. Analyze all changes and draft a commit message:
    - Summarize the nature of changes (new feature, enhancement, bug fix, refactoring, etc.)
@@ -26,13 +25,13 @@ Create a git commit with a well-structured commit message.
 
 3. Stage and commit:
    - Add relevant files individually (avoid `git add -A` or `git add .`)
-   - Never commit files that may contain secrets (.env, credentials, etc.)
-   - Use a HEREDOC for the commit message:
+   - Never commit files flagged in the WARNINGS section (secrets, credentials, etc.)
+   - Combine staging and committing when possible:
      ```bash
-     git commit -m "$(cat <<'EOF'
+     git add file1 file2 && git commit -m "$(cat <<'EOF'
      Commit message here.
 
-     Co-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>
+     Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
      EOF
      )"
      ```
@@ -41,14 +40,9 @@ Create a git commit with a well-structured commit message.
 
 ## Important
 
+- Only use `git -C` if not already in the repository or worktree root.
 - Never amend commits unless explicitly requested
 - Never force push or modify git config
 - Never skip pre-commit hooks
 - If a pre-commit hook fails, fix the issue and create a NEW commit
 - Do not push unless explicitly asked
-
-## Allowed Operations
-
-This skill grants permission to run:
-- `git add <files>`
-- `git commit`

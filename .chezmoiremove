@@ -19,3 +19,4 @@
 {{ .chezmoi.destDir }}/.config/sesh/run_after_merge-sesh-sessions.sh
 {{ .chezmoi.destDir }}/.config/zsh/functions/,rm-scratch
 {{ .chezmoi.destDir }}/.config/sesh/sessions.d
+{{ .chezmoi.destDir }}/.config/claude/commands/commit.md
