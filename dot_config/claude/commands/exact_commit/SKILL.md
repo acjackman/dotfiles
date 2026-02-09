@@ -1,6 +1,6 @@
 ---
 allowed-tools:
-  - Bash(bash *git-commit-info.sh:*)
+  - Bash(bash ~/.config/claude/commands/commit/git-commit-info.sh:Gather git branch, status, diff, and recent commits)
   - Bash(git status:*)
   - Bash(git add:*)
   - Bash(git commit:*)
