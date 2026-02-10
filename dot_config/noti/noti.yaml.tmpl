@@ -1,2 +1,2 @@
 slack:
-  appurl: '{{ onepasswordRead (printf "%s%s" "op://Private/Slack Computer App/webhooks/" (.hostname | lower)) "jackman.1password.com" }}'
+  appurl: '{{ output "sh" "-c" "security find-generic-password -a \"$USER\" -s NOTI_SLACK_WEBHOOK -w 2>/dev/null || true" | trim }}'

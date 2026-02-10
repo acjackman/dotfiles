@@ -1,0 +1,22 @@
+#!/bin/bash
+# hostname: {{ .hostname | lower }}
+# op-path: op://Private/Slack Computer App/webhooks/{{ .hostname | lower }}
+
+function show-header() {
+  command -v gum &>/dev/null
+  if [ $? -eq 0 ]; then
+    gum style --border=double --align=left --padding "0 2" --width=75 $@
+  else
+    echo $@
+  fi
+}
+
+show-header "Noti Slack Webhook"
+TOKEN="$(op read --account jackman.1password.com "op://Private/Slack Computer App/webhooks/{{ .hostname | lower }}")"
+if [ -n "$TOKEN" ]; then
+  security add-generic-password -a "$USER" -s "NOTI_SLACK_WEBHOOK" -w "$TOKEN" -U
+  echo "Stored NOTI_SLACK_WEBHOOK in Keychain"
+else
+  echo "Failed to read webhook from 1Password" >&2
+  exit 1
+fi
