@@ -33,10 +33,3 @@ while [[ ! op whoami > /dev/null ]]; do
 done
 
 chezmoi init --apply --verbose https://github.com/acjackman/dotfiles.git
-
-# Install asdf
-if [[ -z "${ASDF_DIR+x}" ]]; then
-    export ASDF_DIR="$HOME/.asdf/"
-fi
-git clone https://github.com/asdf-vm/asdf.git "$ASDF_DIR" --branch v0.14.1
-export PATH="$PATH:$ASDF_DIR/bin"

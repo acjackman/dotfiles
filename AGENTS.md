@@ -20,7 +20,7 @@ Chezmoi manages dotfiles by keeping source files in this repository and deployin
 
 4. **Verify** the deployed file has your changes
 
-5. **When removing or renaming managed files**, add the old target path to `.chezmoiremove` so other machines clean up the stale file on their next `chezmoi apply`. Use the format `{{ .chezmoi.destDir }}/path/to/old/file`.
+5. **When removing or renaming managed files**, add the old target path to `.chezmoiremove` so other machines clean up the stale file on their next `chezmoi apply`. Use paths relative to the home directory (e.g., `.config/old-app/config.toml`).
 
 ### Why This Matters
 

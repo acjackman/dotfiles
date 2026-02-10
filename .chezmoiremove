@@ -1,22 +1,17 @@
-{{ .chezmoi.destDir }}/.local/share/tmux/plugins/catppuccin
-{{ .chezmoi.destDir }}/.config/karabiner/karabiner.edn
-{{ .chezmoi.destDir }}/finicky.js
-{{ .chezmoi.destDir }}/.config/alacritty
-{{ if ne .hostname "Odin" }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-odin{{ end }}
-{{ if ne .hostname "Odin" }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-odin.lock.json{{ end }}
-{{ if not (has "personal" .extras) }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-personal{{ end }}
-{{ if not (has "personal" .extras) }}{{ .chezmoi.destDir }}/.config/homebrew/Brewfile-personal.lock.json{{ end }}
-{{ .chezmoi.destDir }}/.config/zsh/functions/,pr-merged
-{{ .chezmoi.destDir }}/.config/zsh/functions/,jgw
-{{ .chezmoi.destDir }}/.config/zsh/functions/,jgwh
-{{ .chezmoi.destDir }}/.config/zsh/functions/_jgw_relativize_path
-{{ .chezmoi.destDir }}/.config/zsh/functions/_jgw_absolutize_path
-{{ .chezmoi.destDir }}/.local/bin/_jgw_relativize_path
-{{ .chezmoi.destDir }}/.local/bin/_jgw_absolutize_path
-{{ .chezmoi.destDir }}/.tool-versions
-{{ .chezmoi.destDir }}/.asdf
-{{ .chezmoi.destDir }}/.config/asdf
-{{ .chezmoi.destDir }}/.config/sesh/run_after_merge-sesh-sessions.sh
-{{ .chezmoi.destDir }}/.config/zsh/functions/,rm-scratch
-{{ .chezmoi.destDir }}/.config/sesh/sessions.d
-{{ .chezmoi.destDir }}/.config/claude/commands/commit.md
+.config/karabiner/karabiner.edn
+finicky.js
+.config/alacritty
+{{ if ne .hostname "Odin" }}.config/homebrew/Brewfile-odin{{ end }}
+{{ if ne .hostname "Odin" }}.config/homebrew/Brewfile-odin.lock.json{{ end }}
+{{ if not (has "personal" .extras) }}.config/homebrew/Brewfile-personal{{ end }}
+{{ if not (has "personal" .extras) }}.config/homebrew/Brewfile-personal.lock.json{{ end }}
+.config/zsh/functions/,pr-merged
+.local/bin/_jgw_relativize_path
+.local/bin/_jgw_absolutize_path
+.tool-versions
+.asdf
+.config/asdf
+.config/sesh/run_after_merge-sesh-sessions.sh
+.config/zsh/functions/,rm-scratch
+.config/sesh/sessions.d
+.config/claude/commands/commit.md

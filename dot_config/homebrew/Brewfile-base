@@ -50,7 +50,6 @@ cask "font-departure-mono"
 ######################################
 # Terminal environment
 ######################################
-# brew "asdf # Installed via git
 brew "fzf"
 brew "tmux"
 brew "sesh"
