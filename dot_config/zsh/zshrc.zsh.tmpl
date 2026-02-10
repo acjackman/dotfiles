@@ -67,9 +67,6 @@ zinit as="command" lucid from="gh-r" for \
 # =============
 # ENV Vairables & App Settings
 # =============
-{{ $env_exports := (onepasswordItemFields "env" "Private" "jackman.1password.com") -}}
-{{range $value := $env_exports }}export {{ $value.label }}='{{ $value.value }}'
-{{end}}
 
 export SPACECTL_SKIP_STACK_PROMPT='true'
 
