@@ -1,0 +1,158 @@
+#!/usr/bin/env zsh
+
+# Watch a PR's CI checks, then mark ready for review or launch Claude to investigate failures
+#
+# Usage:
+#   ,pr-checks                         # Watch current branch's PR
+#   ,pr-checks <PR_URL|PR_NUMBER>      # Watch specific PR
+#   ,pr-checks --auto-merge            # Also enable GitHub auto-merge on success
+#   ,pr-checks 123 --auto-merge        # Combine both
+
+# Check dependencies
+for cmd in gum gh jq claude; do
+    if ! command -v $cmd &> /dev/null; then
+        >&2 echo "Error: $cmd is not installed."
+        exit 1
+    fi
+done
+
+# Parse arguments
+auto_merge=false
+input=""
+
+for arg in "$@"; do
+    case "$arg" in
+        --auto-merge)
+            auto_merge=true
+            ;;
+        *)
+            if [[ -z "$input" ]]; then
+                input="$arg"
+            else
+                >&2 echo "Error: Unexpected argument '$arg'"
+                exit 1
+            fi
+            ;;
+    esac
+done
+
+# Resolve PR
+if [[ -z "$input" ]]; then
+    input=$(gh pr view --json=url -t "{{.url}}" 2>/dev/null)
+    if [[ $? -ne 0 || -z "$input" ]]; then
+        >&2 echo "Usage: ,pr-checks [PR_URL|PR_NUMBER] [--auto-merge]"
+        >&2 echo ""
+        >&2 echo "If no argument is provided, uses the current branch's PR."
+        >&2 echo ""
+        >&2 echo "Examples:"
+        >&2 echo "  ,pr-checks                             # Use current branch's PR"
+        >&2 echo "  ,pr-checks 123                         # Watch PR #123"
+        >&2 echo "  ,pr-checks https://github.com/owner/repo/pull/123"
+        >&2 echo "  ,pr-checks --auto-merge                # Enable auto-merge on success"
+        >&2 echo "  ,pr-checks 123 --auto-merge"
+        exit 1
+    fi
+fi
+
+# Validate input
+if [[ "$input" =~ ^https?:// ]]; then
+    pr="$input"
+elif [[ "$input" =~ ^[0-9]+$ ]]; then
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        >&2 echo "Error: Not in a git repository. Please provide a full PR URL."
+        exit 1
+    fi
+    pr="$input"
+else
+    >&2 echo "Error: Invalid input. Provide a PR URL or PR number."
+    exit 1
+fi
+
+# Fetch PR metadata
+pr_data=$(gh pr view "$pr" --json=number,title,body,url,isDraft 2>/dev/null)
+
+if [[ $? -ne 0 || -z "$pr_data" ]]; then
+    >&2 echo "Failed to fetch PR data. Make sure the PR is valid and you have access."
+    exit 1
+fi
+
+pr_number=$(echo "$pr_data" | jq -r '.number')
+pr_title=$(echo "$pr_data" | jq -r '.title')
+pr_body=$(echo "$pr_data" | jq -r '.body')
+pr_url=$(echo "$pr_data" | jq -r '.url')
+pr_is_draft=$(echo "$pr_data" | jq -r '.isDraft')
+
+echo ""
+gum style --border rounded --padding "0 1" --margin "1" \
+    "PR #${pr_number}: ${pr_title}" \
+    "URL: ${pr_url}" \
+    "Draft: ${pr_is_draft}"
+echo ""
+
+# Watch checks — blocks until all settle
+gum style --foreground 4 "Watching CI checks..."
+echo ""
+
+checks_output=$(gh pr checks "$pr" --watch --json name,state,bucket,link,workflow 2>&1)
+checks_exit=$?
+
+if [[ $checks_exit -eq 0 ]]; then
+    # All checks passed
+    echo ""
+    gum style --foreground 2 "✓ All checks passed!"
+
+    # Mark PR as ready for review
+    gh pr ready "$pr" 2>/dev/null
+    if [[ $? -eq 0 && "$pr_is_draft" == "true" ]]; then
+        gum style --foreground 2 "✓ PR marked as ready for review"
+    fi
+
+    # Enable auto-merge if requested
+    if [[ "$auto_merge" == "true" ]]; then
+        gh pr merge "$pr" --auto --squash 2>/dev/null
+        if [[ $? -eq 0 ]]; then
+            gum style --foreground 2 "✓ Auto-merge enabled (squash)"
+        else
+            gum style --foreground 3 "⚠ Failed to enable auto-merge (may require repo settings)"
+        fi
+    fi
+else
+    # Some checks failed — parse failures and launch Claude
+    echo ""
+    gum style --foreground 1 "✗ Some checks failed"
+    echo ""
+
+    # Extract failing checks
+    failing_checks=$(echo "$checks_output" | jq -r '[.[] | select(.bucket == "fail")] | if length == 0 then empty else . end' 2>/dev/null)
+
+    # Build failure summary for Claude
+    failure_summary=""
+    if [[ -n "$failing_checks" ]]; then
+        failure_summary=$(echo "$failing_checks" | jq -r '.[] | "- \(.name) (\(.workflow // "unknown workflow"))\n  Link: \(.link // "no link")"')
+    else
+        failure_summary="(Could not parse failing checks from output)\n\nRaw output:\n${checks_output}"
+    fi
+
+    # Display failing checks
+    gum style --border rounded --padding "0 1" --foreground 1 "Failing checks:" "" "$failure_summary"
+    echo ""
+
+    # Build prompt for Claude
+    prompt="I'm working on a GitHub PR that has failing CI checks. Please investigate the failures and fix them.
+
+PR #${pr_number}: ${pr_title}
+URL: ${pr_url}
+
+## PR Description
+${pr_body}
+
+## Failing Checks
+${failure_summary}
+
+Please investigate the failing checks (use the links to view logs if needed), identify the root causes, and fix the issues."
+
+    gum style --foreground 4 "Launching Claude Code to investigate failures..."
+    echo ""
+
+    claude "$prompt"
+fi
