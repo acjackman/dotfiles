@@ -9,10 +9,14 @@ Create a draft pull request using the `gh` CLI that follows the repository's PR 
    - Run `git log origin/main..HEAD` (or appropriate base branch) to see commits to be included
    - Run `git diff origin/main...HEAD` to understand the full scope of changes
 
-2. Check if the repository has a PR template:
-   - Look for `.github/PULL_REQUEST_TEMPLATE.md`
-   - Also check `.github/PULL_REQUEST_TEMPLATE/` directory for multiple templates
-   - If a template exists, read it and use its structure
+2. Check if the repository has a PR template (check in this order):
+   - `.github/pull_request_template.md` (case-insensitive filename)
+   - `.github/PULL_REQUEST_TEMPLATE/` directory (multiple templates)
+   - `docs/pull_request_template.md` (case-insensitive filename)
+   - `docs/PULL_REQUEST_TEMPLATE/` directory (multiple templates)
+   - `pull_request_template.md` in repo root (case-insensitive filename)
+   - `PULL_REQUEST_TEMPLATE/` directory in repo root (multiple templates)
+   - Use the first match found; if a template exists, read it and use its structure
 
 3. If there are uncommitted changes that should be included, prompt about committing them first.
 
