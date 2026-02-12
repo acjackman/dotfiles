@@ -25,7 +25,7 @@ fi
 local -a dirs
 dirs=($(
     {
-        git diff --name-only "${main_branch}...HEAD" 2>/dev/null
+        git diff --name-only "origin/${main_branch}...HEAD" 2>/dev/null
         git diff --name-only --cached 2>/dev/null
         git diff --name-only 2>/dev/null
     } | while IFS= read -r file; do
