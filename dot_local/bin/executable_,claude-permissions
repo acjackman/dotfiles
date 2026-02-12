@@ -1,0 +1,279 @@
+#!/usr/bin/env python3
+"""Extract unpermitted tool calls from Claude Code session history.
+
+Parses session JSONL files for the current project and compares tool calls
+against existing permission rules (global + project) to show which commands
+triggered permission prompts.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import sys
+from collections import Counter
+from datetime import datetime
+from pathlib import Path
+
+
+def claude_config_dir() -> Path:
+    """Resolve Claude Code config directory, respecting CLAUDE_CONFIG_DIR."""
+    env = os.environ.get("CLAUDE_CONFIG_DIR")
+    if env:
+        return Path(env)
+    return Path("~/.config/claude").expanduser()
+
+
+def load_settings_permissions(path: Path) -> list[str]:
+    """Load permissions.allow from a settings JSON file."""
+    if not path.exists():
+        return []
+    try:
+        data = json.loads(path.read_text())
+        return data.get("permissions", {}).get("allow", [])
+    except (json.JSONDecodeError, KeyError, OSError):
+        return []
+
+
+def load_permissions(config_dir: Path, project_dir: Path) -> list[str]:
+    """Load all permission allow rules from global + project settings."""
+    rules: list[str] = []
+
+    # Global: $CLAUDE_CONFIG_DIR/settings.json and settings.local.json
+    for name in ("settings.json", "settings.local.json"):
+        rules.extend(load_settings_permissions(config_dir / name))
+
+    # Project: $PROJECT/.claude/settings.json and settings.local.json
+    for name in ("settings.json", "settings.local.json"):
+        rules.extend(load_settings_permissions(project_dir / ".claude" / name))
+
+    return rules
+
+
+def is_permitted(tool_name: str, tool_input: dict, rules: list[str]) -> bool:
+    """Check if a tool call matches any existing permission rule."""
+    if tool_name == "Bash":
+        command = tool_input.get("command", "")
+        for rule in rules:
+            # Match Bash(prefix:*) pattern
+            if rule.startswith("Bash(") and rule.endswith(":*)"):
+                prefix = rule[5:-3]
+                if command == prefix or command.startswith(prefix + " ") or command.startswith(prefix + "\n"):
+                    return True
+            elif rule.startswith("Bash(") and rule.endswith(")"):
+                # Exact match without wildcard
+                exact = rule[5:-1]
+                if command == exact:
+                    return True
+        return False
+
+    if tool_name == "WebFetch":
+        for rule in rules:
+            if rule.startswith("WebFetch(domain:") and rule.endswith(")"):
+                domain = rule[16:-1]
+                url = tool_input.get("url", "")
+                if domain in url:
+                    return True
+        return False
+
+    if tool_name == "WebSearch":
+        for rule in rules:
+            if rule == "WebSearch" or rule.startswith("WebSearch("):
+                return True
+        return False
+
+    # Read, Write, Edit, Glob, Grep, Task, etc. — typically auto-allowed
+    if tool_name in ("Read", "Write", "Edit", "Glob", "Grep", "Task",
+                      "TodoRead", "TodoWrite", "NotebookEdit"):
+        return True
+
+    return False
+
+
+def extract_command_prefix(command: str) -> str:
+    """Extract the command prefix for permission pattern derivation.
+
+    Takes tokens until one starts with '-' or contains special chars.
+    """
+    # Take just the first line for multiline commands
+    first_line = command.split("\n")[0].strip()
+    tokens = first_line.split()
+    prefix_parts = []
+    for token in tokens:
+        if (token.startswith("-")
+                or "=" in token
+                or "|" in token
+                or ";" in token
+                or "&&" in token
+                or token.startswith("$")
+                or token.startswith('"')
+                or token.startswith("'")
+                or token.startswith("`")
+                or token.startswith("(")
+                or token.startswith("{")
+                or "/" in token
+                or token.startswith(">")):
+            break
+        prefix_parts.append(token)
+    return " ".join(prefix_parts) if prefix_parts else tokens[0] if tokens else command.strip()
+
+
+def to_permission_string(tool_name: str, tool_input: dict) -> str:
+    """Derive a permission pattern string from a tool call."""
+    if tool_name == "Bash":
+        prefix = extract_command_prefix(tool_input.get("command", ""))
+        return f"Bash({prefix}:*)"
+    return tool_name
+
+
+def parse_sessions(session_dir: Path, limit: int | None = None) -> list[dict]:
+    """Parse session JSONL files and extract tool_use entries."""
+    tool_calls = []
+
+    jsonl_files = sorted(session_dir.glob("*.jsonl"), key=lambda p: p.stat().st_mtime)
+    if limit:
+        jsonl_files = jsonl_files[-limit:]
+
+    for jsonl_path in jsonl_files:
+        try:
+            for line in jsonl_path.read_text().splitlines():
+                if not line.strip():
+                    continue
+                try:
+                    entry = json.loads(line)
+                except json.JSONDecodeError:
+                    continue
+
+                if entry.get("type") != "assistant":
+                    continue
+
+                message = entry.get("message", {})
+                content = message.get("content", [])
+                if not isinstance(content, list):
+                    continue
+
+                timestamp = entry.get("timestamp", "")
+
+                for block in content:
+                    if isinstance(block, dict) and block.get("type") == "tool_use":
+                        tool_calls.append({
+                            "name": block.get("name", ""),
+                            "input": block.get("input", {}),
+                            "timestamp": timestamp,
+                        })
+        except (OSError, UnicodeDecodeError):
+            continue
+
+    return tool_calls
+
+
+def format_timestamp(ts: str) -> str:
+    """Format ISO timestamp to readable local time."""
+    try:
+        dt = datetime.fromisoformat(ts.replace("Z", "+00:00"))
+        local_dt = dt.astimezone()
+        return local_dt.strftime("%Y-%m-%d %H:%M:%S")
+    except (ValueError, AttributeError):
+        return ts[:19] if len(ts) >= 19 else ts
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(
+        description="Inspect Claude Code sessions for permission prompts",
+    )
+    parser.add_argument("--raw", action="store_true",
+                        help="Show detailed tool call table")
+    parser.add_argument("--all", action="store_true",
+                        help="Include already-permitted tool calls")
+    parser.add_argument("--project", type=Path, default=None,
+                        help="Project directory (default: cwd)")
+    parser.add_argument("--sessions", type=int, default=None,
+                        help="Limit to N most recent sessions")
+    args = parser.parse_args()
+
+    project_dir = (args.project or Path.cwd()).resolve()
+    config_dir = claude_config_dir()
+
+    # Resolve session directory
+    # Claude Code encodes the path by replacing / and . with -
+    session_key = str(project_dir).replace("/", "-").replace(".", "-")
+    session_dir = config_dir / "projects" / session_key
+    if not session_dir.exists():
+        print(f"No sessions found for {project_dir}", file=sys.stderr)
+        print(f"Expected: {session_dir}", file=sys.stderr)
+        return 1
+
+    rules = load_permissions(config_dir, project_dir)
+    tool_calls = parse_sessions(session_dir, args.sessions)
+
+    if not tool_calls:
+        print("No tool calls found in session history.", file=sys.stderr)
+        return 0
+
+    if args.raw:
+        # Detailed table output
+        for tc in tool_calls:
+            name = tc["name"]
+            inp = tc["input"]
+            permitted = is_permitted(name, inp, rules)
+
+            if not args.all and permitted:
+                continue
+
+            ts = format_timestamp(tc["timestamp"])
+            if name == "Bash":
+                detail = inp.get("command", "")
+                # Truncate long commands
+                first_line = detail.split("\n")[0]
+                if len(first_line) > 120:
+                    first_line = first_line[:117] + "..."
+                if "\n" in detail:
+                    first_line += " [multiline]"
+            elif name == "Read":
+                detail = inp.get("file_path", "")
+            elif name == "Write":
+                detail = inp.get("file_path", "")
+            elif name == "Edit":
+                detail = inp.get("file_path", "")
+            elif name == "Glob":
+                detail = inp.get("pattern", "")
+            elif name == "Grep":
+                detail = inp.get("pattern", "")
+            elif name == "WebFetch":
+                detail = inp.get("url", "")
+            elif name == "WebSearch":
+                detail = inp.get("query", "")
+            elif name == "Task":
+                detail = inp.get("description", "")
+            else:
+                detail = str(inp)[:80]
+
+            marker = " " if permitted else "*"
+            print(f"{marker} {ts}  {name:12s}  {detail}")
+    else:
+        # Permission string output, deduplicated and sorted by frequency
+        counter: Counter[str] = Counter()
+        for tc in tool_calls:
+            name = tc["name"]
+            inp = tc["input"]
+            permitted = is_permitted(name, inp, rules)
+
+            if not args.all and permitted:
+                continue
+            if name == "Bash":
+                perm = to_permission_string(name, inp)
+                counter[perm] += 1
+
+        if not counter:
+            print("No unpermitted Bash commands found.", file=sys.stderr)
+            return 0
+
+        for perm, count in counter.most_common():
+            print(perm)
+
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
