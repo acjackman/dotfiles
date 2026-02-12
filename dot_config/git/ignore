@@ -100,6 +100,9 @@ mise.local.toml
 .claude.json
 **/.claude/settings.local.json
 
+# open-linear script
+.linear-issue
+
 # Workmux
 .workmux.yaml
 .workmux.yml

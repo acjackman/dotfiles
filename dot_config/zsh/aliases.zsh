@@ -53,6 +53,7 @@ alias ,gwrm='cd $(g home) && g w remove $(pwd) && cd $(dirname $(pwd))'
 
 # github
 alias ,opr="gh pr view --web"
+alias ,lo="open-linear"
 alias ,gho='gh repo view --web'
 alias ,ghpro="gh pr view --web"
 alias ,ghprn="gh pr view --json number --jq number"

@@ -1,0 +1,157 @@
+#!/usr/bin/env zsh
+
+# Open the current branch's Linear issue in the browser
+#
+# Usage:
+#   open-linear              # Auto-detect issue from branch/PR/commits
+#   open-linear INFRA-123    # Open specific issue directly
+
+set -euo pipefail
+
+config_path="${XDG_CONFIG_HOME:-$HOME/.config}/open-linear/config"
+
+# Load config
+if [[ ! -f "$config_path" ]]; then
+    >&2 echo "Config not found: $config_path"
+    >&2 echo "Expected format:"
+    >&2 echo "  base_url=https://linear.app"
+    >&2 echo "  org=myorg"
+    >&2 echo "  teams=INFRA,PLATFORM"
+    exit 1
+fi
+
+typeset -A config
+while IFS='=' read -r key value; do
+    [[ -z "$key" || "$key" == \#* ]] && continue
+    config[$key]="$value"
+done < "$config_path"
+
+base_url="${config[base_url]}"
+org="${config[org]}"
+teams_raw="${config[teams]}"
+
+if [[ -z "$base_url" || -z "$org" || -z "$teams_raw" ]]; then
+    >&2 echo "Config missing required fields: base_url, org, teams"
+    exit 1
+fi
+
+# Build team pattern for regex: (INFRA|PLATFORM)
+teams_pattern="(${teams_raw//,/|})"
+
+open_issue() {
+    local issue_id="$1"
+    local url="${base_url}/${org}/issue/${issue_id}"
+    echo "Opening $url"
+    open "$url"
+}
+
+add_candidate() {
+    local id="${1:u}" # uppercase
+    local source="$2"
+    # Deduplicate
+    if [[ ! " ${candidate_ids[*]:-} " == *" $id "* ]]; then
+        candidate_ids+=("$id")
+        candidate_sources+=("$source")
+    fi
+}
+
+# --- Strategy 1: Explicit argument ---
+if [[ $# -ge 1 ]]; then
+    open_issue "${1:u}"
+    exit 0
+fi
+
+# Must be in a git repo for remaining strategies
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
+    >&2 echo "Not in a git repository."
+    >&2 echo "Usage: open-linear INFRA-123"
+    exit 1
+fi
+
+candidate_ids=()
+candidate_sources=()
+repo_root=$(git rev-parse --show-toplevel)
+
+# --- Strategy 2: .linear-issue file ---
+linear_issue_file="${repo_root}/.linear-issue"
+if [[ -f "$linear_issue_file" ]]; then
+    while IFS= read -r line; do
+        line="${line%%#*}"   # strip comments
+        line="${line// /}"   # strip whitespace
+        [[ -z "$line" ]] && continue
+        add_candidate "$line" "dotfile"
+    done < "$linear_issue_file"
+
+    # If file exists, use exclusively (skip remaining strategies)
+    if [[ ${#candidate_ids[@]} -gt 0 ]]; then
+        # Skip to selection
+    fi
+else
+    # --- Strategy 3: Branch name ---
+    branch=$(git branch --show-current 2>/dev/null || true)
+    if [[ -n "$branch" ]]; then
+        matches=("${(@f)$(echo "$branch" | grep -ioE "${teams_pattern}-[0-9]+" || true)}")
+        for m in "${matches[@]}"; do
+            [[ -n "$m" ]] && add_candidate "$m" "branch"
+        done
+    fi
+
+    # --- Strategy 4: GitHub PR body ---
+    if [[ ${#candidate_ids[@]} -ne 1 ]] && command -v gh >/dev/null 2>&1; then
+        pr_body=$(gh pr view --json body --jq '.body' 2>/dev/null || true)
+        if [[ -n "$pr_body" ]]; then
+            # Match Linear URLs: linear.app/*/issue/TEAM-123
+            url_matches=("${(@f)$(echo "$pr_body" | grep -ioE "linear\.app/[^/]+/issue/${teams_pattern}-[0-9]+" | grep -ioE "${teams_pattern}-[0-9]+" || true)}")
+            for m in "${url_matches[@]}"; do
+                [[ -n "$m" ]] && add_candidate "$m" "pr-body"
+            done
+            # Match bare team-code patterns
+            bare_matches=("${(@f)$(echo "$pr_body" | grep -ioE "${teams_pattern}-[0-9]+" || true)}")
+            for m in "${bare_matches[@]}"; do
+                [[ -n "$m" ]] && add_candidate "$m" "pr-body"
+            done
+        fi
+    fi
+
+    # --- Strategy 5: Git commit messages ---
+    if [[ ${#candidate_ids[@]} -eq 0 ]]; then
+        default_branch=$(git rev-parse --abbrev-ref origin/HEAD 2>/dev/null | sed 's|^origin/||' || echo "main")
+        commits=$(git log "${default_branch}..HEAD" --oneline 2>/dev/null || true)
+        if [[ -n "$commits" ]]; then
+            commit_matches=("${(@f)$(echo "$commits" | grep -ioE "${teams_pattern}-[0-9]+" || true)}")
+            for m in "${commit_matches[@]}"; do
+                [[ -n "$m" ]] && add_candidate "$m" "commit"
+            done
+        fi
+    fi
+fi
+
+# --- No candidates ---
+if [[ ${#candidate_ids[@]} -eq 0 ]]; then
+    >&2 echo "No Linear issue found."
+    >&2 echo "Hint: Create .linear-issue or use: open-linear INFRA-123"
+    exit 1
+fi
+
+# --- Single candidate: open directly ---
+if [[ ${#candidate_ids[@]} -eq 1 ]]; then
+    open_issue "${candidate_ids[1]}"
+    exit 0
+fi
+
+# --- Multiple candidates: fzf picker ---
+picker_input=""
+for i in {1..${#candidate_ids[@]}}; do
+    picker_input+="${candidate_ids[$i]}  (${candidate_sources[$i]})\n"
+done
+
+if command -v fzf >/dev/null 2>&1; then
+    selected=$(echo -e "$picker_input" | fzf --prompt="Linear issue: " --no-preview --height=~40%)
+    [[ -z "$selected" ]] && exit 0
+    issue_id="${selected%% *}"
+else
+    >&2 echo "fzf not found, using first candidate"
+    issue_id="${candidate_ids[1]}"
+fi
+
+open_issue "$issue_id"
