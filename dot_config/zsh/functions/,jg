@@ -21,14 +21,14 @@ if [[ -z "$main_branch" ]]; then
     main_branch="main"
 fi
 
-# Get all modified directories (only leaf directories, no parents)
+# Get all directories containing modified files (repo-wide)
 local -a dirs
 dirs=($(
     {
-        git diff --name-only "origin/${main_branch}...HEAD" 2>/dev/null
-        git diff --name-only --cached 2>/dev/null
-        git diff --name-only 2>/dev/null
-        git ls-files --others --exclude-standard 2>/dev/null
+        git -C "$repo_root" diff --name-only "origin/${main_branch}...HEAD" 2>/dev/null
+        git -C "$repo_root" diff --name-only --cached 2>/dev/null
+        git -C "$repo_root" diff --name-only 2>/dev/null
+        git -C "$repo_root" ls-files --others --exclude-standard 2>/dev/null
     } | while IFS= read -r file; do
         dir=$(dirname "$file")
         if [[ -d "${repo_root}/${dir}" ]]; then
