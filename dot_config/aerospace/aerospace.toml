@@ -226,6 +226,29 @@ alt-shift-h = ['join-with left', 'mode main']
 alt-shift-j = ['join-with down', 'mode main']
 alt-shift-k = ['join-with up', 'mode main']
 alt-shift-l = ['join-with right', 'mode main']
+m = 'mode move-all' # move all windows to workspace
+
+[mode.move-all.binding]
+esc = 'mode main'
+1 = ['exec-and-forget $HOME/.config/aerospace/move-all 1', 'mode main']
+2 = ['exec-and-forget $HOME/.config/aerospace/move-all 2', 'mode main']
+3 = ['exec-and-forget $HOME/.config/aerospace/move-all 3', 'mode main']
+4 = ['exec-and-forget $HOME/.config/aerospace/move-all 4', 'mode main']
+5 = ['exec-and-forget $HOME/.config/aerospace/move-all 5', 'mode main']
+6 = ['exec-and-forget $HOME/.config/aerospace/move-all 6', 'mode main']
+7 = ['exec-and-forget $HOME/.config/aerospace/move-all 7', 'mode main']
+8 = ['exec-and-forget $HOME/.config/aerospace/move-all 8', 'mode main']
+9 = ['exec-and-forget $HOME/.config/aerospace/move-all 9', 'mode main']
+e = ['exec-and-forget $HOME/.config/aerospace/move-all E', 'mode main']
+f = ['exec-and-forget $HOME/.config/aerospace/move-all F', 'mode main']
+g = ['exec-and-forget $HOME/.config/aerospace/move-all G', 'mode main']
+m = ['exec-and-forget $HOME/.config/aerospace/move-all M', 'mode main']
+n = ['exec-and-forget $HOME/.config/aerospace/move-all N', 'mode main']
+p = ['exec-and-forget $HOME/.config/aerospace/move-all P', 'mode main']
+r = ['exec-and-forget $HOME/.config/aerospace/move-all R', 'mode main']
+s = ['exec-and-forget $HOME/.config/aerospace/move-all S', 'mode main']
+t = ['exec-and-forget $HOME/.config/aerospace/move-all T', 'mode main']
+x = ['exec-and-forget $HOME/.config/aerospace/move-all X', 'mode main']
 
 # Find app-id with `aerospace list-apps`
 

@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+
+target="${1:-}"
+
+if [[ -z "$target" ]]; then
+    target=$(osascript -e 'text returned of (display dialog "Move all windows to workspace:" default answer "")' 2>/dev/null)
+    [[ -z "$target" ]] && exit 0
+fi
+
+source_ws=$(aerospace list-workspaces --focused)
+[[ "$source_ws" == "$target" ]] && exit 0
+
+window_ids=$(aerospace list-windows --workspace focused --format '%{window-id}')
+[[ -z "$window_ids" ]] && exit 0
+
+while IFS= read -r wid; do
+    aerospace move-node-to-workspace "$target" --window-id "$wid"
+done <<< "$window_ids"
+
+aerospace workspace "$target"
