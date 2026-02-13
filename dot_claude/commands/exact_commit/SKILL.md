@@ -12,21 +12,24 @@ Create a git commit with a well-structured commit message.
 
 ## Instructions
 
-1. Run the `git-commit-info.sh` script from this skill directory to gather branch, status, diff, recent commits, and warnings in one call:
+1. Run `git-commit-info.sh` to gather context, status, diff, recent commits, and warnings:
+
    ```bash
    bash ~/.claude/commands/commit/git-commit-info.sh
    ```
 
-2. Analyze all changes and draft a commit message:
+2. Analyze all changes for the conversation and draft a commit message:
    - Summarize the nature of changes (new feature, enhancement, bug fix, refactoring, etc.)
    - Focus on the "why" rather than the "what"
    - Keep it concise (1-2 sentences)
    - Match the repository's existing commit message style
 
 3. Stage and commit:
-   - Add relevant files individually (avoid `git add -A` or `git add .`)
+   - Avoid using `git -C` unless required to operate on a different repository. USe plain git commands for the current worktree or repository.
+   - Add relevant files individually (avoid `git add -A` or `git add .`) There may be other files in the repo that should not be added.
    - Never commit files flagged in the WARNINGS section (secrets, credentials, etc.)
-   - Combine staging and committing when possible:
+   - Combine staging and committing when possible, and always include a Co-Authored-By trailer for the agent:
+
      ```bash
      git add file1 file2 && git commit -m "$(cat <<'EOF'
      Commit message here.
@@ -40,7 +43,7 @@ Create a git commit with a well-structured commit message.
 
 ## Important
 
-- Only use `git -C` if not already in the repository or worktree root.
+- Follow the guidance printed by `git-commit-info.sh` — especially the GIT CONTEXT section which confirms you are inside the repo. Never use `git -C` for the current directory.
 - Never amend commits unless explicitly requested
 - Never force push or modify git config
 - Never skip pre-commit hooks

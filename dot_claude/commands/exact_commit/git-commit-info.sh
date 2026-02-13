@@ -13,6 +13,23 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
     exit 1
 fi
 
+# === GIT CONTEXT ===
+# Show the model it's inside a valid worktree — no need for git -C.
+echo "=== GIT CONTEXT ==="
+echo "cwd:       $(pwd)"
+echo "toplevel:  $(git rev-parse --show-toplevel)"
+if git rev-parse --git-common-dir >/dev/null 2>&1; then
+    common_dir=$(git rev-parse --git-common-dir)
+    toplevel_git=$(git rev-parse --git-dir)
+    if [[ "$common_dir" != "$toplevel_git" ]]; then
+        echo "worktree:  yes (linked to $(cd "$common_dir/.." && pwd))"
+    else
+        echo "worktree:  no (main checkout)"
+    fi
+fi
+echo "All plain git commands operate on this repo. Do not use git -C."
+echo ""
+
 # Check for changes
 status=$(git status --short)
 if [[ -z "$status" ]]; then
