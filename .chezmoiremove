@@ -15,3 +15,9 @@ finicky.js
 .config/zsh/functions/,rm-scratch
 .config/sesh/sessions.d
 .config/claude/commands/commit.md
+.config/claude/commands/commit/SKILL.md
+.config/claude/commands/commit/git-commit-info.sh
+.config/claude/commands/create-pr.md
+.config/claude/mcp-servers.json
+.config/claude/permissions.json
+.config/claude/CLAUDE.md

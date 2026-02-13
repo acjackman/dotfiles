@@ -1,9 +1,9 @@
 #!/bin/bash
-# permissions hash: {{ include "dot_config/claude/permissions.json" | sha256sum }}
-# settings hash: {{ output "sha256sum" (joinPath .chezmoi.homeDir ".config/claude/settings.json") | trim | splitList " " | first }}
+# permissions hash: {{ include "dot_claude/permissions.json" | sha256sum }}
+# settings hash: {{ output "sh" "-c" (print "sha256sum " (joinPath .chezmoi.homeDir ".claude/settings.json") " 2>/dev/null || echo none") | trim | splitList " " | first }}
 
-SETTINGS_FILE="$HOME/.config/claude/settings.json"
-PERMISSIONS_FILE="{{ .chezmoi.sourceDir }}/dot_config/claude/permissions.json"
+SETTINGS_FILE="$HOME/.claude/settings.json"
+PERMISSIONS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/permissions.json"
 
 # Create settings file if it doesn't exist
 if [ ! -f "$SETTINGS_FILE" ]; then

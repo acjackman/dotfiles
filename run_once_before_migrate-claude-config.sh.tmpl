@@ -1,0 +1,34 @@
+#!/bin/bash
+# Migrate Claude Code config from ~/.config/claude/ to ~/.claude/
+# No-op on fresh machines or if already migrated.
+
+OLD_DIR="$HOME/.config/claude"
+NEW_DIR="$HOME/.claude"
+
+# Skip if old dir doesn't exist or new dir already has data
+if [ ! -d "$OLD_DIR" ]; then
+    exit 0
+fi
+
+if [ -f "$NEW_DIR/.claude.json" ]; then
+    exit 0
+fi
+
+mkdir -p "$NEW_DIR"
+
+# Copy runtime data files (safe: cp -p preserves metadata, doesn't remove originals)
+for f in .claude.json settings.json settings.local.json history.jsonl; do
+    if [ -f "$OLD_DIR/$f" ]; then
+        cp -p "$OLD_DIR/$f" "$NEW_DIR/$f"
+    fi
+done
+
+# Copy runtime directories
+for d in projects todos; do
+    if [ -d "$OLD_DIR/$d" ]; then
+        cp -rp "$OLD_DIR/$d" "$NEW_DIR/$d"
+    fi
+done
+
+echo "Migrated Claude Code config from $OLD_DIR to $NEW_DIR"
+echo "You may remove $OLD_DIR after verifying everything works."

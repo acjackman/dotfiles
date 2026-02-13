@@ -1,9 +1,9 @@
 #!/bin/bash
-# mcp-servers hash: {{ include "dot_config/claude/mcp-servers.json" | sha256sum }}
-# claude.json hash: {{ output "sha256sum" (joinPath .chezmoi.homeDir ".config/claude/.claude.json") | trim | splitList " " | first }}
+# mcp-servers hash: {{ include "dot_claude/mcp-servers.json" | sha256sum }}
+# claude.json hash: {{ output "sh" "-c" (print "sha256sum " (joinPath .chezmoi.homeDir ".claude/.claude.json") " 2>/dev/null || echo none") | trim | splitList " " | first }}
 
-CLAUDE_JSON="$HOME/.config/claude/.claude.json"
-MCP_SERVERS_FILE="{{ .chezmoi.sourceDir }}/dot_config/claude/mcp-servers.json"
+CLAUDE_JSON="$HOME/.claude/.claude.json"
+MCP_SERVERS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/mcp-servers.json"
 
 # Create .claude.json if it doesn't exist
 if [ ! -f "$CLAUDE_JSON" ]; then

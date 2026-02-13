@@ -1,6 +1,6 @@
 ---
 allowed-tools:
-  - Bash(bash ~/.config/claude/commands/commit/git-commit-info.sh:*)
+  - Bash(bash ~/.claude/commands/commit/git-commit-info.sh:*)
   - Bash(git status:*)
   - Bash(git add:*)
   - Bash(git commit:*)
@@ -14,7 +14,7 @@ Create a git commit with a well-structured commit message.
 
 1. Run the `git-commit-info.sh` script from this skill directory to gather branch, status, diff, recent commits, and warnings in one call:
    ```bash
-   bash ~/.config/claude/commands/commit/git-commit-info.sh
+   bash ~/.claude/commands/commit/git-commit-info.sh
    ```
 
 2. Analyze all changes and draft a commit message:

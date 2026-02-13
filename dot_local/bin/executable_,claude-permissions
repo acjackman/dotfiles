@@ -22,7 +22,7 @@ def claude_config_dir() -> Path:
     env = os.environ.get("CLAUDE_CONFIG_DIR")
     if env:
         return Path(env)
-    return Path("~/.config/claude").expanduser()
+    return Path("~/.claude").expanduser()
 
 
 def load_settings_permissions(path: Path) -> list[str]:
