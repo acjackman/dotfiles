@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ $# -eq 0 ]]; then
+    >&2 echo "Usage: arc <url>"
+    exit 1
+fi
+
+url="$1"
+
+osascript -e "
+tell application \"Arc\"
+    make new tab with properties {URL:\"$url\"}
+    activate
+end tell
+"
