@@ -1,0 +1,32 @@
+#!/bin/bash
+# Merge Claude Code runtime data from ~/.config/claude/ into ~/.claude/
+# Copies missing files without overwriting existing ones.
+
+OLD_DIR="$HOME/.config/claude"
+NEW_DIR="$HOME/.claude"
+
+if [ ! -d "$OLD_DIR" ]; then
+    exit 0
+fi
+
+mkdir -p "$NEW_DIR"
+
+# Copy runtime data files only if they don't already exist at the destination
+for f in .claude.json settings.json settings.local.json history.jsonl; do
+    if [ -f "$OLD_DIR/$f" ] && [ ! -f "$NEW_DIR/$f" ]; then
+        cp -p "$OLD_DIR/$f" "$NEW_DIR/$f"
+        echo "Copied $f"
+    fi
+done
+
+# Merge runtime directories (recursive, no-clobber)
+for d in projects todos; do
+    if [ -d "$OLD_DIR/$d" ]; then
+        mkdir -p "$NEW_DIR/$d"
+        cp -rn "$OLD_DIR/$d/." "$NEW_DIR/$d/"
+        echo "Merged $d/"
+    fi
+done
+
+echo "Claude Code config merge from $OLD_DIR to $NEW_DIR complete."
+echo "You may remove $OLD_DIR after verifying everything works."
