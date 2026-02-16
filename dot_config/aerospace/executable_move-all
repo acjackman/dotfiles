@@ -13,8 +13,24 @@ source_ws=$(aerospace list-workspaces --focused)
 window_ids=$(aerospace list-windows --workspace focused --format '%{window-id}')
 [[ -z "$window_ids" ]] && exit 0
 
+# Guard: cancel if target workspace already has windows
+target_windows=$(aerospace list-windows --workspace "$target" --format '%{window-id}')
+if [[ -n "$target_windows" ]]; then
+    osascript -e "display notification \"Workspace $target already has windows\" with title \"AeroSpace\""
+    exit 1
+fi
+
+# Capture root layout before moving (e.g., h_tiles, v_tiles)
+root_layout=$(aerospace list-windows --workspace focused --format '%{workspace-root-container-layout}' | head -1)
+
 while IFS= read -r wid; do
     aerospace move-node-to-workspace "$target" --window-id "$wid"
 done <<< "$window_ids"
 
 aerospace workspace "$target"
+
+# Restore root container layout orientation
+if [[ -n "$root_layout" ]]; then
+    aerospace flatten-workspace-tree
+    aerospace layout "$root_layout"
+fi
