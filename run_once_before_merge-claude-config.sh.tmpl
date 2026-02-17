@@ -20,7 +20,7 @@ for f in .claude.json settings.json settings.local.json history.jsonl; do
 done
 
 # Merge runtime directories (recursive, no-clobber)
-for d in projects todos; do
+for d in projects todos plugins; do
     if [ -d "$OLD_DIR/$d" ]; then
         mkdir -p "$NEW_DIR/$d"
         cp -rn "$OLD_DIR/$d/." "$NEW_DIR/$d/"

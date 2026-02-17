@@ -1,0 +1,34 @@
+#!/bin/bash
+# plugins hash: {{ include "dot_claude/plugins.json" | sha256sum }}
+
+if ! command -v claude &> /dev/null; then
+    echo "Warning: claude CLI not found. Skipping plugin setup."
+    exit 0
+fi
+
+PLUGINS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/plugins.json"
+
+if ! command -v jq &> /dev/null; then
+    echo "Warning: jq not found. Cannot install Claude plugins automatically."
+    exit 1
+fi
+
+# Add marketplaces
+for marketplace in $(jq -r '.marketplaces[]' "$PLUGINS_FILE"); do
+    if claude plugin marketplace list 2>/dev/null | grep -q "${marketplace##*/}"; then
+        echo "Marketplace ${marketplace##*/} already registered"
+    else
+        echo "Adding marketplace: $marketplace"
+        claude plugin marketplace add "$marketplace"
+    fi
+done
+
+# Install plugins
+for plugin in $(jq -r '.plugins[]' "$PLUGINS_FILE"); do
+    if claude plugin list 2>/dev/null | grep -q "$plugin"; then
+        echo "Plugin $plugin already installed"
+    else
+        echo "Installing plugin: $plugin"
+        claude plugin install "$plugin"
+    fi
+done

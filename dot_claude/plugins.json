@@ -1,0 +1,9 @@
+{
+  "marketplaces": [
+    "anthropics/claude-plugins-official"
+  ],
+  "plugins": [
+    "pyright-lsp@claude-plugins-official",
+    "gopls-lsp@claude-plugins-official"
+  ]
+}
