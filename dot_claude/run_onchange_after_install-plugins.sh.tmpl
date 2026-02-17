@@ -1,6 +1,9 @@
 #!/bin/bash
 # plugins hash: {{ include "dot_claude/plugins.json" | sha256sum }}
 
+# Allow `claude plugin` CLI commands when chezmoi apply is run from within a Claude Code session
+unset CLAUDECODE
+
 if ! command -v claude &> /dev/null; then
     echo "Warning: claude CLI not found. Skipping plugin setup."
     exit 0

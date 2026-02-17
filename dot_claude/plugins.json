@@ -1,9 +1,11 @@
 {
   "marketplaces": [
-    "anthropics/claude-plugins-official"
+    "anthropics/claude-plugins-official",
+    "max-sixty/worktrunk"
   ],
   "plugins": [
     "pyright-lsp@claude-plugins-official",
-    "gopls-lsp@claude-plugins-official"
+    "gopls-lsp@claude-plugins-official",
+    "worktrunk@worktrunk"
   ]
 }
