@@ -2,9 +2,24 @@
 set -euo pipefail
 
 # Create or reuse a worktree for a branch, printing its JSON entry from wt list.
+# Creates a .tmp directory in the worktree for prompt files.
 # Usage: setup-worktree.sh <branch-name> [--base <ref>]
 
 WT=/opt/homebrew/bin/wt
+
+ensure_trust() {
+    local path="$1"
+    local claude_json="$HOME/.claude/.claude.json"
+    [[ ! -f "$claude_json" ]] && return
+
+    if jq -e --arg p "$path" '.projects[$p].hasTrustDialogAccepted == true' "$claude_json" >/dev/null 2>&1; then
+        return
+    fi
+
+    local tmp="${claude_json}.tmp.$$"
+    jq --arg p "$path" '.projects[$p] = (.projects[$p] // {}) + {"hasTrustDialogAccepted": true}' "$claude_json" > "$tmp" \
+        && mv "$tmp" "$claude_json"
+}
 
 usage() {
     echo "Usage: setup-worktree.sh <branch-name> [--base <ref>]" >&2
@@ -48,6 +63,8 @@ if [[ -n "$existing" ]]; then
         fi
     fi
 
+    mkdir -p "$worktree_path/.tmp"
+    ensure_trust "$worktree_path"
     echo "$existing"
 else
     create_args=(switch --create "$branch")
@@ -55,5 +72,9 @@ else
 
     "$WT" "${create_args[@]}" >&2
 
-    "$WT" list --format=json | jq -e --arg b "$branch" '.[] | select(.branch == $b)'
+    result=$("$WT" list --format=json | jq -e --arg b "$branch" '.[] | select(.branch == $b)')
+    worktree_path=$(echo "$result" | jq -r '.path')
+    mkdir -p "$worktree_path/.tmp"
+    ensure_trust "$worktree_path"
+    echo "$result"
 fi

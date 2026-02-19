@@ -1,11 +1,9 @@
 ---
 allowed-tools:
-  - Bash(tmux new-session:*)
+  - Bash(~/.claude/commands/spawn/spawn-tmux.sh:*)
+  - Bash(~/.claude/commands/spawn/setup-worktree.sh:*)
   - Bash(echo $TMUX:*)
   - Bash(tmux list-sessions:*)
-  - Bash(/opt/homebrew/bin/wt switch:*)
-  - Bash(/opt/homebrew/bin/wt list:*)
-  - Bash(mkdir:*)
 ---
 
 # Spawn Tmux Session

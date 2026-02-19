@@ -1,14 +1,10 @@
 ---
 allowed-tools:
-  - Bash(tmux new-session:*)
-  - Bash(tmux new-window:*)
+  - Bash(~/.claude/commands/spawn/spawn-tmux.sh:*)
+  - Bash(~/.claude/commands/spawn/setup-worktree.sh:*)
   - Bash(echo $TMUX:*)
   - Bash(tmux list-sessions:*)
   - Bash(tmux list-windows:*)
-  - Bash(/opt/homebrew/bin/wt switch:*)
-  - Bash(/opt/homebrew/bin/wt list:*)
-  - Bash(~/.claude/commands/spawn/setup-worktree.sh:*)
-  - Bash(mkdir:*)
 ---
 
 # Spawn Claude Agent
@@ -73,22 +69,19 @@ $ARGUMENTS should contain the task description for the new Claude agent.
 
 6. Write the prompt to a datestamped file inside the worktree:
 
-   ```bash
-   mkdir -p <worktree-path>/.tmp
-   ```
-
+   The `.tmp` directory is already created by `setup-worktree.sh`.
    Write the task description to `<worktree-path>/.tmp/prompt-<YYYY-MM-DD-HHMMSS>.md`.
 
 7. Spawn a full interactive Claude session. Never use `claude -p`/`--print`.
 
    **Window:**
    ```bash
-   tmux new-window -d -n <name> -c <worktree-path> "~/.claude/commands/spawn/launch.sh <worktree-path>/.tmp/prompt-<datestamp>.md"
+   ~/.claude/commands/spawn/spawn-tmux.sh --window --name <name> --dir <worktree-path> --prompt <worktree-path>/.tmp/prompt-<datestamp>.md
    ```
 
    **Session:**
    ```bash
-   tmux new-session -d -s <name> -c <worktree-path> "~/.claude/commands/spawn/launch.sh <worktree-path>/.tmp/prompt-<datestamp>.md"
+   ~/.claude/commands/spawn/spawn-tmux.sh --session --name <name> --dir <worktree-path> --prompt <worktree-path>/.tmp/prompt-<datestamp>.md
    ```
 
 8. Confirm to the user:

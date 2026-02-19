@@ -1,11 +1,9 @@
 ---
 allowed-tools:
-  - Bash(tmux new-window:*)
+  - Bash(~/.claude/commands/spawn/spawn-tmux.sh:*)
+  - Bash(~/.claude/commands/spawn/setup-worktree.sh:*)
   - Bash(echo $TMUX:*)
   - Bash(tmux list-windows:*)
-  - Bash(/opt/homebrew/bin/wt switch:*)
-  - Bash(/opt/homebrew/bin/wt list:*)
-  - Bash(mkdir:*)
 ---
 
 # Spawn Tmux Window
