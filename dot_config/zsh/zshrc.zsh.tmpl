@@ -273,10 +273,20 @@ eval "$(atuin init zsh)"
 export FZF_CTRL_T_COMMAND="fd --type f --hidden --follow --exclude .git"
 source "$(brew --prefix)/opt/fzf/shell/key-bindings.zsh"
 
+# fzf directory picker widget (insert directory path)
+fzf-directory-widget() {
+  LBUFFER="${LBUFFER}$(fd --type d --hidden --follow --exclude .git | fzf --height 40% --reverse)"
+  local ret=$?
+  zle reset-prompt
+  return $ret
+}
+zle -N fzf-directory-widget
+
 # Workaround to make vi-mode work with atuin & fzf
 function zvm_after_init() {
   zvm_bindkey viins '^R' atuin-search
-  zvm_bindkey viins '^T' fzf-file-widget
+  zvm_bindkey viins '^X^F' fzf-file-widget
+  zvm_bindkey viins '^X^D' fzf-directory-widget
 }
 
 # =======================================
