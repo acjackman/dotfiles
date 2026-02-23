@@ -40,7 +40,7 @@ dirs=($(
 # Exit if no modified directories found
 if [[ ${#dirs[@]} -eq 0 ]]; then
     echo "No modified directories found" >&2
-    return 0
+    return 1
 fi
 
 # If only one directory, go directly there
