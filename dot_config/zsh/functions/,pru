@@ -1,0 +1,18 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+remote_url=${1:-$(git remote get-url origin)}
+
+if [[ "$remote_url" =~ github\.com ]]; then
+  pr_url=$(gh pr view --json=url -q '.url' $1 2>/dev/null)
+
+  if [[ $? -ne 0 || -z "$pr_url" ]]; then
+    >&2 echo "No PR found or failed to fetch PR data"
+    return 1
+  fi
+
+  echo "$pr_url" | pbcopy
+  echo "$pr_url"
+else;
+  >&2 echo "unsupported origin $remote_url"
+  return 1
+fi
