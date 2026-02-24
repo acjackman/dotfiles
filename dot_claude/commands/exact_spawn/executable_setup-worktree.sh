@@ -70,7 +70,7 @@ else
     create_args=(switch --create "$branch")
     [[ -n "$base" ]] && create_args+=(--base "$base")
 
-    "$WT" "${create_args[@]}" >&2
+    TMUX_PANE= "$WT" "${create_args[@]}" >&2
 
     result=$("$WT" list --format=json | jq -e --arg b "$branch" '.[] | select(.branch == $b)')
     worktree_path=$(echo "$result" | jq -r '.path')

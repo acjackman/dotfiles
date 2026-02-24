@@ -3,7 +3,7 @@ allowed-tools:
   - Bash(~/.claude/commands/spawn/spawn-tmux.sh:*)
   - Bash(~/.claude/commands/spawn/setup-worktree.sh:*)
   - Bash(echo $TMUX:*)
-  - Bash(tmux list-windows:*)
+  - Bash(tmux list-windows*)
 ---
 
 # Spawn Tmux Window
@@ -15,4 +15,4 @@ Read and follow the instructions in `~/.claude/commands/spawn/SKILL.md` with the
 - **Skip step 2** (task-size analysis) entirely
 - **Always use `tmux new-window`** (the "Window" variant in step 8)
 - For name conflict checks (step 7), only check `tmux list-windows`
-- In the confirmation (step 9), tell the user how to switch: `tmux select-window -t <name>`
+- In the confirmation (step 9), tell the user how to switch: `tmux select-window -t '=<name>'`

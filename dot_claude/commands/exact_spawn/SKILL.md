@@ -3,8 +3,8 @@ allowed-tools:
   - Bash(~/.claude/commands/spawn/spawn-tmux.sh:*)
   - Bash(~/.claude/commands/spawn/setup-worktree.sh:*)
   - Bash(echo $TMUX:*)
-  - Bash(tmux list-sessions:*)
-  - Bash(tmux list-windows:*)
+  - Bash(tmux list-sessions*)
+  - Bash(tmux list-windows*)
 ---
 
 # Spawn Claude Agent
@@ -47,11 +47,11 @@ $ARGUMENTS should contain the task description for the new Claude agent.
 4. Check for tmux name conflicts **before** creating the worktree:
 
    ```bash
-   tmux list-sessions   # if spawning a session
-   tmux list-windows    # if spawning a window
+   tmux list-sessions -F "#{session_name}"   # if spawning a session
+   tmux list-windows -F "#{window_name}"     # if spawning a window
    ```
 
-   If the name is already taken, pick a more descriptive alternative now that you can see the existing names. Do not append a numeric suffix.
+   Do an **exact match** against the output lines (not prefix/substring matching). If the name is already taken, pick a more descriptive alternative now that you can see the existing names. Do not append a numeric suffix.
 
 5. Create (or reuse) the worktree and get its path:
 
@@ -88,4 +88,4 @@ $ARGUMENTS should contain the task description for the new Claude agent.
    - Whether a window or session was created, and its name
    - The branch/worktree that was created
    - The prompt file path
-   - How to switch: `tmux select-window -t <name>` or `tmux switch-client -t <name>`
+   - How to switch: `tmux select-window -t '=<name>'` or `tmux switch-client -t '=<name>'` (the `=` prefix forces exact name matching)

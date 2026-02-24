@@ -29,11 +29,13 @@ done
 launch_script="$HOME/.claude/commands/spawn/launch.sh"
 
 if [[ "$mode" == "window" ]]; then
-    tmux new-window -d -n "$name" -c "$dir"
-    tmux send-keys -t "$name" "$launch_script '$prompt'" Enter
+    pane_id=$(tmux new-window -d -n "$name" -c "$dir" -P -F "#{pane_id}")
+    tmux set-option -t "$pane_id" automatic-rename off
+    tmux send-keys -t "$pane_id" "$launch_script '$prompt'" Enter
 elif [[ "$mode" == "session" ]]; then
-    tmux new-session -d -s "$name" -c "$dir"
-    tmux send-keys -t "$name" "$launch_script '$prompt'" Enter
+    pane_id=$(tmux new-session -d -s "$name" -c "$dir" -P -F "#{pane_id}")
+    tmux set-option -t "$pane_id" automatic-rename off
+    tmux send-keys -t "$pane_id" "$launch_script '$prompt'" Enter
 fi
 
 echo "Spawned $mode '$name' in $dir"
