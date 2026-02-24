@@ -1,11 +1,42 @@
 #!/usr/bin/env bash
 
 # Gather git commit info in a single call for efficient LLM-assisted commits.
-# Outputs structured sections: branch, status, diff stat, diff, recent commits, warnings.
+# Outputs structured sections: agent info, branch, status, diff stat, diff,
+# recent commits, warnings, and pre-built trailers.
 
 set -euo pipefail
 
 MAX_DIFF_LINES="${GIT_COMMIT_INFO_MAX_LINES:-200}"
+
+# --- Agent / harness detection ---
+detect_harness() {
+    if [[ -n "${CLAUDECODE:-}" ]]; then
+        echo "claude-code"
+    elif [[ -n "${GEMINI_CLI:-}" ]]; then
+        echo "gemini-cli"
+    elif [[ -n "${CURSOR_AGENT:-}" ]]; then
+        echo "cursor"
+    elif [[ -n "${OPENCODE:-}" ]]; then
+        echo "opencode"
+    else
+        echo "unknown"
+    fi
+}
+
+harness_defaults() {
+    local harness="$1"
+    case "$harness" in
+        claude-code) default_model="Claude";     email_domain="anthropic.com" ;;
+        gemini-cli)  default_model="Gemini";     email_domain="google.com" ;;
+        cursor)      default_model="Cursor AI";  email_domain="cursor.com" ;;
+        opencode)    default_model="OpenCode AI"; email_domain="opencode.dev" ;;
+        *)           default_model="LLM Agent"; email_domain="" ;;
+    esac
+}
+
+harness=$(detect_harness)
+harness_defaults "$harness"
+model="${GIT_COMMIT_AGENT_MODEL:-$default_model}"
 
 # Ensure we're in a git repo
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
@@ -28,6 +59,12 @@ if git rev-parse --git-common-dir >/dev/null 2>&1; then
     fi
 fi
 echo "All plain git commands operate on this repo. Do not use git -C."
+echo ""
+
+# === AGENT INFO ===
+echo "=== AGENT INFO ==="
+echo "harness: $harness"
+echo "model:   $model"
 echo ""
 
 # Check for changes
@@ -101,4 +138,15 @@ done <<< "$status"
 if [[ -n "$warnings" ]]; then
     echo "=== WARNINGS ==="
     printf "%b" "$warnings"
+    echo ""
 fi
+
+# === TRAILERS ===
+echo "=== TRAILERS ==="
+if [[ -n "$email_domain" ]]; then
+    echo "Co-Authored-By: $model <noreply@$email_domain>"
+else
+    echo "Co-Authored-By: $model"
+fi
+echo "Harness: $harness"
+echo "Model: $model"

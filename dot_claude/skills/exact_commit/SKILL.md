@@ -26,19 +26,23 @@ Create a git commit with a well-structured commit message.
    - Match the repository's existing commit message style
 
 3. Stage and commit:
-   - Avoid using `git -C` unless required to operate on a different repository. USe plain git commands for the current worktree or repository.
+   - Avoid using `git -C` unless required to operate on a different repository. Use plain git commands for the current worktree or repository.
    - Add relevant files individually (avoid `git add -A` or `git add .`) There may be other files in the repo that should not be added.
    - Never commit files flagged in the WARNINGS section (secrets, credentials, etc.)
-   - Combine staging and committing when possible, and always include a Co-Authored-By trailer for the agent:
+   - Combine staging and committing when possible, and always append the trailers from the `=== TRAILERS ===` section of the script output after a blank line:
 
      ```bash
      git add file1 file2 && git commit -m "$(cat <<'EOF'
      Commit message here.
 
-     Co-Authored-By: Claude Opus 4.6 <noreply@anthropic.com>
+     Co-Authored-By: Claude <noreply@anthropic.com>
+     Harness: claude-code
+     Model: Claude
      EOF
      )"
      ```
+
+     The example above shows Claude Code defaults — use the actual trailer lines printed by the script.
 
 4. Run `git status` after committing to verify success.
 
