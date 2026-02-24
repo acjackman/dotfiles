@@ -78,7 +78,8 @@
         }
       },
       "pointer" : {
-        "acceleration" : 3
+        "acceleration" : 3,
+        "speed" : 0.1
       },
       "scrolling" : {
         "reverse" : {
