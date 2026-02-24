@@ -15,8 +15,8 @@ Chezmoi manages dotfiles by keeping source files in this repository and deployin
 2. **Preview changes** with `chezmoi diff`
    - Always review changes before applying
 
-3. **Apply changes** with `chezmoi apply`
-   - This deploys your changes to the target locations
+3. **Apply changes** using the `/apply` skill
+   - **Never use `chezmoi apply --force`** — it silently overwrites files that have diverged locally, destroying information. If chezmoi prompts about a changed file, stop and notify the user instead.
 
 4. **Verify** the deployed file has your changes
 
@@ -147,12 +147,12 @@ If present, specifies a subdirectory (relative path) to use as the actual source
 
 ### Chezmoi Management
 
-- Apply changes: `chezmoi apply`
+- Apply changes: use the `/apply` skill
 - Preview changes: `chezmoi diff`
 - Check status: `chezmoi status`
 - Edit file: `chezmoi edit <file>`
 - Update from remote: `chezmoi update`
-- Re-run scripts: `chezmoi apply --force`
+- Re-run scripts: `chezmoi apply --force` (**manual use only** — agents must never use `--force`)
 
 ### Testing & Validation
 

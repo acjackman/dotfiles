@@ -38,8 +38,9 @@ Apply chezmoi dotfile changes from the source repository to their target locatio
 
 - Always show the diff before applying when making significant changes
 - Never modify deployed files directly (e.g., `~/.zshrc`) - always edit the chezmoi source
-- If conflicts occur, check for manual edits in target locations
-- Use `chezmoi apply --force` only when explicitly requested
+- **Never use `chezmoi apply --force`** — it silently overwrites files that have diverged locally, destroying information
+- If chezmoi prompts about a changed file or errors due to a conflict, **stop and notify the user** rather than forcing the apply. The user may have local changes they need to merge.
+- When you only changed specific files, prefer a targeted apply (e.g., `chezmoi apply ~/.config/path/to/file`) to avoid touching unrelated files
 
 ## Allowed Operations
 
