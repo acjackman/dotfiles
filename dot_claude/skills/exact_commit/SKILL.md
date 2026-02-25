@@ -1,6 +1,6 @@
 ---
 allowed-tools:
-  - Bash(bash ~/.claude/commands/commit/git-commit-info.sh:*)
+  - Bash(bash ~/.claude/skills/commit/git-commit-info.sh:*)
   - Bash(git status:*)
   - Bash(git add:*)
   - Bash(git commit:*)
@@ -15,7 +15,7 @@ Create a git commit with a well-structured commit message.
 1. Run `git-commit-info.sh` to gather context, status, diff, recent commits, and warnings:
 
    ```bash
-   bash ~/.claude/commands/commit/git-commit-info.sh
+   bash ~/.claude/skills/commit/git-commit-info.sh
    ```
 
 2. Analyze all changes for the conversation and draft a commit message:

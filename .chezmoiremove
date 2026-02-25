@@ -21,3 +21,9 @@ finicky.js
 .config/claude/mcp-servers.json
 .config/claude/permissions.json
 .config/claude/CLAUDE.md
+.claude/commands/commit
+.claude/commands/spawn
+.claude/commands/spawn-session
+.claude/commands/spawn-window
+.claude/commands/create-pr.md
+.claude/commands

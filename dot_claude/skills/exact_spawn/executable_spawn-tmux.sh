@@ -26,7 +26,7 @@ done
 [[ ! -d "$dir" ]] && echo "Error: directory '$dir' does not exist" && exit 1
 [[ ! -f "$prompt" ]] && echo "Error: prompt file '$prompt' does not exist" && exit 1
 
-launch_script="$HOME/.claude/commands/spawn/launch.sh"
+launch_script="$HOME/.claude/skills/spawn/launch.sh"
 
 if [[ "$mode" == "window" ]]; then
     pane_id=$(tmux new-window -d -n "$name" -c "$dir" -P -F "#{pane_id}")

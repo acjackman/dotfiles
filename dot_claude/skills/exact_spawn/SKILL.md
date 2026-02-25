@@ -1,7 +1,7 @@
 ---
 allowed-tools:
-  - Bash(~/.claude/commands/spawn/spawn-tmux.sh:*)
-  - Bash(~/.claude/commands/spawn/setup-worktree.sh:*)
+  - Bash(~/.claude/skills/spawn/spawn-tmux.sh:*)
+  - Bash(~/.claude/skills/spawn/setup-worktree.sh:*)
   - Bash(echo $TMUX:*)
   - Bash(tmux list-sessions*)
   - Bash(tmux list-windows*)
@@ -56,7 +56,7 @@ $ARGUMENTS should contain the task description for the new Claude agent.
 5. Create (or reuse) the worktree and get its path:
 
    ```bash
-   ~/.claude/commands/spawn/setup-worktree.sh <name> [--base <ref>]
+   ~/.claude/skills/spawn/setup-worktree.sh <name> [--base <ref>]
    ```
 
    The script prints the worktree's JSON entry. Extract the path:
@@ -76,12 +76,12 @@ $ARGUMENTS should contain the task description for the new Claude agent.
 
    **Window:**
    ```bash
-   ~/.claude/commands/spawn/spawn-tmux.sh --window --name <name> --dir <worktree-path> --prompt <worktree-path>/.tmp/prompt-<datestamp>.md
+   ~/.claude/skills/spawn/spawn-tmux.sh --window --name <name> --dir <worktree-path> --prompt <worktree-path>/.tmp/prompt-<datestamp>.md
    ```
 
    **Session:**
    ```bash
-   ~/.claude/commands/spawn/spawn-tmux.sh --session --name <name> --dir <worktree-path> --prompt <worktree-path>/.tmp/prompt-<datestamp>.md
+   ~/.claude/skills/spawn/spawn-tmux.sh --session --name <name> --dir <worktree-path> --prompt <worktree-path>/.tmp/prompt-<datestamp>.md
    ```
 
 8. Confirm to the user:
