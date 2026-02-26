@@ -285,8 +285,8 @@ zle -N fzf-directory-widget
 # Workaround to make vi-mode work with atuin & fzf
 function zvm_after_init() {
   zvm_bindkey viins '^R' atuin-search
-  zvm_bindkey viins '^X^F' fzf-file-widget
-  zvm_bindkey viins '^X^D' fzf-directory-widget
+  bindkey -M viins '^X^F' fzf-file-widget
+  bindkey -M viins '^X^D' fzf-directory-widget
 }
 
 # =======================================
