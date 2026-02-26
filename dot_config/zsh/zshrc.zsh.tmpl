@@ -282,11 +282,36 @@ fzf-directory-widget() {
 }
 zle -N fzf-directory-widget
 
+# fzf git-modified file picker widget (insert path of file modified on branch)
+fzf-git-modified-widget() {
+  local repo_root=$(git rev-parse --show-toplevel 2>/dev/null)
+  if [[ -z "$repo_root" ]]; then
+    zle reset-prompt
+    return 1
+  fi
+  local main_branch=$(git rev-parse --abbrev-ref origin/HEAD 2>/dev/null | sed 's/origin\///')
+  [[ -z "$main_branch" ]] && main_branch="main"
+  local selected=$({
+    git -C "$repo_root" diff --name-only "origin/${main_branch}...HEAD" 2>/dev/null
+    git -C "$repo_root" diff --name-only --cached 2>/dev/null
+    git -C "$repo_root" diff --name-only 2>/dev/null
+    git -C "$repo_root" ls-files --others --exclude-standard 2>/dev/null
+  } | awk '!seen[$0]++' | fzf --height 40% --reverse)
+  if [[ -n "$selected" ]]; then
+    LBUFFER="${LBUFFER}${repo_root}/${selected}"
+  fi
+  local ret=$?
+  zle reset-prompt
+  return $ret
+}
+zle -N fzf-git-modified-widget
+
 # Workaround to make vi-mode work with atuin & fzf
 function zvm_after_init() {
   zvm_bindkey viins '^R' atuin-search
-  bindkey -M viins '^X^F' fzf-file-widget
-  bindkey -M viins '^X^D' fzf-directory-widget
+  bindkey -M viins '^Xf' fzf-file-widget
+  bindkey -M viins '^Xd' fzf-directory-widget
+  bindkey -M viins '^Xg' fzf-git-modified-widget
 }
 
 # =======================================
