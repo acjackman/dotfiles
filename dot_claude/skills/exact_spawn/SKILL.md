@@ -2,6 +2,8 @@
 allowed-tools:
   - Bash(~/.claude/skills/spawn/spawn-tmux.sh:*)
   - Bash(~/.claude/skills/spawn/setup-worktree.sh:*)
+  - Bash(~/.claude/skills/spawn/ensure-tmp.sh:*)
+  - Bash(~/.claude/skills/spawn/write-prompt.sh:*)
   - Bash(echo $TMUX:*)
   - Bash(tmux list-sessions*)
   - Bash(tmux list-windows*)
@@ -67,10 +69,24 @@ $ARGUMENTS should contain the task description for the new Claude agent.
 
    If the worktree already exists it is reused (with `--base` compatibility check).
 
-6. Write the prompt to a datestamped file inside the worktree:
+6. Write the prompt file:
 
-   The `.tmp` directory is already created by `setup-worktree.sh`.
-   Write the task description to `<worktree-path>/.tmp/prompt-<YYYY-MM-DD-HHMMSS>.md`.
+   a. Ensure the local `.tmp/` directory exists:
+
+      ```bash
+      ~/.claude/skills/spawn/ensure-tmp.sh
+      ```
+
+   b. Use the **Write** tool to create `.tmp/prompt.md` (in the current working directory)
+      with the full task description as content.
+
+   c. Move it to the worktree with a datestamp:
+
+      ```bash
+      ~/.claude/skills/spawn/write-prompt.sh .tmp/prompt.md <worktree-path>
+      ```
+
+      The script prints the final prompt file path. Use this path in the next step.
 
 7. Spawn a full interactive Claude session. Never use `claude -p`/`--print`.
 
