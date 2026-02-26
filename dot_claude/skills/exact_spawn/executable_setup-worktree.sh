@@ -9,7 +9,7 @@ WT=/opt/homebrew/bin/wt
 
 ensure_trust() {
     local path="$1"
-    local claude_json="$HOME/.claude/.claude.json"
+    local claude_json="$HOME/.claude.json"
     [[ ! -f "$claude_json" ]] && return
 
     if jq -e --arg p "$path" '.projects[$p].hasTrustDialogAccepted == true' "$claude_json" >/dev/null 2>&1; then
