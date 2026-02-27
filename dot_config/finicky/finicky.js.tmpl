@@ -21,8 +21,14 @@ export default {
       url: { protocol: "discord" },
       browser: "Discord",
     },
+    {{- if has "moov" .extras }}
     {
-      match: /https:\/\/linear\.app\/.+/,
+      match: /meet\.google\.com\/.+/,
+      browser: "{{ .chezmoi.homeDir }}/Applications/Chrome Apps.localized/Google Meet.app",
+    },
+    {{- end }}
+    {
+      match: /https:\/\/linear\.app\/(?!docs\/).+/,
       url: { protocol: "linear" },
       browser: "Linear",
     },
