@@ -1,4 +1,5 @@
 ---
+description: Spawn a new Claude agent in an isolated worktree via tmux. Use when the user says "spawn", "start an agent", or wants to delegate a task to a parallel Claude session.
 allowed-tools:
   - Bash(~/.claude/skills/spawn/spawn-tmux.sh:*)
   - Bash(~/.claude/skills/spawn/setup-worktree.sh:*)

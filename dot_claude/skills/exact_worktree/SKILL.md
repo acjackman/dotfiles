@@ -1,4 +1,5 @@
 ---
+description: Create or reuse a worktrunk-managed worktree. Use when the user says "worktree", "create a worktree", or needs an isolated branch for a sub-agent.
 allowed-tools:
   - Bash(~/.claude/skills/spawn/setup-worktree.sh:*)
 ---
