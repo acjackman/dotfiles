@@ -1,3 +1,7 @@
+---
+description: Create a draft pull request using the gh CLI. Use when the user says "create a PR", "open a pull request", "submit a PR", or asks to push changes for review.
+---
+
 # Create Pull Request
 
 Create a draft pull request using the `gh` CLI that follows the repository's PR template.

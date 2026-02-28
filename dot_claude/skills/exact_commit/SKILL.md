@@ -1,4 +1,5 @@
 ---
+description: Commit staged and unstaged changes with a well-structured message. Use when the user says "commit", "commit this", "save my changes", or asks to create a git commit.
 allowed-tools:
   - Bash(bash ~/.claude/skills/commit/git-commit-info.sh:*)
   - Bash(git status:*)
