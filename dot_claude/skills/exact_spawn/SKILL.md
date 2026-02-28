@@ -19,6 +19,17 @@ Each agent gets its own worktree created by worktrunk, so it can work without co
 
 $ARGUMENTS should contain the task description for the new Claude agent.
 
+## Cross-Repo Tasks
+
+Sometimes a task belongs in a different repository than the one you're currently working in. Recognize cross-repo tasks when:
+
+- The user provides a path to another repo (e.g., `~/dev/other-project: fix X`)
+- Your investigation reveals the fix belongs in a different codebase
+
+Cross-repo tasks default to a **new session** (not window), since they represent independent work in a separate project.
+
+Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a bare repo managed by worktrunk, a worktree is created there. If it's a regular checkout, the agent runs directly in that directory (no worktree or branch is created — the branch name is only used for tmux naming).
+
 ## Instructions
 
 1. Verify tmux is available:
@@ -44,7 +55,7 @@ $ARGUMENTS should contain the task description for the new Claude agent.
 
    Briefly tell the user which you chose and why.
 
-3. Derive a short, descriptive branch name from the task (lowercase, hyphens, no spaces). For example, "Fix the auth timeout bug" becomes `fix-auth-timeout`.
+3. Derive a short, descriptive branch name from the task (lowercase, hyphens, no spaces). For example, "Fix the auth timeout bug" becomes `fix-auth-timeout`. For regular (non-bare) repos targeted via `--repo`, the name is only used for the tmux window/session — no branch is created.
 
 4. Check for tmux name conflicts **before** creating the worktree:
 
@@ -58,16 +69,16 @@ $ARGUMENTS should contain the task description for the new Claude agent.
 5. Create (or reuse) the worktree and get its path:
 
    ```bash
-   ~/.claude/skills/spawn/setup-worktree.sh <name> [--base <ref>]
+   ~/.claude/skills/spawn/setup-worktree.sh <name> [--base <ref>] [--repo <path>]
    ```
 
-   The script prints the worktree's JSON entry. Extract the path:
+   The script prints a JSON object. Extract the path:
 
    ```bash
    jq -r '.path'
    ```
 
-   If the worktree already exists it is reused (with `--base` compatibility check).
+   If the worktree already exists it is reused (with `--base` compatibility check). When `--repo` targets a regular checkout, the script returns a synthetic JSON entry pointing to that directory.
 
 6. Write the prompt file:
 
@@ -78,7 +89,9 @@ $ARGUMENTS should contain the task description for the new Claude agent.
       ```
 
    b. Use the **Write** tool to create `.tmp/prompt.md` (in the current working directory)
-      with the full task description as content.
+      with the full task description as content. For cross-repo tasks, include context
+      from the current repo that the agent will need — what you discovered, relevant
+      file paths, code snippets, and why the fix belongs in the target repo.
 
    c. Move it to the worktree with a datestamp:
 
@@ -102,6 +115,6 @@ $ARGUMENTS should contain the task description for the new Claude agent.
 
 8. Confirm to the user:
    - Whether a window or session was created, and its name
-   - The branch/worktree that was created
+   - The branch/worktree that was created (or target repo for cross-repo tasks)
    - The prompt file path
    - How to switch: `tmux select-window -t '=<name>'` or `tmux switch-client -t '=<name>'` (the `=` prefix forces exact name matching)
