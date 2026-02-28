@@ -43,6 +43,13 @@
     "Bash(mise env:*)",
     "Bash(mise doctor:*)",
     "Bash(mise help:*)",
-    "Bash(chezmoi diff:*)"
+    "Bash(chezmoi diff:*)",
+    "Skill(commit)",
+    "Skill(apply)",
+    "Skill(spawn)",
+    "Skill(spawn-session)",
+    "Skill(spawn-window)",
+    "Skill(worktree)",
+    "Skill(create-pr)"
   ]
 }
