@@ -16,6 +16,10 @@
 - Bare repo + worktree layout, managed by `worktrunk` (`wt`)
 - Default branch naming: kebab-case (e.g., `add-user-auth`, `fix-login-bug`)
 - Project-level config can override — check the project's CLAUDE.md or AGENTS.md first
+- **Worktree-aware searching**: Always scope searches to the worktree, not the full repo
+  - Worktree root: `git rev-parse --show-toplevel`
+  - Repo (bare) root: `git rev-parse --git-common-dir` (resolves to `.bare/`)
+  - The working directory is typically already the worktree root — just search `.` or `$PWD`
 - See `topics/git.md` for worktree workflows and conventions
 
 ## Testing
