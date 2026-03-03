@@ -1,14 +1,13 @@
-# -*- mode: zsh -*- vim: ft=zsh
+#!/usr/bin/env zsh
 
 remote_url=${1:-$(git remote get-url origin)}
 
 if [[ "$remote_url" =~ github\.com ]]; then
-  # Fetch all PR data in a single call
   pr_data=$(gh pr view --json=isDraft,title,number,url,headRepository $1 2>/dev/null)
 
   if [[ $? -ne 0 || -z "$pr_data" ]]; then
     >&2 echo "No PR found or failed to fetch PR data"
-    return 1
+    exit 1
   fi
 
   is_draft=$(echo "$pr_data" | jq -r '.isDraft')
@@ -16,11 +15,11 @@ if [[ "$remote_url" =~ github\.com ]]; then
   if [[ "$is_draft" == "true" ]]; then
     >&2 echo "PR is in draft status, mark ready with 'gh pr ready'"
     echo "$pr_data" | jq -r '":pencil: \(.title): [\(.headRepository.name)#\(.number)](\(.url))"' | pbcopy
-    return 2
+    exit 2
   else
     echo "$pr_data" | jq -r '":pr: \(.title): [\(.headRepository.name)#\(.number)](\(.url))"' | pbcopy
   fi
 else;
   >&2 echo "unsupported origin $remote_url"
-  return 1
+  exit 1
 fi
