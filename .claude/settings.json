@@ -28,7 +28,10 @@
       "Bash(git diff:*)",
       "Bash(git show:*)",
       "Bash(git branch:*)",
-      "Bash(git remote:*)"
+      "Bash(git remote:*)",
+      "Read(~/.config/**)",
+      "Read(~/.local/bin/**)",
+      "Read(~/.local/share/**)"
     ],
     "deny": [],
     "ask": []
