@@ -1,0 +1,25 @@
+#!/usr/bin/env zsh
+# Usage: op_dburl "<DB item name>"
+
+op get item $1  | read DB_ITEM
+if [ $? -ne 0 ]; then
+    exit 2
+fi
+if [ $(echo $DB_ITEM | jq -r '.templateUuid') -ne "102" ]; then
+    >&2 echo "1Password Item is not a database"
+    exit 3
+fi
+
+DB_FIELDS=$(echo $DB_ITEM | jq '.details.sections[0].fields[]')
+jqs() {
+    echo $DB_FIELDS | jq -r $@
+}
+
+TYPE=$(jqs 'select(.n=="database_type") | .v ')
+USER=$(jqs 'select(.n=="username") | .v ')
+PASSWORD=$(jqs 'select(.n=="password") | .v ')
+HOST=$(jqs 'select(.n=="hostname") | .v ')
+PORT=$(jqs 'select(.n=="port") | .v ')
+DATABASE=$(jqs 'select(.n=="database") | .v ')
+
+echo "$TYPE://${USER}:${PASSWORD}@${HOST}:${PORT}/${DATABASE}"
