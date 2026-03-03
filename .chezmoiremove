@@ -27,3 +27,4 @@ finicky.js
 .claude/commands/spawn-window
 .claude/commands/create-pr.md
 .claude/commands
+.claude/skills/apply
