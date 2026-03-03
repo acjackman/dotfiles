@@ -1,4 +1,4 @@
-# -*- mode: zsh -*- vim: ft=zsh
+#!/usr/bin/env zsh
 
 time=${1:-30}
 title=${2:-"Sleeping for ${time}s..."}
