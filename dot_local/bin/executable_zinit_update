@@ -1,4 +1,4 @@
-# -*- mode: zsh -*- vim: ft=zsh
+#!/usr/bin/env zsh
 
 zinit delete --clean
 zinit update --all
