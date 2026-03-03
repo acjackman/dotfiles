@@ -1,0 +1,16 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+
+defaults write com.pointum.hazeover Intensity -float 24.904853033836
+defaults write com.pointum.hazeover Color -string "000000"
+defaults write com.pointum.hazeover Animation -float 0.1
+defaults write com.pointum.hazeover AnimationCurve -int 0
+defaults write com.pointum.hazeover Enabled -bool true
+defaults write com.pointum.hazeover MultiFocus -bool false
+defaults write com.pointum.hazeover IndependentScreens -bool false
+defaults write com.pointum.hazeover UsingAX -bool true
+defaults write com.pointum.hazeover SUAutomaticallyUpdate -bool true
+
+# Launch at login uses SMAppService (macOS Login Items) — must be enabled
+# manually in System Settings > General > Login Items on first setup.
+{{ end -}}

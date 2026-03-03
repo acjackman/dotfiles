@@ -179,6 +179,7 @@ cask "raycast"                             # Launcher
 cask "espanso"                             # Text expansion
 cask "homerow"                             # keyboard driven clicks
 cask "leader-key"                          # Leader Key
+cask "hazeover"                            # Dim inactive windows
 
 # Style
 brew "FelixKratz/formulae/sketchybar"      # Custom Menu bar
