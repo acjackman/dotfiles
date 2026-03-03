@@ -1,4 +1,4 @@
-
+#!/usr/bin/env zsh
 # Usage: oktap_aws c-networking
 
 set -e -o pipefail
@@ -9,7 +9,7 @@ echo "No profiles specified"
 fi
 
 while [[ $# -ne 0 ]]; do
-local PROFILE_NAME=$1
+PROFILE_NAME=$1
 shift
 
     echo "Authenticating for $PROFILE_NAME"
