@@ -1,4 +1,4 @@
-# -*- mode: zsh -*- vim: ft=zsh
+#!/usr/bin/env zsh
 
 remote_url=$(git remote get-url origin)
 
