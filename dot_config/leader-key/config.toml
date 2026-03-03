@@ -35,6 +35,23 @@ value = "/Applications/Brave Browser.app"
 
 # Open
 
+[p]
+label = "DeskPad"
+rank = 45
+
+[p.children.p.action]
+rank = 10
+kind = "application"
+value = "/Applications/DeskPad.app"
+
+[p.children.q]
+label = "Quit DeskPad"
+
+[p.children.q.action]
+rank = 20
+kind = "command"
+value = "osascript -e 'quit app \"DeskPad\"'"
+
 [o]
 label = "Open"
 rank = 50
