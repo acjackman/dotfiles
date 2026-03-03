@@ -1,0 +1,9 @@
+#!/usr/bin/env zsh
+
+STACK=$1
+VAR=$2
+aws-cli cloudformation describe-stacks \
+  --stack-name $STACK \
+  --output text \
+  --query "Stacks[0].Outputs[?OutputKey==\`$VAR\`].OutputValue | [0]" \
+| cat
