@@ -1,16 +1,16 @@
-# -*- mode: zsh -*- vim: ft=zsh
+#!/usr/bin/env zsh
 
 # llmc - use LLM to generate shell commands and copy to clipboard
 # source: https://gist.github.com/montasaurus/5ccbe453ef863f702291e763b1b63daf
 # via: https://simonwillison.net/2024/Feb/16/llmcsh/
 
-local system_prompt='Output a command that I can run in a ZSH terminal on macOS to accomplish the following task. Try to make the command self-documenting, using the long version of flags where possible. Output the command first enclosed in a "```zsh" codeblock followed by a concise explanation of how it accomplishes it.'
+system_prompt='Output a command that I can run in a ZSH terminal on macOS to accomplish the following task. Try to make the command self-documenting, using the long version of flags where possible. Output the command first enclosed in a "```zsh" codeblock followed by a concise explanation of how it accomplishes it.'
 
-local temp_file=$(mktemp)
-local capturing=true
-local command_buffer=""
-local first_line=true
-local cleaned_up=false
+temp_file=$(mktemp)
+capturing=true
+command_buffer=""
+first_line=true
+cleaned_up=false
 
 cleanup() {
     if [[ "$cleaned_up" == false ]]; then
