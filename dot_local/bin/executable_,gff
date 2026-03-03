@@ -6,7 +6,8 @@
 # Usage: ,gff
 
 # Lock variables and helper functions
-local LOCK_FILE GIT_DIR
+LOCK_FILE=
+GIT_DIR=
 
 __acquire_lock() {
     # Get absolute git directory path (handles worktrees correctly)
@@ -50,7 +51,7 @@ __cleanup_lock() {
 }
 
 # Acquire lock before proceeding
-__acquire_lock || return 1
+__acquire_lock || exit 1
 
 # Register cleanup handler
 trap '__cleanup_lock' EXIT INT TERM
@@ -74,7 +75,7 @@ if [ -z "$default_branch" ]; then
         default_branch="master"
     else
         echo "ERROR: Could not determine default branch" >&2
-        return 1
+        exit 1
     fi
 fi
 
