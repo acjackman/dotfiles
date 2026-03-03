@@ -1,0 +1,4 @@
+#!/usr/bin/env zsh
+
+echo AWS_PROFILE=${AWS_PROFILE}
+awswhoami
