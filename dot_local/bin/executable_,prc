@@ -1,5 +1,4 @@
-# -*- mode: zsh -*- vim: ft=zsh
-
+#!/usr/bin/env zsh
 set -e
 
 if [ -n "$1" ]; then
