@@ -216,6 +216,16 @@ wt switch -x claude -c feature-name -- 'Task description'
 - No comments unless documenting complex logic
 - Prefer `[[ ]]` over `[ ]` in bash/zsh
 
+### Functions vs Scripts
+
+Prefer standalone scripts in `dot_local/bin/` unless the command must modify the caller's shell state:
+- **Working directory** — `cd`, `pushd`, `popd`
+- **Environment variables** — `export`, `unset`
+- **Shell execution context** — `eval`, `source`
+- **Shell options** — `setopt`/`unsetopt` that persist after the command
+
+If none of these apply, make it a script. Scripts are shell-agnostic, independently testable, and work in non-interactive contexts.
+
 ### Python
 
 - Use type hints (from `typing` import)

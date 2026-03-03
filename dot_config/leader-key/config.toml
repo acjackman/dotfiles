@@ -52,6 +52,46 @@ rank = 20
 kind = "command"
 value = "osascript -e 'quit app \"DeskPad\"'"
 
+[u]
+label = "UI Tweaks"
+rank = 47
+
+[u.children.d]
+label = "Toggle Dark Mode"
+
+[u.children.d.action]
+rank = 10
+kind = "command"
+value = "osascript -e 'tell app \"System Events\" to tell appearance preferences to set dark mode to not dark mode'"
+
+[u.children.h]
+label = "HazeOver"
+rank = 20
+
+[u.children.h.children.h]
+label = "Toggle"
+
+[u.children.h.children.h.action]
+rank = 10
+kind = "command"
+value = "osascript -e 'tell app \"HazeOver\" to set enabled to not enabled'"
+
+[u.children.h.children."="]
+label = "Increase Opacity"
+
+[u.children.h.children."=".action]
+rank = 20
+kind = "command"
+value = "osascript -e 'tell app \"HazeOver\" to set intensity to (intensity + 10)'"
+
+[u.children.h.children."-"]
+label = "Decrease Opacity"
+
+[u.children.h.children."-".action]
+rank = 30
+kind = "command"
+value = "osascript -e 'tell app \"HazeOver\" to set intensity to (intensity - 10)'"
+
 [o]
 label = "Open"
 rank = 50
