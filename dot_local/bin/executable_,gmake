@@ -1,4 +1,4 @@
-# -*- mode: zsh -*- vim: ft=zsh
+#!/usr/bin/env zsh
 
 pushd $(git rev-parse --show-toplevel) >/dev/null
 make $@
