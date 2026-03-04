@@ -82,6 +82,7 @@ brew "navi"
 brew "atuin"
 
 # Nicities
+brew "expect"
 brew "gum"
 
 ######################################
