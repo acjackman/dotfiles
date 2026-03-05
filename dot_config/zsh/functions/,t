@@ -5,8 +5,13 @@
 # Outside tmux: exec into the launcher so the window closes with the session
 # Inside tmux: run normally so sesh handles session switching
 
-if [[ -n "$TMUX" ]]; then
+# Check if this terminal is actually a tmux client (not just a stale $TMUX env)
+_in_tmux() {
+  [[ -n "$TMUX" ]] && tmux list-clients -F '#{client_tty}' 2>/dev/null | grep -qF "$(tty)"
+}
+
+if _in_tmux; then
   ~/.config/tmux/tmux_launcher.sh
 else
-  exec ~/.config/tmux/tmux_launcher.sh
+  TMUX= exec ~/.config/tmux/tmux_launcher.sh
 fi

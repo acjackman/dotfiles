@@ -13,7 +13,7 @@ tell application "System Events"
     end tell
 end tell
 
-set the clipboard to "exec ~/.config/tmux/tmux_launcher.sh"
+set the clipboard to "TMUX= exec ~/.config/tmux/tmux_launcher.sh"
 tell application "System Events"
     tell process "Ghostty"
         keystroke "v" using command down
