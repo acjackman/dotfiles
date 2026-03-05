@@ -18,45 +18,5 @@ tmux move-window -s "${current_session}:${current_window}" -t "${session_name}:"
 # Kill the placeholder window from new-session (only exists if we just created it)
 [[ -n "$placeholder" ]] && tmux kill-window -t "$placeholder" 2>/dev/null
 
-# Check if a Ghostty window already has this session, activate it if so
-found=$(osascript -e '
-tell application "System Events"
-    tell process "Ghostty"
-        set windowNames to name of every window
-        repeat with i from 1 to count of windowNames
-            if item i of windowNames contains "'"$session_name"'" then
-                perform action "AXRaise" of window i
-                return "found"
-            end if
-        end repeat
-    end tell
-end tell
-return "not_found"
-' 2>/dev/null)
-
-if [[ "$found" == "found" ]]; then
-    osascript -e 'tell application "Ghostty" to activate'
-else
-    # Open a new Ghostty window and attach to the new session
-    osascript -e '
-tell application "Ghostty"
-    activate
-end tell
-
-tell application "System Events"
-    tell process "Ghostty"
-        keystroke "n" using command down
-        delay 0.5
-    end tell
-end tell
-
-set the clipboard to "TMUX= exec tmux attach-session -t '"$session_name"'"
-tell application "System Events"
-    tell process "Ghostty"
-        keystroke "v" using command down
-        delay 0.1
-        key code 36
-    end tell
-end tell
-'
-fi
+# Find existing Ghostty window or open a new one
+~/.config/tmux/activate-or-open-ghostty.sh "$session_name" "$pane_path"
