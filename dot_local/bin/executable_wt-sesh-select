@@ -40,7 +40,26 @@ fi
 session=$(tmux-session-name "$path")
 
 if [[ "$mode" == "new-window" ]]; then
-  open -na Ghostty.app --args -e tmux new-session -A -s "$session" -c "$path"
+  # Activate existing Ghostty window for this session if one exists
+  found=$(osascript -e '
+tell application "System Events"
+    tell process "Ghostty"
+        set windowNames to name of every window
+        repeat with i from 1 to count of windowNames
+            if item i of windowNames contains "'"$session"'" then
+                perform action "AXRaise" of window i
+                return "found"
+            end if
+        end repeat
+    end tell
+end tell
+return "not_found"
+' 2>/dev/null)
+  if [[ "$found" == "found" ]]; then
+    osascript -e 'tell application "Ghostty" to activate'
+  else
+    open -na Ghostty.app --args -e tmux new-session -A -s "$session" -c "$path"
+  fi
 else
   if ! tmux has-session -t "=$session" 2>/dev/null; then
     tmux new-session -d -s "$session" -c "$path"
