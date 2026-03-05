@@ -1,0 +1,128 @@
+#!/usr/bin/env zsh
+
+# Usage: ,op-extract-notes [--dry-run]
+# Extracts notes created by ,op-capture from 1Password and saves them
+# as markdown files in ~/notes/+/ with YAML frontmatter metadata.
+
+set -euo pipefail
+
+VAULT="Private"
+ACCOUNT="jackman.1password.com"
+NOTES_DIR="$HOME/notes/+"
+DRY_RUN=false
+
+if [[ "${1:-}" == "--dry-run" ]]; then
+  DRY_RUN=true
+fi
+
+if ! command -v op >/dev/null 2>&1; then
+  echo "Error: 'op' (1Password CLI) is required but not installed."
+  exit 1
+fi
+
+if ! command -v jq >/dev/null 2>&1; then
+  echo "Error: 'jq' is required but not installed."
+  exit 1
+fi
+
+if [[ "$DRY_RUN" == false ]]; then
+  mkdir -p "$NOTES_DIR"
+fi
+
+# List all Secure Notes in the Private vault with "Capture " prefix
+items_json=$(op item list \
+  --vault "$VAULT" \
+  --account "$ACCOUNT" \
+  --categories "Secure Note" \
+  --format json | jq '[.[] | select(.title | startswith("Capture "))]')
+
+count=$(echo "$items_json" | jq 'length')
+
+if [[ "$count" -eq 0 ]]; then
+  echo "No capture notes found in 1Password."
+  exit 0
+fi
+
+echo "Found $count capture note(s) in 1Password."
+
+echo "$items_json" | jq -c '.[]' | while read -r item; do
+  id=$(echo "$item" | jq -r '.id')
+  title=$(echo "$item" | jq -r '.title')
+  created=$(echo "$item" | jq -r '.created_at')
+  updated=$(echo "$item" | jq -r '.updated_at')
+
+  # Fetch full item details
+  full_item=$(op item get "$id" \
+    --vault "$VAULT" \
+    --account "$ACCOUNT" \
+    --format json)
+
+  content=$(echo "$full_item" | jq -r '
+    .fields[]
+    | select(.id == "notesPlain")
+    | .value // empty
+  ')
+
+  if [[ -z "$content" ]]; then
+    echo "Skipping '$title': no content"
+    continue
+  fi
+
+  # Extract tags if present
+  tags_json=$(echo "$full_item" | jq -c '[.tags // [] | .[]?]')
+
+  # Build a safe filename from the title
+  slug=$(echo "$title" | sed 's/[^a-zA-Z0-9_-]/-/g' | sed 's/--*/-/g' | sed 's/-$//')
+  filename="${slug}.md"
+  filepath="$NOTES_DIR/$filename"
+
+  if [[ "$DRY_RUN" == true ]]; then
+    echo "Would create: $filepath"
+    echo "---"
+    echo "title: \"$title\""
+    echo "source: 1password"
+    echo "op_id: \"$id\""
+    echo "created: \"$created\""
+    echo "updated: \"$updated\""
+    if [[ "$tags_json" != "[]" ]]; then
+      echo "tags:"
+      echo "$tags_json" | jq -r '.[]' | while read -r tag; do
+        echo "  - \"$tag\""
+      done
+    fi
+    echo "---"
+    echo ""
+    echo "$content"
+    echo ""
+    continue
+  fi
+
+  if [[ -f "$filepath" ]]; then
+    echo "Skipping '$title': $filepath already exists"
+    continue
+  fi
+
+  {
+    echo "---"
+    echo "title: \"$title\""
+    echo "source: 1password"
+    echo "op_id: \"$id\""
+    echo "created: \"$created\""
+    echo "updated: \"$updated\""
+    if [[ "$tags_json" != "[]" ]]; then
+      echo "tags:"
+      echo "$tags_json" | jq -r '.[]' | while read -r tag; do
+        echo "  - \"$tag\""
+      done
+    fi
+    echo "---"
+    echo ""
+    echo "$content"
+  } > "$filepath"
+
+  echo "Created: $filepath"
+done
+
+if [[ "$DRY_RUN" == false ]]; then
+  echo "Done. Notes saved to $NOTES_DIR"
+fi
