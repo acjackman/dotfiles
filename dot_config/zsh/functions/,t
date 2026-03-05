@@ -1,0 +1,12 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# ,t - Tmux session launcher
+#
+# Outside tmux: exec into the launcher so the window closes with the session
+# Inside tmux: run normally so sesh handles session switching
+
+if [[ -n "$TMUX" ]]; then
+  ~/.config/tmux/tmux_launcher.sh
+else
+  exec ~/.config/tmux/tmux_launcher.sh
+fi

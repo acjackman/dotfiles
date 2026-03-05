@@ -19,7 +19,8 @@ kind = "command"
 value = "open 'obsidian://adv-uri?vault=notes&commandid=periodic-notes:open-daily-note' && open -a Obsidian"
 iconPath = "/Applications/Obsidian.app"
 
-{{- if has "personal" .extras -}}
+{{ if has "personal" .extras }}
+
 [l.children.w.action]
 rank = 30
 label = "Weekly"
@@ -48,4 +49,4 @@ kind = "command"
 value = "open 'obsidian://adv-uri?vault=notes&filepath=atlas%2Fatlas.md' && open -a Obsidian"
 iconPath = "/Applications/Obsidian.app"
 
-{{- end -}}
+{{ end }}

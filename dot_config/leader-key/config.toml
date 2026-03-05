@@ -1,7 +1,18 @@
-[t.action]
+[t]
+rank = 10
+
+[t.children.t.action]
 rank = 10
 kind = "application"
 value = "/Applications/Ghostty.app"
+
+[t.children.n]
+label = "New Window + Sesh"
+
+[t.children.n.action]
+rank = 20
+kind = "command"
+value = "~/.config/ghostty/ghostty-sesh"
 
 [e.action]
 rank = 20
