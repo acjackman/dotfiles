@@ -2,7 +2,7 @@
 
 # Get session name based on the current pane's directory
 pane_path="$1"
-session_name=$(~/.config/tmux/rename-from-repo.sh "$pane_path")
+session_name=$(tmux-session-name "$pane_path")
 
 # Get current session and window info
 current_session="$2"
