@@ -5,6 +5,7 @@ while [[ $# -gt 0 ]]; do
   case "$1" in
     --new-window) mode="new-window"; shift ;;
     --window) mode="window"; shift ;;
+    --move-window) mode="move-window"; shift ;;
     *) break ;;
   esac
 done
@@ -31,19 +32,25 @@ fi
 # Derive session name for reuse checks
 session=$(tmux-session-name "$path")
 
-# Window mode: prefer existing session, fall back to window in current session
+# Window mode: prefer existing session, ensure a window exists for the path
 if [[ "$mode" == "window" ]]; then
+  name=$(tmux-window-name "$path")
   if tmux has-session -t "=$session" 2>/dev/null; then
     tmux switch-client -t "=$session"
+    # Ensure the session has a window for this path
+    tmux select-window -t "=$session:=$name" 2>/dev/null || \
+      tmux new-window -t "=$session" -n "$name" -c "$path"
   else
-    name=$(tmux-window-name "$path")
     tmux select-window -t ":=$name" 2>/dev/null || \
       tmux new-window -n "$name" -c "$path"
   fi
   exit 0
 fi
 
-if [[ "$mode" == "new-window" ]]; then
+if [[ "$mode" == "move-window" ]]; then
+  # Write info for the tmux binding to handle after popup closes
+  printf '%s\n%s\n' "$session" "$path" > /tmp/wt-move-window-pending
+elif [[ "$mode" == "new-window" ]]; then
   # Ensure the session exists, then write info for the tmux binding to handle
   if ! tmux has-session -t "=$session" 2>/dev/null; then
     tmux new-session -d -s "$session" -c "$path"

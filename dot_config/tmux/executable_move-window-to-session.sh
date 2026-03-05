@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+# TODO: handle non-git paths (currently tmux-session-name falls back to basename)
 
 # Get session name based on the current pane's directory
 pane_path="$1"
@@ -8,14 +9,21 @@ session_name=$(tmux-session-name "$pane_path")
 current_session="$2"
 current_window="$3"
 
-# Create new detached session and capture its initial window so we can kill it after
+# Already in the right session — nothing to do
+if [[ "$current_session" == "$session_name" ]]; then
+    exit 0
+fi
+
+# If session exists, move the current window into it
+if tmux has-session -t "=$session_name" 2>/dev/null; then
+    tmux move-window -s "${current_session}:${current_window}" -t "${session_name}:"
+    tmux switch-client -t "=$session_name"
+    exit 0
+fi
+
+# Create new session, move the current window into it, kill placeholder
 placeholder=$(tmux new-session -d -s "$session_name" -c "$pane_path" -P -F "#{window_id}" 2>/dev/null)
-
-# Move the current window to the new session
 tmux move-window -s "${current_session}:${current_window}" -t "${session_name}:"
-
-# Kill the placeholder window from new-session (only exists if we just created it)
 [[ -n "$placeholder" ]] && tmux kill-window -t "$placeholder" 2>/dev/null
 
-# Switch to the new session
-tmux switch-client -t "$session_name"
+tmux switch-client -t "=$session_name"

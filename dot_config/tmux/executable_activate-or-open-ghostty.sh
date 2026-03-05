@@ -24,25 +24,5 @@ if [[ -n "$window_id" ]]; then
     aerospace focus --window-id "$window_id"
 else
     # Open a new Ghostty window and attach to the session
-    osascript -e '
-tell application "Ghostty"
-    activate
-end tell
-
-tell application "System Events"
-    tell process "Ghostty"
-        keystroke "n" using command down
-        delay 0.5
-    end tell
-end tell
-
-set the clipboard to "TMUX= exec tmux attach-session -t '"$session"'"
-tell application "System Events"
-    tell process "Ghostty"
-        keystroke "v" using command down
-        delay 0.1
-        key code 36
-    end tell
-end tell
-'
+    open -na Ghostty.app --args -e env -u TMUX tmux attach-session -t "=$session"
 fi
