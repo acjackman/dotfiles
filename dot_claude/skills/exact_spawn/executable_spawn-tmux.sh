@@ -28,12 +28,15 @@ done
 
 launch_script="$HOME/.claude/skills/spawn/launch.sh"
 
+# Derive tmux name from the worktree path using shared naming conventions
 if [[ "$mode" == "window" ]]; then
-    pane_id=$(tmux new-window -d -n "$name" -c "$dir" -P -F "#{pane_id}")
+    tmux_name=$(tmux-window-name "$dir")
+    pane_id=$(tmux new-window -d -n "$tmux_name" -c "$dir" -P -F "#{pane_id}")
     tmux set-option -t "$pane_id" automatic-rename off
     tmux send-keys -t "$pane_id" "$launch_script '$prompt'" Enter
 elif [[ "$mode" == "session" ]]; then
-    pane_id=$(tmux new-session -d -s "$name" -c "$dir" -P -F "#{pane_id}")
+    tmux_name=$(tmux-session-name "$dir")
+    pane_id=$(tmux new-session -d -s "$tmux_name" -c "$dir" -P -F "#{pane_id}")
     tmux set-option -t "$pane_id" automatic-rename off
     tmux send-keys -t "$pane_id" "$launch_script '$prompt'" Enter
 fi
