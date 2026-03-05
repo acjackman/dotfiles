@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+# Returns the appropriate tmux window name for a given path.
+# For git repos/worktrees: basename of the worktree directory.
+# For non-git directories: basename of the path.
+
+dir="${1:-.}"
+cd "$dir" || exit 1
+
+if git rev-parse --show-toplevel >/dev/null 2>&1; then
+  basename "$(git rev-parse --show-toplevel)"
+else
+  basename "$dir"
+fi
