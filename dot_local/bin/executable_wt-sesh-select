@@ -30,44 +30,14 @@ fi
 
 # Window mode: switch to or create a window named after the worktree
 if [[ "$mode" == "window" ]]; then
-  name=$(basename "$path")
-  # Try to select existing window by name, otherwise create one
+  name=$(tmux-window-name "$path")
   tmux select-window -t ":=$name" 2>/dev/null || \
     tmux new-window -n "$name" -c "$path"
   exit 0
 fi
 
-# Check sesh configured sessions for a matching path (normalise trailing slashes)
-norm_path="${path%/}"
-sesh_match=$(sesh list -c --json 2>/dev/null | python3 -c "
-import sys, json
-data = json.loads(sys.stdin.read())
-target = '${norm_path}'
-for s in data:
-    if s['Path'].rstrip('/') == target:
-        print(s['Name'])
-        break
-" 2>/dev/null)
-
-if [[ -n "$sesh_match" ]]; then
-  if [[ "$mode" == "new-window" ]]; then
-    open -na Ghostty.app --args -e tmux new-session -A -s "$sesh_match"
-  else
-    exec sesh connect "$sesh_match"
-  fi
-  exit 0
-fi
-
-# Fall back to repo-based naming
-branch=$(git -C "$path" branch --show-current)
-default_branch=$(wt -C "$path" config state default-branch 2>/dev/null)
-repo=$(basename "$(git -C "$path" worktree list --porcelain | head -1 | sed 's/^worktree //')")
-
-if [[ "$branch" == "$default_branch" ]]; then
-  session="$repo"
-else
-  session="$repo/$branch"
-fi
+# Session/new-window modes: use shared session naming
+session=$(tmux-session-name "$path")
 
 if [[ "$mode" == "new-window" ]]; then
   open -na Ghostty.app --args -e tmux new-session -A -s "$session" -c "$path"
