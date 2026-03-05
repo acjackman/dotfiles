@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 
-mode="switch"
+mode="session"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --new-window) mode="new-window"; shift ;;
+    --window) mode="window"; shift ;;
     *) break ;;
   esac
 done
@@ -24,6 +25,15 @@ fi
 path=$(sed -n "s/^cd '\\(.*\\)'/\\1/p; s/^cd //p" "$directive_file" | head -1)
 
 if [[ -z "$path" ]]; then
+  exit 0
+fi
+
+# Window mode: switch to or create a window named after the worktree
+if [[ "$mode" == "window" ]]; then
+  name=$(basename "$path")
+  # Try to select existing window by name, otherwise create one
+  tmux select-window -t ":=$name" 2>/dev/null || \
+    tmux new-window -n "$name" -c "$path"
   exit 0
 fi
 
