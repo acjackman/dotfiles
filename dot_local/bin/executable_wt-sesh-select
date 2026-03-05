@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+
+mode="switch"
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --new-window) mode="new-window"; shift ;;
+    *) break ;;
+  esac
+done
+
+dir="${1:-.}"
+
+# Capture wt's directive file to extract the cd path instead of sourcing it
+directive_file="$(mktemp)"
+trap 'rm -f "$directive_file"' EXIT
+
+WORKTRUNK_DIRECTIVE_FILE="$directive_file" command wt -C "$dir" switch
+
+if [[ ! -s "$directive_file" ]]; then
+  exit 0
+fi
+
+# Extract path from directive like: cd '/path/to/worktree'
+path=$(sed -n "s/^cd '\\(.*\\)'/\\1/p; s/^cd //p" "$directive_file" | head -1)
+
+if [[ -z "$path" ]]; then
+  exit 0
+fi
+
+# Check sesh configured sessions for a matching path (normalise trailing slashes)
+norm_path="${path%/}"
+sesh_match=$(sesh list -c --json 2>/dev/null | python3 -c "
+import sys, json
+data = json.loads(sys.stdin.read())
+target = '${norm_path}'
+for s in data:
+    if s['Path'].rstrip('/') == target:
+        print(s['Name'])
+        break
+" 2>/dev/null)
+
+if [[ -n "$sesh_match" ]]; then
+  if [[ "$mode" == "new-window" ]]; then
+    open -na Ghostty.app --args -e tmux new-session -A -s "$sesh_match"
+  else
+    exec sesh connect "$sesh_match"
+  fi
+  exit 0
+fi
+
+# Fall back to repo-based naming
+branch=$(git -C "$path" branch --show-current)
+default_branch=$(wt -C "$path" config state default-branch 2>/dev/null)
+repo=$(basename "$(git -C "$path" worktree list --porcelain | head -1 | sed 's/^worktree //')")
+
+if [[ "$branch" == "$default_branch" ]]; then
+  session="$repo"
+else
+  session="$repo/$branch"
+fi
+
+if [[ "$mode" == "new-window" ]]; then
+  open -na Ghostty.app --args -e tmux new-session -A -s "$session" -c "$path"
+else
+  if ! tmux has-session -t "=$session" 2>/dev/null; then
+    tmux new-session -d -s "$session" -c "$path"
+  fi
+  tmux switch-client -t "=$session"
+fi
