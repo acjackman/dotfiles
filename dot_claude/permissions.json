@@ -44,6 +44,8 @@
     "Bash(mise doctor:*)",
     "Bash(mise help:*)",
     "Bash(chezmoi diff:*)",
+    "Bash(tmux list-windows:*)",
+    "Bash(tmux list-sessions:*)",
     "Skill(commit)",
     "Skill(apply)",
     "Skill(spawn)",
