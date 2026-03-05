@@ -3,7 +3,6 @@ description: Spawn a new Claude agent in an isolated worktree via tmux. Use when
 allowed-tools:
   - Bash(~/.claude/skills/spawn/spawn-tmux.sh:*)
   - Bash(~/.claude/skills/spawn/setup-worktree.sh:*)
-  - Bash(~/.claude/skills/spawn/ensure-tmp.sh:*)
   - Bash(~/.claude/skills/spawn/write-prompt.sh:*)
   - Bash(echo $TMUX:*)
   - Bash(tmux list-sessions*)
@@ -81,26 +80,18 @@ Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a 
 
    If the worktree already exists it is reused (with `--base` compatibility check). When `--repo` targets a regular checkout, the script returns a synthetic JSON entry pointing to that directory.
 
-6. Write the prompt file:
+6. Write the prompt file using a heredoc piped into the script. For cross-repo
+   tasks, include context from the current repo that the agent will need — what
+   you discovered, relevant file paths, code snippets, and why the fix belongs
+   in the target repo.
 
-   a. Ensure the local `.tmp/` directory exists:
+   ```bash
+   ~/.claude/skills/spawn/write-prompt.sh <worktree-path> <<'PROMPT'
+   <full task description>
+   PROMPT
+   ```
 
-      ```bash
-      ~/.claude/skills/spawn/ensure-tmp.sh
-      ```
-
-   b. Use the **Write** tool to create `.tmp/prompt.md` (in the current working directory)
-      with the full task description as content. For cross-repo tasks, include context
-      from the current repo that the agent will need — what you discovered, relevant
-      file paths, code snippets, and why the fix belongs in the target repo.
-
-   c. Move it to the worktree with a datestamp:
-
-      ```bash
-      ~/.claude/skills/spawn/write-prompt.sh .tmp/prompt.md <worktree-path>
-      ```
-
-      The script prints the final prompt file path. Use this path in the next step.
+   The script prints the final prompt file path. Use this path in the next step.
 
 7. Spawn a full interactive Claude session. Never use `claude -p`/`--print`.
 

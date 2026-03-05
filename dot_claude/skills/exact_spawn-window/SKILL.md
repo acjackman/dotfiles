@@ -2,6 +2,7 @@
 allowed-tools:
   - Bash(~/.claude/skills/spawn/spawn-tmux.sh:*)
   - Bash(~/.claude/skills/spawn/setup-worktree.sh:*)
+  - Bash(~/.claude/skills/spawn/write-prompt.sh:*)
   - Bash(echo $TMUX:*)
   - Bash(tmux list-windows*)
 ---
