@@ -151,6 +151,7 @@ If present, specifies a subdirectory (relative path) to use as the actual source
 - Edit file: `chezmoi edit <file>`
 - Update from remote: `chezmoi update`
 - Re-run scripts: `chezmoi apply --force` (**manual use only** — agents must never use `--force`)
+- Working in a git worktree? See `.docs/chezmoi-worktrees.md` for how to apply from non-default worktrees
 
 ### Testing & Validation
 

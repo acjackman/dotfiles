@@ -11,6 +11,7 @@ AGENTS.md              → Focused overview with pointers to .docs/
   chezmoi.md           → Chezmoi workflow, file mapping, special files, commands
   code-style.md        → Shell, Python, Lua, template conventions
   git-workflows.md     → Bare repos, worktrees, worktrunk
+  chezmoi-worktrees.md → Chezmoi + git worktree interaction, applying from worktrees
   docs-guide.md        → This file
 **/CLAUDE.md           → Directory-specific instructions (auto-loaded by agents)
 ```
@@ -31,6 +32,7 @@ AGENTS.md              → Focused overview with pointers to .docs/
 | Chezmoi workflow change | `.docs/chezmoi.md` |
 | Code style change | `.docs/code-style.md` |
 | Git/worktree workflow change | `.docs/git-workflows.md` |
+| Chezmoi + worktree interaction | `.docs/chezmoi-worktrees.md` |
 | AGENTS.md too long | Extract detail into `.docs/`, replace with reference |
 
 ## File Format

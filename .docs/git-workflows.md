@@ -44,3 +44,7 @@ wt switch -x claude -c feature-name -- 'Task description'
 **Resources:**
 - Docs: https://worktrunk.dev
 - GitHub: https://github.com/max-sixty/worktrunk
+
+## Chezmoi and Worktrees
+
+This repo uses worktrees under `.worktrees/` (gitignored) so multiple agents can work on different branches simultaneously. Chezmoi has specific behavior with worktrees — see `.docs/chezmoi-worktrees.md` for details on applying from non-default worktrees, persistent state implications, and best practices.

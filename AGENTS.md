@@ -22,6 +22,7 @@ For in-depth guidance, see the `.docs/` directory:
 - **`.docs/chezmoi.md`** — Chezmoi workflow, file name mapping, finding files, special files (`.chezmoiignore`, `.chezmoiremove`, `.chezmoiexternal`, etc.), and commands
 - **`.docs/code-style.md`** — Shell, Python, Lua, and template conventions; functions vs scripts; chezmoi naming conventions
 - **`.docs/git-workflows.md`** — Bare repository structure, worktrees, and worktrunk (`wt`) usage
+- **`.docs/chezmoi-worktrees.md`** — How chezmoi interacts with git worktrees; applying from non-default worktrees
 - **`.docs/docs-guide.md`** — How this documentation is structured and maintained
 
 ## Directory-Specific Docs
