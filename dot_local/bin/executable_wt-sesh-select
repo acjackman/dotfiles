@@ -28,16 +28,20 @@ if [[ -z "$path" ]]; then
   exit 0
 fi
 
-# Window mode: switch to or create a window named after the worktree
+# Derive session name for reuse checks
+session=$(tmux-session-name "$path")
+
+# Window mode: prefer existing session, fall back to window in current session
 if [[ "$mode" == "window" ]]; then
-  name=$(tmux-window-name "$path")
-  tmux select-window -t ":=$name" 2>/dev/null || \
-    tmux new-window -n "$name" -c "$path"
+  if tmux has-session -t "=$session" 2>/dev/null; then
+    tmux switch-client -t "=$session"
+  else
+    name=$(tmux-window-name "$path")
+    tmux select-window -t ":=$name" 2>/dev/null || \
+      tmux new-window -n "$name" -c "$path"
+  fi
   exit 0
 fi
-
-# Session/new-window modes: use shared session naming
-session=$(tmux-session-name "$path")
 
 if [[ "$mode" == "new-window" ]]; then
   # Ensure the session exists, then write info for the tmux binding to handle
