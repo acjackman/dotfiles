@@ -83,7 +83,7 @@ if [[ -n "$existing" ]]; then
     ensure_trust "$worktree_path"
     echo "$existing"
 else
-    create_args=(switch --create "$branch")
+    create_args=(switch --no-cd --create "$branch")
     [[ -n "$base" ]] && create_args+=(--base "$base")
 
     TMUX_PANE= "${wt_cmd[@]}" "${create_args[@]}" >&2
