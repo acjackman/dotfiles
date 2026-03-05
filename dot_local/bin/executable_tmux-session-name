@@ -1,0 +1,46 @@
+#!/usr/bin/env bash
+# Returns the appropriate tmux session name for a given path.
+# Priority:
+#   1. Sesh configured session with matching path
+#   2. repo/branch for non-default git branches
+#   3. repo name for default git branch
+#   4. basename fallback for non-git directories
+
+dir="${1:-.}"
+cd "$dir" || exit 1
+
+# Check sesh configured sessions for a matching path
+norm_path="$(cd "$dir" && pwd -P)"
+norm_path="${norm_path%/}"
+sesh_match=$(sesh list -c --json 2>/dev/null | python3 -c "
+import sys, json, os
+data = json.loads(sys.stdin.read())
+target = '$norm_path'
+for s in data:
+    p = os.path.expanduser(s['Path']).rstrip('/')
+    if p == target:
+        print(s['Name'])
+        break
+" 2>/dev/null)
+
+if [[ -n "$sesh_match" ]]; then
+  echo "$sesh_match"
+  exit 0
+fi
+
+# Not a git repo — use basename
+if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
+  basename "$dir"
+  exit 0
+fi
+
+# Git repo — use repo/branch naming
+branch=$(git branch --show-current)
+default_branch=$(wt config state default-branch 2>/dev/null)
+repo=$(basename "$(git worktree list --porcelain | head -1 | sed 's/^worktree //')")
+
+if [[ "$branch" == "$default_branch" ]]; then
+  echo "$repo"
+else
+  echo "$repo/$branch"
+fi
