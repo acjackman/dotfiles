@@ -2,28 +2,40 @@
 # permissions hash: {{ include "dot_claude/permissions.json" | sha256sum }}
 # plugins hash: {{ include "dot_claude/plugins.json" | sha256sum }}
 # statusline hash: {{ include "dot_claude/statusline.json.tmpl" | sha256sum }}
-# settings hash: {{ output "sh" "-c" (print "sha256sum " (joinPath .chezmoi.homeDir ".claude/settings.json") " 2>/dev/null || echo none") | trim | splitList " " | first }}
+# settings hash: {{ output "sh" "-c" (print "cat " (joinPath .chezmoi.homeDir ".claude/settings.json") " " (joinPath .chezmoi.homeDir ".config/claude/profiles/*/settings.json") " 2>/dev/null | sha256sum || echo none") | trim | splitList " " | first }}
+# profiles hash: {{ output "sh" "-c" (print "ls -d " (joinPath .chezmoi.homeDir ".config/claude/profiles/*/") " 2>/dev/null | sort | sha256sum || echo none") | trim | splitList " " | first }}
 
-SETTINGS_FILE="$HOME/.claude/settings.json"
 PERMISSIONS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/permissions.json"
 PLUGINS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/plugins.json"
 STATUSLINE_FILE="$HOME/.claude/statusline.json"
 
-# Create settings file if it doesn't exist
-if [ ! -f "$SETTINGS_FILE" ]; then
-    echo '{}' > "$SETTINGS_FILE"
-fi
-
-# Use jq to merge permissions, enabledPlugins, and disable auto-update
-if command -v jq &> /dev/null; then
-    PERMISSIONS=$(cat "$PERMISSIONS_FILE")
-    ENABLED_PLUGINS=$(jq '[.plugins[]] | map({(.): true}) | add // {}' "$PLUGINS_FILE")
-    STATUSLINE=$(jq '.statusLine' "$STATUSLINE_FILE")
-    jq --argjson perms "$PERMISSIONS" --argjson plugins "$ENABLED_PLUGINS" --argjson statusline "$STATUSLINE" \
-        '.permissions = $perms | .enabledPlugins = ((.enabledPlugins // {}) + $plugins) | .statusLine = $statusline | .autoUpdaterStatus = "disabled"' \
-        "$SETTINGS_FILE" > "$SETTINGS_FILE.tmp" && \
-        mv "$SETTINGS_FILE.tmp" "$SETTINGS_FILE"
-else
+if ! command -v jq &> /dev/null; then
     echo "Warning: jq not found. Cannot update Claude permissions automatically."
     exit 1
 fi
+
+PERMISSIONS=$(cat "$PERMISSIONS_FILE")
+ENABLED_PLUGINS=$(jq '[.plugins[]] | map({(.): true}) | add // {}' "$PLUGINS_FILE")
+STATUSLINE=$(jq '.statusLine' "$STATUSLINE_FILE")
+
+apply_settings() {
+    local settings_file="$1"
+
+    if [ ! -f "$settings_file" ]; then
+        echo '{}' > "$settings_file"
+    fi
+
+    jq --argjson perms "$PERMISSIONS" --argjson plugins "$ENABLED_PLUGINS" --argjson statusline "$STATUSLINE" \
+        '.permissions = $perms | .enabledPlugins = ((.enabledPlugins // {}) + $plugins) | .statusLine = $statusline | .autoUpdaterStatus = "disabled"' \
+        "$settings_file" > "$settings_file.tmp" && \
+        mv "$settings_file.tmp" "$settings_file"
+
+    echo "Updated: $settings_file"
+}
+
+apply_settings "$HOME/.claude/settings.json"
+
+for profile_dir in "$HOME/.config/claude/profiles"/*/; do
+    [ -d "$profile_dir" ] || continue
+    apply_settings "${profile_dir}settings.json"
+done
