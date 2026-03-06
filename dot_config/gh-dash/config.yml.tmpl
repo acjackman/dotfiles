@@ -9,11 +9,10 @@ keybindings:
     - key: g
       name: lazygit
       command: cd {{ "{{" }}.RepoPath{{ "}}" }} && lazygit
-
+  prs:
     - key: y
       name: copy branch name
-      command: >
-        pbcopy "{{ "{{" }}.HeadRefName{{ "}}" }}"
+      command: echo -n "{{ "{{" }}.HeadRefName{{ "}}" }}" | pbcopy
 
 repoPaths:
   acjackman/dotfiles: ~/.local/share/chezmoi
