@@ -37,7 +37,13 @@ fi
 # Git repo — use repo/branch naming
 branch=$(git branch --show-current)
 default_branch=$(wt config state default-branch 2>/dev/null)
-repo=$(basename "$(git worktree list --porcelain | head -1 | sed 's/^worktree //')")
+main_wt="$(git worktree list --porcelain | head -1 | sed 's/^worktree //')"
+# For bare repos (.bare dir), the repo name is the parent directory
+if [[ "$(basename "$main_wt")" == ".bare" ]]; then
+  repo=$(basename "$(dirname "$main_wt")")
+else
+  repo=$(basename "$main_wt")
+fi
 
 if [[ "$branch" == "$default_branch" ]]; then
   echo "$repo"
