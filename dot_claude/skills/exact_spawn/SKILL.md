@@ -57,7 +57,7 @@ Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a 
 
 3. Derive a short, descriptive branch name from the task (lowercase, hyphens, no spaces). For example, "Fix the auth timeout bug" becomes `fix-auth-timeout`. For regular (non-bare) repos targeted via `--repo`, the name is only used for the tmux window/session — no branch is created.
 
-4. Create (or reuse) the worktree and get its path:
+4. Create (or reuse) the worktree and get its path (also available as `spawn-setup-worktree` on PATH):
 
    ```bash
    ~/.claude/skills/spawn/setup-worktree.sh <name> [--base <ref>] [--repo <path>]
@@ -71,10 +71,10 @@ Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a 
 
    If the worktree already exists it is reused (with `--base` compatibility check). When `--repo` targets a regular checkout, the script returns a synthetic JSON entry pointing to that directory.
 
-5. Write the prompt file using a heredoc piped into the script. For cross-repo
-   tasks, include context from the current repo that the agent will need — what
-   you discovered, relevant file paths, code snippets, and why the fix belongs
-   in the target repo.
+5. Write the prompt file (also available as `spawn-write-prompt` on PATH).
+   For cross-repo tasks, include context from the current repo that the agent
+   will need — what you discovered, relevant file paths, code snippets, and
+   why the fix belongs in the target repo.
 
    ```bash
    ~/.claude/skills/spawn/write-prompt.sh <worktree-path> <<'PROMPT'
@@ -84,10 +84,10 @@ Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a 
 
    The script prints the final prompt file path. Use this path in the next step.
 
-6. Spawn a full interactive Claude session. Never use `claude -p`/`--print`.
-   The tmux window/session name is derived automatically from the worktree path
-   using `tmux-window-name` or `tmux-session-name` (consistent with all other
-   tmux naming in the dotfiles).
+6. Spawn a full interactive Claude session (also available as `spawn-tmux` on
+   PATH). Never use `claude -p`/`--print`. The tmux window/session name is
+   derived automatically from the worktree path using `tmux-window-name` or
+   `tmux-session-name` (consistent with all other tmux naming in the dotfiles).
 
    **Window:**
    ```bash

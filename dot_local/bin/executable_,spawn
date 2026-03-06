@@ -1,0 +1,231 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ,spawn — CLI spawn with optional AI pre-processing
+# Collects a prompt, optionally uses AI to propose branch/mode/improved prompt,
+# opens $EDITOR for review, then spawns a Claude agent in a worktree via tmux.
+
+usage() {
+    cat >&2 <<'EOF'
+Usage: ,spawn [options] [file ...]
+
+Spawn a Claude agent in an isolated worktree via tmux.
+
+Input methods (combined in order):
+  -p, --prompt TEXT    Inline prompt text
+  stdin                Piped input
+  file ...             File paths to load as prompt content
+
+Options:
+  --no-ai              Skip AI analysis; go straight to editor with raw prompt
+  --yolo               Skip editor review; execute immediately with AI's proposal
+  --branch NAME        Pre-set branch name (overrides AI)
+  --mode window|session  Pre-set mode (overrides AI)
+  --repo PATH          Target a different repo
+  --base REF           Base ref for branch
+  -h, --help           Show this help
+
+Examples:
+  ,spawn -p "add a readme"
+  echo "fix auth bug" | ,spawn
+  ,spawn task.md
+  ,spawn -p "context" file1.md file2.md
+  ,spawn --yolo -p "quick fix for typo in README"
+EOF
+    exit "${1:-1}"
+}
+
+# --- Parse arguments ---
+prompt_text=""
+no_ai=false
+yolo=false
+branch_override=""
+mode_override=""
+repo_arg=""
+base_arg=""
+files=()
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        -p|--prompt)
+            [[ $# -lt 2 ]] && { echo "Error: $1 requires an argument" >&2; exit 1; }
+            prompt_text="$2"
+            shift 2
+            ;;
+        --no-ai)    no_ai=true;  shift ;;
+        --yolo)     yolo=true;   shift ;;
+        --branch)
+            [[ $# -lt 2 ]] && { echo "Error: $1 requires an argument" >&2; exit 1; }
+            branch_override="$2"
+            shift 2
+            ;;
+        --mode)
+            [[ $# -lt 2 ]] && { echo "Error: $1 requires an argument" >&2; exit 1; }
+            mode_override="$2"
+            if [[ "$mode_override" != "window" && "$mode_override" != "session" ]]; then
+                echo "Error: --mode must be 'window' or 'session'" >&2
+                exit 1
+            fi
+            shift 2
+            ;;
+        --repo)
+            [[ $# -lt 2 ]] && { echo "Error: $1 requires an argument" >&2; exit 1; }
+            repo_arg="$2"
+            shift 2
+            ;;
+        --base)
+            [[ $# -lt 2 ]] && { echo "Error: $1 requires an argument" >&2; exit 1; }
+            base_arg="$2"
+            shift 2
+            ;;
+        -h|--help)  usage 0 ;;
+        -*)         echo "Error: unknown option '$1'" >&2; usage ;;
+        *)          files+=("$1"); shift ;;
+    esac
+done
+
+# --- Validate environment ---
+if [[ -z "${TMUX:-}" ]]; then
+    echo "Error: must be inside a tmux session" >&2
+    exit 1
+fi
+
+# --- Collect prompt from all sources ---
+collected=""
+
+# 1. -p text
+if [[ -n "$prompt_text" ]]; then
+    collected="$prompt_text"
+fi
+
+# 2. stdin (if piped)
+if [[ ! -t 0 ]]; then
+    stdin_content=$(cat)
+    if [[ -n "$stdin_content" ]]; then
+        [[ -n "$collected" ]] && collected+=$'\n\n'
+        collected+="$stdin_content"
+    fi
+fi
+
+# 3. File contents
+for f in "${files[@]}"; do
+    if [[ ! -f "$f" ]]; then
+        echo "Error: file not found: $f" >&2
+        exit 1
+    fi
+    [[ -n "$collected" ]] && collected+=$'\n\n'
+    collected+="--- $f ---"$'\n'
+    collected+="$(cat "$f")"
+done
+
+if [[ -z "$collected" ]]; then
+    echo "Error: no prompt provided. Use -p, pipe stdin, or pass file paths." >&2
+    usage
+fi
+
+# --- AI analysis or skip ---
+ai_system_prompt='You are a task analyzer for spawning Claude Code agents. Given a task description, output raw YAML (no markdown fences) with exactly these fields:
+
+branch: a short lowercase-hyphenated branch name for this task (max 40 chars). Example: "fix-auth-timeout"
+mode: either "window" (for small focused tasks: single-file changes, bug fixes, quick refactors) or "session" (for large tasks: multi-file changes, feature implementation, long-running work)
+prompt: an improved, structured version of the task description that will be given to a Claude Code agent. Keep the original intent but make it clearer and more actionable.
+
+Output only the YAML, nothing else.'
+
+branch=""
+mode=""
+final_prompt=""
+
+if [[ "$no_ai" == true ]]; then
+    branch="${branch_override:-changeme}"
+    mode="${mode_override:-window}"
+    final_prompt="$collected"
+else
+    # Try AI analysis
+    ai_output=""
+    if ai_output=$(claude -p --model haiku --no-session-persistence --system-prompt "$ai_system_prompt" "$collected" 2>/dev/null); then
+        # Strip markdown fences if present
+        ai_output=$(echo "$ai_output" | sed '/^```/d')
+        branch=$(echo "$ai_output" | yq -r '.branch // ""')
+        mode=$(echo "$ai_output" | yq -r '.mode // ""')
+        final_prompt=$(echo "$ai_output" | yq -r '.prompt // ""')
+
+        # Validate AI output, fall back if broken
+        if [[ -z "$branch" || -z "$mode" || -z "$final_prompt" ]]; then
+            echo "Warning: AI returned incomplete output, falling back to raw prompt" >&2
+            branch="${branch_override:-changeme}"
+            mode="${mode_override:-window}"
+            final_prompt="$collected"
+        fi
+    else
+        echo "Warning: AI analysis failed, falling back to raw prompt" >&2
+        branch="${branch_override:-changeme}"
+        mode="${mode_override:-window}"
+        final_prompt="$collected"
+    fi
+
+    # CLI overrides take precedence over AI
+    [[ -n "$branch_override" ]] && branch="$branch_override"
+    [[ -n "$mode_override" ]] && mode="$mode_override"
+fi
+
+# Validate mode
+if [[ "$mode" != "window" && "$mode" != "session" ]]; then
+    mode="window"
+fi
+
+# --- Editor review (unless --yolo) ---
+if [[ "$yolo" != true ]]; then
+    tmpfile=$(mktemp "${TMPDIR:-/tmp}/spawn-XXXXXX.yaml")
+    trap 'rm -f "$tmpfile"' EXIT
+
+    # Build YAML with yq for safe encoding
+    yq -n \
+        --arg branch "$branch" \
+        --arg mode "$mode" \
+        --arg base "$base_arg" \
+        --arg repo "$repo_arg" \
+        --arg prompt "$final_prompt" \
+        '.branch = $branch | .mode = $mode | .base = $base | .repo = $repo | .prompt = $prompt' \
+        | sed '1i\
+# Spawn Agent — edit and save to proceed, clear '\''branch'\'' to abort' \
+        > "$tmpfile"
+
+    "${EDITOR:-vi}" "$tmpfile"
+
+    # Parse edited YAML
+    branch=$(yq -r '.branch // ""' "$tmpfile")
+    if [[ -z "$branch" ]]; then
+        echo "Aborted: branch is empty." >&2
+        exit 0
+    fi
+    mode=$(yq -r '.mode // "window"' "$tmpfile")
+    base_arg=$(yq -r '.base // ""' "$tmpfile")
+    repo_arg=$(yq -r '.repo // ""' "$tmpfile")
+    final_prompt=$(yq -r '.prompt // ""' "$tmpfile")
+
+    if [[ "$mode" != "window" && "$mode" != "session" ]]; then
+        echo "Error: mode must be 'window' or 'session', got '$mode'" >&2
+        exit 1
+    fi
+fi
+
+# --- Execute spawn pipeline ---
+
+# Step 1: Setup worktree
+setup_args=("$branch")
+[[ -n "$base_arg" ]] && setup_args+=(--base "$base_arg")
+[[ -n "$repo_arg" ]] && setup_args+=(--repo "$repo_arg")
+
+worktree_json=$(spawn-setup-worktree "${setup_args[@]}")
+worktree_path=$(echo "$worktree_json" | jq -r '.path')
+
+echo "Worktree: $worktree_path"
+
+# Step 2: Write prompt
+prompt_file=$(echo "$final_prompt" | spawn-write-prompt "$worktree_path")
+
+echo "Prompt: $prompt_file"
+
+# Step 3: Spawn tmux
+spawn-tmux "--$mode" --name "$branch" --dir "$worktree_path" --prompt "$prompt_file"
