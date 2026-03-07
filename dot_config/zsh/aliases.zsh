@@ -27,7 +27,7 @@ alias wtc="wt switch --create"
 alias wta="wt switch --create --base=@"
 alias wtd="wt switch '^'"
 wtr() { wt switch "$@" && cd "$(git rev-parse --show-toplevel)"; }
-alias wtrm="wt remove"
+# wtrm is a standalone script in ~/.local/bin/wtrm
 alias wtprd="WTPR_INCLUDE_DRAFTS=true wtpr"
 
 # Tools
