@@ -15,12 +15,12 @@ elif [ $# -gt 0 ]; then
   content=""
   for file in "$@"; do
     if [ -f "$file" ]; then
-      content+="$(cat "$file")\n"
+      [[ -n "$content" ]] && content+=$'\n'
+      content+="$(cat "$file")"
     else
       echo "Warning: $file is not a file, skipping"
     fi
   done
-  content=${content%\\n}
 else
   tmpfile=$(mktemp -t "op-capture.XXXXXX")
   editor="${EDITOR:-vim}"
