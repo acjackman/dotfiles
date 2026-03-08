@@ -1,0 +1,13 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+prompt_file=$(mktemp "${TMPDIR:-/tmp}/claude-prompt.XXXXXX.md")
+trap 'rm -f "$prompt_file"' EXIT
+
+${EDITOR:-nvim} "$prompt_file"
+
+# Exit if user didn't write anything
+[[ ! -s "$prompt_file" ]] && exit 0
+
+# Hand off to spawn pipeline — --yolo skips re-editing since we just edited
+,spawn --yolo < "$prompt_file"
