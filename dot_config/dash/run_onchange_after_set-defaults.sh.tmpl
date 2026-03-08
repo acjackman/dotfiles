@@ -26,11 +26,27 @@ defaults write com.kapeli.dashdoc shouldRestoreTabs -bool false
 # Enable API server
 defaults write com.kapeli.dashdoc DHAPIServerEnabled -bool true
 
-# Disable snippets for default profile
-defaults write com.kapeli.dashdoc snippetsAreEnabledForCurrentProfile -bool false
+# Enable snippets for default profile
+defaults write com.kapeli.dashdoc snippetsAreEnabledForCurrentProfile -bool true
 
 # Show search fallbacks
 defaults write com.kapeli.dashdoc showSearchFallbacks -bool true
+
+###############################################################################
+# Dash — Sync                                                                 #
+###############################################################################
+
+# Sync folder path
+defaults write com.kapeli.dashdoc syncFolderPath -string "~/.local/share/dash"
+
+# Snippet library path
+defaults write com.kapeli.dashdoc snippetSQLPath -string "$HOME/.local/share/dash/snippets:/snippets.dash"
+
+# Sync categories
+defaults write com.kapeli.dashdoc shouldSyncGeneral -bool true
+defaults write com.kapeli.dashdoc shouldSyncView -bool true
+defaults write com.kapeli.dashdoc shouldSyncDocsets -bool true
+defaults write com.kapeli.dashdoc shouldSyncBookmarks -bool true
 
 ###############################################################################
 # Dash — Keyboard Shortcuts                                                   #
