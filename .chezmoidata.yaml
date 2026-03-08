@@ -1,2 +1,10 @@
 gh_extensions:
   - dlvhdr/gh-dash
+
+linearmouse_trackpads:
+  - productID: "0x265"
+    productName: "Magic Trackpad"
+    vendorID: "0x5ac"
+  - productID: "0x324"
+    productName: "Magic Trackpad"
+    vendorID: "0x5ac"

@@ -1,23 +1,25 @@
 {
   "$schema" : "https:\/\/schema.linearmouse.app\/0.10.2",
   "schemes" : [
-    {
+{{- range $i, $tp := .linearmouse_trackpads }}
+    {{ if $i }},{{ end }}{
       "buttons" : {
         "universalBackForward" : true
       },
       "if" : {
         "device" : {
           "category" : "trackpad",
-          "productID" : "0x265",
-          "productName" : "Magic Trackpad",
-          "vendorID" : "0x5ac"
+          "productID" : {{ $tp.productID | quote }},
+          "productName" : {{ $tp.productName | quote }},
+          "vendorID" : {{ $tp.vendorID | quote }}
         }
       },
       "pointer" : {
         "acceleration" : 2.5,
         "speed" : 0.1
       }
-    },
+    }
+{{- end }},
     {
       "buttons" : {
         "mappings" : [
