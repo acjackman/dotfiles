@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Toggle zen mode for the current tmux window by adding empty padding panes
+# on left and right to center the working area.
+
+TARGET_WIDTH="${1:-120}"
+PANE_ID="$(tmux display-message -p '#{pane_id}')"
+ZEN_STATE="$(tmux show-window-option -v @zen-mode 2>/dev/null || true)"
+
+if [ "$ZEN_STATE" = "on" ]; then
+    LEFT_PANE="$(tmux show-window-option -v @zen-left 2>/dev/null || true)"
+    RIGHT_PANE="$(tmux show-window-option -v @zen-right 2>/dev/null || true)"
+
+    [ -n "$LEFT_PANE" ] && tmux kill-pane -t "$LEFT_PANE" 2>/dev/null || true
+    [ -n "$RIGHT_PANE" ] && tmux kill-pane -t "$RIGHT_PANE" 2>/dev/null || true
+
+    tmux set-window-option @zen-mode off
+    tmux display-message "Zen mode off"
+else
+    WINDOW_WIDTH="$(tmux display-message -p '#{window_width}')"
+
+    if [ "$WINDOW_WIDTH" -le "$TARGET_WIDTH" ]; then
+        tmux display-message "Window too narrow for zen mode (${WINDOW_WIDTH} <= ${TARGET_WIDTH})"
+        exit 0
+    fi
+
+    PADDING=$(( (WINDOW_WIDTH - TARGET_WIDTH) / 2 ))
+
+    RIGHT_PANE=$(tmux split-window -h -t "$PANE_ID" -l "$PADDING" -d -P -F '#{pane_id}' 'sleep infinity')
+    LEFT_PANE=$(tmux split-window -hb -t "$PANE_ID" -l "$PADDING" -d -P -F '#{pane_id}' 'sleep infinity')
+
+    tmux select-pane -t "$PANE_ID"
+
+    tmux set-window-option @zen-mode on
+    tmux set-window-option @zen-left "$LEFT_PANE"
+    tmux set-window-option @zen-right "$RIGHT_PANE"
+    tmux set-window-option @zen-main "$PANE_ID"
+
+    tmux display-message "Zen mode on (${TARGET_WIDTH} cols)"
+fi
