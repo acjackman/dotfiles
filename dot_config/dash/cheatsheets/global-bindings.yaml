@@ -1,0 +1,19 @@
+title: Global Bindings
+docset_file_name: Global_Bindings
+keyword: bind
+introduction: Global keyboard shortcuts and bindings across tools
+
+categories:
+  - id: Dash
+    entries:
+      - name: Search Dash
+        commands: [Shift+Ctrl+Opt+Cmd+H]
+      - name: Search Dash using selected text
+        commands: [Shift+Ctrl+Opt+Cmd+Y]
+
+  - id: TextSniper
+    entries:
+      - name: Capture text
+        commands: [Cmd+Shift+2]
+      - name: Capture text without line breaks
+        commands: [Cmd+Shift+Ctrl+2]
