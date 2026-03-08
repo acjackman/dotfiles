@@ -229,7 +229,6 @@ local singleapps = {
   { "f", "Finder" },
   { "n", "Obsidian" },
   { "=", "Soulver 3" },
-  { "t", terminal },
   { "e", editor },
 }
 for _, app in ipairs(singleapps) do
@@ -237,6 +236,17 @@ for _, app in ipairs(singleapps) do
     launch(app[2])
   end)
 end
+
+-- Hyper+T: focus Ghostty if it has windows, otherwise open with sesh picker
+k:bind({}, "t", function()
+  k.triggered = true
+  local app = hs.application.get(terminal)
+  if app and #app:allWindows() > 0 then
+    hs.application.launchOrFocus(terminal)
+  else
+    os.execute(HOME .. "/.config/ghostty/ghostty-sesh &")
+  end
+end)
 
 -- hs.loadSpoon("Rcmd")
 --   :bindHotkeys({
