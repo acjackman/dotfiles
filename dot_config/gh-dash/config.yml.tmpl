@@ -13,6 +13,9 @@ keybindings:
     - key: y
       name: copy branch name
       command: echo -n "{{ "{{" }}.HeadRefName{{ "}}" }}" | pbcopy
+    - key: " "
+      name: open branch
+      command: wt-open-branch "{{ "{{" }}.RepoPath{{ "}}" }}" "{{ "{{" }}.HeadRefName{{ "}}" }}"
 
 repoPaths:
   acjackman/dotfiles: ~/.local/share/chezmoi

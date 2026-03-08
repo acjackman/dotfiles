@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Open a branch's worktree intelligently:
+#   1. If a Ghostty window exists for the session → focus it via AeroSpace
+#   2. If a tmux session exists but no Ghostty window → open new Ghostty window
+#   3. If no session exists → open as a tmux window in the current session
+#
+# Usage: wt-open-branch <repo-path> <branch>
+
+repo="${1/#\~/$HOME}"
+branch="$2"
+
+if [[ -z "$repo" || -z "$branch" ]]; then
+  echo "Usage: wt-open-branch <repo-path> <branch>" >&2
+  exit 1
+fi
+
+# Ensure worktree exists (creates if needed)
+command wt -C "$repo" switch "$branch" --no-cd -y 2>/dev/null
+
+# Get worktree path from git
+path=$(git -C "$repo" worktree list --porcelain \
+  | awk -v b="refs/heads/$branch" '/^worktree /{p=$2} /^branch /{if($2==b){print p; exit}}')
+
+if [[ -z "$path" ]]; then
+  echo "Could not find worktree for branch: $branch" >&2
+  exit 1
+fi
+
+session=$(tmux-session-name "$path")
+
+# 1. Check for existing Ghostty window with this session
+window_id=$(aerospace list-windows --all 2>/dev/null \
+    | awk -F ' \| ' -v sess="$session" '$2 ~ /Ghostty/ && $0 ~ sess {print $1; exit}')
+
+if [[ -n "$window_id" ]]; then
+  aerospace focus --window-id "$window_id"
+elif tmux has-session -t "=$session" 2>/dev/null; then
+  # Session exists but no Ghostty window — open one
+  open -na Ghostty.app --args -e env -u TMUX tmux attach-session -t "=$session"
+else
+  # No session — open as tmux window in current session
+  name=$(tmux-window-name "$path")
+  tmux select-window -t ":=$name" 2>/dev/null || \
+    tmux new-window -n "$name" -c "$path"
+fi
