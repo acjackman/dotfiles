@@ -227,6 +227,17 @@ fpath+="${COMPLETIONS_DIR}"
 source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/zsh_plugins.zsh"
 
 # ===========
+# Proxy Icon (OSC 7)
+# ===========
+# Emit OSC 7 on every prompt so the terminal proxy icon stays current,
+# especially when switching tmux panes (chpwd alone only fires on cd).
+function _osc7_precmd {
+  printf '\e]7;file://%s%s\e\\' "${HOST}" "${PWD}"
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook precmd _osc7_precmd
+
+# ===========
 # Keybindings
 # ===========
 # open up current command in EDITOR, ctrl+x then ctrl+e
