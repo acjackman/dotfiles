@@ -181,6 +181,7 @@ cask "espanso"                             # Text expansion
 cask "homerow"                             # keyboard driven clicks
 cask "leader-key"                          # Leader Key
 cask "hazeover"                            # Dim inactive windows
+cask "contexts"                            # Window switcher
 
 # Style
 brew "FelixKratz/formulae/sketchybar"      # Custom Menu bar
