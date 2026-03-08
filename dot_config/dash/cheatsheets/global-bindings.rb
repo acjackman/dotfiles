@@ -17,4 +17,17 @@ cheatsheet do
       name 'Search Dash using selected text'
     end
   end
+
+  category do
+    id 'TextSniper'
+
+    entry do
+      command 'Cmd+Shift+2'
+      name 'Capture text'
+    end
+    entry do
+      command 'Cmd+Shift+Ctrl+2'
+      name 'Capture text without line breaks'
+    end
+  end
 end

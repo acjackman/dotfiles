@@ -2,3 +2,7 @@
 _.path = [
   "{{config_root}}/.bin"
 ]
+
+[tools]
+ruby = "3"
+"gem:cheatset" = "latest"

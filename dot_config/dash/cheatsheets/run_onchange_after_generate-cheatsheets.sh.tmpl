@@ -1,0 +1,46 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# Cheatsheet content hash (triggers regeneration on edits):
+# {{ output "find" (joinPath .chezmoi.sourceDir "dot_config/dash/cheatsheets") "-name" "*.rb" "-exec" "shasum" "-a" "256" "{}" ";" | sha256sum }}
+
+# Source cheatsheets directory (where mise + cheatset are available)
+src="{{ .chezmoi.sourceDir }}/dot_config/dash/cheatsheets"
+# Dash cheat sheets install directory
+dest="$HOME/Library/Application Support/Dash/Cheat Sheets"
+
+cd "$src"
+
+# Patch cheatset's haml template for Haml 6+ compatibility
+# Haml 6+ escapes HTML by default with ~, need != for unescaped output
+template=$(find "$(mise where gem:cheatset)" -name "template.haml" -path "*/cheatset/*" 2>/dev/null | head -1)
+if [ -f "$template" ] && grep -q '^\s*%p~ introduction' "$template"; then
+  sed -i '' 's/%p~ introduction/%p!= introduction/' "$template"
+  sed -i '' 's/\.name~ entry\.name/.name!= entry.name/' "$template"
+  sed -i '' 's/\.notes~ entry\.notes/.notes!= entry.notes/' "$template"
+  sed -i '' 's/\.notes~ entry\.html_notes/.notes!= entry.html_notes/' "$template"
+fi
+
+for rb in *.rb; do
+  [ -f "$rb" ] || continue
+
+  # Extract docset_file_name from the .rb source
+  name=$(sed -n "s/.*docset_file_name[[:space:]]*'\\([^']*\\)'.*/\\1/p" "$rb")
+  if [ -z "$name" ]; then
+    echo "WARNING: No docset_file_name found in $rb, skipping" >&2
+    continue
+  fi
+
+  echo "Generating $name from $rb..."
+  mise exec -- cheatset generate "$rb"
+
+  # Install into Dash's cheat sheets directory
+  mkdir -p "$dest/$name"
+  rm -rf "$dest/$name/$name.docset"
+  mv "$name.docset" "$dest/$name/"
+
+  # Tell Dash to pick up the docset
+  open "$dest/$name/$name.docset"
+done
+{{ end -}}
