@@ -1,23 +1,5 @@
 #!/bin/bash
-# Open a new Ghostty window and launch the tmux sesh picker in it.
+# Open a new Ghostty window with the sesh session picker.
+# Used by Hammerspoon (Cmd+N) and leader-key.
 
-osascript -e '
-tell application "Ghostty"
-    activate
-end tell
-
-tell application "System Events"
-    tell process "Ghostty"
-        keystroke "n" using command down
-        delay 0.5
-    end tell
-end tell
-
-tell application "System Events"
-    tell process "Ghostty"
-        keystroke "TMUX= exec ~/.config/tmux/tmux_launcher.sh"
-        delay 0.1
-        key code 36
-    end tell
-end tell
-'
+open -na Ghostty.app --args -e "$HOME/.config/ghostty/ghostty-sesh-cmd"

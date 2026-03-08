@@ -1,0 +1,68 @@
+#!/usr/bin/env bash
+# Router for .command files — a "Finicky for .command files"
+# Parses .command files (e.g. from Linear's "open in coding tools"),
+# determines the correct tmux session, and runs them in Ghostty.
+#
+# Usage: command-file-router <path-to-.command-file>
+
+set -euo pipefail
+
+# Ensure PATH includes homebrew (AppleScript apps launch with minimal PATH)
+for p in /opt/homebrew/bin /usr/local/bin "$HOME/.local/bin"; do
+  [[ -d "$p" ]] && [[ ":$PATH:" != *":$p:"* ]] && export PATH="$p:$PATH"
+done
+
+command_file="${1:?Usage: command-file-router <command-file>}"
+
+if [[ ! -f "$command_file" ]]; then
+  echo "Error: file not found: $command_file" >&2
+  exit 1
+fi
+
+# Ensure the file is executable
+chmod +x "$command_file"
+
+# --- Parse the .command file to extract working directory ---
+# Look for cd commands to determine the project directory
+work_dir=""
+while IFS= read -r line; do
+  # Match: cd /path, cd "/path", cd ~/path, cd "$HOME/path"
+  if [[ "$line" =~ ^[[:space:]]*cd[[:space:]]+(.*) ]]; then
+    raw="${BASH_REMATCH[1]}"
+    # Strip quotes and trailing comments
+    raw="${raw%%#*}"
+    raw="${raw//\"/}"
+    raw="${raw//\'/}"
+    raw="${raw%% *}"  # take first arg if multiple
+    # Expand ~ and $HOME
+    raw="${raw/#\~/$HOME}"
+    raw="${raw/\$HOME/$HOME}"
+    if [[ -d "$raw" ]]; then
+      work_dir="$raw"
+    fi
+  fi
+done < "$command_file"
+
+work_dir="${work_dir:-$HOME}"
+
+# --- Determine tmux session ---
+session=$(tmux-session-name "$work_dir")
+window_name="linear"
+
+# --- Ensure session exists ---
+if ! tmux has-session -t "=$session" 2>/dev/null; then
+  # Try sesh first (respects configured session startup commands)
+  if command -v sesh &>/dev/null; then
+    sesh connect "$session" 2>/dev/null || \
+      tmux new-session -d -s "$session" -c "$work_dir"
+  else
+    tmux new-session -d -s "$session" -c "$work_dir"
+  fi
+fi
+
+# --- Run the .command file in a new window within the session ---
+tmux new-window -t "=$session" -n "$window_name" -c "$work_dir" \
+  "bash $(printf '%q' "$command_file"); exec \$SHELL"
+
+# --- Focus or open Ghostty window for this session ---
+~/.config/tmux/activate-or-open-ghostty.sh "$session" "$work_dir"

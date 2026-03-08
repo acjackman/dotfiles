@@ -1,0 +1,54 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+# Install CommandRouter.app — a macOS app that handles .command files
+# by routing them to the correct tmux session in Ghostty.
+#
+# Re-runs when the router script changes:
+# {{ include "dot_local/bin/executable_command-file-router" | sha256sum }}
+
+set -euo pipefail
+
+APP_DIR="$HOME/Applications/CommandRouter.app"
+BUNDLE_ID="com.acjackman.command-router"
+
+echo "Installing CommandRouter.app..."
+
+# --- Build AppleScript app ---
+cat > /tmp/CommandRouter.applescript << 'APPLESCRIPT'
+on open theFiles
+    repeat with aFile in theFiles
+        set filePath to POSIX path of aFile
+        do shell script "exec " & quoted form of (POSIX path of (path to home folder)) & ".local/bin/command-file-router " & quoted form of filePath
+    end repeat
+end open
+APPLESCRIPT
+
+osacompile -o "$APP_DIR" /tmp/CommandRouter.applescript
+rm -f /tmp/CommandRouter.applescript
+
+# --- Set custom bundle identifier ---
+/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_ID" "$APP_DIR/Contents/Info.plist" 2>/dev/null || \
+  /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string $BUNDLE_ID" "$APP_DIR/Contents/Info.plist"
+
+# --- Declare .command file support ---
+/usr/libexec/PlistBuddy -c "Delete :CFBundleDocumentTypes" "$APP_DIR/Contents/Info.plist" 2>/dev/null || true
+/usr/libexec/PlistBuddy -c "Add :CFBundleDocumentTypes array" "$APP_DIR/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Add :CFBundleDocumentTypes:0 dict" "$APP_DIR/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Add :CFBundleDocumentTypes:0:CFBundleTypeExtensions array" "$APP_DIR/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Add :CFBundleDocumentTypes:0:CFBundleTypeExtensions:0 string command" "$APP_DIR/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Add :CFBundleDocumentTypes:0:CFBundleTypeRole string Shell" "$APP_DIR/Contents/Info.plist"
+/usr/libexec/PlistBuddy -c "Add :CFBundleDocumentTypes:0:CFBundleTypeName string 'Shell Command'" "$APP_DIR/Contents/Info.plist"
+
+# --- Register with Launch Services ---
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister "$APP_DIR"
+
+# --- Set as default .command handler ---
+if command -v duti &>/dev/null; then
+  duti -s "$BUNDLE_ID" .command all
+  echo "Set CommandRouter as default .command handler"
+else
+  echo "Warning: duti not found — set CommandRouter as .command handler manually"
+fi
+
+echo "CommandRouter.app installed at $APP_DIR"
+{{ end -}}

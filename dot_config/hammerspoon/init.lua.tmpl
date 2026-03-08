@@ -327,6 +327,22 @@ end
 --
 -- hs.hotkey.bind(shift_hyper, "space", spoon.RecursiveBinder.recursiveBind(keyMap))
 
+-- Ghostty Cmd+N: open new window with sesh session picker
+-- Uses an event tap to reliably intercept Cmd+N only when Ghostty is focused
+local ghosttyCmdN = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(event)
+  local flags = event:getFlags()
+  local keyCode = event:getKeyCode()
+  -- keyCode 45 = N, check only cmd is held
+  if keyCode == 45 and flags.cmd and not flags.alt and not flags.ctrl and not flags.shift then
+    if hs.application.frontmostApplication():name() == "Ghostty" then
+      os.execute(HOME .. "/.config/ghostty/ghostty-sesh &")
+      return true -- consume the event
+    end
+  end
+  return false
+end)
+ghosttyCmdN:start()
+
 -- URL event handler for wallpaper rotation
 hs.urlevent.bind("rotate-wallpapers", function(eventName, params, senderPID, fullURL)
   log.df("URL event received: %s", eventName)
