@@ -1,0 +1,193 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+# wt-cleanup — Safely remove merged worktrees and their branches
+#
+# For each non-main worktree, checks for:
+#   1. Unmerged changes (branch not fully merged into main)
+#   2. Open tmux panes with working directory inside the worktree
+#   3. Untracked/ignored artifacts (.tmp files, tmp/ dirs)
+#   4. Active Claude Code sessions in the worktree directory
+#
+# Safe worktrees are removed automatically. Unsafe ones are skipped with
+# a warning, unless --interactive is passed to prompt for confirmation.
+#
+# Usage: wt-cleanup [--interactive] [--dry-run]
+
+IDLE_SHELLS="^(zsh|bash|fish|sh)$"
+
+interactive=false
+dry_run=false
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    -i|--interactive) interactive=true; shift ;;
+    -n|--dry-run) dry_run=true; shift ;;
+    -h|--help)
+      sed -n '3,/^$/s/^# \?//p' "$0" >&2
+      exit 0
+      ;;
+    *)
+      echo "error: unknown option: $1" >&2
+      exit 1
+      ;;
+  esac
+done
+
+# --- Resolve main worktree ---
+main_wt="$(git worktree list --porcelain | head -1 | sed 's/^worktree //')"
+main_wt_real="$(cd "$main_wt" && pwd -P)"
+main_branch="$(git -C "$main_wt" symbolic-ref --short HEAD 2>/dev/null || echo "main")"
+
+# --- Collect all worktrees ---
+declare -A worktrees  # branch -> path
+while IFS= read -r line; do
+  case "$line" in
+    worktree\ *) current_path="${line#worktree }" ;;
+    branch\ *)
+      current_branch="${line#branch refs/heads/}"
+      path_real="$(cd "$current_path" && pwd -P)"
+      [[ "$path_real" == "$main_wt_real" ]] && continue
+      worktrees["$current_branch"]="$path_real"
+      ;;
+  esac
+done < <(git worktree list --porcelain)
+
+if [[ ${#worktrees[@]} -eq 0 ]]; then
+  echo "No non-main worktrees found."
+  exit 0
+fi
+
+# --- Build tmux pane index (once, for all worktrees) ---
+declare -a tmux_panes=()
+if [[ -n "${TMUX:-}" ]]; then
+  while IFS=$'\t' read -r pane_id pane_path pane_cmd session_name; do
+    tmux_panes+=("$pane_id	$pane_path	$pane_cmd	$session_name")
+  done < <(tmux list-panes -a -F "#{pane_id}	#{pane_current_path}	#{pane_current_command}	#{session_name}" 2>/dev/null || true)
+fi
+
+# --- Build Claude process index (once, for all worktrees) ---
+declare -a claude_cwds=()
+while IFS= read -r pid; do
+  cwd="$(readlink "/proc/$pid/cwd" 2>/dev/null)" || continue
+  claude_cwds+=("$cwd")
+done < <(pgrep -x claude 2>/dev/null || true)
+
+# --- Check each worktree ---
+removed=0
+skipped=0
+
+for branch in "${!worktrees[@]}"; do
+  wt_path="${worktrees[$branch]}"
+  warnings=()
+
+  # 1. Unmerged changes
+  if ! git merge-base --is-ancestor "$branch" "$main_branch" 2>/dev/null; then
+    warnings+=("unmerged: branch '$branch' is not fully merged into '$main_branch'")
+  fi
+
+  # 2. Open tmux panes
+  busy_panes=()
+  idle_panes=()
+  for entry in "${tmux_panes[@]+"${tmux_panes[@]}"}"; do
+    IFS=$'\t' read -r pane_id pane_path pane_cmd session_name <<< "$entry"
+    pane_path_real="$(cd "$pane_path" 2>/dev/null && pwd -P)" || continue
+    case "$pane_path_real" in
+      "$wt_path"|"$wt_path"/*)
+        if [[ "$pane_cmd" =~ $IDLE_SHELLS ]]; then
+          idle_panes+=("$pane_id")
+        else
+          busy_panes+=("[$session_name] $pane_cmd ($pane_path_real)")
+        fi
+        ;;
+    esac
+  done
+  if [[ ${#busy_panes[@]} -gt 0 ]]; then
+    for desc in "${busy_panes[@]}"; do
+      warnings+=("busy pane: $desc")
+    done
+  fi
+  if [[ ${#idle_panes[@]} -gt 0 ]]; then
+    warnings+=("idle tmux panes: ${#idle_panes[@]} shell(s) open in worktree")
+  fi
+
+  # 3. Untracked/ignored artifacts
+  artifacts=()
+  if [[ -d "$wt_path/tmp" ]]; then
+    artifacts+=("tmp/")
+  fi
+  if [[ -d "$wt_path/.tmp" ]]; then
+    artifacts+=(".tmp/")
+  fi
+  while IFS= read -r f; do
+    artifacts+=("$f")
+  done < <(find "$wt_path" -maxdepth 2 -name "*.tmp" -not -path "$wt_path/.git/*" 2>/dev/null || true)
+  if [[ ${#artifacts[@]} -gt 0 ]]; then
+    warnings+=("artifacts found: ${artifacts[*]}")
+  fi
+
+  # 4. Active Claude Code sessions
+  for cwd in "${claude_cwds[@]+"${claude_cwds[@]}"}"; do
+    case "$cwd" in
+      "$wt_path"|"$wt_path"/*)
+        warnings+=("active Claude Code session (cwd: $cwd)")
+        break
+        ;;
+    esac
+  done
+
+  # --- Decision ---
+  if [[ ${#warnings[@]} -gt 0 ]]; then
+    echo "SKIP  $branch ($wt_path)"
+    for w in "${warnings[@]}"; do
+      echo "  ⚠ $w"
+    done
+
+    if $interactive; then
+      read -rp "  Remove anyway? [y/N] " answer
+      if [[ "$answer" != [yY] ]]; then
+        skipped=$((skipped + 1))
+        echo ""
+        continue
+      fi
+    else
+      skipped=$((skipped + 1))
+      echo ""
+      continue
+    fi
+  fi
+
+  if $dry_run; then
+    echo "WOULD REMOVE  $branch ($wt_path)"
+    removed=$((removed + 1))
+    echo ""
+    continue
+  fi
+
+  # --- Remove ---
+  echo "REMOVE  $branch ($wt_path)"
+
+  # Kill idle tmux panes in this worktree before removal
+  if [[ ${#idle_panes[@]} -gt 0 ]]; then
+    for pane_id in "${idle_panes[@]}"; do
+      [[ "${TMUX_PANE:-}" == "$pane_id" ]] && continue
+      tmux kill-pane -t "$pane_id" 2>/dev/null || true
+    done
+  fi
+
+  git worktree remove --force "$wt_path" 2>/dev/null || {
+    echo "  error: failed to remove worktree" >&2
+    skipped=$((skipped + 1))
+    continue
+  }
+
+  # Delete the branch if it still exists
+  if git show-ref --verify --quiet "refs/heads/$branch" 2>/dev/null; then
+    git branch -d "$branch" 2>/dev/null || git branch -D "$branch" 2>/dev/null || true
+  fi
+
+  removed=$((removed + 1))
+  echo ""
+done
+
+echo "Done: $removed removed, $skipped skipped."
