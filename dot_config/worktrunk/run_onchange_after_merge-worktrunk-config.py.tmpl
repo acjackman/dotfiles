@@ -20,7 +20,6 @@ try:
 except ImportError:
     tomli = None
 
-
 def load_toml(path: Path) -> dict[str, Any]:
     data = path.read_bytes()
     if tomllib is not None:
@@ -28,7 +27,6 @@ def load_toml(path: Path) -> dict[str, Any]:
     if tomli is not None:
         return tomli.loads(data.decode("utf-8"))
     raise RuntimeError("Reading TOML requires Python 3.11+ or the 'tomli' package.")
-
 
 def format_toml_value(value: Any) -> str:
     if isinstance(value, bool):
@@ -39,7 +37,6 @@ def format_toml_value(value: Any) -> str:
         items = ", ".join(format_toml_value(v) for v in value)
         return f"[{items}]"
     return str(value)
-
 
 def write_projects_section(projects: dict[str, Any]) -> str:
     if not projects:
@@ -54,7 +51,6 @@ def write_projects_section(projects: dict[str, Any]) -> str:
         else:
             lines.append(f"{key} = {format_toml_value(value)}")
     return "\n".join(lines) + "\n"
-
 
 def main() -> int:
     header_text = "\n".join(
@@ -83,7 +79,7 @@ worktree-path = ".worktrees/{{ "{{" }} branch | sanitize {{ "}}" }}"
 skip-shell-integration-prompt = true
 
 [commit.generation]
-command = "llm -m claude-haiku-4.5"
+command = "CLAUDECODE= MAX_THINKING_TOKENS=0 claude -p --model=haiku --tools='' --disable-slash-commands --setting-sources='' --system-prompt=''"
 
 [merge]
 squash = false
@@ -104,7 +100,6 @@ claude-trust = "~/.config/worktrunk/hooks/ensure-claude-trust.sh"
         print(f"Preserved {len(projects)} project(s)")
 
     return 0
-
 
 if __name__ == "__main__":
     raise SystemExit(main())
