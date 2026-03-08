@@ -1,0 +1,44 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+
+###############################################################################
+# Dash — General                                                              #
+###############################################################################
+
+# Dark web view
+defaults write com.kapeli.dashdoc actuallyDarkWebView -bool true
+
+# Window style
+defaults write com.kapeli.dashdoc windowStyle -string "Standard"
+
+# Start at login
+defaults write com.kapeli.dashdoc shouldStartAtLogin -bool true
+
+# Show in Dock
+defaults write com.kapeli.dashdoc showInDock -bool true
+
+# Hide menu bar icon
+defaults write com.kapeli.dashdoc shouldShowStatusIcon -bool false
+
+# Disable tab restoration
+defaults write com.kapeli.dashdoc shouldRestoreTabs -bool false
+
+# Enable API server
+defaults write com.kapeli.dashdoc DHAPIServerEnabled -bool true
+
+# Disable snippets for default profile
+defaults write com.kapeli.dashdoc snippetsAreEnabledForCurrentProfile -bool false
+
+# Show search fallbacks
+defaults write com.kapeli.dashdoc showSearchFallbacks -bool true
+
+###############################################################################
+# Dash — Keyboard Shortcuts                                                   #
+###############################################################################
+
+# Search shortcut (Shift+Ctrl+Opt+Cmd+H)
+defaults write com.kapeli.dashdoc searchKey -dict keyCode -int 4 modifiers -int 6912
+
+# Search using selected text (Shift+Ctrl+Opt+Cmd+Y)
+defaults write com.kapeli.dashdoc searchUsingSelectedTextKey -dict keyCode -int 16 modifiers -int 6912
+{{ end -}}
