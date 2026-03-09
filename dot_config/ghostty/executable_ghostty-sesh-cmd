@@ -1,5 +1,5 @@
 #!/bin/bash
 # Runs inside a new Ghostty window — launches the sesh session picker.
-# Called via: open -na Ghostty.app --args --command=<this-script>
+# Called via: open -a Ghostty.app --args -e <this-script>
 
 TMUX= exec ~/.config/tmux/tmux_launcher.sh

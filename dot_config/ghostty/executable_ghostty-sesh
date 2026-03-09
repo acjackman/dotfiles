@@ -2,4 +2,4 @@
 # Open a new Ghostty window with the sesh session picker.
 # Used by Hammerspoon (Cmd+N) and leader-key.
 
-open -na Ghostty.app --args -e "$HOME/.config/ghostty/ghostty-sesh-cmd"
+open -a Ghostty.app --args -e "$HOME/.config/ghostty/ghostty-sesh-cmd"

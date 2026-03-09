@@ -24,5 +24,5 @@ if [[ -n "$window_id" ]]; then
     aerospace focus --window-id "$window_id"
 else
     # Open a new Ghostty window and attach to the session
-    open -na Ghostty.app --args -e env -u TMUX tmux attach-session -t "=$session"
+    open -a Ghostty.app --args -e env -u TMUX tmux attach-session -t "=$session"
 fi
