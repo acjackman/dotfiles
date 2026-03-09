@@ -16,6 +16,7 @@ watchexec = "latest"
 "pipx:claude-code-transcripts" = "latest"
 "npm:opencode-ai" = "latest"
 "npm:@ast-grep/napi" = "latest"
+"npm:@mermaid-js/mermaid-cli" = "latest"
 prek = "latest"
 opencode = "latest"
 

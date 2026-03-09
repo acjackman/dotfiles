@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# Marked 2 preprocessor: renders ```mermaid code blocks to base64 PNGs via mmdc
+set -euo pipefail
+
+# Ensure mise-managed tools are on PATH (Marked 2 launches without shell profile)
+export PATH="$HOME/.local/share/mise/shims:$HOME/.local/bin:/opt/homebrew/bin:$PATH"
+
+MMDC="$(command -v mmdc 2>/dev/null || true)"
+MERMAID_CONFIG="$HOME/.local/share/marked/mermaid-config.json"
+if [[ -z "$MMDC" ]]; then
+  cat
+  exit 0
+fi
+
+input="$(cat)"
+output=""
+in_mermaid=false
+mermaid_block=""
+
+while IFS= read -r line || [[ -n "$line" ]]; do
+  if [[ "$in_mermaid" == false ]]; then
+    if [[ "$line" =~ ^\`\`\`[[:space:]]*mermaid[[:space:]]*$ ]]; then
+      in_mermaid=true
+      mermaid_block=""
+    else
+      output+="$line"$'\n'
+    fi
+  else
+    if [[ "$line" =~ ^\`\`\`[[:space:]]*$ ]]; then
+      in_mermaid=false
+      tmp_in="$(mktemp /tmp/mermaid_XXXXXX.mmd)"
+      tmp_out="${tmp_in%.mmd}.png"
+      # Strip inline style directives so theme config controls appearance
+      filtered_block="$(printf '%s\n' "$mermaid_block" | grep -v '^ *style ')"
+      printf '%s\n' "$filtered_block" > "$tmp_in"
+      mmdc_args=(-i "$tmp_in" -o "$tmp_out" -b transparent -s 2 -q)
+      if [[ -f "$MERMAID_CONFIG" ]]; then
+        mmdc_args+=(-c "$MERMAID_CONFIG")
+      else
+        mmdc_args+=(-t neutral)
+      fi
+      if "$MMDC" "${mmdc_args[@]}" 2>/dev/null; then
+        b64="$(base64 < "$tmp_out")"
+        output+=$'\n'"![diagram](data:image/png;base64,${b64})"$'\n\n'
+      else
+        output+='```mermaid'$'\n'"$mermaid_block"'```'$'\n'
+      fi
+      rm -f "$tmp_in" "$tmp_out"
+    else
+      mermaid_block+="$line"$'\n'
+    fi
+  fi
+done <<< "$input"
+
+printf '%s' "$output"

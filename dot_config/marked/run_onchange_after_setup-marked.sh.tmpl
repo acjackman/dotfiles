@@ -1,0 +1,20 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+
+# Marked 2: custom preprocessor for mermaid diagram rendering
+defaults write com.brettterpstra.marked2 customPreprocessor -string "$HOME/.local/bin/marked-mermaid-preprocessor"
+defaults write com.brettterpstra.marked2 useCustomPreprocessor -bool true
+
+# Preview style: Grump (index 4)
+defaults write com.brettterpstra.marked2 defaultPreviewStyle -int 4
+
+# Dark mode: match system
+defaults write com.brettterpstra.marked2 darkModeMatchSystem -bool true
+defaults write com.brettterpstra.marked2 inverseColors -bool true
+
+# Processor: Discount (GFM)
+defaults write com.brettterpstra.marked2 defaultProcessor -string "Discount (GFM)"
+
+# Strip YAML front matter
+defaults write com.brettterpstra.marked2 removeYAMLHeaders -bool true
+{{ end -}}

@@ -1,0 +1,26 @@
+{
+  "theme": "base",
+  "themeVariables": {
+    "darkMode": true,
+    "background": "transparent",
+    "fontFamily": "-apple-system, 'Helvetica Neue', sans-serif",
+    "primaryColor": "transparent",
+    "primaryTextColor": "#ffffff",
+    "primaryBorderColor": "#888",
+    "secondaryColor": "transparent",
+    "secondaryTextColor": "#ffffff",
+    "secondaryBorderColor": "#888",
+    "tertiaryColor": "transparent",
+    "tertiaryTextColor": "#ffffff",
+    "tertiaryBorderColor": "#888",
+    "lineColor": "#999",
+    "textColor": "#ffffff",
+    "mainBkg": "transparent",
+    "nodeBorder": "#888",
+    "clusterBkg": "transparent",
+    "clusterBorder": "#666",
+    "titleColor": "#ffffff",
+    "edgeLabelBackground": "transparent",
+    "nodeTextColor": "#ffffff"
+  }
+}
