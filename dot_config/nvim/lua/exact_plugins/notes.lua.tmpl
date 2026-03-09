@@ -1,6 +1,6 @@
 return {
   {
-    "epwalsh/obsidian.nvim",
+    "obsidian-nvim/obsidian.nvim",
     version = "*", -- recommended, use latest release instead of latest commit
     lazy = false,
     -- Load obsidian.nvim for all markdown files
@@ -61,7 +61,7 @@ return {
 
         return out
       end,
-      picker = { name = "fzf-lua" },
+      picker = { name = "snacks.picker" },
       -- see below for full list of options 👇
       attachments = {
         -- The default folder to place images in via `:ObsidianPasteImg`.
