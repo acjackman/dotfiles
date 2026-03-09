@@ -61,6 +61,7 @@ return {
 
         return out
       end,
+      picker = { name = "fzf-lua" },
       -- see below for full list of options 👇
       attachments = {
         -- The default folder to place images in via `:ObsidianPasteImg`.
