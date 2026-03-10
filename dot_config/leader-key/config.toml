@@ -75,6 +75,14 @@ rank = 10
 kind = "command"
 value = "osascript -e 'tell app \"System Events\" to tell appearance preferences to set dark mode to not dark mode'"
 
+[u.children.v]
+label = "Toggle Vim Mode (ovim)"
+
+[u.children.v.action]
+rank = 15
+kind = "command"
+value = ",ovim-in-place"
+
 [u.children.h]
 label = "HazeOver"
 rank = 20

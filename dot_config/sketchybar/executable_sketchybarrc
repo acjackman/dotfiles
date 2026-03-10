@@ -108,6 +108,13 @@ sketchybar --add item aerospace left \
 #            --set front_app icon.drawing=off script="$PLUGIN_DIR/front_app.sh" \
 #            --subscribe front_app front_app_switched
 
+##### Adding Center Items #####
+
+sketchybar --add item ovim_mode center \
+           --set ovim_mode update_freq=1 \
+           icon.font="Hack Nerd Font:Bold:20.0" \
+           script="$PLUGIN_DIR/ovim.sh"
+
 ##### Adding Right Items #####
 # In the same way as the left items we can add items to the right side.
 # Additional position (e.g. center) are available, see:

@@ -12,6 +12,7 @@ tap "yqrashawn/goku"
 tap "raine/workmux"
 tap "max-sixty/worktrunk"
 tap "steipete/tap"
+tap "tonisives/tap"
 tap "yakitrak/yakitrak"
 
 ######################################
@@ -58,6 +59,10 @@ brew "max-sixty/worktrunk/wt"
 
 # Terminal Emulator
 cask "ghostty"
+cask "alacritty"
+
+# Vim modal input
+cask "tonisives/tap/ovim"
 
 # *Nix utitlites
 brew "coreutils"

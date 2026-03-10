@@ -1,0 +1,99 @@
+enabled: true
+vim_key: right_control
+vim_key_modifiers:
+  shift: false
+  control: false
+  option: false
+  command: false
+indicator_position: 1
+indicator_opacity: 1.0
+indicator_size: 1.01
+indicator_offset_x: 0
+indicator_offset_y: -50
+indicator_visible: false
+show_mode_in_menu_bar: true
+mode_colors:
+  insert:
+    r: 74
+    g: 144
+    b: 217
+  normal:
+    r: 232
+    g: 148
+    b: 74
+  visual:
+    r: 155
+    g: 109
+    b: 215
+indicator_font: SF Mono, Monaco, monospace
+ignored_apps:
+- com.mitchellh.ghostty
+launch_at_login: true
+show_in_menu_bar: true
+top_widget: None
+bottom_widget: None
+electron_apps:
+- com.tinyspeck.slackmacgap
+nvim_edit:
+  enabled: true
+  shortcut_key: ''
+  shortcut_modifiers:
+    shift: false
+    control: false
+    option: false
+    command: false
+  terminal: alacritty
+  terminal_path: ''
+  editor: neovim
+  nvim_path: ''
+  popup_mode: true
+  popup_width: 0
+  popup_height: 300
+  live_sync_enabled: false
+  use_custom_script: false
+  clipboard_mode: false
+  double_tap_modifier: command
+  prewarm_terminal: false
+click_mode:
+  enabled: true
+  shortcut_key: ''
+  shortcut_modifiers:
+    shift: false
+    control: false
+    option: false
+    command: false
+  double_tap_modifier: shift
+  hint_chars: asfghjklqwetyuiopzxvbm
+  show_search_bar: true
+  hint_opacity: 0.95
+  hint_font_size: 24
+  hint_bg_color: '#FFCC00'
+  hint_text_color: '#000000'
+  ax_stabilization_delay_ms: 10
+  cache_ttl_ms: 500
+  max_depth: 10
+  max_elements: 500
+scroll_mode:
+  enabled: true
+  scroll_step: 100
+  list_navigation: false
+  enabled_apps:
+  - com.apple.Safari
+  - com.google.Chrome
+  - org.mozilla.firefox
+  - com.brave.Browser
+  - company.thebrowser.Browser
+  - com.microsoft.edgemac
+  list_navigation_apps:
+  - com.apple.finder
+  - com.apple.systempreferences
+  - com.apple.SystemPreferences
+  overlay_blocklist:
+  - com.stairways.keyboardmaestro.engine
+  - com.raycast.macos
+  - com.alfredapp.Alfred
+  - com.runningwithcrayons.Alfred
+  - com.1password.1password
+  - com.bitwarden.desktop
+  disabled_shortcuts: []
+auto_update_enabled: true

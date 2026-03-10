@@ -1,0 +1,9 @@
+#!/bin/sh
+
+SETTINGS="$HOME/Library/Application Support/ovim/settings.yaml"
+
+if grep -q '^enabled: true' "$SETTINGS"; then
+  sed -i '' 's/^enabled: true/enabled: false/' "$SETTINGS"
+else
+  sed -i '' 's/^enabled: false/enabled: true/' "$SETTINGS"
+fi
