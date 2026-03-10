@@ -81,3 +81,24 @@ type = "archive"
 url = "https://github.com/chrisgrieser/alfred-maps-suggest/releases/download/1.2.0/alfred-maps-suggest.alfredworkflow"
 refreshPeriod = "168h"
 #{{end}}
+
+# Alfred Snippets (external sources)
+# Note: .alfredsnippets files are zip archives that extract snippet contents
+
+# Emoji Pack - https://joelcalifa.com/blog/alfred-emoji-snippet-pack/
+[".config/alfred/Alfred.alfredpreferences/snippets/Emoji Pack"]
+type = "archive"
+url = "https://github.com/califa/alfred-emoji-pack/releases/download/2.1/Emoji.Pack.alfredsnippets"
+refreshPeriod = "168h"
+
+# Mac Symbols - https://www.alfredapp.com/extras/snippets/
+[".config/alfred/Alfred.alfredpreferences/snippets/Mac symbols"]
+type = "archive"
+url = "https://www.alfredapp.com/media/snippets/Mac%20symbols.alfredsnippets"
+refreshPeriod = "168h"
+
+# ASCII Art - https://www.alfredapp.com/extras/snippets/
+[".config/alfred/Alfred.alfredpreferences/snippets/Ascii Art"]
+type = "archive"
+url = "https://www.alfredapp.com/media/snippets/Ascii%20Art.alfredsnippets"
+refreshPeriod = "168h"
