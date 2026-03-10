@@ -50,7 +50,7 @@ nvim_edit:
   popup_width: 0
   popup_height: 300
   live_sync_enabled: false
-  use_custom_script: false
+  use_custom_script: true
   clipboard_mode: false
   double_tap_modifier: command
   prewarm_terminal: false
