@@ -12,9 +12,12 @@ if [ "$ENABLED" != "true" ]; then
 fi
 
 MODE=$("$OVIM" mode 2>/dev/null)
+RED="0xfff38ba8" # red
 
 if [ $? -ne 0 ] || [ -z "$MODE" ]; then
-  sketchybar --set "$NAME" drawing=off
+  sketchybar --set "$NAME" \
+    drawing=on icon="󰀦" icon.color="$RED" \
+    label="NOT RUNNING" label.color="$RED"
   return 0 2>/dev/null || exit 0
 fi
 
