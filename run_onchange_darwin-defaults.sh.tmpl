@@ -144,6 +144,9 @@ defaults write NSGlobalDomain AppleKeyboardUIMode -int 3
 # defaults write NSGlobalDomain KeyRepeat -int 1
 # defaults write NSGlobalDomain InitialKeyRepeat -int 10
 
+# Disable double-press Command to invoke Siri (conflicts with ovim)
+defaults write com.apple.Siri ConfirmSiriInvokedViaEitherCmdTwice -bool false
+
 # Set language and text formats
 # Note: if you’re in the US, replace `EUR` with `USD`, `Centimeters` with
 # `Inches`, `en_GB` with `en_US`, and `true` with `false`.
