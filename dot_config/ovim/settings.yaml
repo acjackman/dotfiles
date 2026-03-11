@@ -1,5 +1,5 @@
 enabled: true
-vim_key: right_control
+vim_key: escape
 vim_key_modifiers:
   shift: false
   control: false
@@ -28,9 +28,11 @@ mode_colors:
 indicator_font: SF Mono, Monaco, monospace
 ignored_apps:
 - com.mitchellh.ghostty
+- com.apple.Terminal
+- org.alacritty
 launch_at_login: true
 show_in_menu_bar: true
-top_widget: None
+top_widget: KeystrokeBuffer
 bottom_widget: None
 electron_apps:
 - com.tinyspeck.slackmacgap
@@ -74,7 +76,7 @@ click_mode:
   max_depth: 10
   max_elements: 500
 scroll_mode:
-  enabled: true
+  enabled: false
   scroll_step: 100
   list_navigation: false
   enabled_apps:

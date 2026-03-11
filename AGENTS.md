@@ -34,7 +34,6 @@ Many directories contain their own `CLAUDE.md` with instructions specific to tha
 Some configs require extra steps or alternative apply methods (especially from worktrees). Always check the directory `CLAUDE.md` before applying:
 
 - **`data/karabiner/`** — Run `goku` directly instead of `chezmoi apply`
-- **`dot_config/ovim/`** — Copy `data/ovim/settings.yaml` directly to App Support
 - **`dot_config/nvim/`** — Run `nvim --headless "+Lazy! restore" +qa` directly
 - **`private_Library/.../Cursor/User/`** — Install extensions via `cursor --install-extension` directly
 - **`data/mise/`** — Run `mise update` directly

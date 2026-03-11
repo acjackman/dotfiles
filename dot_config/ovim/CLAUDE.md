@@ -4,16 +4,15 @@
 
 ## File Locations
 
-ovim has a split config layout:
+All config lives in `dot_config/ovim/` and deploys to `~/.config/ovim/`. ovim reads from `~/Library/Application Support/ovim/` (via Rust's `dirs::config_dir()`), so chezmoi creates symlinks there pointing back to `~/.config/ovim/`.
 
 | File | Chezmoi Source | Deploy Target | Purpose |
 |------|---------------|---------------|---------|
-| `settings.yaml` | `data/ovim/settings.yaml` | `~/Library/Application Support/ovim/settings.yaml` | Main settings (via `run_onchange_` script) |
+| `settings.yaml` | `dot_config/ovim/settings.yaml` | `~/.config/ovim/settings.yaml` | Main settings |
 | `domain-filetypes.yaml` | `dot_config/ovim/domain-filetypes.yaml` | `~/.config/ovim/domain-filetypes.yaml` | Per-app filetype for edit popup |
-| `terminal-launcher.sh` | `dot_config/ovim/executable_terminal-launcher.sh` | `~/.config/ovim/terminal-launcher.sh` | Custom launcher (also copied to App Support) |
+| `terminal-launcher.sh` | `dot_config/ovim/executable_terminal-launcher.sh` | `~/.config/ovim/terminal-launcher.sh` | Custom launcher script |
 
-- `~/Library/Application Support/ovim/domain-filetypes.yaml` is a **symlink** to `~/.config/ovim/domain-filetypes.yaml` (ovim reads from App Support via Rust's `dirs::config_dir()`)
-- The `run_onchange_after_setup-ovim.sh.tmpl` in `private_Library/private_Application Support/ovim/` copies both `settings.yaml` and `terminal-launcher.sh` to `~/Library/Application Support/ovim/`
+All three files are symlinked from `~/Library/Application Support/ovim/` → `~/.config/ovim/` via `symlink_*.tmpl` files in `private_Library/private_Application Support/ovim/`.
 
 ## Key Settings
 
@@ -40,16 +39,6 @@ ovim insert|normal|visual  # Set specific mode
 ```
 
 Communicates via Unix socket at `~/Library/Caches/ovim.sock`.
-
-## Worktree Apply
-
-**Do not use `chezmoi apply` for ovim settings from a worktree.** The `run_onchange_` script's checksum tracks `data/ovim/settings.yaml`, so applying from a worktree pollutes persistent state.
-
-Instead, copy the settings file directly:
-
-```sh
-cp "$(git rev-parse --show-toplevel)/data/ovim/settings.yaml" ~/Library/Application\ Support/ovim/settings.yaml
-```
 
 ## Adding Domain Filetypes
 
