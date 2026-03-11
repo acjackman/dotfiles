@@ -1,0 +1,6 @@
+{
+  "model": "opus",
+  "effortLevel": "medium",
+  "alwaysThinkingEnabled": true,
+  "skipDangerousModePermissionPrompt": true
+}

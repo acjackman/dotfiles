@@ -6,6 +6,15 @@
   "plugins": [
     "pyright-lsp@claude-plugins-official",
     "gopls-lsp@claude-plugins-official",
-    "worktrunk@worktrunk"
-  ]
+    "worktrunk@worktrunk",
+    "code-review@claude-plugins-official"
+  ],
+  "extraKnownMarketplaces": {
+    "worktrunk": {
+      "source": {
+        "source": "github",
+        "repo": "max-sixty/worktrunk"
+      }
+    }
+  }
 }

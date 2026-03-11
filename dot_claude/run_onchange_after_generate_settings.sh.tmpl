@@ -2,21 +2,26 @@
 # permissions hash: {{ include "dot_claude/permissions.json" | sha256sum }}
 # plugins hash: {{ include "dot_claude/plugins.json" | sha256sum }}
 # statusline hash: {{ include "dot_claude/statusline.json.tmpl" | sha256sum }}
+# defaults hash: {{ include "dot_claude/settings-defaults.json" | sha256sum }}
 # settings hash: {{ output "sh" "-c" (print "cat " (joinPath .chezmoi.homeDir ".claude/settings.json") " " (joinPath .chezmoi.homeDir ".config/claude/profiles/*/settings.json") " 2>/dev/null | sha256sum || echo none") | trim | splitList " " | first }}
 # profiles hash: {{ output "sh" "-c" (print "ls -d " (joinPath .chezmoi.homeDir ".config/claude/profiles/*/") " 2>/dev/null | sort | sha256sum || echo none") | trim | splitList " " | first }}
 
-PERMISSIONS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/permissions.json"
-PLUGINS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/plugins.json"
+SOURCE_DIR="{{ .chezmoi.sourceDir }}/dot_claude"
+PERMISSIONS_FILE="$SOURCE_DIR/permissions.json"
+PLUGINS_FILE="$SOURCE_DIR/plugins.json"
+DEFAULTS_FILE="$SOURCE_DIR/settings-defaults.json"
 STATUSLINE_FILE="$HOME/.claude/statusline.json"
 
 if ! command -v jq &> /dev/null; then
-    echo "Warning: jq not found. Cannot update Claude permissions automatically."
+    echo "Warning: jq not found. Cannot update Claude settings automatically."
     exit 1
 fi
 
 PERMISSIONS=$(cat "$PERMISSIONS_FILE")
 ENABLED_PLUGINS=$(jq '[.plugins[]] | map({(.): true}) | add // {}' "$PLUGINS_FILE")
+EXTRA_MARKETPLACES=$(jq '.extraKnownMarketplaces // {}' "$PLUGINS_FILE")
 STATUSLINE=$(jq '.statusLine' "$STATUSLINE_FILE")
+DEFAULTS=$(cat "$DEFAULTS_FILE")
 
 apply_settings() {
     local settings_file="$1"
@@ -25,9 +30,26 @@ apply_settings() {
         echo '{}' > "$settings_file"
     fi
 
-    jq --argjson perms "$PERMISSIONS" --argjson plugins "$ENABLED_PLUGINS" --argjson statusline "$STATUSLINE" \
-        '.permissions = $perms | .enabledPlugins = ((.enabledPlugins // {}) + $plugins) | .statusLine = $statusline | .autoUpdaterStatus = "disabled"' \
-        "$settings_file" > "$settings_file.tmp" && \
+    local existing
+    existing=$(cat "$settings_file")
+
+    # Build the updated settings:
+    # 1. Start with defaults (lowest priority)
+    # 2. Overlay existing settings (preserves Claude-managed values)
+    # 3. Force-set managed fields (permissions, plugins, statusline, marketplaces)
+    #    - enabledPlugins and extraKnownMarketplaces merge to preserve profile-specific extras
+    jq --argjson defaults "$DEFAULTS" \
+       --argjson perms "$PERMISSIONS" \
+       --argjson plugins "$ENABLED_PLUGINS" \
+       --argjson marketplaces "$EXTRA_MARKETPLACES" \
+       --argjson statusline "$STATUSLINE" \
+       '$defaults + . |
+        .permissions = $perms |
+        .enabledPlugins = ((.enabledPlugins // {}) + $plugins) |
+        .extraKnownMarketplaces = ((.extraKnownMarketplaces // {}) + $marketplaces) |
+        .statusLine = $statusline |
+        .autoUpdaterStatus = "disabled"' \
+        <<< "$existing" > "$settings_file.tmp" && \
         mv "$settings_file.tmp" "$settings_file"
 
     echo "Updated: $settings_file"
@@ -38,4 +60,22 @@ apply_settings "$HOME/.claude/settings.json"
 for profile_dir in "$HOME/.config/claude/profiles"/*/; do
     [ -d "$profile_dir" ] || continue
     apply_settings "${profile_dir}settings.json"
+
+    # Symlink skills from global ~/.claude/skills/ into each profile
+    if [ -d "$HOME/.claude/skills" ]; then
+        profile_skills="${profile_dir}skills"
+        if [ -L "$profile_skills" ]; then
+            # Already a symlink — update if target changed
+            current_target=$(readlink "$profile_skills")
+            if [ "$current_target" != "$HOME/.claude/skills" ]; then
+                ln -sfn "$HOME/.claude/skills" "$profile_skills"
+                echo "Updated skills symlink: $profile_skills"
+            fi
+        elif [ -d "$profile_skills" ]; then
+            echo "Warning: $profile_skills is a directory, not replacing with symlink"
+        else
+            ln -s "$HOME/.claude/skills" "$profile_skills"
+            echo "Linked skills: $profile_skills -> ~/.claude/skills"
+        fi
+    fi
 done
