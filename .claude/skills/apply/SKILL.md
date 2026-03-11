@@ -40,3 +40,10 @@ Apply chezmoi dotfile changes from the source repository to their target locatio
 - **Unexpected diffs** may mean another agent applied from a different worktree — alert the user
 - Files with status "R" are scripts that will be **executed**, not created
 - Never modify deployed files directly — always edit the chezmoi source
+- **Some configs have special apply instructions** (especially for worktrees). Check the directory's `CLAUDE.md` before applying. Known configs with `data/`-sourced `run_onchange_` scripts that pollute state from worktrees:
+  - `data/karabiner/` — run `goku` directly
+  - `dot_config/ovim/` — copy settings.yaml directly
+  - `dot_config/nvim/` — run `nvim --headless "+Lazy! restore" +qa`
+  - `private_Library/.../Cursor/User/` — run `cursor --install-extension` directly
+  - `data/mise/` — run `mise update` directly
+  - `dot_config/alfred/` — no simple workaround; merge to main first

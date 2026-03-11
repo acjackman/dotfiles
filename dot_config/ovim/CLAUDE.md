@@ -41,6 +41,16 @@ ovim insert|normal|visual  # Set specific mode
 
 Communicates via Unix socket at `~/Library/Caches/ovim.sock`.
 
+## Worktree Apply
+
+**Do not use `chezmoi apply` for ovim settings from a worktree.** The `run_onchange_` script's checksum tracks `data/ovim/settings.yaml`, so applying from a worktree pollutes persistent state.
+
+Instead, copy the settings file directly:
+
+```sh
+cp "$(git rev-parse --show-toplevel)/data/ovim/settings.yaml" ~/Library/Application\ Support/ovim/settings.yaml
+```
+
 ## Adding Domain Filetypes
 
 Edit `domain-filetypes.yaml` with bundle ID → filetype mappings:

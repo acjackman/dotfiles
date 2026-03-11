@@ -29,6 +29,17 @@ For in-depth guidance, see the `.docs/` directory:
 
 Many directories contain their own `CLAUDE.md` with instructions specific to that tool/config (reload commands, generated file warnings, etc.). These auto-load when working in that directory.
 
+### Configs with Special Apply Instructions
+
+Some configs require extra steps or alternative apply methods (especially from worktrees). Always check the directory `CLAUDE.md` before applying:
+
+- **`data/karabiner/`** — Run `goku` directly instead of `chezmoi apply`
+- **`dot_config/ovim/`** — Copy `data/ovim/settings.yaml` directly to App Support
+- **`dot_config/nvim/`** — Run `nvim --headless "+Lazy! restore" +qa` directly
+- **`private_Library/.../Cursor/User/`** — Install extensions via `cursor --install-extension` directly
+- **`data/mise/`** — Run `mise update` directly
+- **`dot_config/alfred/`** — No simple manual workaround; merge to main first
+
 ## Key Conventions
 
 - Prefer standalone scripts in `dot_local/bin/` over shell functions (unless the command must modify shell state)
