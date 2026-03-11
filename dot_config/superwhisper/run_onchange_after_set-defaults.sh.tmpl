@@ -1,0 +1,27 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+
+###############################################################################
+# superwhisper                                                                #
+###############################################################################
+
+# Launch on login
+defaults write com.superduper.superwhisper launchOnLogin -bool true
+
+# Enable silence removal for cleaner transcriptions
+defaults write com.superduper.superwhisper enableSilenceRemoval -bool true
+
+# Always show mini recorder overlay
+defaults write com.superduper.superwhisper alwaysShowMiniRecorder -bool true
+
+# Show recording view
+defaults write com.superduper.superwhisper recordingViewEnabled -bool true
+
+# Toggle recording: Cmd + Option + Space
+defaults write com.superduper.superwhisper KeyboardShortcuts_toggleRecording -string '{"carbonModifiers":2560,"carbonKeyCode":49,"mouseButtonNumbers":[]}'
+
+# Push to talk: Right Command
+defaults write com.superduper.superwhisper KeyboardShortcuts_pushToTalk -string '{"mouseButtonNumbers":[],"carbonKeyCode":54,"carbonModifiers":256}'
+
+echo "Done. superwhisper may need to be restarted for changes to take effect."
+{{ end -}}
