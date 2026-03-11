@@ -625,7 +625,7 @@ defaults write com.apple.mail DisableInlineAttachmentViewing -bool true
 # sudo mdutil -E / >/dev/null
 
 ###############################################################################
-# Terminal & iTerm 2                                                          #
+# Terminal                                                                    #
 ###############################################################################
 
 # Only use UTF-8 in Terminal.app
@@ -793,37 +793,6 @@ defaults write com.apple.messageshelper.MessageController SOInputLineSettings -d
 
 # Disable continuous spell checking
 defaults write com.apple.messageshelper.MessageController SOInputLineSettings -dict-add "continuousSpellCheckingEnabled" -bool true
-
-###############################################################################
-# Google Chrome & Google Chrome Canary                                        #
-###############################################################################
-
-# Disable the all too sensitive backswipe on trackpads
-defaults write com.google.Chrome AppleEnableSwipeNavigateWithScrolls -bool false
-defaults write com.google.Chrome.canary AppleEnableSwipeNavigateWithScrolls -bool false
-
-# Disable the all too sensitive backswipe on Magic Mouse
-defaults write com.google.Chrome AppleEnableMouseSwipeNavigateWithScrolls -bool false
-defaults write com.google.Chrome.canary AppleEnableMouseSwipeNavigateWithScrolls -bool false
-
-# Use the system-native print preview dialog
-defaults write com.google.Chrome DisablePrintPreview -bool true
-defaults write com.google.Chrome.canary DisablePrintPreview -bool true
-
-# Expand the print dialog by default
-defaults write com.google.Chrome PMPrintingExpandedStateForPrint2 -bool true
-defaults write com.google.Chrome.canary PMPrintingExpandedStateForPrint2 -bool true
-
-###############################################################################
-# TextSniper                                                                  #
-###############################################################################
-defaults write com.valerijs.boguckis.store.TextSniper DisableSuccessNotifications -bool true
-defaults write com.valerijs.boguckis.store.TextSniper Sound -bool true
-defaults write com.valerijs.boguckis.store.TextSniper KeyboardShortcuts_keyboardShortcut -string '{\"carbonModifiers\":768,\"carbonKeyCode\":19}'                      # Cmd + Shift + 2
-defaults write com.valerijs.boguckis.store.TextSniper KeyboardShortcuts_captureTextWithoutLineBreaksShortcut -string '{\"carbonModifiers\":4864,\"carbonKeyCode\":19}' # Cmd + shift + ctl + 2
-defaults write com.valerijs.boguckis.store.TextSniper KeyboardShortcuts_keepHistoryShortcut -int string 0
-defaults write com.valerijs.boguckis.store.TextSniper KeyboardShortcuts_textToSpeechShortcut -int string 0
-defaults write com.valerijs.boguckis.store.TextSniper KeyboardShortcuts_keepLineBrakesShortcut -int string 0
 
 ###############################################################################
 # Kill affected applications                                                  #
