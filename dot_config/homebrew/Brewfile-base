@@ -201,4 +201,5 @@ cask "neovide-app"                         # Neovim GUI
 cask "marked-app"                          # Markdown Viewer
 cask "soulver"                             # Calculator
 cask "cleanshot"                           # Screanshots
+cask "superwhisper"                        # Voice-to-text dictation with LLM
 cask "suspicious-package"                  # Inspect .pkg installers
