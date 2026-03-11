@@ -64,5 +64,8 @@
   "makefile.configureOnOpen": true,
   "python.terminal.activateEnvironment": false,
   "geminicodeassist.project": "moov-gemini",
-  "geminicodeassist.inlineSuggestions.enableAuto": false
+  "geminicodeassist.inlineSuggestions.enableAuto": false,
+  "vim.insertModeKeyBindings": [
+    { "before": ["j", "k"], "after": ["<Esc>"] }
+  ]
 }

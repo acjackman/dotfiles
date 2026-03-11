@@ -129,4 +129,19 @@
             :to-after-key-up [{:key :0 :repeat false}]
             :to-if-held-down [{:halt true :key :0 :modifiers [:left_shift] :repeat false}]}
            ]}
+
+  {:des "Simultaneous jk to right_control (ovim exit insert mode)"
+   :rules [
+           {:type :basic
+            :from {:simultaneous [{:key :j} {:key :k}]
+                   :simultaneous_options {:key_down_order :insensitive
+                                          :key_up_order :insensitive
+                                          :to_after_key_up [{:set_variable {:name :simultaneous_jk :value 0}}]}}
+            :to [{:key :right_control}]
+            :conditions [{:type :frontmost_application_unless
+                          :bundle_identifiers ["^com\\.mitchellh\\.ghostty$"
+                                               "^org\\.alacritty$"
+                                               "^com\\.apple\\.Terminal$"
+                                               "^com\\.googlecode\\.iterm2$"]}]}
+           ]}
  ]}

@@ -135,6 +135,9 @@
   "vim.sneak": true,
   "vim.statusBarColorControl": false,
   "vim.useSystemClipboard": true,
+  "vim.insertModeKeyBindings": [
+    { "before": ["j", "k"], "after": ["<Esc>"] }
+  ],
 
   "vsicons.dontShowNewVersionMessage": true,
   "workbench.activityBar.visible": false,
