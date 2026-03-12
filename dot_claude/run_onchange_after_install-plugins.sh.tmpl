@@ -16,13 +16,28 @@ if ! command -v jq &> /dev/null; then
     exit 1
 fi
 
+FAILURES=0
+
 # Add marketplaces
 for marketplace in $(jq -r '.marketplaces[]' "$PLUGINS_FILE"); do
-    if claude plugin marketplace list 2>/dev/null | grep -q "${marketplace##*/}"; then
-        echo "Marketplace ${marketplace##*/} already registered"
+    marketplace_name="${marketplace##*/}"
+    if claude plugin marketplace list 2>/dev/null | grep -q "$marketplace_name"; then
+        echo "Marketplace $marketplace_name already registered"
     else
         echo "Adding marketplace: $marketplace"
-        claude plugin marketplace add "$marketplace"
+        if ! claude plugin marketplace add "$marketplace"; then
+            echo "Warning: Failed to add marketplace $marketplace"
+            FAILURES=$((FAILURES + 1))
+        fi
+    fi
+done
+
+# Verify marketplaces are available before installing plugins
+MARKETPLACE_LIST=$(claude plugin marketplace list 2>/dev/null)
+for marketplace in $(jq -r '.marketplaces[]' "$PLUGINS_FILE"); do
+    marketplace_name="${marketplace##*/}"
+    if ! echo "$MARKETPLACE_LIST" | grep -q "$marketplace_name"; then
+        echo "Warning: Marketplace $marketplace_name is not available, plugins from it may fail to install"
     fi
 done
 
@@ -32,6 +47,14 @@ for plugin in $(jq -r '.plugins[]' "$PLUGINS_FILE"); do
         echo "Plugin $plugin already installed"
     else
         echo "Installing plugin: $plugin"
-        claude plugin install "$plugin"
+        if ! claude plugin install "$plugin"; then
+            echo "Warning: Failed to install plugin $plugin"
+            FAILURES=$((FAILURES + 1))
+        fi
     fi
 done
+
+if [ "$FAILURES" -gt 0 ]; then
+    echo "Warning: $FAILURES plugin operation(s) failed. Run 'chezmoi apply' again to retry."
+    exit 0
+fi
