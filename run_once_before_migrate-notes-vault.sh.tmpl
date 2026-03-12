@@ -1,0 +1,93 @@
+#!/bin/bash
+# Migrate ~/notes from a single Obsidian vault to multi-vault layout.
+# Moves ~/notes → ~/notes/<default_vault> so vaults live side-by-side.
+# Also updates Obsidian's vault registry to point to the new path.
+
+set -euo pipefail
+
+NOTES_DIR="$HOME/notes"
+VAULT_NAME="{{ .default_vault }}"
+TARGET_DIR="$NOTES_DIR/$VAULT_NAME"
+OBSIDIAN_JSON="$HOME/Library/Application Support/obsidian/obsidian.json"
+
+# Skip if ~/notes doesn't exist
+if [ ! -d "$NOTES_DIR" ]; then
+    echo "No ~/notes directory found, skipping migration."
+    exit 0
+fi
+
+# Skip if already migrated (no .obsidian at root level)
+if [ ! -d "$NOTES_DIR/.obsidian" ]; then
+    echo "~/notes/.obsidian not found — already migrated or not an Obsidian vault."
+    exit 0
+fi
+
+# Skip if target vault directory already exists (avoid clobbering)
+if [ -d "$TARGET_DIR" ]; then
+    echo "~/notes/$VAULT_NAME already exists, skipping migration."
+    exit 0
+fi
+
+# Quit Obsidian gracefully if running
+if pgrep -xq "Obsidian"; then
+    echo "Quitting Obsidian..."
+    osascript -e 'tell application "Obsidian" to quit' 2>/dev/null || true
+    # Wait for Obsidian to finish writing (up to 10 seconds)
+    for i in $(seq 1 20); do
+        pgrep -xq "Obsidian" || break
+        sleep 0.5
+    done
+    if pgrep -xq "Obsidian"; then
+        echo "Warning: Obsidian did not quit cleanly, proceeding anyway."
+    fi
+fi
+
+echo "Migrating ~/notes → ~/notes/$VAULT_NAME ..."
+
+STAGING_DIR="${NOTES_DIR}-migrating"
+
+# Move current notes out of the way
+mv "$NOTES_DIR" "$STAGING_DIR"
+
+# Create new parent directory
+mkdir -p "$NOTES_DIR"
+
+# Move vault into its new home
+mv "$STAGING_DIR" "$TARGET_DIR"
+
+echo "Migration complete: ~/notes/$VAULT_NAME"
+
+# Update Obsidian's vault registry to point to the new path
+if [ -f "$OBSIDIAN_JSON" ]; then
+    OLD_PATH="$NOTES_DIR"
+    NEW_PATH="$TARGET_DIR"
+    if python3 -c "
+import json, sys
+
+path = sys.argv[1]
+old = sys.argv[2]
+new = sys.argv[3]
+
+with open(path) as f:
+    data = json.load(f)
+
+changed = False
+for vault_id, vault in data.get('vaults', {}).items():
+    if vault.get('path') == old:
+        vault['path'] = new
+        changed = True
+
+if changed:
+    with open(path, 'w') as f:
+        json.dump(data, f)
+    print(f'Updated Obsidian vault registry: {old} → {new}')
+else:
+    print(f'No vault with path {old} found in Obsidian registry.')
+" "$OBSIDIAN_JSON" "$OLD_PATH" "$NEW_PATH"; then
+        :
+    else
+        echo "Warning: Failed to update Obsidian vault registry. You may need to re-add the vault manually."
+    fi
+else
+    echo "Obsidian config not found at $OBSIDIAN_JSON — skipping registry update."
+fi

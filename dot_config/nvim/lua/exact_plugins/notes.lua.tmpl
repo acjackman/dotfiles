@@ -22,10 +22,10 @@ return {
     },
     opts = {
       workspaces = {
-        {
-          name = "Notes",
-          path = "~/notes",
-        },
+        { name = {{ .default_vault | title | quote }}, path = "~/notes/{{ .default_vault }}" },
+{{- range .extra_obsidian_vaults }}
+        { name = {{ . | title | quote }}, path = "~/notes/{{ . }}" },
+{{- end }}
       },
       note_path_func = function(spec)
         local path = spec.dir / "+" / tostring(spec.id)
