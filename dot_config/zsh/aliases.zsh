@@ -37,14 +37,15 @@ wtc() {
     esac
   done
 
-  local path
-  path=$(wt list --format=json | jq -r --arg b "$branch" '.[] | select(.branch == $b) | .path')
-  [[ -z "$path" ]] && { echo "Could not find worktree for branch: $branch" >&2; return 1; }
+  local wt_path
+  wt_path=$(wt list --format=json | jq -r --arg b "$branch" '.[] | select(.branch == $b) | .path')
+  [[ -z "$wt_path" ]] && { echo "Could not find worktree for branch: $branch" >&2; return 1; }
 
   local name
-  name=$(tmux-window-name "$path")
+  name=$(tmux-window-name "$wt_path")
   tmux select-window -t ":=$name" 2>/dev/null || \
-    tmux new-window -n "$name" -c "$path"
+    tmux new-window -n "$name" -c "$wt_path"
+  echo "◎ Opened tmux window \e[1m$name\e[0m @ $wt_path"
 }
 alias wtd="wt switch '^'"
 wtr() { wt switch "$@" && cd "$(git rev-parse --show-toplevel)"; }
