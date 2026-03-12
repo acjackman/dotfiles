@@ -2,9 +2,22 @@
 
 # ,scratch - Jump to Scratch
 #
-# Creates a new timestamped directory in $HOME/scratch and pushd to it
+# Creates a new timestamped directory in $HOME/scratch and pushd to it.
+# Usage: ,scratch [slug]
+#   slug: optional name appended to the directory and used for the tmux session
 
-local scratch_dir="$HOME/scratch/$(date +%Y-%m-%dT%H-%M)"
+local slug="$1"
+local datestamp="$(date +%Y_%m_%d_%H_%M)"
+local dirname="$datestamp"
+[[ -n "$slug" ]] && dirname="${datestamp}-${slug}"
+
+local scratch_dir="$HOME/scratch/$dirname"
 mkdir -p "$scratch_dir" && pushd "$scratch_dir" >/dev/null || return 1
 
 (cd "$scratch_dir" && "$HOME/.config/worktrunk/hooks/ensure-claude-trust.sh")
+
+# Rename tmux session if inside tmux
+if [[ -n "$TMUX" ]]; then
+  local session_name="scratch/${slug:-$datestamp}"
+  tmux rename-session "$session_name"
+fi
