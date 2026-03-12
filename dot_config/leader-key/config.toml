@@ -67,6 +67,14 @@ value = "osascript -e 'quit app \"DeskPad\"'"
 label = "UI Tweaks"
 rank = 47
 
+[u.children.w]
+label = "Rotate Wallpapers"
+
+[u.children.w.action]
+rank = 5
+kind = "url"
+value = "hammerspoon://rotate-wallpapers"
+
 [u.children.d]
 label = "Toggle Dark Mode"
 
