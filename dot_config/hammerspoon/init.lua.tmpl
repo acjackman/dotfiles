@@ -337,6 +337,11 @@ end)
 --
 -- hs.hotkey.bind(shift_hyper, "space", spoon.RecursiveBinder.recursiveBind(keyMap))
 
+-- Cmd+`: send Cmd+Alt+Ctrl+Shift+` to trigger Ghostty quick terminal
+hs.hotkey.bind("cmd", "`", function()
+  hs.eventtap.keyStroke(shift_hyper, "`")
+end)
+
 -- Ghostty Cmd+N: open new window with sesh session picker
 -- Uses an event tap to reliably intercept Cmd+N only when Ghostty is focused
 local ghosttyCmdN = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(event)
