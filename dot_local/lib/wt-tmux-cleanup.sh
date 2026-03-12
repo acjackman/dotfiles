@@ -12,6 +12,7 @@ set -euo pipefail
 wt_action="$1"; shift
 
 IDLE_SHELLS="^(zsh|bash|fish|sh)$"
+dry_run=false
 
 # --- Parse args: separate wt flags from branch names ---
 # Flags that consume a following value
@@ -21,6 +22,10 @@ wt_args=()
 branches=()
 while [[ $# -gt 0 ]]; do
   case "$1" in
+    --dry-run)
+      dry_run=true
+      shift
+      ;;
     -C|--config)
       wt_args+=("$1" "$2")
       shift 2
@@ -105,6 +110,29 @@ if [[ -n "${TMUX:-}" ]]; then
     done < <(tmux list-panes -a -F "#{pane_id}	#{pane_current_path}	#{pane_current_command}	#{session_name}")
   done
 
+  if $dry_run; then
+    echo "--- dry run: tmux pane scan ---"
+    echo "worktree paths: ${worktree_paths[*]}"
+    echo "idle panes to kill (${#idle_panes[@]}):"
+    for pane_id in "${idle_panes[@]+"${idle_panes[@]}"}"; do
+      pane_info=$(tmux display-message -t "$pane_id" -p "#{session_name}:#{window_name}.#{pane_index} #{pane_current_path} (#{pane_current_command})" 2>/dev/null) || pane_info="$pane_id (info unavailable)"
+      if [[ "$pane_id" == "$TMUX_PANE" ]]; then
+        echo "  $pane_info  [SKIP: own pane]"
+      else
+        echo "  $pane_info  [WOULD KILL]"
+      fi
+    done
+    echo "busy panes (${#busy_panes[@]}):"
+    for entry in "${busy_panes[@]+"${busy_panes[@]}"}"; do
+      IFS=$'\t' read -r id sess cmd path <<< "$entry"
+      echo "  [$sess] $cmd ($path)  [WOULD BLOCK]"
+    done
+    echo "landing session: $(tmux-session-name "$main_wt")"
+    echo "---"
+    echo "would exec: wt $wt_action --foreground ${wt_args[*]+${wt_args[*]}} ${branches[*]+${branches[*]}}"
+    exit 0
+  fi
+
   if [[ ${#busy_panes[@]} -gt 0 ]]; then
     echo "error: busy panes in worktree directory:" >&2
     for entry in "${busy_panes[@]}"; do
@@ -132,6 +160,13 @@ if [[ -n "${TMUX:-}" ]]; then
       tmux kill-pane -t "$pane_id" 2>/dev/null || true
     done
   fi
+fi
+
+if $dry_run; then
+  echo "--- dry run (no tmux) ---"
+  echo "worktree paths: ${worktree_paths[*]}"
+  echo "would exec: wt $wt_action --foreground ${wt_args[*]+${wt_args[*]}} ${branches[*]+${branches[*]}}"
+  exit 0
 fi
 
 # --- Execute wt action ---

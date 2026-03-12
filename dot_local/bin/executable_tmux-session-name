@@ -29,7 +29,8 @@ if [[ -n "$sesh_match" ]]; then
 fi
 
 # Not a git repo — use basename
-if ! git rev-parse --show-toplevel >/dev/null 2>&1; then
+# Use --git-dir to also detect bare repos (--show-toplevel fails for bare repos)
+if ! git rev-parse --git-dir >/dev/null 2>&1; then
   basename "$dir"
   exit 0
 fi
