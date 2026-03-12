@@ -1,5 +1,16 @@
 #!/bin/bash
 # Open a new Ghostty window with the sesh session picker.
 # Used by Hammerspoon (Cmd+N) and leader-key.
+#
+# NOTE: Do not use `open -na Ghostty.app --args -e ...` here — it spawns a
+# separate Ghostty process which adds extra Dock icons. Instead we use
+# Ghostty's AppleScript API (added in 1.3.0) to create a window in the
+# existing instance.
 
-open -a Ghostty.app --args -e "$HOME/.config/ghostty/ghostty-sesh-cmd"
+osascript -e '
+tell application "Ghostty"
+  set cfg to new surface configuration
+  set command of cfg to "'"$HOME"'/.config/ghostty/ghostty-sesh-cmd"
+  new window with configuration cfg
+end tell
+'

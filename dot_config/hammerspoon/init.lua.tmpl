@@ -344,7 +344,7 @@ end)
 
 -- Ghostty Cmd+N: open new window with sesh session picker
 -- Uses an event tap to reliably intercept Cmd+N only when Ghostty is focused
-local ghosttyCmdN = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(event)
+ghosttyCmdN = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(event)
   local flags = event:getFlags()
   local keyCode = event:getKeyCode()
   -- keyCode 45 = N, check only cmd is held
