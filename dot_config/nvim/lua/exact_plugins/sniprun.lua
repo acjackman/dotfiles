@@ -9,13 +9,25 @@ return {
 
     config = function()
       require("sniprun").setup({
-        -- your options
+        display = { "Classic", "VirtualTextOk" },
+        display_options = {
+          notification_timeout = 5,
+        },
+        interpreter_options = {
+          GFM_original = {
+            use_on_filetypes = { "markdown", "markdown.pandoc" },
+          },
+        },
       })
     end,
 
     keys = {
-      { "<leader>r", "<cmd>SnipRun<cr>", desc = "Run Code Snippet", mode = { "n", "v" } },
-      { "<leader>R", "<cmd>SnipRunOperator<cr>", desc = "Run Code Snippet", mode = { "n", "v" } },
+      { "<leader>r", "", desc = "+run", mode = { "n", "v" } },
+      { "<leader>rr", "<cmd>SnipRun<cr>", desc = "Run line", mode = "n" },
+      { "<leader>rr", "<cmd>'<,'>SnipRun<cr>", desc = "Run selection", mode = "v" },
+      { "<leader>rR", "<cmd>SnipRunOperator<cr>", desc = "Run (operator)", mode = "n" },
+      { "<leader>rc", "<cmd>SnipClose<cr>", desc = "Close output" },
+      { "<leader>rx", "<cmd>SnipReset<cr>", desc = "Reset" },
     },
   },
 }
