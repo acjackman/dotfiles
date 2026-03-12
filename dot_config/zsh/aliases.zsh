@@ -23,8 +23,29 @@ alias wm="workmux"
 
 # Worktrunk
 alias wts="wt switch"
-alias wtc="wt switch --create"
-alias wta="wt switch --create --base=@"
+wtc() {
+  # Create worktree and open in a new tmux window
+  wt switch --no-cd --create "$@" || return $?
+
+  # Extract branch name (first non-flag argument)
+  local branch
+  for arg in "$@"; do
+    case "$arg" in
+      --*=*) continue ;;
+      --*) shift; continue ;;  # skip --flag value pairs
+      *) branch="$arg"; break ;;
+    esac
+  done
+
+  local path
+  path=$(wt list --format=json | jq -r --arg b "$branch" '.[] | select(.branch == $b) | .path')
+  [[ -z "$path" ]] && { echo "Could not find worktree for branch: $branch" >&2; return 1; }
+
+  local name
+  name=$(tmux-window-name "$path")
+  tmux select-window -t ":=$name" 2>/dev/null || \
+    tmux new-window -n "$name" -c "$path"
+}
 alias wtd="wt switch '^'"
 wtr() { wt switch "$@" && cd "$(git rev-parse --show-toplevel)"; }
 # wtrm is a standalone script in ~/.local/bin/wtrm
