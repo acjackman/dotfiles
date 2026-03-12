@@ -49,6 +49,7 @@ zinit wait lucid for \
   depth:1 jeffreytse/zsh-vi-mode \
   pick"kubectl-completion.plugin.zsh" ~/.config/zsh/plugins \
   pick"k9s.plugin.zsh" ~/.config/zsh/plugins \
+  pick"sesh-completion.plugin.zsh" ~/.config/zsh/plugins \
   pick"homebrew-token.plugin.zsh" ~/.config/zsh/plugins
 
 # must be loaded after syntax completion
@@ -86,3 +87,4 @@ rm ${HOMEBREW_PREFIX}/share/zsh/site-functions/_git 2> /dev/null
 # function don't get completions by default, aliases need to be manually assigned
 # zicompdef fdd=fd
 # zicompdef rgg=rg
+# zicompdef ,t=,t

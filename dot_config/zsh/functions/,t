@@ -1,6 +1,10 @@
 # -*- mode: zsh -*- vim: ft=zsh
 
-# ,t - Tmux session launcher
+# ,t - Tmux session launcher with optional session name argument
+#
+# Usage:
+#   ,t            Launch interactive picker
+#   ,t <name>     Exact match → connect directly; partial → prefill picker query
 #
 # Outside tmux: exec into the launcher so the window closes with the session
 # Inside tmux: run normally so sesh handles session switching
@@ -10,6 +14,46 @@ _in_tmux() {
   [[ -n "$TMUX" ]] && tmux list-clients -F '#{client_tty}' 2>/dev/null | grep -qF "$(tty)"
 }
 
+# If an argument is provided, try exact match first
+if [[ -n "$1" ]]; then
+  local query="$*"
+  local sessions
+  sessions="$(sesh list 2>/dev/null)"
+
+  # Exact match: connect directly
+  if echo "$sessions" | grep -qxF "$query"; then
+    sesh connect "$query"
+    return $?
+  fi
+
+  # Partial match: launch picker with query prefilled
+  if command -v sesh &>/dev/null && command -v fzf &>/dev/null; then
+    local session
+    session="$(
+      sesh list --icons --hide-attached 2>/dev/null | fzf \
+        --no-sort --ansi --border-label ' sesh ' --prompt '⚡  ' \
+        --header '  ^a all ^t tmux ^g configs ^x zoxide ^d tmux kill ^f find' \
+        --bind 'tab:down,btab:up' \
+        --bind 'ctrl-a:change-prompt(⚡  )+reload(sesh list --icons)' \
+        --bind 'ctrl-t:change-prompt(🪟  )+reload(sesh list -t --icons)' \
+        --bind 'ctrl-g:change-prompt(⚙️  )+reload(sesh list -c --icons)' \
+        --bind 'ctrl-x:change-prompt(📁  )+reload(sesh list -z --icons)' \
+        --bind 'ctrl-f:change-prompt(🔎  )+reload(fd -H -d 2 -t d -E .Trash . ~)' \
+        --bind 'ctrl-d:execute(tmux kill-session -t {2..})+change-prompt(⚡  )+reload(sesh list --icons --hide-attached)' \
+        --preview-window 'right:55%' \
+        --preview 'sesh preview {}' \
+        --query "$query" \
+        2>/dev/null
+    )" || return 0
+
+    if [[ -n "$session" ]]; then
+      sesh connect "$session"
+    fi
+    return $?
+  fi
+fi
+
+# No argument (or fallback): launch the picker script
 if _in_tmux; then
   ~/.config/tmux/tmux_launcher.sh
 else

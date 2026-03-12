@@ -133,6 +133,9 @@ zstyle ':fzf-tab:complete:wtpr:*' fzf-flags '--header="Tip: use wtprd instead to
 zstyle ':fzf-tab:complete:wtprd:*' fzf-preview 'gh pr view ${word%:*} 2>/dev/null'
 zstyle ':fzf-tab:complete:wtprd:*' fzf-flags '--header="Including draft PRs"'
 
+# ,t completion: show sesh session preview
+zstyle ':fzf-tab:complete:,t:*' fzf-preview 'sesh preview {} 2>/dev/null'
+
 # don't show fzf unless there are more than 4 items
 # zstyle ':fzf-tab:*' ignore false 4
 
