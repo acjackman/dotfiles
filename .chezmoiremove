@@ -53,3 +53,4 @@ finicky.js
 .config/zsh/functions/,gmake
 .config/tmux/tmux_launcher_sesh.sh
 .local/bin/ghostty-sesh
+.config/zsh/functions/,scratch-ai
