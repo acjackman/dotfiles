@@ -9,7 +9,7 @@ fi
 _,t_complete() {
   local -a sessions
   local session_list
-  session_list=$(sesh list 2>/dev/null)
+  session_list=$(sesh list -t -c --icons 2>/dev/null)
   if [[ -n "$session_list" ]]; then
     while IFS= read -r line; do
       sessions+=("${line}")
