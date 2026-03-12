@@ -9,10 +9,6 @@ allowed-tools:
 
 # Spawn Tmux Window
 
-Always spawns a **tmux window** — skip the task-size analysis.
+This skill is equivalent to `spawn` — the base spawn skill now always creates tmux windows.
 
-Read and follow the instructions in `~/.claude/skills/spawn/SKILL.md` with these overrides:
-
-- **Skip step 2** (task-size analysis) entirely
-- **Always use `tmux new-window`** (the "Window" variant in step 6)
-- In the confirmation (step 7), tell the user how to switch: `tmux select-window -t '=<name>'`
+Read and follow the instructions in `~/.claude/skills/spawn/SKILL.md`.

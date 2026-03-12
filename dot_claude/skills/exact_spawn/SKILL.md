@@ -5,13 +5,12 @@ allowed-tools:
   - Bash(~/.claude/skills/spawn/setup-worktree.sh:*)
   - Bash(~/.claude/skills/spawn/write-prompt.sh:*)
   - Bash(echo $TMUX:*)
-  - Bash(tmux list-sessions*)
   - Bash(tmux list-windows*)
 ---
 
 # Spawn Claude Agent
 
-Spawn a new Claude agent in an isolated worktree via tmux.
+Spawn a new Claude agent in an isolated worktree via tmux. Always creates a **tmux window** in the current session.
 
 Each agent gets its own worktree created by worktrunk, so it can work without conflicting with the current session.
 
@@ -26,8 +25,6 @@ Sometimes a task belongs in a different repository than the one you're currently
 - The user provides a path to another repo (e.g., `~/dev/other-project: fix X`)
 - Your investigation reveals the fix belongs in a different codebase
 
-Cross-repo tasks default to a **new session** (not window), since they represent independent work in a separate project.
-
 Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a bare repo managed by worktrunk, a worktree is created there. If it's a regular checkout, the agent runs directly in that directory (no worktree or branch is created — the branch name is only used for tmux naming).
 
 ## Instructions
@@ -40,24 +37,9 @@ Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a 
 
    If `$TMUX` is empty, tell the user they must be inside a tmux session and stop.
 
-2. Analyze the task to choose session vs window:
+2. Derive a short, descriptive branch name from the task (lowercase, hyphens, no spaces). For example, "Fix the auth timeout bug" becomes `fix-auth-timeout`. For regular (non-bare) repos targeted via `--repo`, the name is only used for the tmux window — no branch is created.
 
-   **Use a new window** (small, focused tasks):
-   - Single-file changes, bug fixes, quick refactors
-   - Tasks scoped to one module or component
-   - Short-lived work that will finish quickly
-
-   **Use a new session** (large, independent tasks):
-   - Multi-file or cross-cutting changes
-   - Feature implementation, large refactors
-   - Long-running tasks you may want to revisit later
-   - Tasks in a different project or directory
-
-   Briefly tell the user which you chose and why.
-
-3. Derive a short, descriptive branch name from the task (lowercase, hyphens, no spaces). For example, "Fix the auth timeout bug" becomes `fix-auth-timeout`. For regular (non-bare) repos targeted via `--repo`, the name is only used for the tmux window/session — no branch is created.
-
-4. Create (or reuse) the worktree and get its path (also available as `spawn-setup-worktree` on PATH):
+3. Create (or reuse) the worktree and get its path (also available as `spawn-setup-worktree` on PATH):
 
    ```bash
    ~/.claude/skills/spawn/setup-worktree.sh <name> [--base <ref>] [--repo <path>]
@@ -71,7 +53,7 @@ Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a 
 
    If the worktree already exists it is reused (with `--base` compatibility check). When `--repo` targets a regular checkout, the script returns a synthetic JSON entry pointing to that directory.
 
-5. Write the prompt file (also available as `spawn-write-prompt` on PATH).
+4. Write the prompt file (also available as `spawn-write-prompt` on PATH).
    For cross-repo tasks, include context from the current repo that the agent
    will need — what you discovered, relevant file paths, code snippets, and
    why the fix belongs in the target repo.
@@ -84,23 +66,16 @@ Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a 
 
    The script prints the final prompt file path. Use this path in the next step.
 
-6. Spawn a full interactive Claude session (also available as `spawn-tmux` on
-   PATH). Never use `claude -p`/`--print`. The tmux window/session name is
-   derived automatically from the worktree path using `tmux-window-name` or
-   `tmux-session-name` (consistent with all other tmux naming in the dotfiles).
+5. Spawn a full interactive Claude session in a new tmux window (also available
+   as `spawn-tmux` on PATH). Never use `claude -p`/`--print`. The tmux window
+   name is derived automatically from the worktree path using
+   `tmux-window-name` (consistent with all other tmux naming in the dotfiles).
 
-   **Window:**
    ```bash
    ~/.claude/skills/spawn/spawn-tmux.sh --window --name <name> --dir <worktree-path> --prompt <worktree-path>/.tmp/prompt-<datestamp>.md
    ```
 
-   **Session:**
-   ```bash
-   ~/.claude/skills/spawn/spawn-tmux.sh --session --name <name> --dir <worktree-path> --prompt <worktree-path>/.tmp/prompt-<datestamp>.md
-   ```
-
-7. Confirm to the user:
-   - Whether a window or session was created
+6. Confirm to the user:
    - The branch/worktree that was created (or target repo for cross-repo tasks)
    - The prompt file path
-   - How to switch: `tmux select-window -t '=<name>'` or `tmux switch-client -t '=<name>'` (the `=` prefix forces exact name matching)
+   - How to switch: `tmux select-window -t '=<name>'` (the `=` prefix forces exact name matching)

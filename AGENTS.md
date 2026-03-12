@@ -39,6 +39,12 @@ Some configs require extra steps or alternative apply methods (especially from w
 - **`data/mise/`** — Run `mise update` directly
 - **`dot_config/alfred/`** — No simple manual workaround; merge to main first
 
+## Claude Code Skills
+
+Skills (slash commands like `/spawn`, `/commit`, `/apply`) are defined in `dot_claude/skills/`. Each skill directory contains a `SKILL.md` and optional helper scripts. These deploy to `~/.claude/skills/` via chezmoi.
+
+**Always edit the chezmoi source in `dot_claude/skills/`, not the deployed files in `~/.claude/skills/`.**
+
 ## Key Conventions
 
 - Prefer standalone scripts in `dot_local/bin/` over shell functions (unless the command must modify shell state)

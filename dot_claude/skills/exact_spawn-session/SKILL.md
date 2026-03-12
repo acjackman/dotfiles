@@ -9,10 +9,9 @@ allowed-tools:
 
 # Spawn Tmux Session
 
-Always spawns a **tmux session** — skip the task-size analysis.
+Forces a **tmux session** instead of the default window behavior.
 
 Read and follow the instructions in `~/.claude/skills/spawn/SKILL.md` with these overrides:
 
-- **Skip step 2** (task-size analysis) entirely
-- **Always use `tmux new-session`** (the "Session" variant in step 6)
-- In the confirmation (step 7), tell the user how to attach: `tmux switch-client -t '=<name>'`
+- **Always use `--session`** instead of `--window` in step 5
+- In the confirmation (step 6), tell the user how to attach: `tmux switch-client -t '=<name>'`
