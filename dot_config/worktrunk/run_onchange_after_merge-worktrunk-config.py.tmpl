@@ -45,7 +45,7 @@ def write_projects_section(projects: dict[str, Any]) -> str:
     lines = ["[projects]"]
     for key, value in projects.items():
         if isinstance(value, dict):
-            lines.append(f"[projects.{key}]")
+            lines.append(f'[projects."{key}"]')
             for k, v in value.items():
                 lines.append(f"{k} = {format_toml_value(v)}")
         else:
@@ -87,17 +87,24 @@ squash = false
 [post-switch]
 tmux = "[ -n \\"$TMUX_PANE\\" ] && [ $(tmux list-panes 2>/dev/null | wc -l) -eq 1 ] && { tmux rename-window -t \\"$TMUX_PANE\\" \\"$(~/.config/tmux/rename-from-repo.sh \\"$PWD\\")\\" 2>/dev/null || true; }"
 claude-trust = "~/.config/worktrunk/hooks/ensure-claude-trust.sh"
+
+[projects."github.com/acjackman/dotfiles"]
+worktree-path = "~/dev/jackman/dotfiles/{{ "{{" }} branch | sanitize {{ "}}" }}"
 """
 
-    # Combine managed config with preserved projects
+    # Keys managed in managed_config above — don't duplicate in preserved section
+    managed_project_keys = {"github.com/acjackman/dotfiles"}
+
+    # Combine managed config with preserved local-only projects
+    local_projects = {k: v for k, v in projects.items() if k not in managed_project_keys}
     config_path.parent.mkdir(parents=True, exist_ok=True)
 
-    full_config = managed_config + "\n" + write_projects_section(projects)
+    full_config = managed_config + "\n" + write_projects_section(local_projects)
     config_path.write_text(full_config)
 
     print(f"Wrote worktrunk config to {config_path}")
-    if projects:
-        print(f"Preserved {len(projects)} project(s)")
+    if local_projects:
+        print(f"Preserved {len(local_projects)} local project(s)")
 
     return 0
 
