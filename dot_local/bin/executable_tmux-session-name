@@ -9,6 +9,12 @@
 dir="${1:-.}"
 cd "$dir" || exit 1
 
+# If we landed in a .bare directory (worktrunk convention), move to the parent
+# so git commands operate on the project root, not the bare internals
+if [[ "$(basename "$(pwd -P)")" == ".bare" ]]; then
+  cd .. || exit 1
+fi
+
 # Check sesh configured sessions for a matching path
 norm_path="$(cd "$dir" && pwd -P)"
 norm_path="${norm_path%/}"
@@ -32,6 +38,12 @@ fi
 # Use --git-dir to also detect bare repos (--show-toplevel fails for bare repos)
 if ! git rev-parse --git-dir >/dev/null 2>&1; then
   basename "$dir"
+  exit 0
+fi
+
+# Bare repo directory — use repo name only (no branch suffix)
+if [[ "$(git rev-parse --is-bare-repository 2>/dev/null)" == "true" ]]; then
+  basename "$(pwd -P)"
   exit 0
 fi
 
