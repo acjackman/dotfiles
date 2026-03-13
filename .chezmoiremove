@@ -54,3 +54,4 @@ finicky.js
 .config/tmux/tmux_launcher_sesh.sh
 .local/bin/ghostty-sesh
 .config/zsh/functions/,scratch-ai
+.config/textsniper
