@@ -1,7 +1,5 @@
 {
   "allow": [
-    "Bash(find:*)",
-    "Bash(grep:*)",
     "Bash(ls:*)",
     "Bash(which:*)",
     "Bash(gh repo view:*)",
@@ -52,6 +50,8 @@
     "Skill(spawn-session)",
     "Skill(spawn-window)",
     "Skill(worktree)",
-    "Skill(create-pr)"
+    "Skill(create-pr)",
+    "Skill(safe-fd)",
+    "Skill(safe-rg)"
   ]
 }
