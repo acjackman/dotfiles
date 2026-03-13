@@ -257,6 +257,10 @@ if.app-id = 'com.apple.Terminal'
 run = 'move-node-to-workspace T'
 
 [[on-window-detected]]
+if.app-id = 'pl.maketheweb.cleanshotx'
+run = 'layout floating'
+
+[[on-window-detected]]
 if.app-id = 'org.alacritty'
 run = 'layout floating'
 

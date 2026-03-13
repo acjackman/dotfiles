@@ -1,0 +1,120 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+
+###############################################################################
+# CleanShot X                                                                 #
+# Bundle ID: pl.maketheweb.cleanshotx                                        #
+###############################################################################
+
+DOMAIN="pl.maketheweb.cleanshotx"
+
+###############################################################################
+# Global Capture Shortcuts                                                    #
+# Format: -data <hex-encoded JSON {"carbonModifiers":<mod>,"carbonKey":<key>}>
+# Modifiers: 256=Cmd, 512=Shift, 768=Cmd+Shift, 2048=Opt, 4096=Ctrl         #
+# Key codes: macOS virtual key codes (18=1, 19=2, 20=3, 21=4, 22=5, 23=6,   #
+#            26=7, 36=Return, 49=Space)                                       #
+###############################################################################
+
+# Capture Area — Cmd+Shift+4
+defaults write "$DOMAIN" LAVAtakeArea -data "7b22636172626f6e4d6f64696669657273223a3736382c22636172626f6e4b6579223a32317d"
+
+# Capture Fullscreen — Cmd+Shift+3
+defaults write "$DOMAIN" LAVAtakeFullscreen -data "7b22636172626f6e4d6f64696669657273223a3736382c22636172626f6e4b6579223a32307d"
+
+# All-in-One — Cmd+Shift+6
+defaults write "$DOMAIN" LAVAtakeAllInOne -data "7b22636172626f6e4d6f64696669657273223a3736382c22636172626f6e4b6579223a32337d"
+
+# OCR (Text Recognition) — Cmd+Shift+1
+defaults write "$DOMAIN" LAVAtakeOCR -data "7b22636172626f6e4d6f64696669657273223a3736382c22636172626f6e4b6579223a31387d"
+
+# OCR with Line Breaks — Cmd+Shift+2
+defaults write "$DOMAIN" LAVAtakeOCRWithLineBreaks -data "7b22636172626f6e4d6f64696669657273223a3736382c22636172626f6e4b6579223a31397d"
+
+# Quick Access Overlay: Restore — Cmd+Shift+7
+defaults write "$DOMAIN" LAVAqaoRestore -data "7b22636172626f6e4d6f64696669657273223a3736382c22636172626f6e4b6579223a32367d"
+
+# Quick Access Overlay: Restore Last from History — Cmd+Shift+5
+defaults write "$DOMAIN" LAVAqaoRestoreLastFromHistory -data "7b22636172626f6e4d6f64696669657273223a3736382c22636172626f6e4b6579223a32327d"
+
+###############################################################################
+# Behavior Settings                                                           #
+###############################################################################
+
+# Freeze screen during capture (shows static snapshot while selecting area)
+defaults write "$DOMAIN" freezeScreen -bool true
+
+# Hide desktop icons during capture
+defaults write "$DOMAIN" captureWithoutDesktopIcons -bool true
+
+# Disable sound effects
+defaults write "$DOMAIN" playSounds -bool false
+
+# Disable magnifier (loupe) during capture
+defaults write "$DOMAIN" showMagnifier -bool false
+
+# Enable DND while recording video
+defaults write "$DOMAIN" doNotDisturbWhileRecording -bool true
+
+# Keep capture on current display (don't move to active display)
+defaults write "$DOMAIN" moveToActiveDisplay -bool false
+
+# Crosshair display mode (2 = full crosshair)
+defaults write "$DOMAIN" crosshairMode -int 2
+
+# Transparent background in annotation editor
+defaults write "$DOMAIN" transparentWindowBackground -bool true
+
+# Snap to edges when cropping in annotation editor
+defaults write "$DOMAIN" snapInAnnotateCrop -bool true
+
+###############################################################################
+# Popup (Quick Access Overlay) Settings                                       #
+###############################################################################
+
+# Popup size (0=small, 1=medium, 2=large, 3=extra large)
+defaults write "$DOMAIN" popupSize -int 3
+
+# Show popup on left edge of screen
+defaults write "$DOMAIN" popupOnLeftEdge -bool true
+
+# Auto-close popup after 30 seconds
+defaults write "$DOMAIN" autoClosePopup -bool true
+defaults write "$DOMAIN" popupAutoCloseInterval -int 30
+
+# Don't prompt for save destination (use default export path)
+defaults write "$DOMAIN" popupAskForDestinationWhenSaving -bool false
+
+# Close popup after dragging screenshot out
+defaults write "$DOMAIN" deletePopupAfterDragging -bool true
+
+###############################################################################
+# File Settings                                                               #
+###############################################################################
+
+# Save screenshots to Downloads
+defaults write "$DOMAIN" exportPath -string "${HOME}/Downloads"
+
+# Keep 4 screenshots in history
+defaults write "$DOMAIN" historyCapacity -int 4
+
+###############################################################################
+# Post-Capture Actions                                                        #
+###############################################################################
+
+# After screenshot: copy to clipboard (0), save to disk (1), show in Quick Access (3)
+defaults write "$DOMAIN" afterScreenshotActions -array 0 1 3
+
+# After video: copy to clipboard (0), save to disk (1)
+defaults write "$DOMAIN" afterVideoActions -array 0 1
+
+###############################################################################
+# Updates & Privacy                                                           #
+###############################################################################
+
+# Disable automatic updates (managed via Homebrew)
+defaults write "$DOMAIN" SUAutomaticallyUpdate -bool false
+defaults write "$DOMAIN" SUEnableAutomaticChecks -bool false
+
+echo "Done. CleanShot X may need to be restarted for changes to take effect."
+{{ end -}}
