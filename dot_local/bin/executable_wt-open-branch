@@ -35,8 +35,15 @@ window_id=$(aerospace list-windows --all 2>/dev/null \
 if [[ -n "$window_id" ]]; then
   aerospace focus --window-id "$window_id"
 elif tmux has-session -t "=$session" 2>/dev/null; then
-  # Session exists but no Ghostty window — open one
-  open -na Ghostty.app --args -e env -u TMUX tmux attach-session -t "=$session"
+  # Session exists but no Ghostty window — open one via Ghostty's AppleScript
+  # API (1.3.0+) to avoid spawning a separate process and extra Dock icons.
+  osascript -e '
+tell application "Ghostty"
+  set cfg to new surface configuration
+  set command of cfg to "env -u TMUX tmux attach-session -t ='"$session"'"
+  new window with configuration cfg
+end tell
+'
 else
   # No session — open as tmux window in current session
   name=$(tmux-window-name "$path")

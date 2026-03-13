@@ -24,5 +24,13 @@ if [[ -n "$window_id" ]]; then
     aerospace focus --window-id "$window_id"
 else
     # Open a new Ghostty window and attach to the session
-    open -a Ghostty.app --args -e env -u TMUX tmux attach-session -t "=$session"
+    # Use Ghostty's AppleScript API (1.3.0+) to avoid spawning a separate
+    # process and extra Dock icons.
+    osascript -e '
+tell application "Ghostty"
+  set cfg to new surface configuration
+  set command of cfg to "env -u TMUX tmux attach-session -t ='"$session"'"
+  new window with configuration cfg
+end tell
+'
 fi
