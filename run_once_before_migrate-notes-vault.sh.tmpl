@@ -1,5 +1,8 @@
-{{- if hasKey . "default_vault" }}
 #!/bin/bash
+{{- if not (hasKey . "default_vault") }}
+echo "Error: default_vault not set. Run 'chezmoi init' to configure it." >&2
+exit 1
+{{- end }}
 # Migrate ~/notes from a single Obsidian vault to multi-vault layout.
 # Moves ~/notes → ~/notes/<default_vault> so vaults live side-by-side.
 # Also updates Obsidian's vault registry to point to the new path.
@@ -92,8 +95,3 @@ else:
 else
     echo "Obsidian config not found at $OBSIDIAN_JSON — skipping registry update."
 fi
-{{- else }}
-#!/bin/bash
-echo "Error: default_vault not set. Run 'chezmoi init' to configure it." >&2
-exit 1
-{{- end }}
