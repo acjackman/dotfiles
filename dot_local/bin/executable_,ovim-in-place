@@ -2,6 +2,11 @@
 
 SETTINGS="$HOME/Library/Application Support/ovim/settings.yaml"
 
+# Resolve symlink — sed -i on macOS only works on regular files
+if [ -L "$SETTINGS" ]; then
+  SETTINGS="$(readlink "$SETTINGS")"
+fi
+
 if grep -q '^enabled: true' "$SETTINGS"; then
   sed -i '' 's/^enabled: true/enabled: false/' "$SETTINGS"
 else
