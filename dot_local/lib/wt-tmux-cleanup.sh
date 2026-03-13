@@ -5,11 +5,16 @@
 #
 # where <action> is the wt subcommand (e.g. "remove", "merge").
 # Parses remaining args, resolves worktree paths, cleans up tmux panes,
-# then execs `wt <action> --foreground` with the parsed args.
+# then execs `wt <action>` with the parsed args.
 
 set -euo pipefail
 
 wt_action="$1"; shift
+
+# wt remove runs in background by default; --foreground keeps it blocking.
+# wt merge always runs in foreground and doesn't accept the flag.
+foreground_flag=""
+[[ "$wt_action" == "remove" ]] && foreground_flag="--foreground"
 
 IDLE_SHELLS="^(zsh|bash|fish|sh)$"
 dry_run=false
@@ -129,7 +134,7 @@ if [[ -n "${TMUX:-}" ]]; then
     done
     echo "landing session: $(tmux-session-name "$main_wt")"
     echo "---"
-    echo "would exec: wt $wt_action --foreground ${wt_args[*]+${wt_args[*]}} ${branches[*]+${branches[*]}}"
+    echo "would exec: wt $wt_action${foreground_flag:+ $foreground_flag} ${wt_args[*]+${wt_args[*]}} ${branches[*]+${branches[*]}}"
     exit 0
   fi
 
@@ -165,9 +170,9 @@ fi
 if $dry_run; then
   echo "--- dry run (no tmux) ---"
   echo "worktree paths: ${worktree_paths[*]}"
-  echo "would exec: wt $wt_action --foreground ${wt_args[*]+${wt_args[*]}} ${branches[*]+${branches[*]}}"
+  echo "would exec: wt $wt_action${foreground_flag:+ $foreground_flag} ${wt_args[*]+${wt_args[*]}} ${branches[*]+${branches[*]}}"
   exit 0
 fi
 
 # --- Execute wt action ---
-exec wt "$wt_action" --foreground "${wt_args[@]+"${wt_args[@]}"}" "${branches[@]+"${branches[@]}"}"
+exec wt "$wt_action" ${foreground_flag:+"$foreground_flag"} "${wt_args[@]+"${wt_args[@]}"}" "${branches[@]+"${branches[@]}"}"
