@@ -4,7 +4,7 @@ set -euo pipefail
 # Launch an interactive Claude session with an initial prompt from a file.
 # Usage: launch.sh [--permission-mode <mode>] <prompt-file>
 
-permission_mode="acceptEdits"
+permission_mode="auto"
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
