@@ -17,8 +17,11 @@ defaults write com.superduper.superwhisper alwaysShowMiniRecorder -bool true
 # Show recording view
 defaults write com.superduper.superwhisper recordingViewEnabled -bool true
 
-# Toggle recording: Cmd + Option + Space
-defaults write com.superduper.superwhisper KeyboardShortcuts_toggleRecording -string '{"carbonModifiers":2560,"carbonKeyCode":49,"mouseButtonNumbers":[]}'
+# Toggle recording: Hyper + F17
+defaults write com.superduper.superwhisper KeyboardShortcuts_toggleRecording -string '{"mouseButtonNumbers":[],"carbonModifiers":6912,"carbonKeyCode":64}'
+
+# Change mode: Ctrl + Cmd + Option + F17
+defaults write com.superduper.superwhisper KeyboardShortcuts_changeMode -string '{"carbonModifiers":6400,"mouseButtonNumbers":[],"carbonKeyCode":64}'
 
 # Push to talk: Right Command
 defaults write com.superduper.superwhisper KeyboardShortcuts_pushToTalk -string '{"mouseButtonNumbers":[],"carbonKeyCode":54,"carbonModifiers":256}'

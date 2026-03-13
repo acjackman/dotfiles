@@ -9,7 +9,8 @@ Read current values: `defaults read com.superduper.superwhisper`
 
 ## Key Settings
 
-- **Toggle recording**: Cmd+Option+Space (`KeyboardShortcuts_toggleRecording`)
+- **Toggle recording**: Hyper+F17 (`KeyboardShortcuts_toggleRecording`)
+- **Change mode**: Ctrl+Cmd+Option+F17 (`KeyboardShortcuts_changeMode`)
 - **Push to talk**: Right Command (`KeyboardShortcuts_pushToTalk`)
 - **Launch on login**: enabled
 - **Silence removal**: enabled

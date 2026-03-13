@@ -111,6 +111,26 @@ rank = 30
 kind = "command"
 value = "osascript -e 'tell app \"HazeOver\" to set intensity to (intensity - 10)'"
 
+[a]
+label = "SuperWhisper"
+rank = 48
+
+[a.children.r]
+label = "Toggle Recording"
+
+[a.children.r.action]
+rank = 10
+kind = "command"
+value = "osascript -e 'tell application \"System Events\" to key code 64 using {command down, option down, control down, shift down}'"
+
+[a.children.m]
+label = "Change Mode"
+
+[a.children.m.action]
+rank = 20
+kind = "command"
+value = "osascript -e 'tell application \"System Events\" to key code 64 using {command down, option down, control down}'"
+
 [o]
 label = "Open"
 rank = 50
