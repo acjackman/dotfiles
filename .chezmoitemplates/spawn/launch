@@ -2,21 +2,28 @@
 set -euo pipefail
 
 # Launch an interactive Claude session with an initial prompt from a file.
-# Usage: launch.sh [--permission-mode <mode>] <prompt-file>
+# Usage: launch.sh [--permission-mode <mode>] [--session-name <name>] <prompt-file>
 
 permission_mode="auto"
+session_name=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --permission-mode) permission_mode="$2"; shift 2 ;;
+        --session-name)    session_name="$2";    shift 2 ;;
         *) break ;;
     esac
 done
 
 if [[ $# -lt 1 ]] || [[ ! -f "$1" ]]; then
-    echo "Usage: launch.sh [--permission-mode <mode>] <prompt-file>"
+    echo "Usage: launch.sh [--permission-mode <mode>] [--session-name <name>] <prompt-file>"
     exit 1
 fi
 
 prompt="$(cat "$1")"
-exec claude --permission-mode "$permission_mode" "$prompt"
+
+claude_args=(--permission-mode "$permission_mode")
+[[ -n "$session_name" ]] && claude_args+=(--name "$session_name")
+claude_args+=("$prompt")
+
+exec claude "${claude_args[@]}"
