@@ -2,14 +2,14 @@
 set -euo pipefail
 
 # Spawn a tmux window or session and send a launch command into it.
-# Usage: spawn-tmux.sh --window|--session --name <name> --dir <path> --prompt <file>
+# Usage: spawn-tmux.sh --window|--session --name <name> --dir <path> --prompt <file> [--model <model>]
 
 usage() {
     echo "Usage: spawn-tmux.sh --window|--session --name <name> --dir <path> --prompt <file>"
     exit 1
 }
 
-mode="" name="" dir="" prompt=""
+mode="" name="" dir="" prompt="" model=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -18,6 +18,7 @@ while [[ $# -gt 0 ]]; do
         --name)    name="$2";      shift 2 ;;
         --dir)     dir="$2";       shift 2 ;;
         --prompt)  prompt="$2";    shift 2 ;;
+        --model)   model="$2";     shift 2 ;;
         *) usage ;;
     esac
 done
@@ -31,17 +32,22 @@ launch_script="$HOME/.claude/skills/spawn/launch.sh"
 # Derive Claude session name from the worktree directory
 claude_session_name=$(tmux-window-name "$dir")
 
+# Build launch command with optional flags
+launch_cmd="$launch_script"
+[[ -n "$model" ]] && launch_cmd+=" --model '$model'"
+launch_cmd+=" --session-name '$claude_session_name' '$prompt'"
+
 # Derive tmux name from the worktree path using shared naming conventions
 if [[ "$mode" == "window" ]]; then
     tmux_name=$(tmux-window-name "$dir")
     pane_id=$(tmux new-window -d -n "$tmux_name" -c "$dir" -P -F "#{pane_id}")
     tmux set-option -t "$pane_id" automatic-rename off
-    tmux send-keys -t "$pane_id" "$launch_script --session-name '$claude_session_name' '$prompt'" Enter
+    tmux send-keys -t "$pane_id" "$launch_cmd" Enter
 elif [[ "$mode" == "session" ]]; then
     tmux_name=$(tmux-session-name "$dir")
     pane_id=$(tmux new-session -d -s "$tmux_name" -c "$dir" -P -F "#{pane_id}")
     tmux set-option -t "$pane_id" automatic-rename off
-    tmux send-keys -t "$pane_id" "$launch_script --session-name '$claude_session_name' '$prompt'" Enter
+    tmux send-keys -t "$pane_id" "$launch_cmd" Enter
 fi
 
 echo "Spawned $mode '$name' in $dir"

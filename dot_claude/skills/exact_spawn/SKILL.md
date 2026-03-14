@@ -39,6 +39,13 @@ Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a 
 
 2. Derive a short, descriptive branch name from the task (lowercase, hyphens, no spaces). For example, "Fix the auth timeout bug" becomes `fix-auth-timeout`. For regular (non-bare) repos targeted via `--repo`, the name is only used for the tmux window — no branch is created.
 
+   **Pick a model** based on task complexity:
+
+   - **`sonnet`** (default) — most tasks: straightforward bug fixes, simple features, config changes, one-file edits, documentation
+   - **`opus`** — complex tasks: multi-file refactors, architectural changes, deep reasoning, careful design decisions, unfamiliar codebases, tasks where getting it wrong is costly
+
+   Default to `sonnet` unless the task clearly warrants `opus`.
+
 3. Create (or reuse) the worktree and get its path (also available as `spawn-setup-worktree` on PATH):
 
    ```bash
@@ -72,7 +79,7 @@ Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a 
    `tmux-window-name` (consistent with all other tmux naming in the dotfiles).
 
    ```bash
-   ~/.claude/skills/spawn/spawn-tmux.sh --window --name <name> --dir <worktree-path> --prompt <worktree-path>/.tmp/prompt-<datestamp>.md
+   ~/.claude/skills/spawn/spawn-tmux.sh --window --name <name> --dir <worktree-path> --prompt <worktree-path>/.tmp/prompt-<datestamp>.md [--model <model>]
    ```
 
 6. Confirm to the user:
