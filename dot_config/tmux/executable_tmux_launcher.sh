@@ -24,7 +24,7 @@ if ! command -v sesh &>/dev/null || ! command -v fzf-tmux &>/dev/null; then
   exec tmux new-session -A -s main
 fi
 
-dedup="awk '!seen[\$0]++'"
+dedup="awk '!seen[substr(\$0, index(\$0, \" \") + 1)]++'"
 fzf_cmd=(fzf
   --no-sort --ansi --border-label ' sesh ' --prompt '⚡  '
   --header '  ^a all ^t tmux ^g configs ^x zoxide ^d tmux kill ^f find'
@@ -40,7 +40,7 @@ fzf_cmd=(fzf
 )
 
 session="$(
-  sesh list --icons --hide-attached 2>/dev/null | awk '!seen[$0]++' | "${fzf_cmd[@]}" 2>/dev/null
+  sesh list --icons --hide-attached 2>/dev/null | awk '!seen[substr($0, index($0, " ") + 1)]++' | "${fzf_cmd[@]}" 2>/dev/null
 )" || exit 0
 
 if [[ -n "$session" ]]; then
