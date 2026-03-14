@@ -20,6 +20,7 @@
     default_vault = {{ promptStringOnce . "default_vault" "Default Obsidian vault name" "brain" | quote }}
     extra_obsidian_vaults = {{ if hasKey . "extra_obsidian_vaults" }}{{ .extra_obsidian_vaults | toToml }}{{ else }}[]{{ end }}
     webdav_port = {{ promptIntOnce . "webdav_port" "WebDAV port for Violentmonkey sync" 56726 }}
+    google_meet_app_id = {{ if hasKey . "google_meet_app_id" }}{{ .google_meet_app_id | quote }}{{ else }}""{{ end }}
     # atuin
     atuin_history_filter = {{with  $filter := .atuin_history_filter}}{{$filter | toToml}}{{else}}[]{{end}}
     atuin_cwd_filter = {{with $filter := .atuin_cwd_filter}}{{$filter | toToml}}{{else}}[]{{end}}

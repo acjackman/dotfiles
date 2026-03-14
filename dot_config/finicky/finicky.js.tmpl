@@ -28,10 +28,10 @@ export default {
       url: { protocol: "discord" },
       browser: "Discord",
     },
-    {{- if has "moov" .extras }}
+    {{- if .google_meet_app_id }}
     {
       match: /meet\.google\.com\/.+/,
-      browser: "com.google.Chrome.app.kjgfgldnnfoeklkmfkjfagphfepbbdan",
+      browser: "{{ .google_meet_app_id }}",
     },
     {{- end }}
     {
