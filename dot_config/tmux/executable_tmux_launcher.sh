@@ -24,6 +24,8 @@ if ! command -v sesh &>/dev/null || ! command -v fzf-tmux &>/dev/null; then
   exec tmux new-session -A -s main
 fi
 
+query="${1-}"
+
 dedup="awk '!seen[substr(\$0, index(\$0, \" \") + 1)]++'"
 fzf_cmd=(fzf
   --no-sort --ansi --border-label ' sesh ' --prompt '⚡  '
@@ -38,6 +40,7 @@ fzf_cmd=(fzf
   --preview-window 'right:55%'
   --preview 'sesh preview {}'
 )
+[[ -n "$query" ]] && fzf_cmd+=(--query "$query")
 
 session="$(
   sesh list --icons --hide-attached 2>/dev/null | awk '!seen[substr($0, index($0, " ") + 1)]++' | "${fzf_cmd[@]}" 2>/dev/null
