@@ -124,13 +124,15 @@ if [[ -z "$collected" ]]; then
 fi
 
 # --- AI analysis or skip ---
-ai_system_prompt='You are a task analyzer for spawning Claude Code agents. Given a task description, output raw YAML (no markdown fences) with exactly these fields:
+ai_system_prompt='You are a task analyzer for spawning Claude Code agents. Given a task description, output a JSON object (no markdown fences) with exactly these fields:
 
-branch: a short lowercase-hyphenated branch name for this task (max 40 chars). Example: "fix-auth-timeout"
-mode: either "window" (for small focused tasks: single-file changes, bug fixes, quick refactors) or "session" (for large tasks: multi-file changes, feature implementation, long-running work)
-prompt: an improved, structured version of the task description that will be given to a Claude Code agent. Keep the original intent but make it clearer and more actionable.
+{
+  "branch": "a short lowercase-hyphenated branch name for this task (max 40 chars), e.g. fix-auth-timeout",
+  "mode": "window or session — window for small focused tasks (single-file changes, bug fixes, quick refactors), session for large tasks (multi-file changes, feature implementation, long-running work)",
+  "prompt": "an improved, structured version of the task description that will be given to a Claude Code agent. Keep the original intent but make it clearer and more actionable."
+}
 
-Output only the YAML, nothing else.'
+Output only the JSON object, nothing else.'
 
 branch=""
 mode=""
@@ -146,13 +148,16 @@ else
     if ai_output=$(claude -p --model haiku --no-session-persistence --system-prompt "$ai_system_prompt" "$collected" 2>/dev/null); then
         # Strip markdown fences if present
         ai_output=$(echo "$ai_output" | sed '/^```/d')
-        branch=$(echo "$ai_output" | yq -r '.branch // ""')
-        mode=$(echo "$ai_output" | yq -r '.mode // ""')
-        final_prompt=$(echo "$ai_output" | yq -r '.prompt // ""')
-
-        # Validate AI output, fall back if broken
-        if [[ -z "$branch" || -z "$mode" || -z "$final_prompt" ]]; then
-            echo "Warning: AI returned incomplete output, falling back to raw prompt" >&2
+        # Parse JSON with jq (more robust than YAML for AI output with special chars)
+        if parsed_branch=$(echo "$ai_output" | jq -r '.branch // ""' 2>/dev/null) \
+            && parsed_mode=$(echo "$ai_output" | jq -r '.mode // ""' 2>/dev/null) \
+            && parsed_prompt=$(echo "$ai_output" | jq -r '.prompt // ""' 2>/dev/null) \
+            && [[ -n "$parsed_branch" && -n "$parsed_mode" && -n "$parsed_prompt" ]]; then
+            branch="$parsed_branch"
+            mode="$parsed_mode"
+            final_prompt="$parsed_prompt"
+        else
+            echo "Warning: AI returned unparseable output, falling back to raw prompt" >&2
             branch="${branch_override:-changeme}"
             mode="${mode_override:-window}"
             final_prompt="$collected"
@@ -176,33 +181,45 @@ fi
 
 # --- Editor review (unless --yolo) ---
 if [[ "$yolo" != true ]]; then
-    tmpfile=$(mktemp "${TMPDIR:-/tmp}/spawn-XXXXXX.yaml")
+    tmpfile=$(mktemp "${TMPDIR:-/tmp}/spawn-XXXXXX.md")
     trap 'rm -f "$tmpfile"' EXIT
 
-    # Build YAML with yq for safe encoding
-    yq -n \
-        --arg branch "$branch" \
-        --arg mode "$mode" \
-        --arg base "$base_arg" \
-        --arg repo "$repo_arg" \
-        --arg prompt "$final_prompt" \
-        '.branch = $branch | .mode = $mode | .base = $base | .repo = $repo | .prompt = $prompt' \
-        | sed '1i\
-# Spawn Agent — edit and save to proceed, clear '\''branch'\'' to abort' \
-        > "$tmpfile"
+    # Build markdown with YAML frontmatter for editor review
+    # Frontmatter holds metadata; body is the prompt (free-form markdown)
+    {
+        echo "---"
+        # Use yq to safely encode frontmatter values
+        yq -n \
+            --arg branch "$branch" \
+            --arg mode "$mode" \
+            --arg base "$base_arg" \
+            --arg repo "$repo_arg" \
+            '.branch = $branch | .mode = $mode | .base = $base | .repo = $repo'
+        echo "---"
+        echo ""
+        echo "<!-- Spawn Agent — edit and save to proceed, clear 'branch' to abort -->"
+        echo ""
+        echo "$final_prompt"
+    } > "$tmpfile"
 
     "${EDITOR:-vi}" "$tmpfile"
 
-    # Parse edited YAML
-    branch=$(yq -r '.branch // ""' "$tmpfile")
+    # Parse edited file: extract YAML frontmatter and markdown body
+    # Frontmatter = lines between first two '---' markers; body = everything after
+    frontmatter=$(awk 'BEGIN{n=0} /^---$/{n++; next} n==1' "$tmpfile")
+    # Body = everything after second '---', with leading blank lines trimmed
+    final_prompt=$(awk 'BEGIN{n=0} /^---$/{n++; next} n>=2' "$tmpfile" | awk '/[^ \t]/{found=1} found')
+
+    # Parse frontmatter values with yq (safe: frontmatter has only simple strings)
+    branch=$(echo "$frontmatter" | yq -r '.branch // ""')
+    mode=$(echo "$frontmatter" | yq -r '.mode // "window"')
+    base_arg=$(echo "$frontmatter" | yq -r '.base // ""')
+    repo_arg=$(echo "$frontmatter" | yq -r '.repo // ""')
+
     if [[ -z "$branch" ]]; then
         echo "Aborted: branch is empty." >&2
         exit 0
     fi
-    mode=$(yq -r '.mode // "window"' "$tmpfile")
-    base_arg=$(yq -r '.base // ""' "$tmpfile")
-    repo_arg=$(yq -r '.repo // ""' "$tmpfile")
-    final_prompt=$(yq -r '.prompt // ""' "$tmpfile")
 
     if [[ "$mode" != "window" && "$mode" != "session" ]]; then
         echo "Error: mode must be 'window' or 'session', got '$mode'" >&2
