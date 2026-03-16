@@ -70,7 +70,15 @@ alias ,r="mise run"
 
 # git
 alias g=git
-alias lg=lazygit
+lg() {
+  if [[ "$(git rev-parse --is-bare-repository 2>/dev/null)" == "true" ]]; then
+    local default_branch
+    default_branch=$(wt config state default-branch 2>/dev/null)
+    lazygit --git-dir=.bare --work-tree="${default_branch:-.}" "$@"
+  else
+    lazygit "$@"
+  fi
+}
 alias gitsweep="git branch --merged | egrep -v '(^\*|master|dev.*|stg|prod|develop|release/.*)' | xargs git branch -d && git remote | xargs git remote prune && echo 'Branches Remaining: ' && git --no-pager branch | head -n 20"
 alias git-hew-wip="git branch | sed '/^\*/d' | sed '/^\+/d' | xargs git branch -D"
 
