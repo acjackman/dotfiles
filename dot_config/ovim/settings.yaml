@@ -57,7 +57,7 @@ nvim_edit:
   double_tap_modifier: command
   prewarm_terminal: false
 click_mode:
-  enabled: true
+  enabled: false
   shortcut_key: ''
   shortcut_modifiers:
     shift: false
