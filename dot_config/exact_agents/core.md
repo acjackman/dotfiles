@@ -7,7 +7,11 @@
 
 ## Tools
 
-- Prefer modern CLI tools for interactive/exploratory work: `rg` over `grep`, `fd` over `find`, `eza` over `ls`
+- Prefer modern CLI tools for interactive/exploratory work: `eza` over `ls`
+- **Never run `find`, `fd`, `grep`, or `rg` directly via Bash.** Use the safe wrapper skills instead:
+  - `/safe-fd` — find files by name/pattern (replaces `find` and `fd`)
+  - `/safe-rg` — search file contents by pattern (replaces `grep` and `rg`)
+  - Use `/safe-fd ... --grep -- <pattern>` to find files then search their contents
 - Standard tools are fine in scripts and CI
 - See `topics/tools.md` for the full catalog
 
