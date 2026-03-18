@@ -51,15 +51,15 @@ else
     # Set up preview command
     local preview_cmd
     if command -v eza >/dev/null 2>&1; then
-        preview_cmd="eza --long --group-directories-first --color=always {}"
+        preview_cmd="eza --long --group-directories-first --color=always ${repo_root}/{}"
     else
-        preview_cmd="ls -la {}"
+        preview_cmd="ls -la ${repo_root}/{}"
     fi
 
     # Multiple directories - use fzf to select
     selected=$(printf '%s\n' "${dirs[@]}" | fzf --prompt="Jump to directory: " \
         --preview="$preview_cmd" \
-        --preview-window=right:50%:wrap \
+        --preview-window=up:75%:wrap \
         --height=100% \
         --no-multi)
 fi
