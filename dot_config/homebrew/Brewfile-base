@@ -9,6 +9,7 @@ tap "noahgorstein/tap"
 tap "ttscoff/thelab"
 tap "FelixKratz/formulae"
 tap "yqrashawn/goku"
+tap "manaflow-ai/cmux"
 tap "raine/workmux"
 tap "max-sixty/worktrunk"
 tap "steipete/tap"
@@ -60,6 +61,7 @@ brew "max-sixty/worktrunk/wt"
 # Terminal Emulator
 cask "ghostty"
 cask "alacritty"
+cask "cmux"                          # AI agent terminal (Ghostty-based)
 
 # Vim modal input
 cask "tonisives/tap/ovim"
