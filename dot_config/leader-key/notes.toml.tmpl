@@ -6,61 +6,35 @@ label = "Brain"
 
 [b.children.b.action]
 rank = 10
-label = "Notes Vault"
-# value = "open 'obsidian://open?vault={{ .default_vault }}' && open -a Obsidian"
-value = "open 'obsidian://log?vault={{ .default_vault }}' && open -a Obsidian"
-kind = "command"
-iconPath = "/Applications/Obsidian.app"
-
-[b.children.t.action]
-rank = 20
 label = "Today"
 kind = "command"
 value = "open 'obsidian://adv-uri?vault={{ .default_vault }}&commandid=periodic-notes:open-daily-note' && open -a Obsidian"
 iconPath = "/Applications/Obsidian.app"
 
-{{ if has "personal" .extras }}
-
-[b.children.w.action]
-rank = 30
-label = "Weekly"
-kind = "command"
-value = "open 'obsidian://adv-uri?vault={{ .default_vault }}&commandid=periodic-notes:open-weekly-note' && open -a Obsidian"
-iconPath = "/Applications/Obsidian.app"
-
-[b.children.q.action]
-rank = 40
-label = "Quarterly"
-kind = "command"
-value = "open 'obsidian://adv-uri?vault={{ .default_vault }}&commandid=periodic-notes:open-quarterly-note' && open -a Obsidian"
-iconPath = "/Applications/Obsidian.app"
-
-[b.children.h.action]
-rank = 50
-label = "Launchpad"
-kind = "command"
-value = "open 'obsidian://adv-uri?vault={{ .default_vault }}&filepath=Launchpad.md' && open -a Obsidian"
-iconPath = "/Applications/Obsidian.app"
-
-[b.children.a.action]
-rank = 60
-label = "Atlas"
-kind = "command"
-value = "open 'obsidian://adv-uri?vault={{ .default_vault }}&filepath=atlas%2Fatlas.md' && open -a Obsidian"
-iconPath = "/Applications/Obsidian.app"
-
-{{ end }}
-
 [b.children.space.action]
-rank = 70
+rank = 20
 label = "Capture"
 kind = "command"
 value = ",obsidian-gui-capture"
 iconPath = "/Applications/Obsidian.app"
 
 [b.children.enter.action]
-rank = 80
+rank = 30
 label = "Log Entry"
 kind = "command"
 value = ",obsidian-gui-log"
+iconPath = "/Applications/Obsidian.app"
+
+[b.children.h.action]
+rank = 40
+label = "Launchpad"
+kind = "command"
+value = "open 'obsidian://adv-uri?vault={{ .default_vault }}&filepath=Launchpad.md' && open -a Obsidian"
+iconPath = "/Applications/Obsidian.app"
+
+[b.children.a.action]
+rank = 50
+label = "Atlas"
+kind = "command"
+value = "open 'obsidian://adv-uri?vault={{ .default_vault }}&filepath=atlas%2Fatlas.md' && open -a Obsidian"
 iconPath = "/Applications/Obsidian.app"
