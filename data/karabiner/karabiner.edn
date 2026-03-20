@@ -142,6 +142,7 @@
                           :bundle_identifiers ["^com\\.mitchellh\\.ghostty$"
                                                "^org\\.alacritty$"
                                                "^com\\.apple\\.Terminal$"
-                                               "^com\\.googlecode\\.iterm2$"]}]}
+                                               "^com\\.googlecode\\.iterm2$"
+                                               "^com\\.cmuxterm\\.app$"]}]}
            ]}
  ]}

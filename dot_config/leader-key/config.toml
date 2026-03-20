@@ -6,6 +6,11 @@ rank = 10
 kind = "application"
 value = "/Applications/Ghostty.app"
 
+[t.children.c.action]
+rank = 15
+kind = "application"
+value = "/Applications/cmux.app"
+
 [t.children.n]
 label = "New Window + Sesh"
 
