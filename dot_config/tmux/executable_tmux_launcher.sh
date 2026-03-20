@@ -47,12 +47,17 @@ session="$(
 )" || exit 0
 
 if [[ -n "$session" ]]; then
-  # Extract the session name by stripping the icon prefix (first field)
-  session_name="${session#* }"
+  # Strip icon prefix if present (sesh --icons prepends "<icon> ")
+  # Paths from fd start with / ~ or . and have no icon to strip
+  if [[ "$session" == /* || "$session" == ~* || "$session" == .* ]]; then
+    session_name="$session"
+  else
+    session_name="${session#* }"
+  fi
 
   # Check if a Ghostty window already has this session active
   window_id=$(aerospace list-windows --all 2>/dev/null \
-    | awk -F ' \\| ' -v sess="$session_name" '$2 ~ /Ghostty/ && $0 ~ sess {print $1; exit}')
+    | awk -F ' \\| ' -v sess="$session_name" '$2 ~ /Ghostty/ && index($0, sess) {print $1; exit}')
 
   if [[ -n "$window_id" ]]; then
     # Focus the existing window and exit (closing this picker window)
@@ -60,5 +65,5 @@ if [[ -n "$session" ]]; then
     exit 0
   fi
 
-  sesh connect "$session"
+  sesh connect "$session_name"
 fi
