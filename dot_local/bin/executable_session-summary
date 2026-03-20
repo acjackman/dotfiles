@@ -4,11 +4,11 @@
 set +x
 
 DATE="${1:-$(date +%Y-%m-%d)}"
-SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-OUTFILE=$(mktemp "$SCRIPT_DIR/.session-out.XXXXXX")
-DATAFILE=$(mktemp "$SCRIPT_DIR/.session-data.XXXXXX")
-PROMPTFILE=$(mktemp "$SCRIPT_DIR/.session-prompt.XXXXXX")
-trap 'rm -f "$OUTFILE" "$DATAFILE" "$PROMPTFILE"' EXIT
+WORKSPACE=$(mktemp -d "${TMPDIR:-/tmp}/session-summary.XXXXXX")
+trap 'rm -rf "$WORKSPACE"' EXIT
+OUTFILE="$WORKSPACE/output.md"
+DATAFILE="$WORKSPACE/events.log"
+PROMPTFILE="$WORKSPACE/prompt.txt"
 
 gum spin --spinner dot --title "Collecting power events for $DATE..." -- sleep 0 &
 pmset -g log | grep -E '(Sleep |DarkWake|Wake |Display is turned)' | grep "$DATE" >"$DATAFILE"
@@ -42,6 +42,6 @@ No headers, no analysis, no extra text — just the table.
 EOF
 
 gum spin --spinner dot --title "Generating session summary..." -- \
-  bash -c "cat $PROMPTFILE | claude -p --model haiku --allowedTools 'Read,Write' > /dev/null"
+  bash -c "cd $WORKSPACE && cat $PROMPTFILE | claude -p --model haiku --allowedTools 'Read,Write' >&2"
 
-gum format < "$OUTFILE"
+cat "$OUTFILE"
