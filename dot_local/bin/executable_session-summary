@@ -3,15 +3,27 @@
 
 set +x
 
-DATE="${1:-$(date +%Y-%m-%d)}"
+# Working day starts at 05:00, so before 5am we're still in yesterday's working day
+if [ -z "$1" ]; then
+  if [ "$(date +%H)" -lt 5 ]; then
+    DATE=$(date -v-1d +%Y-%m-%d)
+  else
+    DATE=$(date +%Y-%m-%d)
+  fi
+else
+  DATE="$1"
+fi
+NEXT_DATE=$(date -j -v+1d -f %Y-%m-%d "$DATE" +%Y-%m-%d)
 WORKSPACE=$(mktemp -d "${TMPDIR:-/tmp}/session-summary.XXXXXX")
 trap 'rm -rf "$WORKSPACE"' EXIT
 OUTFILE="$WORKSPACE/output.md"
 DATAFILE="$WORKSPACE/events.log"
 PROMPTFILE="$WORKSPACE/prompt.txt"
 
+# A working day runs 05:00 on $DATE through 04:59 on $NEXT_DATE
 gum spin --spinner dot --title "Collecting power events for $DATE..." -- sleep 0 &
-pmset -g log | grep -E '(Sleep |DarkWake|Wake |Display is turned)' | grep "$DATE" >"$DATAFILE"
+pmset -g log | grep -E '(Sleep |DarkWake|Wake |Display is turned)' \
+  | grep -E "($DATE (0[5-9]|[12][0-9])|$NEXT_DATE 0[0-4])" >"$DATAFILE"
 wait
 
 if [ ! -s "$DATAFILE" ]; then
@@ -24,6 +36,7 @@ gum style --faint "$EVENT_COUNT events found"
 
 cat <<EOF >"$PROMPTFILE"
 You are analyzing macOS power management logs to determine when the user was actively using their computer.
+The working day is $DATE 05:00 through $NEXT_DATE 04:59.
 The logs are in the file: $DATAFILE
 
 Rules:
