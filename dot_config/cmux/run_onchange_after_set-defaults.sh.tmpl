@@ -1,0 +1,26 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+
+###############################################################################
+# cmux                                                                        #
+# Bundle ID: com.cmuxterm.app                                                 #
+###############################################################################
+
+DOMAIN="com.cmuxterm.app"
+
+###############################################################################
+# Keyboard Shortcuts                                                          #
+# Format: -data <hex-encoded JSON>                                            #
+# JSON keys: shift, key, command, control, option (all booleans except key)   #
+###############################################################################
+
+# Split Down — Ctrl+-  (matches tmux prefix -)
+defaults write "$DOMAIN" "shortcut.splitDown" \
+  -data "7b227368696674223a66616c73652c226b6579223a222d222c22636f6d6d616e64223a66616c73652c22636f6e74726f6c223a747275652c226f7074696f6e223a66616c73657d"
+
+# Split Right — Ctrl+Shift+\  (matches tmux prefix |)
+defaults write "$DOMAIN" "shortcut.splitRight" \
+  -data "7b227368696674223a747275652c226b6579223a225c5c222c22636f6d6d616e64223a66616c73652c22636f6e74726f6c223a747275652c226f7074696f6e223a66616c73657d"
+
+echo "Done. cmux may need to be restarted for changes to take effect."
+{{ end -}}
