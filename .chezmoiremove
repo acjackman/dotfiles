@@ -55,3 +55,4 @@ finicky.js
 .local/bin/ghostty-sesh
 .config/zsh/functions/,scratch-ai
 .config/textsniper
+.local/bin/,capture

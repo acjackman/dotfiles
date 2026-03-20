@@ -7,7 +7,7 @@ file="$HOME/notes/${vault}/log/daily/${date_str}.md"
 filepath="log%2Fdaily%2F${date_str}.md"
 
 # Append an empty checkbox under ## Capture
-open "obsidian://advanced-uri?vault=${vault}&filepath=${filepath}&heading=Capture&data=%0A-%20%5B%20%5D%20&mode=append&openmode=silent"
+open "obsidian://advanced-uri?vault=${vault}&filepath=${filepath}&heading=Capture&data=-%20%5B%20%5D%20&mode=append&openmode=silent"
 sleep 0.5
 
 # Find the line number of the last empty checkbox
