@@ -1,0 +1,47 @@
+#!/bin/bash
+# session-summary.sh — Summarize today's login/display sessions using Claude
+
+set +x
+
+DATE="${1:-$(date +%Y-%m-%d)}"
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+OUTFILE=$(mktemp "$SCRIPT_DIR/.session-out.XXXXXX")
+DATAFILE=$(mktemp "$SCRIPT_DIR/.session-data.XXXXXX")
+PROMPTFILE=$(mktemp "$SCRIPT_DIR/.session-prompt.XXXXXX")
+trap 'rm -f "$OUTFILE" "$DATAFILE" "$PROMPTFILE"' EXIT
+
+gum spin --spinner dot --title "Collecting power events for $DATE..." -- sleep 0 &
+pmset -g log | grep -E '(Sleep |DarkWake|Wake |Display is turned)' | grep "$DATE" >"$DATAFILE"
+wait
+
+if [ ! -s "$DATAFILE" ]; then
+  echo "No power management events found for $DATE"
+  exit 1
+fi
+
+EVENT_COUNT=$(wc -l <"$DATAFILE" | tr -d ' ')
+gum style --faint "$EVENT_COUNT events found"
+
+cat <<EOF >"$PROMPTFILE"
+You are analyzing macOS power management logs to determine when the user was actively using their computer.
+The logs are in the file: $DATAFILE
+
+Rules:
+- A session STARTS when "Display is turned on" (user-initiated wake)
+- A session ENDS when "Display is turned off", or "Entering Sleep state"
+- Ignore DarkWake events (those are background system maintenance, not user activity)
+- Collapse sessions that are less than 5 minutes apart into a single session
+- Use the local time from the log entries (they include timezone offset)
+
+Write ONLY a single markdown table with columns: Block, Time Range, Duration, Notes to the file: $OUTFILE
+- Block: a short human-friendly label like "Morning", "Afternoon", "Evening", "Brief open", "Return", etc.
+- Time Range: use 24-hour format (e.g. 08:39 → 11:08), use "?" for unknown start/end, "ongoing" if still active at end of log
+- Duration: approximate (e.g. ~2h 29m)
+- Notes: brief context like "Main work block", "Quick lid open/close", "Ended by clamshell close"
+No headers, no analysis, no extra text — just the table.
+EOF
+
+gum spin --spinner dot --title "Generating session summary..." -- \
+  bash -c "cat $PROMPTFILE | claude -p --model haiku --allowedTools 'Read,Write' > /dev/null"
+
+gum format < "$OUTFILE"
