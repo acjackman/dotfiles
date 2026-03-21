@@ -9,30 +9,30 @@ filepath="log%2Fdaily%2F${date_str}.md"
 
 # Find the end of the ## Log section (next ## heading or EOF)
 log_start=$(grep -n '^## Log' "$file" | head -1 | cut -d: -f1)
-total_lines=$(wc -l < "$file")
 
 # Find next ## heading after Log
-next_section=$(tail -n +"$((log_start + 1))" "$file" | grep -n '^## ' | head -1 | cut -d: -f1)
+next_section=$(tail -n +"$((log_start + 1))" "$file" | grep -n '^## ' | head -1 | cut -d: -f1 || true)
+
+heading="### ${time_str} —  "
 
 if [ -n "$next_section" ]; then
     # Insert before the next section (adjust for tail offset)
     insert_at=$((log_start + next_section - 1))
-else
-    # No next section — append at end of file
-    insert_at=$((total_lines + 1))
-fi
-
-# Insert the heading directly into the file (no trailing space)
-heading="### ${time_str} —  "
-sed -i '' "${insert_at}i\\
+    sed -i '' "${insert_at}i\\
 \\
 ${heading}\\
 " "$file"
+else
+    # No next section — append at end of file
+    # Ensure trailing newline, then append
+    [ -n "$(tail -c1 "$file")" ] && printf '\n' >> "$file"
+    printf '\n%s\n' "$heading" >> "$file"
+fi
 
 sleep 0.3
 
 # Find the line we just inserted
-line=$(grep -n "^### ${time_str} —" "$file" | tail -1 | cut -d: -f1)
+line=$(grep -nF "### ${time_str}" "$file" | tail -1 | cut -d: -f1)
 
 # Place cursor after the em dash
 open "obsidian://advanced-uri?vault=${vault}&filepath=${filepath}&line=${line}&column=18&viewmode=source"
