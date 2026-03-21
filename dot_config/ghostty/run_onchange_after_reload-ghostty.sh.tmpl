@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# hash: {{ include "dot_config/ghostty/config.tmpl" | sha256sum }}
+
+if pgrep -q ghostty; then
+  osascript -e 'tell application "System Events" to tell process "ghostty" to click menu item "Reload Configuration" of menu 1 of menu bar item "Ghostty" of menu bar 1'
+  echo "Ghostty config reloaded"
+fi
