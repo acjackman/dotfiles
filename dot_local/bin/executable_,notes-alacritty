@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+# Launch Alacritty with the "notes" tmux session and move it to workspace N.
+# If an Alacritty window already has the notes session, focus it instead.
+
+set -euo pipefail
+
+SESSION="notes"
+WORKSPACE="N"
+DIR="$HOME/notes"
+
+# Check for an existing Alacritty window with the notes session
+window_id=$(aerospace list-windows --all 2>/dev/null \
+    | awk -F ' \\| ' -v sess="$SESSION" 'tolower($2) ~ /alacritty/ && $0 ~ sess {print $1; exit}')
+
+if [[ -n "$window_id" ]]; then
+    aerospace move-node-to-workspace "$WORKSPACE" --window-id "$window_id"
+    aerospace focus --window-id "$window_id"
+    exit 0
+fi
+
+# Switch to workspace N first so the window appears there directly
+aerospace workspace "$WORKSPACE"
+
+# Launch Alacritty attached to the notes tmux session (create if needed)
+alacritty -e env -u TMUX tmux new-session -A -s "$SESSION" -c "$DIR" &
+
+# Wait for the window to appear, then move it to workspace N
+for _ in $(seq 1 30); do
+    sleep 0.2
+    window_id=$(aerospace list-windows --all 2>/dev/null \
+        | awk -F ' \\| ' -v sess="$SESSION" 'tolower($2) ~ /alacritty/ && $0 ~ sess {print $1; exit}')
+    if [[ -n "$window_id" ]]; then
+        aerospace move-node-to-workspace "$WORKSPACE" --window-id "$window_id"
+        aerospace focus --window-id "$window_id"
+        exit 0
+    fi
+done
+
+echo "Warning: timed out waiting for Alacritty window to appear" >&2
+exit 1
