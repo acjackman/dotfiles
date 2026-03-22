@@ -28,7 +28,7 @@ export default {
       url: { protocol: "discord" },
       browser: "Discord",
     },
-    {{- if .google_meet_app_id }}
+    {{- if hasKey . "google_meet_app_id" }}
     {
       match: /meet\.google\.com\/.+/,
       browser: "{{ .google_meet_app_id }}",
