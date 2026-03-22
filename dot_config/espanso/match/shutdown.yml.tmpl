@@ -1,0 +1,10 @@
+{{- if or (has "moov" .extras) (has "personal" .extras) -}}
+matches:
+  - trigger: "//shutdown"
+    replace: "Notes /{{ if has "moov" .extras }}moov{{ else }}brain{{ end }}:shutdown routine for {{ "{{mydate}}" }}"
+    vars:
+      - name: mydate
+        type: date
+        params:
+          format: "%Y-%m-%d"
+{{ end -}}
