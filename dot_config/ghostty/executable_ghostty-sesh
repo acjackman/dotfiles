@@ -10,7 +10,7 @@
 osascript -e '
 tell application "Ghostty"
   set cfg to new surface configuration
-  set command of cfg to "'"$HOME"'/.config/ghostty/ghostty-sesh-cmd"
+  set initial input of cfg to "exec '"$HOME"'/.config/ghostty/ghostty-sesh-cmd\n"
   new window with configuration cfg
 end tell
 '
