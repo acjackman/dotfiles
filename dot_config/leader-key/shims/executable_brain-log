@@ -1,2 +1,2 @@
-#!/bin/zsh -l
+#!/bin/zsh
 exec ,obsidian-gui-log

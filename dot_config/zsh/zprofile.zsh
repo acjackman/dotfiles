@@ -30,3 +30,6 @@ export PATH="$PATH:$HOME/.local/share/jackman/bin" # personal scripts
 export PATH="$PATH:$HOME/.config/emacs/bin" # doom emacs
 [ -d "/Applications/Antigravity.app/" ] && export PATH="$PATH:$HOME/.antigravity/antigravity/bin"
 [ -d "/Applications/Obsidian.app" ] && export PATH="$PATH:/Applications/Obsidian.app/Contents/MacOS"
+
+# Leader Key shims — short scripts that make the cheatsheet readable
+export PATH="$PATH:$HOME/.config/leader-key/shims"
