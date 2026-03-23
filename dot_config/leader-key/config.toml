@@ -94,7 +94,7 @@ label = "Toggle Vim Mode (ovim)"
 [u.children.v.action]
 rank = 15
 kind = "command"
-value = ",ovim-in-place"
+value = "zsh -l -c ',ovim-in-place'"
 
 [u.children.h]
 label = "HazeOver"
