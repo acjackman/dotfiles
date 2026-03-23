@@ -40,6 +40,11 @@ export default {
       browser: "Linear",
     },
     {
+      match: "*.notion.so/*",
+      url: { protocol: "notion" },
+      browser: "Notion",
+    },
+    {
       match: ["https://github.com/*", "http://github.com/*"],
       browser: {
         name: "Google Chrome",
