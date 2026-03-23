@@ -1,0 +1,2 @@
+#!/bin/zsh -l
+exec ,obsidian-gui-log

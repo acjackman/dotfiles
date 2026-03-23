@@ -8,40 +8,40 @@ label = "Brain"
 rank = 10
 label = "Today"
 kind = "command"
-value = "open 'obsidian://adv-uri?vault={{ .default_vault }}&commandid=periodic-notes:open-daily-note' && open -a Obsidian"
+value = "{{ .chezmoi.homeDir }}/.config/leader-key/shims/brain-today"
 iconPath = "/Applications/Obsidian.app"
 
 [b.children.space.action]
 rank = 20
 label = "Capture"
 kind = "command"
-value = "zsh -l -c ',obsidian-gui-capture'"
+value = "{{ .chezmoi.homeDir }}/.config/leader-key/shims/brain-capture"
 iconPath = "/Applications/Obsidian.app"
 
 [b.children.enter.action]
 rank = 30
 label = "Log Entry"
 kind = "command"
-value = "zsh -l -c ',obsidian-gui-log'"
+value = "{{ .chezmoi.homeDir }}/.config/leader-key/shims/brain-log"
 iconPath = "/Applications/Obsidian.app"
 
 [b.children.h.action]
 rank = 40
 label = "Launchpad"
 kind = "command"
-value = "open 'obsidian://adv-uri?vault={{ .default_vault }}&filepath=Launchpad.md' && open -a Obsidian"
+value = "{{ .chezmoi.homeDir }}/.config/leader-key/shims/brain-launchpad"
 iconPath = "/Applications/Obsidian.app"
 
 [b.children.a.action]
 rank = 50
 label = "Atlas"
 kind = "command"
-value = "open 'obsidian://adv-uri?vault={{ .default_vault }}&filepath=atlas%2Fatlas.md' && open -a Obsidian"
+value = "{{ .chezmoi.homeDir }}/.config/leader-key/shims/brain-atlas"
 iconPath = "/Applications/Obsidian.app"
 
 [b.children.t.action]
 rank = 60
 label = "Terminal"
 kind = "command"
-value = "zsh -l -c ',notes-alacritty'"
+value = "{{ .chezmoi.homeDir }}/.config/leader-key/shims/brain-terminal"
 iconPath = "/Applications/Alacritty.app"
