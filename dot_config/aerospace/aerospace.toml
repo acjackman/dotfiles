@@ -298,7 +298,7 @@ run = 'move-node-to-workspace M'
 
 [[on-window-detected]]
 if.app-id = 'com.apple.Slack'
-run = 'move-node-to-workspace S'
+run = ['layout tiling', 'move-node-to-workspace S']
 
 [[on-window-detected]]
 if.app-id = 'me.easygit.EasyGit'
@@ -326,7 +326,7 @@ run = 'move-node-to-workspace F'
 
 [[on-window-detected]]
 if.app-name-regex-substring = "^Slack$"
-run = 'move-node-to-workspace S'
+run = ['layout tiling', 'move-node-to-workspace S']
 
 [[on-window-detected]]
 if.app-id = "com.hnc.Discord"
@@ -343,6 +343,10 @@ run = ['layout floating']
 [[on-window-detected]]
 if.app-id = 'com.superduper.superwhisper'
 run = 'layout floating'
+
+[[on-window-detected]]
+if.app-id = 'com.anthropic.claudefordesktop'
+run = 'move-node-to-workspace E'
 
 [workspace-to-monitor-force-assignment]
 S = ['^HP Z27 \(2\)$',]
