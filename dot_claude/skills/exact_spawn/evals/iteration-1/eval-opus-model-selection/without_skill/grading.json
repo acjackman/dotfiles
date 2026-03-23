@@ -1,0 +1,25 @@
+{
+  "assertion_results": [
+    {
+      "text": "Model selected is opus (complex multi-file architectural change)",
+      "passed": false,
+      "evidence": "Without the skill, Claude has no model selection heuristic."
+    },
+    {
+      "text": "spawn-tmux.sh is called with --model opus (or equivalent)",
+      "passed": false,
+      "evidence": "Without the skill, Claude doesn't know about spawn-tmux.sh or its --model flag."
+    },
+    {
+      "text": "Branch name reflects the refactor task",
+      "passed": false,
+      "evidence": "Without the skill, Claude has no branch naming instructions."
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 3,
+    "total": 3,
+    "pass_rate": 0.0
+  }
+}

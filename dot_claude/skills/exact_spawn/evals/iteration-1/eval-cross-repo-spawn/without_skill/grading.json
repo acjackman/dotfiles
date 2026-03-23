@@ -1,0 +1,25 @@
+{
+  "assertion_results": [
+    {
+      "text": "setup-worktree.sh is called with --repo flag pointing to ~/dev/api-server",
+      "passed": false,
+      "evidence": "Without the skill, Claude doesn't know about setup-worktree.sh or its --repo flag."
+    },
+    {
+      "text": "Prompt file content includes context about the target repo",
+      "passed": false,
+      "evidence": "Without the skill, Claude has no prompt file workflow or cross-repo context guidance."
+    },
+    {
+      "text": "spawn-tmux.sh --dir points to the target repo or its worktree",
+      "passed": false,
+      "evidence": "Without the skill, Claude doesn't know about spawn-tmux.sh."
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 3,
+    "total": 3,
+    "pass_rate": 0.0
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "iteration": 2,
+  "type": "desk_check",
+  "changes": [
+    "Added explicit argument parsing section documenting --base, --repo, --model flags",
+    "Step 3 now instructs Claude to expand prompts into self-contained task descriptions"
+  ],
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": { "mean": 1.0, "by_case": {
+        "basic_spawn": 1.0,
+        "opus_model_selection": 1.0,
+        "cross_repo_spawn": 1.0,
+        "prompt_content_quality": 1.0,
+        "base_ref_passthrough": 1.0
+      }},
+      "total_assertions": 19,
+      "passed_assertions": 19,
+      "failed_assertions": 0
+    },
+    "without_skill": {
+      "pass_rate": { "mean": 0.0 }
+    },
+    "delta": {
+      "pass_rate": 1.0
+    }
+  },
+  "comparison_to_previous": {
+    "iteration_1_pass_rate": 0.89,
+    "iteration_2_pass_rate": 1.0,
+    "improvement": 0.11,
+    "fixed": [
+      "prompt_content_quality: prompt elaboration now explicitly required",
+      "base_ref_passthrough: flag parsing now documented in Arguments section"
+    ]
+  }
+}

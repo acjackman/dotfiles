@@ -1,0 +1,20 @@
+{
+  "assertion_results": [
+    {
+      "text": "setup-worktree.sh is called with --base v2.1.0",
+      "passed": false,
+      "evidence": "Without the skill, Claude doesn't know about setup-worktree.sh."
+    },
+    {
+      "text": "Branch name reflects the backport task",
+      "passed": false,
+      "evidence": "Without the skill, Claude has no branch naming instructions."
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 2,
+    "total": 2,
+    "pass_rate": 0.0
+  }
+}

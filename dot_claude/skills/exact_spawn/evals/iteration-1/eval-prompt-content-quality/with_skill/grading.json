@@ -1,0 +1,25 @@
+{
+  "assertion_results": [
+    {
+      "text": "Prompt file content describes the task clearly (not just the raw user input)",
+      "passed": false,
+      "evidence": "Step 3 says 'The file content should be the full task description for the spawned agent' but does NOT explicitly instruct Claude to elaborate beyond the raw user input. For a simple task like this, Claude may just pass through the user's prompt verbatim. The instruction could be stronger — e.g., 'Expand the user's request into a complete, self-contained task description'."
+    },
+    {
+      "text": "Prompt file is written using the Write tool",
+      "passed": true,
+      "evidence": "Step 3 explicitly says 'using the Write tool (not Bash)'."
+    },
+    {
+      "text": "Prompt file is created before spawn-tmux.sh is called",
+      "passed": true,
+      "evidence": "Steps are numbered sequentially: step 3 (write prompt) comes before step 4 (spawn tmux). The ordering is unambiguous."
+    }
+  ],
+  "summary": {
+    "passed": 2,
+    "failed": 1,
+    "total": 3,
+    "pass_rate": 0.67
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "eval-basic-spawn": "",
+  "eval-opus-model-selection": "",
+  "eval-cross-repo-spawn": "",
+  "eval-prompt-content-quality": "Step 3 should instruct Claude to expand the user's request into a self-contained task description, not just pass through raw input. The spawned agent has no conversation context — the prompt must stand alone.",
+  "eval-base-ref-passthrough": "The skill needs explicit guidance on parsing flags like --base from $ARGUMENTS. Currently Claude must guess that --base is a passthrough flag for setup-worktree.sh. Consider adding an argument parsing section or documenting supported flags."
+}

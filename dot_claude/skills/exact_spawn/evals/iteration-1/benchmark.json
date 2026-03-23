@@ -1,0 +1,45 @@
+{
+  "iteration": 1,
+  "type": "desk_check",
+  "run_summary": {
+    "with_skill": {
+      "pass_rate": { "mean": 0.83, "by_case": {
+        "basic_spawn": 1.0,
+        "opus_model_selection": 1.0,
+        "cross_repo_spawn": 1.0,
+        "prompt_content_quality": 0.67,
+        "base_ref_passthrough": 0.5
+      }},
+      "total_assertions": 19,
+      "passed_assertions": 17,
+      "failed_assertions": 2
+    },
+    "without_skill": {
+      "pass_rate": { "mean": 0.0, "by_case": {
+        "basic_spawn": 0.0,
+        "opus_model_selection": 0.0,
+        "cross_repo_spawn": 0.0,
+        "prompt_content_quality": 0.0,
+        "base_ref_passthrough": 0.0
+      }},
+      "total_assertions": 19,
+      "passed_assertions": 0,
+      "failed_assertions": 19
+    },
+    "delta": {
+      "pass_rate": 0.83
+    }
+  },
+  "failures_with_skill": [
+    {
+      "case": "prompt_content_quality",
+      "assertion": "Prompt file content describes the task clearly (not just the raw user input)",
+      "issue": "Step 3 says 'full task description' but doesn't explicitly instruct elaboration beyond raw user input"
+    },
+    {
+      "case": "base_ref_passthrough",
+      "assertion": "setup-worktree.sh is called with --base v2.1.0",
+      "issue": "No instruction on parsing flags from $ARGUMENTS — Claude must infer --base is a passthrough flag"
+    }
+  ]
+}

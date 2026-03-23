@@ -1,0 +1,25 @@
+{
+  "assertion_results": [
+    {
+      "text": "Model selected is opus (complex multi-file architectural change)",
+      "passed": true,
+      "evidence": "Step 1 lists opus for 'multi-file refactors, architectural changes'. The prompt says 'Refactor the entire authentication system...across all service boundaries, updating the middleware chain and all downstream consumers' — clearly multi-file and architectural."
+    },
+    {
+      "text": "spawn-tmux.sh is called with --model opus (or equivalent)",
+      "passed": true,
+      "evidence": "Step 4 code block shows '[--model <model>]' as an optional flag. If opus is selected in step 1, it would be passed here."
+    },
+    {
+      "text": "Branch name reflects the refactor task",
+      "passed": true,
+      "evidence": "Step 1 says to derive a short descriptive branch name. Something like 'refactor-auth-oauth2' would follow the pattern."
+    }
+  ],
+  "summary": {
+    "passed": 3,
+    "failed": 0,
+    "total": 3,
+    "pass_rate": 1.0
+  }
+}

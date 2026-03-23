@@ -1,0 +1,25 @@
+{
+  "assertion_results": [
+    {
+      "text": "Prompt file content describes the task clearly (not just the raw user input)",
+      "passed": false,
+      "evidence": "Without the skill, Claude has no prompt file workflow."
+    },
+    {
+      "text": "Prompt file is written using the Write tool",
+      "passed": false,
+      "evidence": "Without the skill, Claude has no instruction to write a prompt file at all."
+    },
+    {
+      "text": "Prompt file is created before spawn-tmux.sh is called",
+      "passed": false,
+      "evidence": "Without the skill, neither action happens."
+    }
+  ],
+  "summary": {
+    "passed": 0,
+    "failed": 3,
+    "total": 3,
+    "pass_rate": 0.0
+  }
+}

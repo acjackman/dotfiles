@@ -1,0 +1,50 @@
+{
+  "assertion_results": [
+    {
+      "text": "Branch name is lowercase with hyphens, no spaces (e.g., fix-auth-timeout-test)",
+      "passed": true,
+      "evidence": "Step 1 explicitly says 'lowercase, hyphens, no spaces' with an example: 'Fix the auth timeout bug' becomes 'fix-auth-timeout'."
+    },
+    {
+      "text": "Model selected is sonnet (default for straightforward bug fix)",
+      "passed": true,
+      "evidence": "Step 1 lists sonnet as default for 'straightforward bug fixes' and says 'Default to sonnet unless the task clearly warrants opus'. A flaky test fix is straightforward."
+    },
+    {
+      "text": "setup-worktree.sh is called with the branch name",
+      "passed": true,
+      "evidence": "Step 2 shows 'setup-worktree.sh <name>' with the branch name as the positional argument."
+    },
+    {
+      "text": "Write tool is used to create the prompt file (not write-prompt.sh via Bash)",
+      "passed": true,
+      "evidence": "Step 3 explicitly says 'using the Write tool (not Bash)' — clear and unambiguous."
+    },
+    {
+      "text": "Prompt file path matches pattern <cwd>/.tmp/prompt-YYYY-MM-DD-HHMMSS.md",
+      "passed": true,
+      "evidence": "Step 3 specifies '<cwd>/.tmp/prompt-<YYYY-MM-DD-HHMMSS>.md' with the exact pattern."
+    },
+    {
+      "text": "spawn-tmux.sh is called with --window flag",
+      "passed": true,
+      "evidence": "Step 4 code block shows '--window' flag. The skill intro also says 'Always creates a tmux window'."
+    },
+    {
+      "text": "spawn-tmux.sh receives --prompt with an absolute path to the prompt file",
+      "passed": true,
+      "evidence": "Step 4 shows '--prompt <absolute-path-to-prompt-file>'. Step 3 says 'Remember the absolute path to this file for the next step'."
+    },
+    {
+      "text": "Confirmation message includes how to switch to the tmux window",
+      "passed": true,
+      "evidence": "Step 5 explicitly lists 'How to switch: tmux select-window -t =<name>' as a required confirmation item."
+    }
+  ],
+  "summary": {
+    "passed": 8,
+    "failed": 0,
+    "total": 8,
+    "pass_rate": 1.0
+  }
+}

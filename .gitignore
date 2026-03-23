@@ -1,3 +1,4 @@
 BrewFile.lock.json
 *.crt
 .vscode
+.tmp

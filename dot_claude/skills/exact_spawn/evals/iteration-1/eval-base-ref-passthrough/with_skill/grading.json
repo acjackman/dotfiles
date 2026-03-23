@@ -1,0 +1,20 @@
+{
+  "assertion_results": [
+    {
+      "text": "setup-worktree.sh is called with --base v2.1.0",
+      "passed": false,
+      "evidence": "The skill instructions show '--base <ref>' as an option in the code block, but there is NO guidance on how to parse '--base v2.1.0' from the user's prompt arguments. The $ARGUMENTS variable receives the full string '--base v2.1.0 Backport the connection pool fix...'. The skill doesn't instruct Claude to extract flags from $ARGUMENTS — it only describes --base as an option for setup-worktree.sh. Claude may or may not recognize this as a flag to pass through."
+    },
+    {
+      "text": "Branch name reflects the backport task",
+      "passed": true,
+      "evidence": "Step 1 says to derive a descriptive branch name from the task. Something like 'backport-connection-pool-fix' would follow the pattern."
+    }
+  ],
+  "summary": {
+    "passed": 1,
+    "failed": 1,
+    "total": 2,
+    "pass_rate": 0.5
+  }
+}
