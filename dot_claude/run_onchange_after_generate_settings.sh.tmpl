@@ -1,6 +1,7 @@
 #!/bin/bash
 # permissions hash: {{ include "dot_claude/permissions.json" | sha256sum }}
 # plugins hash: {{ include "dot_claude/plugins.json" | sha256sum }}
+# hooks hash: {{ include "dot_claude/hooks.json" | sha256sum }}
 # statusline hash: {{ include "dot_claude/statusline.json.tmpl" | sha256sum }}
 # defaults hash: {{ include "dot_claude/settings-defaults.json" | sha256sum }}
 # settings hash: {{ output "sh" "-c" (print "cat " (joinPath .chezmoi.homeDir ".claude/settings.json") " " (joinPath .chezmoi.homeDir ".config/claude/profiles/*/settings.json") " 2>/dev/null | sha256sum || echo none") | trim | splitList " " | first }}
@@ -9,6 +10,7 @@
 SOURCE_DIR="{{ .chezmoi.sourceDir }}/dot_claude"
 PERMISSIONS_FILE="$SOURCE_DIR/permissions.json"
 PLUGINS_FILE="$SOURCE_DIR/plugins.json"
+HOOKS_FILE="$SOURCE_DIR/hooks.json"
 DEFAULTS_FILE="$SOURCE_DIR/settings-defaults.json"
 STATUSLINE_FILE="$HOME/.claude/statusline.json"
 
@@ -20,8 +22,48 @@ fi
 PERMISSIONS=$(cat "$PERMISSIONS_FILE")
 ENABLED_PLUGINS=$(jq '[.plugins[]] | map({(.): true}) | add // {}' "$PLUGINS_FILE")
 EXTRA_MARKETPLACES=$(jq '.extraKnownMarketplaces // {}' "$PLUGINS_FILE")
+DECLARED_HOOKS=$(cat "$HOOKS_FILE")
 STATUSLINE=$(jq '.statusLine' "$STATUSLINE_FILE")
 DEFAULTS=$(cat "$DEFAULTS_FILE")
+
+# Ensure declared hooks exist in settings without overwriting existing hooks.
+# For each event in hooks.json, each entry has a "match_key" used to check
+# if that hook is already present (by searching command strings). If not found,
+# the entry is appended. The "match_key" field is stripped from the output.
+ensure_hooks() {
+    local settings_file="$1"
+    local events
+    events=$(jq -r 'keys[]' <<< "$DECLARED_HOOKS")
+
+    for event in $events; do
+        local count
+        count=$(jq -r --arg e "$event" '.[$e] | length' <<< "$DECLARED_HOOKS")
+
+        for ((i=0; i<count; i++)); do
+            local match_key
+            match_key=$(jq -r --arg e "$event" --argjson i "$i" '.[$e][$i].match_key' <<< "$DECLARED_HOOKS")
+
+            # Check if a hook with this match_key already exists
+            if jq -e --arg e "$event" --arg k "$match_key" \
+                '.hooks[$e][]?.hooks[]? | select((.command // "") | contains($k))' \
+                "$settings_file" >/dev/null 2>&1; then
+                continue
+            fi
+
+            # Append the hook entry (without the match_key field)
+            local entry
+            entry=$(jq --arg e "$event" --argjson i "$i" '.[$e][$i] | del(.match_key)' <<< "$DECLARED_HOOKS")
+
+            jq --arg e "$event" --argjson entry "$entry" '
+                .hooks //= {} |
+                .hooks[$e] //= [] |
+                .hooks[$e] += [$entry]
+            ' "$settings_file" > "$settings_file.tmp" && mv "$settings_file.tmp" "$settings_file"
+
+            echo "  Added hook: $event ($match_key)"
+        done
+    done
+}
 
 apply_settings() {
     local settings_file="$1"
@@ -51,6 +93,9 @@ apply_settings() {
         .autoUpdaterStatus = "disabled"' \
         <<< "$existing" > "$settings_file.tmp" && \
         mv "$settings_file.tmp" "$settings_file"
+
+    # Merge declared hooks (additive — never removes existing hooks)
+    ensure_hooks "$settings_file"
 
     echo "Updated: $settings_file"
 }
