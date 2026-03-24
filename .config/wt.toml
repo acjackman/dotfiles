@@ -4,6 +4,6 @@ post-create = "mise trust {{ worktree_path }}/.mise.toml"
 # Check for unapplied chezmoi changes after merging to main
 post-merge = """
 if [ {{ target }} = main ]; then
-    chezmoi diff
+    chezmoi diff --no-pager
 fi
 """
