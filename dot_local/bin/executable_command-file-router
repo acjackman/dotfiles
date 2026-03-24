@@ -66,3 +66,28 @@ tmux new-window -t "=$session" -n "$window_name" -c "$work_dir" \
 
 # --- Focus or open Ghostty window for this session ---
 ~/.config/tmux/activate-or-open-ghostty.sh "$session" "$work_dir"
+
+# --- Log routing event (background, non-blocking) ---
+{
+  log_dir="$HOME/.local/share/command-router/log"
+  mkdir -p "$log_dir"
+
+  ts=$(date +%Y-%m-%dT%H:%M:%S%z)
+  slug=$(date +%Y%m%d-%H%M%S)-$$
+
+  # Copy the .command file
+  cp "$command_file" "$log_dir/${slug}.command"
+
+  # Append structured log entry
+  printf '{"timestamp":"%s","source_file":"%s","work_dir":"%s","session":"%s","copy":"%s"}\n' \
+    "$ts" "$command_file" "$work_dir" "$session" "${slug}.command" \
+    >> "$log_dir/routing.jsonl"
+
+  # Prune entries older than 90 days
+  find "$log_dir" -name '*.command' -mtime +90 -delete 2>/dev/null
+  if [[ -f "$log_dir/routing.jsonl" ]]; then
+    cutoff=$(date -v-90d +%Y-%m-%dT%H:%M:%S 2>/dev/null || date -d '90 days ago' +%Y-%m-%dT%H:%M:%S)
+    tmp=$(mktemp)
+    awk -v c="$cutoff" 'match($0, /"timestamp":"([^"]+)"/, a) && a[1] >= c' "$log_dir/routing.jsonl" > "$tmp" && mv "$tmp" "$log_dir/routing.jsonl"
+  fi
+} &
