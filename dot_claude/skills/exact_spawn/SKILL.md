@@ -36,6 +36,53 @@ Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a 
 - **`spawn-tmux.sh`** — Spawns a tmux window or session and launches an interactive Claude session inside it. Also on PATH as `spawn-tmux`.
 - **`launch.sh`** — Reads a prompt file and `exec`s into `claude`. Called by `spawn-tmux.sh` internally.
 
+## Pre-flight Checks
+
+Run these checks before proceeding. If any fail, stop and report the issue to the user rather than continuing.
+
+**Step 0a — Derive branch name first** (needed for subsequent checks):
+Derive the branch name as described in step 1 below.
+
+**Step 0b — Linear MCP connected** (only if the task references a Linear ticket or issue):
+Attempt a lightweight Linear MCP call (e.g., fetch the viewer or a specific issue). If the call fails with a connection or tool-not-found error, stop and tell the user: "Linear MCP is not connected — cannot fetch ticket context. Check your MCP server config or proceed without it."
+
+**Step 0c — Target branch does not already exist**:
+Run:
+```bash
+git branch --list <branch-name>
+wt list 2>/dev/null | grep -F "<branch-name>"
+```
+If the branch already exists as a local branch or a worktree, stop and ask the user: "Branch `<branch-name>` already exists. Reuse it, pick a different name, or cancel?"
+
+**Step 0d — Base branch selection**:
+Run:
+```bash
+git branch --show-current
+```
+If the current branch is `main` or `master`, proceed normally (no `--base` needed).
+
+If the current branch is something else, check whether it has an open PR:
+```bash
+gh pr view --json state,title,body --jq '{state,title,body}' 2>/dev/null
+```
+If there is no open PR (command errors or returns non-OPEN), proceed without `--base`.
+
+If the PR is open, **reason over whether stacking is appropriate** before asking the user. Stacking makes sense when the new task has a meaningful dependency on the current branch — not just topical similarity. Consider:
+
+- **Stack** when the new task builds directly on code introduced in the current branch (new APIs, types, abstractions, schema changes, config structure) that don't yet exist on `main`. The spawned agent would need those changes to be present to do its work correctly.
+- **Stack** when the task is explicitly incremental — "also add X", "now do Y for the same feature", "follow-up to this PR".
+- **Don't stack** when the task is independent and happens to touch the same area. Topical overlap alone (both touch auth, both touch the same file) is not enough — the question is whether the new work *requires* the in-progress changes to exist.
+- **Don't stack** when the current PR is a draft, failing CI, or otherwise not ready to build on.
+
+Make a recommendation with a one-sentence rationale, then confirm: "I'd suggest **stacking on `<branch>`** because `<reason>`. Confirm, or branch from `main` instead?"
+
+**Step 0e — Working tree is clean**:
+Run:
+```bash
+git status --porcelain
+```
+If there are uncommitted changes, warn the user: "The working tree has uncommitted changes. These won't be visible to the spawned agent (it works in its own worktree). Continue anyway?" Only stop if the user says no.
+
 ## Instructions
 
 1. Derive a short, descriptive branch name from the task (lowercase, hyphens, no spaces). For example, "Fix the auth timeout bug" becomes `fix-auth-timeout`. For regular (non-bare) repos targeted via `--repo`, the name is only used for the tmux window — no branch is created.
