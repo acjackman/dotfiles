@@ -31,7 +31,7 @@ value = "~/.config/ghostty/ghostty-sesh"
 [e.action]
 rank = 20
 kind = "application"
-value = "/Applications/Cursor.app"
+value = "/Applications/cmux.app"
 
 # Browsers
 
