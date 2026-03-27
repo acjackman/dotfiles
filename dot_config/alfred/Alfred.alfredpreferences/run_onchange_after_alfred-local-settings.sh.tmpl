@@ -42,6 +42,8 @@ mkdir -p "${TARGET_DIR}/gallery"
 mkdir -p "${TARGET_DIR}/hotkey"
 
 # Hotkey settings (disabled - Alfred is triggered via Leader Key instead)
+# Alfred defaults to Option+Space when no hotkey is configured, so we
+# explicitly write an empty dict to suppress it.
 cat > "${TARGET_DIR}/hotkey/prefs.plist" << 'EOF'
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
