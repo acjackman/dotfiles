@@ -1,3 +1,12 @@
+[space]
+label = "Alfred"
+rank = 1
+
+[space.action]
+kind = "command"
+value = "osascript -e 'tell application \"Alfred\" to search'"
+iconPath = "/Applications/Alfred 5.app"
+
 [t]
 rank = 10
 
