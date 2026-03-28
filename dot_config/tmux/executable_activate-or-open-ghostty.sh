@@ -29,7 +29,7 @@ else
     osascript -e '
 tell application "Ghostty"
   set cfg to new surface configuration
-  set initial input of cfg to "exec env -u TMUX tmux attach-session -t ='"$session"'\n"
+  set initial input of cfg to "exec env -u TMUX tmux attach-session -t \"='"$session"'\"\n"
   new window with configuration cfg
 end tell
 '

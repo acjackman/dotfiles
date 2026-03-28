@@ -16,6 +16,14 @@ if [[ "$current_session" == "$session_name" ]]; then
     exit 0
 fi
 
+# Single window in session — just rename the session instead of moving
+window_count=$(tmux list-windows -t "=$current_session" -F '#{window_id}' | wc -l | tr -d ' ')
+if [[ "$window_count" -eq 1 ]]; then
+    tmux rename-session -t "=$current_session" "$session_name"
+    printf '%s\n%s\n' "$session_name" "$pane_path" > /tmp/wt-ghostty-pending
+    exit 0
+fi
+
 # If session exists, move the current window into it
 if tmux has-session -t "=$session_name" 2>/dev/null; then
     tmux move-window -s "${current_session}:${current_window}" -t "${session_name}:"
