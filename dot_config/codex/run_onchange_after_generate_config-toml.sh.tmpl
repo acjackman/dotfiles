@@ -1,0 +1,74 @@
+#!/bin/sh
+# Concatenate config.d/*.toml into config.toml and generate AGENTS.md
+# Config files: {{- $home := .chezmoi.homeDir -}} {{- range (glob (printf "%s/.config/codex/config.d/*.toml" $home)) }}
+# * {{ . }}: {{ include . | sha256sum -}}{{- end }}
+# Agent core: {{ include "dot_config/exact_agents/core.md" | sha256sum }}
+# Agent codex: {{ include "dot_config/codex/agents-codex.md" | sha256sum }}
+
+CODEX_DIR="${CODEX_HOME:-$HOME/.config/codex}"
+CONFIG_D="$CODEX_DIR/config.d"
+CONFIG="$CODEX_DIR/config.toml"
+AGENTS_CORE="$HOME/.config/agents/core.md"
+AGENTS_CODEX="$CODEX_DIR/agents-codex.md"
+AGENTS_OUT="$CODEX_DIR/AGENTS.md"
+
+mkdir -p "$CODEX_DIR"
+
+# --- config.toml ---
+
+# Find .toml files in config.d, sort by basename so numeric prefixes control order
+TMPFILE=$(mktemp)
+trap 'rm -f "$TMPFILE"' EXIT
+find "$CONFIG_D" -maxdepth 1 -name "*.toml" -type f \
+  | awk -F/ '{print $NF "\t" $0}' \
+  | sort \
+  | cut -f2- > "$TMPFILE"
+
+if [ ! -s "$TMPFILE" ]; then
+  echo "No .toml files found in $CONFIG_D"
+else
+  # Concatenate all .toml files in sorted order with newlines between them
+  NEW_CONTENT=""
+  while IFS= read -r f; do
+    [ -n "$NEW_CONTENT" ] && NEW_CONTENT="$NEW_CONTENT
+
+"
+    NEW_CONTENT="$NEW_CONTENT$(cat "$f")"
+  done < "$TMPFILE"
+
+  # Validate TOML before writing
+  if ! echo "$NEW_CONTENT" | python3 -c "import sys, tomllib; tomllib.loads(sys.stdin.read())" 2>&1; then
+    echo "ERROR: Invalid TOML - config.toml not updated"
+  else
+    # Check if content changed
+    if [ -f "$CONFIG" ] && [ "$(cat "$CONFIG")" = "$NEW_CONTENT" ]; then
+      echo "config.toml: no changes"
+    else
+      [ -f "$CONFIG" ] && cp "$CONFIG" "$CODEX_DIR/config.toml.$(date +%Y%m%d-%H%M%S).bak"
+      echo "$NEW_CONTENT" >"$CONFIG"
+      echo "config.toml: merged $(wc -l < "$TMPFILE" | tr -d ' ') files"
+    fi
+  fi
+fi
+
+# --- AGENTS.md ---
+
+AGENTS_CONTENT=""
+if [ -f "$AGENTS_CORE" ]; then
+  AGENTS_CONTENT="$(cat "$AGENTS_CORE")"
+fi
+if [ -f "$AGENTS_CODEX" ]; then
+  [ -n "$AGENTS_CONTENT" ] && AGENTS_CONTENT="$AGENTS_CONTENT
+
+"
+  AGENTS_CONTENT="$AGENTS_CONTENT$(cat "$AGENTS_CODEX")"
+fi
+
+if [ -n "$AGENTS_CONTENT" ]; then
+  if [ -f "$AGENTS_OUT" ] && [ "$(cat "$AGENTS_OUT")" = "$AGENTS_CONTENT" ]; then
+    echo "AGENTS.md: no changes"
+  else
+    echo "$AGENTS_CONTENT" >"$AGENTS_OUT"
+    echo "AGENTS.md: generated from core.md + agents-codex.md"
+  fi
+fi

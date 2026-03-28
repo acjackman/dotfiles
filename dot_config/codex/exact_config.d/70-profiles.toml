@@ -1,0 +1,4 @@
+# Named configuration profiles
+# [profiles.fast]
+# model = "gpt-4.1-mini"
+# reasoning_effort = "low"

@@ -112,6 +112,7 @@ brew "hub"
 cask "caarlos0/tap/svu"
 
 cask "claude-code"
+cask "codex"                               # OpenAI Codex coding agent
 
 ######################################
 # Dev tools

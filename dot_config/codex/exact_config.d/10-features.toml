@@ -1,0 +1,5 @@
+# Feature flags
+[features]
+# web_search = "cached"
+# multi_agent_collaboration = true
+# undo_support = true

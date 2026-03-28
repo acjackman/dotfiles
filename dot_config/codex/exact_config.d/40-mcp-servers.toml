@@ -1,0 +1,5 @@
+# MCP server definitions
+# [mcp_servers.example]
+# command = "/path/to/server"
+# args = []
+# enabled = true

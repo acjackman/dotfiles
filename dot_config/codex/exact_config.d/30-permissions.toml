@@ -1,0 +1,4 @@
+# Permissions profiles for filesystem and network access
+# [permissions_profiles.default]
+# filesystem_read = ["*"]
+# filesystem_write = ["workspace"]

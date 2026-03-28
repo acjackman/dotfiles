@@ -1,0 +1,5 @@
+# Core Codex settings
+model = "o3"
+reasoning_effort = "medium"
+approval_policy = "on-request"
+sandbox_mode = "write-workspace"
