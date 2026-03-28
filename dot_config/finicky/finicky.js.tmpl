@@ -1,5 +1,8 @@
 export default {
-  defaultBrowser: "{{ .default_browser }}",
+  defaultBrowser: {
+    name: "{{ .default_browser }}",
+    profile: "Default",
+  },
   handlers: [
     {
       match: "*.donotreply.biz*",
