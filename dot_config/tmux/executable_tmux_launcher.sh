@@ -55,14 +55,23 @@ if [[ -n "$session" ]]; then
     session_name="${session#* }"
   fi
 
-  # Check if a Ghostty window already has this session active
-  window_id=$(aerospace list-windows --all 2>/dev/null \
-    | awk -F ' \\| ' -v sess="$session_name" '$2 ~ /Ghostty/ && index($0, sess) {print $1; exit}')
+  # Only try to reuse an existing Ghostty window when the session actually
+  # has attached tmux clients — that proves a window is displaying it.
+  # Without this guard a substring match on the window title (e.g. a path
+  # containing "infra") can false-positive, focus the wrong window, and
+  # close the picker without ever attaching.
+  attached_clients=$(tmux list-clients -t "=$session_name" 2>/dev/null | wc -l | tr -d ' ')
 
-  if [[ -n "$window_id" ]]; then
-    # Focus the existing window and exit (closing this picker window)
-    aerospace focus --window-id "$window_id"
-    exit 0
+  if [[ "$attached_clients" -gt 0 ]]; then
+    window_id=$(aerospace list-windows --all 2>/dev/null \
+      | awk -F ' \\| ' -v sess="$session_name" '$2 ~ /Ghostty/ && $3 ~ " " sess "$" {print $1; exit}')
+
+    if [[ -n "$window_id" ]]; then
+      aerospace focus --window-id "$window_id"
+      exit 0
+    fi
+    # Clients attached but no window found (e.g. embedded/detached client) —
+    # fall through to sesh connect which will create a second attachment.
   fi
 
   sesh connect "$session_name"

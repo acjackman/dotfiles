@@ -16,9 +16,16 @@ else
     path="${2:-$HOME}"
 fi
 
-# Use aerospace to find a Ghostty window whose title contains the session name
-window_id=$(aerospace list-windows --all 2>/dev/null \
-    | awk -F ' \\| ' -v sess="$session" '$2 ~ /Ghostty/ && $0 ~ sess {print $1; exit}')
+# Only reuse an existing window if the session has attached tmux clients,
+# proving a window is actually displaying it. Without this guard a substring
+# match on the window title can false-positive and focus the wrong window.
+attached_clients=$(tmux list-clients -t "=$session" 2>/dev/null | wc -l | tr -d ' ')
+window_id=""
+
+if [[ "$attached_clients" -gt 0 ]]; then
+    window_id=$(aerospace list-windows --all 2>/dev/null \
+        | awk -F ' \\| ' -v sess="$session" '$2 ~ /Ghostty/ && $3 ~ " " sess "$" {print $1; exit}')
+fi
 
 if [[ -n "$window_id" ]]; then
     aerospace focus --window-id "$window_id"
