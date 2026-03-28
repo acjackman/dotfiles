@@ -4,6 +4,12 @@ post-create = "mise trust {{ worktree_path }}/.mise.toml"
 # Check for unapplied chezmoi changes after merging to main
 post-merge = """
 if [ {{ target }} = main ]; then
-    chezmoi diff --no-pager
+    CHEZMOI_STATUS=$(chezmoi status --no-pager 2>/dev/null)
+    if [ -n "$CHEZMOI_STATUS" ]; then
+        echo "=== chezmoi: pending changes ==="
+        echo "$CHEZMOI_STATUS"
+        echo ""
+        echo "Run 'chezmoi diff' for full diff, or ',,a' to apply."
+    fi
 fi
 """
