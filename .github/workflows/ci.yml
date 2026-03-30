@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  pull_request:
+
+jobs:
+  render:
+    name: "Render (${{ matrix.name }})"
+    runs-on: ubuntu-latest
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: base
+            extras: "[]"
+          - name: personal
+            extras: '["personal"]'
+          - name: moov
+            extras: '["moov"]'
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache chezmoi binary
+        id: cache-chezmoi
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/bin/chezmoi
+          key: chezmoi-${{ runner.os }}-${{ runner.arch }}
+
+      - name: Install chezmoi
+        if: steps.cache-chezmoi.outputs.cache-hit != 'true'
+        run: sh -c "$(curl -fsLS get.chezmoi.io)" -- -b "$HOME/.local/bin"
+
+      - name: Add chezmoi to PATH
+        run: echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+      - name: Write mock chezmoi config
+        run: |
+          mkdir -p "$HOME/.config/chezmoi"
+          cat > "$HOME/.config/chezmoi/chezmoi.toml" <<TOML
+          [data]
+          hostname = "ci-runner"
+          email = "ci@example.com"
+          default_browser = "Google Chrome"
+          set_hostname = false
+          default_vault = "brain"
+          webdav_port = 56726
+          google_meet_app_id = ""
+          atuin_history_filter = []
+          atuin_cwd_filter = []
+          extra_obsidian_vaults = []
+          extras = ${{ matrix.extras }}
+          TOML
+
+      - name: Render chezmoi templates
+        run: |
+          chezmoi apply \
+            --source="$GITHUB_WORKSPACE" \
+            --destination=/tmp/chezmoi-dest \
+            --exclude=scripts,externals \
+            --no-tty
+
+      - name: Upload rendered output
+        uses: actions/upload-artifact@v4
+        with:
+          name: rendered-${{ matrix.name }}
+          path: /tmp/chezmoi-dest
+          retention-days: 3
