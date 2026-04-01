@@ -306,7 +306,7 @@ run = ['layout tiling', 'move-node-to-workspace F']
 
 [[on-window-detected]]
 if.app-id = 'com.linear'
-run = 'move-node-to-workspace X'
+run = 'move-node-to-workspace P'
 
 [[on-window-detected]]
 if.app-id = 'com.apple.systempreferences'
