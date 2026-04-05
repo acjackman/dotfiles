@@ -5,7 +5,8 @@ experimental = true
 
 [tools]
 age = "latest"
-node = "latest"
+node = "22"
+gcloud = { version = "latest", postinstall = "gcloud components install gke-gcloud-auth-plugin --quiet && $(gcloud info --format='value(config.paths.global_config_dir)')/virtenv/bin/pip install numpy" }
 
 "pipx:httpie" = "latest"
 "pipx:pre-commit" = "latest"
@@ -29,3 +30,4 @@ opencode = "latest"
 "go:github.com/spf13/cobra-cli" = "latest"
 "go:github.com/bonnefoa/kubectl-fzf/v3/cmd/kubectl-fzf-completion" = "latest"
 "go:github.com/bonnefoa/kubectl-fzf/v3/cmd/kubectl-fzf-server" = "latest"
+hk = "latest"

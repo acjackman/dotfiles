@@ -1,0 +1,6 @@
+[tools]
+python = "3.12"
+"aqua:hashicorp/packer" = "1.11.2"
+"aqua:hashicorp/vault" = "latest"
+
+"npm:@google/gemini-cli" = "latest"
