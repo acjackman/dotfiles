@@ -10,4 +10,5 @@ if [ {{ target }} = main ]; then
     fi
 fi
 """
+# Trust mise config in new worktrees
 pre-start = "mise trust {{ worktree_path }}/.mise.toml"
