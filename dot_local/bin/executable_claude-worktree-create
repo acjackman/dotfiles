@@ -1,0 +1,28 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# WorktreeCreate hook — route Claude's worktree isolation through worktrunk.
+# Receives a JSON payload on stdin; must print the worktree path to stdout.
+
+WT=/opt/homebrew/bin/wt
+
+PAYLOAD=$(cat)
+SESSION_ID=$(jq -r '.session_id' <<< "$PAYLOAD")
+CWD=$(jq -r '.cwd' <<< "$PAYLOAD")
+
+# Derive a branch name from the session ID (first 12 hex chars)
+SHORT_ID=$(echo "$SESSION_ID" | tr -d '-' | cut -c1-12)
+BRANCH="claude-subagent/$SHORT_ID"
+
+existing=$("$WT" -C "$CWD" list --format=json | jq -r --arg b "$BRANCH" '.[] | select(.branch == $b) | .path')
+
+if [[ -n "$existing" ]]; then
+    WORKTREE_PATH="$existing"
+else
+    TMUX_PANE= "$WT" -C "$CWD" switch --no-cd --create "$BRANCH" >&2
+    WORKTREE_PATH=$("$WT" -C "$CWD" list --format=json | jq -r --arg b "$BRANCH" '.[] | select(.branch == $b) | .path')
+fi
+
+mkdir -p "$WORKTREE_PATH/.tmp"
+(cd "$WORKTREE_PATH" && "$HOME/.config/worktrunk/hooks/ensure-claude-trust.sh")
+
+echo "$WORKTREE_PATH"

@@ -1,4 +1,16 @@
 {
+  "WorktreeCreate": [
+    {
+      "matcher": "",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "~/.local/bin/claude-worktree-create"
+        }
+      ],
+      "match_key": "claude-worktree-create"
+    }
+  ],
   "SessionStart": [
     {
       "matcher": "",

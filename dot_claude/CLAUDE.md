@@ -3,11 +3,8 @@
 
 ## Worktrees
 
-**Never use `isolation: "worktree"` on Task tool calls.** It creates worktrees in `.claude/worktrees/` instead of using worktrunk.
+A `WorktreeCreate` hook routes `isolation: "worktree"` through worktrunk automatically. Worktrees are created on branches named `claude-subagent/<session-id-prefix>`.
 
-When a sub-agent needs an isolated worktree:
-
-1. Use `/worktree <branch-name>` to create a worktrunk-managed worktree
-2. Pass the returned worktree path in the Task prompt so the sub-agent works there
-
-For full interactive Claude sessions in worktrees (with tmux), use `/spawn` instead.
+- Use `isolation: "worktree"` on Agent tool calls for isolated sub-agents — worktrunk manages the worktree
+- Use `/worktree <branch-name>` when you need a **named branch** (e.g. for a PR or reuse across spawns)
+- Use `/spawn` for full interactive Claude sessions in worktrees (with tmux)
