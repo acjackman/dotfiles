@@ -22,6 +22,7 @@ opencode = "latest"
 
 # Cargo packages
 "cargo:cargo-update" = "latest"
+"cargo:claude-tmux" = "latest"
 
 # Go packages
 "go:gotest.tools/gotestsum" = "latest"
