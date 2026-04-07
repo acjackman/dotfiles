@@ -1,6 +1,3 @@
-# Trust mise config in new worktrees
-post-create = "mise trust {{ worktree_path }}/.mise.toml"
-
 # Check for unapplied chezmoi changes after merging to main
 post-merge = """
 if [ {{ target }} = main ]; then
@@ -13,3 +10,4 @@ if [ {{ target }} = main ]; then
     fi
 fi
 """
+pre-start = "mise trust {{ worktree_path }}/.mise.toml"
