@@ -110,10 +110,9 @@ sketchybar --add item aerospace left \
 
 ##### Adding Center Items #####
 
-sketchybar --add item ovim_mode center \
-           --set ovim_mode update_freq=1 \
-           icon.font="Hack Nerd Font:Bold:20.0" \
-           script="$PLUGIN_DIR/ovim.sh"
+sketchybar --add item timing center \
+           --set timing update_freq=30 script="$PLUGIN_DIR/timing.sh" \
+                         drawing=off
 
 ##### Adding Right Items #####
 # In the same way as the left items we can add items to the right side.
@@ -134,6 +133,10 @@ sketchybar --add item clock right \
            --add item battery right \
            --set battery update_freq=300 script="$PLUGIN_DIR/battery.sh" \
            --subscribe battery system_woke power_source_change \
+           --add item ovim_mode right \
+           --set ovim_mode update_freq=1 \
+                           icon.font="Hack Nerd Font:Bold:20.0" \
+                           script="$PLUGIN_DIR/ovim.sh" \
            # --add alias "Fantastical Helper,Fantastical" right \
 
            # --add alias "Fantastical Helper,Fantastical" right \
