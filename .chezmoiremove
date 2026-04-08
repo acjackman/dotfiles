@@ -56,3 +56,6 @@ finicky.js
 .config/zsh/functions/,scratch-ai
 .config/textsniper
 .local/bin/,capture
+.local/bin/wtrm
+.local/bin/wtm
+.local/lib/wt-tmux-cleanup.sh

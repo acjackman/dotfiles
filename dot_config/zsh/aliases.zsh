@@ -49,8 +49,9 @@ wtc() {
 }
 alias wtd="wt switch '^'"
 wtr() { wt switch "$@" && cd "$(git rev-parse --show-toplevel)"; }
-# wtrm is a standalone script in ~/.local/bin/wtrm
-# wtm is a standalone script in ~/.local/bin/wtm
+alias wtrm="wt remove"
+alias wtm="wt merge"
+alias wt-stack="wt switch --create --base=@"
 alias wtmd="wt merge '^'"
 alias wtprd="WTPR_INCLUDE_DRAFTS=true wtpr"
 
