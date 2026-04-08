@@ -108,3 +108,7 @@ mise.local.toml
 .workmux.yaml
 .workmux.yml
 **/.worktrees
+
+# effort tracking
+.effort
+.efforts
