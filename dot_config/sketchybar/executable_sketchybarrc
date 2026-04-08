@@ -111,8 +111,7 @@ sketchybar --add item aerospace left \
 ##### Adding Center Items #####
 
 sketchybar --add item timing center \
-           --set timing update_freq=30 script="$PLUGIN_DIR/timing.sh" \
-                         drawing=off
+           --set timing update_freq=10 script="$PLUGIN_DIR/timing.sh"
 
 ##### Adding Right Items #####
 # In the same way as the left items we can add items to the right side.

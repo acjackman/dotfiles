@@ -28,21 +28,25 @@ import json, sys, datetime, subprocess, os
 
 report_file = "/tmp/sketchybar_timing_report.json"
 name = os.environ.get("NAME", "timing")
+GRAY = "0xff6c7086"
 
 def sketchybar(*args):
     subprocess.run(["sketchybar", "--set", name] + list(args))
+
+def show_idle():
+    sketchybar("drawing=on", "icon.drawing=off", f"label=NO TIMER RUNNING", f"label.color={GRAY}")
 
 try:
     with open(report_file) as f:
         entries = json.load(f)
 except Exception:
-    sketchybar("drawing=off")
+    show_idle()
     sys.exit(0)
 
 # Only time entries have activityTitle
 time_entries = [e for e in entries if e.get("activityTitle") is not None]
 if not time_entries:
-    sketchybar("drawing=off")
+    show_idle()
     sys.exit(0)
 
 now = datetime.datetime.now(datetime.timezone.utc)
@@ -51,7 +55,7 @@ end_dt = datetime.datetime.fromisoformat(most_recent["endDate"].replace("Z", "+0
 
 # Running entries have endDate == the report's query time (within ~15s)
 if (now - end_dt).total_seconds() > 15:
-    sketchybar("drawing=off")
+    show_idle()
     sys.exit(0)
 
 title = most_recent.get("activityTitle", "")
@@ -62,7 +66,9 @@ total_minutes = h * 60 + m
 
 project = project_chain.split("▸")[-1].strip()
 parts = [p for p in [project, title] if p]
-label = " | ".join(parts) + f" ({total_minutes}min)"
+label = " | ".join(parts)
+if total_minutes >= 60:
+    label += f" ({total_minutes}min)"
 
 # Look up the project color (Timing: #RRGGBBAA → sketchybar: 0xAARRGGBB)
 icon_color = "0xffffffff"  # default white
@@ -86,5 +92,5 @@ end tell"""],
         rr, gg, bb, aa = color_raw[1:3], color_raw[3:5], color_raw[5:7], color_raw[7:9]
         icon_color = f"0x{aa}{rr}{gg}{bb}"
 
-sketchybar("drawing=on", "icon=󰔚", f"icon.color={icon_color}", f"label={label}")
+sketchybar("drawing=on", "icon.drawing=on", "icon=󰔚", f"icon.color={icon_color}", f"label={label}", "label.color=0xffffffff")
 PYEOF
