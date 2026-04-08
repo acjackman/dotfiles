@@ -31,12 +31,10 @@ export default {
       url: { protocol: "discord" },
       browser: "Discord",
     },
-    {{- if hasKey . "google_meet_app_id" }}
     {
       match: /meet\.google\.com\/.+/,
-      browser: "{{ .google_meet_app_id }}",
+      browser: "{{ .chezmoi.homeDir }}/Applications/OpenMeetInChrome.app",
     },
-    {{- end }}
     {
       match: /https:\/\/linear\.app\/(?!docs\/).+/,
       url: { protocol: "linear" },

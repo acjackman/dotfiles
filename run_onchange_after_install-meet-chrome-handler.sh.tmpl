@@ -1,0 +1,36 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/bash
+# Install OpenMeetInChrome.app — opens meet.google.com URLs in Chrome's app mode
+# (no address bar, standalone window), routed via Finicky.
+
+set -euo pipefail
+
+APP_DIR="$HOME/Applications/OpenMeetInChrome.app"
+BUNDLE_ID="com.acjackman.open-meet-in-chrome"
+
+echo "Installing OpenMeetInChrome.app..."
+
+cat > /tmp/OpenMeetInChrome.applescript << 'APPLESCRIPT'
+on run
+    set chromePath to "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    do shell script (quoted form of chromePath) & " --app=https://meet.google.com/"
+end run
+
+on open location theURL
+    set chromePath to "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome"
+    do shell script (quoted form of chromePath) & " --app=" & quoted form of theURL
+end open location
+APPLESCRIPT
+
+osacompile -o "$APP_DIR" /tmp/OpenMeetInChrome.applescript
+rm -f /tmp/OpenMeetInChrome.applescript
+
+# --- Set custom bundle identifier ---
+/usr/libexec/PlistBuddy -c "Set :CFBundleIdentifier $BUNDLE_ID" "$APP_DIR/Contents/Info.plist" 2>/dev/null || \
+  /usr/libexec/PlistBuddy -c "Add :CFBundleIdentifier string $BUNDLE_ID" "$APP_DIR/Contents/Info.plist"
+
+# --- Register with Launch Services ---
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister "$APP_DIR"
+
+echo "OpenMeetInChrome.app installed at $APP_DIR"
+{{ end -}}
