@@ -17,6 +17,7 @@ if [[ ! -f "$config_path" ]]; then
     >&2 echo "  base_url=https://linear.app"
     >&2 echo "  org=myorg"
     >&2 echo "  teams=INFRA,PLATFORM"
+    >&2 echo "  vault_path=/path/to/obsidian/vault  # optional, for effort note lookup"
     exit 1
 fi
 
@@ -29,6 +30,7 @@ done < "$config_path"
 base_url="${config[base_url]}"
 org="${config[org]}"
 teams_raw="${config[teams]}"
+vault_path="${config[vault_path]:-}"
 
 if [[ -z "$base_url" || -z "$org" || -z "$teams_raw" ]]; then
     >&2 echo "Config missing required fields: base_url, org, teams"
@@ -38,6 +40,9 @@ fi
 # Build team pattern for regex: (INFRA|PLATFORM)
 teams_pattern="(${teams_raw//,/|})"
 
+# Magic words in PR body that indicate a ticket is directly addressed
+magic_pattern='(fixes|closes|resolves|completes|towards|implements|addresses|refs)[[:space:]]'
+
 open_issue() {
     local issue_id="$1"
     local url="${base_url}/${org}/issue/${issue_id}"
@@ -45,14 +50,61 @@ open_issue() {
     open "$url"
 }
 
+# Candidates — parallel arrays
+candidate_ids=()
+candidate_sources=()
+candidate_tiers=()   # "direct" or "other"
+
 add_candidate() {
-    local id="${1:u}" # uppercase
+    local id="${1:u}"   # uppercase
     local source="$2"
-    # Deduplicate
-    if [[ ! " ${candidate_ids[*]:-} " == *" $id "* ]]; then
-        candidate_ids+=("$id")
-        candidate_sources+=("$source")
+    local tier="${3:-other}"
+    # Deduplicate — upgrade tier if already seen as "other"
+    local i=1
+    for existing in "${candidate_ids[@]:-}"; do
+        if [[ "$existing" == "$id" ]]; then
+            if [[ "$tier" == "direct" && "${candidate_tiers[$i]}" == "other" ]]; then
+                candidate_tiers[$i]="direct"
+                candidate_sources[$i]="${candidate_sources[$i]},${source}"
+            fi
+            return
+        fi
+        i=$((i + 1))
+    done
+    candidate_ids+=("$id")
+    candidate_sources+=("$source")
+    candidate_tiers+=("$tier")
+}
+
+# Extract Linear issue IDs from a block of text and add them as candidates.
+# Tries URLs first; falls back to bare IDs if no URLs found.
+extract_issues() {
+    local text="$1"
+    local source="$2"
+    local tier="${3:-other}"
+    local url_ids=("${(@f)$(echo "$text" | grep -ioE "linear\.app/[^/]+/issue/${teams_pattern}-[0-9]+" | grep -ioE "${teams_pattern}-[0-9]+" || true)}")
+    local found_url=false
+    for m in "${url_ids[@]}"; do
+        [[ -n "$m" ]] || continue
+        add_candidate "$m" "$source" "$tier"
+        found_url=true
+    done
+    if [[ "$found_url" == false ]]; then
+        local bare_ids=("${(@f)$(echo "$text" | grep -ioE "${teams_pattern}-[0-9]+" || true)}")
+        for m in "${bare_ids[@]}"; do
+            [[ -n "$m" ]] && add_candidate "$m" "$source" "$tier"
+        done
     fi
+}
+
+# PR body: lines with magic words → direct; everything else → other
+extract_issues_from_pr_body() {
+    local body="$1"
+    local magic_lines=("${(@f)$(echo "$body" | grep -iE "$magic_pattern" || true)}")
+    for line in "${magic_lines[@]}"; do
+        [[ -n "$line" ]] && extract_issues "$line" "pr-body(magic)" "direct"
+    done
+    extract_issues "$body" "pr-body" "other"
 }
 
 # --- Strategy 1: Explicit argument ---
@@ -68,68 +120,56 @@ if ! git rev-parse --git-dir >/dev/null 2>&1; then
     exit 1
 fi
 
-candidate_ids=()
-candidate_sources=()
 repo_root=$(git rev-parse --show-toplevel)
+repo_name="${repo_root##*/}"
+branch=$(git branch --show-current 2>/dev/null || true)
 
-# --- Strategy 2: .linear-issue file ---
-linear_issue_file="${repo_root}/.linear-issue"
-if [[ -f "$linear_issue_file" ]]; then
+# --- Strategy 2: dotfiles (all present files merged) ---
+for candidate_file in "${repo_root}/.linear-issue" "${repo_root}/.linear-issues" "${repo_root}/.linear"; do
+    [[ ! -f "$candidate_file" ]] && continue
+    dotfile_name="${candidate_file##*/}"
     while IFS= read -r line; do
-        line="${line%%#*}"   # strip comments
-        line="${line// /}"   # strip whitespace
+        line="${line%%#*}"
+        line="${line#"${line%%[![:space:]]*}"}"
+        line="${line%"${line##*[![:space:]]}"}"
         [[ -z "$line" ]] && continue
-        add_candidate "$line" "dotfile"
-    done < "$linear_issue_file"
+        extract_issues "$line" "$dotfile_name" "direct"
+    done < "$candidate_file"
+done
 
-    # If file exists, use exclusively (skip remaining strategies)
-    if [[ ${#candidate_ids[@]} -gt 0 ]]; then
-        # Skip to selection
-    fi
-else
-    # --- Strategy 3: Branch name ---
-    branch=$(git branch --show-current 2>/dev/null || true)
-    if [[ -n "$branch" ]]; then
-        matches=("${(@f)$(echo "$branch" | grep -ioE "${teams_pattern}-[0-9]+" || true)}")
-        for m in "${matches[@]}"; do
-            [[ -n "$m" ]] && add_candidate "$m" "branch"
-        done
-    fi
+# --- Strategy 3: Branch name ---
+[[ -n "$branch" ]] && extract_issues "$branch" "branch" "direct"
 
-    # --- Strategy 4: GitHub PR body ---
-    if [[ ${#candidate_ids[@]} -ne 1 ]] && command -v gh >/dev/null 2>&1; then
-        pr_body=$(gh pr view --json body --jq '.body' 2>/dev/null || true)
-        if [[ -n "$pr_body" ]]; then
-            # Match Linear URLs: linear.app/*/issue/TEAM-123
-            url_matches=("${(@f)$(echo "$pr_body" | grep -ioE "linear\.app/[^/]+/issue/${teams_pattern}-[0-9]+" | grep -ioE "${teams_pattern}-[0-9]+" || true)}")
-            for m in "${url_matches[@]}"; do
-                [[ -n "$m" ]] && add_candidate "$m" "pr-body"
-            done
-            # Match bare team-code patterns
-            bare_matches=("${(@f)$(echo "$pr_body" | grep -ioE "${teams_pattern}-[0-9]+" || true)}")
-            for m in "${bare_matches[@]}"; do
-                [[ -n "$m" ]] && add_candidate "$m" "pr-body"
-            done
-        fi
-    fi
-
-    # --- Strategy 5: Git commit messages ---
-    if [[ ${#candidate_ids[@]} -eq 0 ]]; then
-        default_branch=$(git rev-parse --abbrev-ref origin/HEAD 2>/dev/null | sed 's|^origin/||' || echo "main")
-        commits=$(git log "${default_branch}..HEAD" --oneline 2>/dev/null || true)
-        if [[ -n "$commits" ]]; then
-            commit_matches=("${(@f)$(echo "$commits" | grep -ioE "${teams_pattern}-[0-9]+" || true)}")
-            for m in "${commit_matches[@]}"; do
-                [[ -n "$m" ]] && add_candidate "$m" "commit"
-            done
-        fi
-    fi
+# --- Strategy 4+5: GitHub PR title and body ---
+if command -v gh >/dev/null 2>&1; then
+    pr_title=$(gh pr view --json title --jq '.title' 2>/dev/null || true)
+    pr_body=$(gh pr view --json body --jq '.body' 2>/dev/null || true)
+    [[ -n "$pr_title" ]] && extract_issues "$pr_title" "pr-title" "direct"
+    [[ -n "$pr_body" ]] && extract_issues_from_pr_body "$pr_body"
 fi
+
+# --- Strategy 6: Effort notes matching current branch or repo ---
+if [[ -n "$vault_path" && -d "${vault_path}/efforts" ]]; then
+    for effort_file in "${vault_path}/efforts"/*.md(N); do
+        [[ -f "$effort_file" ]] || continue
+        if grep -qiF "$branch" "$effort_file" 2>/dev/null \
+            || grep -qiF "$repo_name" "$effort_file" 2>/dev/null; then
+            linear_val=$(grep -m1 '^linear:' "$effort_file" 2>/dev/null \
+                | sed "s/^linear:[[:space:]]*//" | tr -d "'\""  || true)
+            [[ -n "$linear_val" ]] && extract_issues "$linear_val" "effort" "direct"
+        fi
+    done
+fi
+
+# --- Strategy 7: Git commit messages ---
+default_branch=$(git rev-parse --abbrev-ref origin/HEAD 2>/dev/null | sed 's|^origin/||' || echo "main")
+commits=$(git log "${default_branch}..HEAD" --oneline 2>/dev/null || true)
+[[ -n "$commits" ]] && extract_issues "$commits" "commit" "other"
 
 # --- No candidates ---
 if [[ ${#candidate_ids[@]} -eq 0 ]]; then
     >&2 echo "No Linear issue found."
-    >&2 echo "Hint: Create .linear-issue or use: open-linear INFRA-123"
+    >&2 echo "Hint: Create .linear-issue, .linear-issues, or .linear — or use: open-linear INFRA-123"
     exit 1
 fi
 
@@ -140,18 +180,48 @@ if [[ ${#candidate_ids[@]} -eq 1 ]]; then
 fi
 
 # --- Multiple candidates: fzf picker ---
-picker_input=""
+# Direct candidates first, then a dim separator, then other candidates
+direct_lines=()
+other_lines=()
 for i in {1..${#candidate_ids[@]}}; do
-    picker_input+="${candidate_ids[$i]}  (${candidate_sources[$i]})\n"
+    entry="${candidate_ids[$i]}  (${candidate_sources[$i]})"
+    if [[ "${candidate_tiers[$i]}" == "direct" ]]; then
+        direct_lines+=("$entry")
+    else
+        other_lines+=("$entry")
+    fi
 done
 
-if command -v fzf >/dev/null 2>&1; then
-    selected=$(echo -e "$picker_input" | fzf --prompt="Linear issue: " --no-preview --height=~40%)
-    [[ -z "$selected" ]] && exit 0
-    issue_id="${selected%% *}"
-else
-    >&2 echo "fzf not found, using first candidate"
-    issue_id="${candidate_ids[1]}"
+if ! command -v fzf >/dev/null 2>&1; then
+    >&2 echo "fzf not found, opening first direct candidate (or first overall)"
+    if [[ ${#direct_lines[@]} -gt 0 ]]; then
+        open_issue "${direct_lines[1]%% *}"
+    else
+        open_issue "${candidate_ids[1]}"
+    fi
+    exit 0
 fi
+
+# Build picker input: direct → separator → other
+picker_input=""
+for line in "${direct_lines[@]:-}"; do picker_input+="${line}"$'\n'; done
+if [[ ${#direct_lines[@]} -gt 0 && ${#other_lines[@]} -gt 0 ]]; then
+    picker_input+=$'\033[2m── other ──────────────────────────\033[0m\n'
+fi
+for line in "${other_lines[@]:-}"; do picker_input+="${line}"$'\n'; done
+
+selected=$(printf '%s' "$picker_input" | fzf \
+    --prompt="Linear issue: " \
+    --no-preview \
+    --height=~40% \
+    --no-sort \
+    --ansi) || true
+
+[[ -z "$selected" ]] && exit 0
+
+# Strip ANSI and detect if separator was selected
+clean=$(printf '%s' "$selected" | sed 's/\x1b\[[0-9;]*m//g')
+issue_id="${clean%% *}"
+[[ "$issue_id" == "──" || -z "$issue_id" ]] && exit 0
 
 open_issue "$issue_id"
