@@ -1,0 +1,23 @@
+#!/usr/bin/env bash
+# claude-yolo: run claude with permission mode based on active profile.
+#
+# Profile detection: CLAUDE_CONFIG_DIR is set to the profile directory when
+# claude is launched under a profile (e.g. ~/.config/claude/profiles/personal).
+# We extract the basename to get the profile name.
+
+profile=""
+if [[ -n "$CLAUDE_CONFIG_DIR" ]]; then
+    parent="$(basename "$(dirname "$CLAUDE_CONFIG_DIR")")"
+    if [[ "$parent" == "profiles" ]]; then
+        profile="$(basename "$CLAUDE_CONFIG_DIR")"
+    fi
+fi
+
+case "$profile" in
+    billing|moov)
+        exec claude --permission-mode auto "$@"
+        ;;
+    personal|*)
+        exec claude --dangerously-skip-permissions "$@"
+        ;;
+esac

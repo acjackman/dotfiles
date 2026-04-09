@@ -95,7 +95,6 @@ alias ,ghprn="gh pr view --json number --jq number"
 
 # claude
 alias claude-tmp="claude -p --no-session-persistence"
-alias claude-yolo="claude --dangerously-skip-permissions"
 alias claude-up="brew update && brew upgrade claude-code"
 
 # fancier ping
