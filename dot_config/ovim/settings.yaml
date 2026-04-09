@@ -27,38 +27,38 @@ mode_colors:
     b: 215
 indicator_font: SF Mono, Monaco, monospace
 ignored_apps:
-- com.mitchellh.ghostty
-- com.apple.Terminal
-- org.alacritty
+  - com.mitchellh.ghostty
+  - com.apple.Terminal
+  - org.alacritty
 launch_at_login: true
 show_in_menu_bar: true
 top_widget: KeystrokeBuffer
 bottom_widget: None
 electron_apps:
-- com.tinyspeck.slackmacgap
+  - com.tinyspeck.slackmacgap
 nvim_edit:
   enabled: true
-  shortcut_key: ''
+  shortcut_key: ""
   shortcut_modifiers:
     shift: false
     control: false
     option: false
     command: false
   terminal: alacritty
-  terminal_path: ''
+  terminal_path: ""
   editor: neovim
-  nvim_path: ''
+  nvim_path: ""
   popup_mode: true
   popup_width: 0
   popup_height: 300
   live_sync_enabled: false
   use_custom_script: true
   clipboard_mode: true
-  double_tap_modifier: command
+  double_tap_modifier: none;
   prewarm_terminal: false
 click_mode:
   enabled: false
-  shortcut_key: ''
+  shortcut_key: ""
   shortcut_modifiers:
     shift: false
     control: false
@@ -69,8 +69,8 @@ click_mode:
   show_search_bar: true
   hint_opacity: 0.95
   hint_font_size: 24
-  hint_bg_color: '#FFCC00'
-  hint_text_color: '#000000'
+  hint_bg_color: "#FFCC00"
+  hint_text_color: "#000000"
   ax_stabilization_delay_ms: 10
   cache_ttl_ms: 500
   max_depth: 10
@@ -80,22 +80,22 @@ scroll_mode:
   scroll_step: 100
   list_navigation: false
   enabled_apps:
-  - com.apple.Safari
-  - com.google.Chrome
-  - org.mozilla.firefox
-  - com.brave.Browser
-  - company.thebrowser.Browser
-  - com.microsoft.edgemac
+    - com.apple.Safari
+    - com.google.Chrome
+    - org.mozilla.firefox
+    - com.brave.Browser
+    - company.thebrowser.Browser
+    - com.microsoft.edgemac
   list_navigation_apps:
-  - com.apple.finder
-  - com.apple.systempreferences
-  - com.apple.SystemPreferences
+    - com.apple.finder
+    - com.apple.systempreferences
+    - com.apple.SystemPreferences
   overlay_blocklist:
-  - com.stairways.keyboardmaestro.engine
-  - com.raycast.macos
-  - com.alfredapp.Alfred
-  - com.runningwithcrayons.Alfred
-  - com.1password.1password
-  - com.bitwarden.desktop
+    - com.stairways.keyboardmaestro.engine
+    - com.raycast.macos
+    - com.alfredapp.Alfred
+    - com.runningwithcrayons.Alfred
+    - com.1password.1password
+    - com.bitwarden.desktop
   disabled_shortcuts: []
 auto_update_enabled: true
