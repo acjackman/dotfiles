@@ -293,6 +293,10 @@ if.app-id = 'md.obsidian'
 run = 'move-node-to-workspace N'
 
 [[on-window-detected]]
+if.app-id = 'info.eurocomp.Timing2'
+run = 'move-node-to-workspace N'
+
+[[on-window-detected]]
 if.app-id = 'com.apple.Music'
 run = 'move-node-to-workspace M'
 
