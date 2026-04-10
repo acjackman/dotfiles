@@ -53,6 +53,7 @@
     "Skill(worktree)",
     "Skill(create-pr)",
     "Skill(safe-fd)",
-    "Skill(safe-rg)"
+    "Skill(safe-rg)",
+    "mcp__productivity"
   ]
 }
