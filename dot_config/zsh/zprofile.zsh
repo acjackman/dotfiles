@@ -8,6 +8,9 @@ for brew_path in "/opt/homebrew/bin/brew" "/usr/local/bin/brew"; do
   fi
 done
 
+# OrbStack bin — must precede Homebrew so docker resolves to OrbStack
+[ -d "$HOME/.orbstack/bin" ] && export PATH="$HOME/.orbstack/bin:$PATH"
+
 # Golang
 export GOROOT="$(brew --prefix golang)/libexec"
 export GOPATH="$HOME/.local/go"
