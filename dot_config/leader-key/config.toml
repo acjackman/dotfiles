@@ -28,6 +28,22 @@ rank = 20
 kind = "command"
 value = "~/.config/ghostty/ghostty-sesh"
 
+[t.children.d]
+label = "Dotfiles Session"
+
+[t.children.d.action]
+rank = 25
+kind = "command"
+value = "~/.config/tmux/activate-or-open-ghostty.sh dotfiles ~/.local/share/chezmoi"
+
+[t.children.i]
+label = "Infra Session"
+
+[t.children.i.action]
+rank = 26
+kind = "command"
+value = "~/.config/tmux/activate-or-open-ghostty.sh infra ~/dev/moov/infra"
+
 [e.action]
 rank = 20
 kind = "application"
