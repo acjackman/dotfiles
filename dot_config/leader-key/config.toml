@@ -81,6 +81,14 @@ value = "osascript -e 'quit app \"DeskPad\"'"
 label = "UI Tweaks"
 rank = 47
 
+[u.children.p]
+label = "Toggle DeskPad"
+
+[u.children.p.action]
+rank = 3
+kind = "command"
+value = "osascript -e 'if application \"DeskPad\" is running then' -e 'quit app \"DeskPad\"' -e 'else' -e 'tell application \"DeskPad\" to activate' -e 'end if'"
+
 [u.children.w]
 label = "Rotate Wallpapers"
 
