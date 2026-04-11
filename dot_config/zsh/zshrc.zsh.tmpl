@@ -203,6 +203,34 @@ fpath+="${COMPLETIONS_DIR}"
 source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/zsh_plugins.zsh"
 
 # ===========
+# hk per-worktree log file
+# ===========
+# hk reads HK_LOG_FILE from env. Point it at the current repo's gitdir so
+# each worktree gets its own log (per-worktree gitdirs live under .bare/worktrees).
+# Covers interactive `hk` runs and git-hook-invoked runs, which inherit this env.
+function _hk_log_file_chpwd {
+  local gitdir desired
+  if gitdir=$(git rev-parse --absolute-git-dir 2>/dev/null); then
+    desired="$gitdir/hk.log"
+    # Defer to anything else (e.g. mise env) that already set HK_LOG_FILE,
+    # unless it's a value we previously set ourselves.
+    if [[ -z "${HK_LOG_FILE-}" || "${HK_LOG_FILE-}" == "${_HK_LOG_FILE_OWNED-}" ]]; then
+      export HK_LOG_FILE="$desired"
+      _HK_LOG_FILE_OWNED="$desired"
+    fi
+  else
+    # Leaving a repo: only clear if we own the current value.
+    if [[ -n "${_HK_LOG_FILE_OWNED-}" && "${HK_LOG_FILE-}" == "$_HK_LOG_FILE_OWNED" ]]; then
+      unset HK_LOG_FILE
+    fi
+    unset _HK_LOG_FILE_OWNED
+  fi
+}
+autoload -Uz add-zsh-hook
+add-zsh-hook chpwd _hk_log_file_chpwd
+_hk_log_file_chpwd
+
+# ===========
 # Proxy Icon (OSC 7)
 # ===========
 # Emit OSC 7 on every prompt so the terminal proxy icon stays current,
