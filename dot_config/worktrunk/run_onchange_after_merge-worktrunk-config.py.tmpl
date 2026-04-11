@@ -82,7 +82,7 @@ worktree-path = ".worktrees/{{ "{{" }} branch | sanitize {{ "}}" }}"
 skip-shell-integration-prompt = true
 
 [commit.generation]
-command = "CLAUDECODE= MAX_THINKING_TOKENS=0 claude -p --model=haiku --tools='' --disable-slash-commands --setting-sources='' --system-prompt=''"
+command = "~/.config/worktrunk/wt-commit-generate"
 
 [merge]
 squash = false

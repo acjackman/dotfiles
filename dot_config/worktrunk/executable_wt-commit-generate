@@ -1,0 +1,257 @@
+#!/usr/bin/env python3
+"""
+wt-commit-generate: Generate a commit message for worktrunk with linter-aware
+iteration.
+
+Contract (matches worktrunk's [commit.generation] command protocol):
+    stdin:  The worktrunk-rendered commit prompt
+            (see `wt step commit --show-prompt`)
+    stdout: The finalized commit message
+    stderr: Progress / retry diagnostics
+
+Behavior:
+    1. Read prompt from stdin.
+    2. Detect commit-message linters in the current repo (currently:
+       crate-ci/committed via committed.toml) and augment the prompt with
+       explicit rules so the model gets them right on the first try.
+    3. Call `claude -p` in one-shot mode to generate a candidate.
+    4. Validate the candidate with the detected linter.
+    5. On failure, feed the linter's error back to claude and retry up to
+       MAX_ATTEMPTS times.
+    6. Print the final (or last-attempted) message to stdout.
+
+If no linter is detected, this behaves identically to the old inline
+`claude -p ...` command: single call, no loop.
+"""
+
+from __future__ import annotations
+
+import os
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+try:
+    import tomllib
+except ImportError:  # pragma: no cover — Python < 3.11
+    import tomli as tomllib  # type: ignore[no-redef]
+
+MAX_ATTEMPTS = 3
+
+CLAUDE_CMD = [
+    "claude",
+    "-p",
+    "--model=haiku",
+    "--tools=",
+    "--disable-slash-commands",
+    "--setting-sources=",
+    "--system-prompt=",
+]
+# Env overrides layered onto os.environ — matches the old inline command.
+CLAUDE_ENV_OVERRIDES = {
+    "CLAUDECODE": "",
+    "MAX_THINKING_TOKENS": "0",
+}
+
+
+def log(msg: str) -> None:
+    print(f"wt-commit-generate: {msg}", file=sys.stderr)
+
+
+def repo_root() -> Path:
+    try:
+        out = subprocess.check_output(
+            ["git", "rev-parse", "--show-toplevel"],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+        return Path(out)
+    except subprocess.CalledProcessError:
+        return Path.cwd()
+
+
+def find_binary(name: str) -> str | None:
+    """Locate a binary, preferring PATH and falling back to mise."""
+    for d in os.environ.get("PATH", "").split(os.pathsep):
+        candidate = Path(d) / name
+        if candidate.is_file() and os.access(candidate, os.X_OK):
+            return str(candidate)
+    try:
+        out = subprocess.check_output(
+            ["mise", "which", name],
+            stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+        if out and Path(out).is_file():
+            return out
+    except (subprocess.CalledProcessError, FileNotFoundError):
+        pass
+    return None
+
+
+# ---------- committed (crate-ci) ----------
+
+def load_committed_config(repo: Path) -> dict | None:
+    cfg = repo / "committed.toml"
+    if not cfg.is_file():
+        return None
+    try:
+        return tomllib.loads(cfg.read_text())
+    except Exception as e:
+        log(f"failed to parse committed.toml: {e}")
+        return None
+
+
+def build_committed_constraints(cfg: dict) -> str:
+    rules: list[str] = []
+
+    if cfg.get("style") == "conventional":
+        rules.append(
+            "- Must follow Conventional Commits format: "
+            "`type(scope): description` or `type: description`"
+        )
+
+    if types := cfg.get("allowed_types"):
+        rules.append(f"- Allowed types (required): {', '.join(types)}")
+
+    if scopes := cfg.get("allowed_scopes"):
+        rules.append(
+            f"- Allowed scopes: {', '.join(scopes)} "
+            "(omit the scope entirely for cross-cutting changes)"
+        )
+
+    if (length := cfg.get("subject_length")) and length > 0:
+        rules.append(f"- Subject line must be <= {length} characters")
+
+    if cfg.get("subject_capitalized") is False:
+        rules.append("- Subject description must NOT start with a capital letter")
+    elif cfg.get("subject_capitalized") is True:
+        rules.append("- Subject description must start with a capital letter")
+
+    if (ll := cfg.get("line_length")) and ll > 0:
+        rules.append(f"- Body lines must be <= {ll} characters")
+
+    if not rules:
+        return ""
+
+    return (
+        "<lint_rules source=\"committed.toml\">\n"
+        "These rules are enforced by `committed` and MUST be satisfied:\n"
+        + "\n".join(rules)
+        + "\n</lint_rules>"
+    )
+
+
+def validate_with_committed(
+    committed_bin: str, repo: Path, message: str
+) -> tuple[bool, str]:
+    with tempfile.NamedTemporaryFile(
+        "w", suffix=".COMMIT_EDITMSG", delete=False
+    ) as f:
+        f.write(message)
+        msg_path = f.name
+    try:
+        cmd = [committed_bin, "--commit-file", msg_path]
+        cfg = repo / "committed.toml"
+        if cfg.is_file():
+            cmd.extend(["--config", str(cfg)])
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        if result.returncode == 0:
+            return True, ""
+        err = (result.stderr + result.stdout).strip()
+        return False, err or f"committed exited {result.returncode}"
+    finally:
+        Path(msg_path).unlink(missing_ok=True)
+
+
+# ---------- prompt manipulation ----------
+
+def inject_constraints(prompt: str, constraints: str) -> str:
+    """Insert the lint_rules block just before <diffstat> so the model sees
+    rules before content. Falls back to appending if the marker is absent."""
+    if not constraints:
+        return prompt
+    marker = "<diffstat>"
+    if marker in prompt:
+        return prompt.replace(marker, constraints + "\n\n" + marker, 1)
+    return prompt + "\n\n" + constraints
+
+
+def inject_feedback(prompt: str, previous: str, feedback: str) -> str:
+    block = (
+        "<previous_attempt>\n"
+        f"{previous}\n"
+        "</previous_attempt>\n\n"
+        "<validation_error>\n"
+        f"{feedback}\n"
+        "</validation_error>\n\n"
+        "The previous attempt above was REJECTED by `committed`. "
+        "Generate a corrected commit message that resolves the error. "
+        "Output ONLY the corrected message, no commentary.\n"
+    )
+    return prompt + "\n\n" + block
+
+
+# ---------- claude ----------
+
+def call_claude(prompt: str) -> str:
+    env = {**os.environ, **CLAUDE_ENV_OVERRIDES}
+    result = subprocess.run(
+        CLAUDE_CMD,
+        input=prompt,
+        capture_output=True,
+        text=True,
+        env=env,
+    )
+    if result.returncode != 0:
+        log(f"claude failed ({result.returncode}): {result.stderr.strip()}")
+        sys.exit(result.returncode)
+    return result.stdout.strip()
+
+
+# ---------- main ----------
+
+def main() -> int:
+    prompt = sys.stdin.read()
+    if not prompt.strip():
+        log("empty prompt on stdin")
+        return 1
+
+    repo = repo_root()
+    committed_cfg = load_committed_config(repo)
+    committed_bin = find_binary("committed") if committed_cfg is not None else None
+
+    if committed_cfg:
+        constraints = build_committed_constraints(committed_cfg)
+        prompt = inject_constraints(prompt, constraints)
+        if committed_bin:
+            log(f"committed detected at {committed_bin}; will iterate up to {MAX_ATTEMPTS} times")
+        else:
+            log("committed.toml found but `committed` binary missing — injecting rules, skipping validation")
+
+    if not committed_bin:
+        sys.stdout.write(call_claude(prompt) + "\n")
+        return 0
+
+    candidate = ""
+    for attempt in range(1, MAX_ATTEMPTS + 1):
+        candidate = call_claude(prompt)
+        ok, err = validate_with_committed(committed_bin, repo, candidate)
+        if ok:
+            if attempt > 1:
+                log(f"accepted on attempt {attempt}")
+            sys.stdout.write(candidate + "\n")
+            return 0
+        log(f"attempt {attempt}/{MAX_ATTEMPTS} rejected:\n{err}")
+        if attempt == MAX_ATTEMPTS:
+            break
+        prompt = inject_feedback(prompt, candidate, err)
+
+    log(f"exhausted {MAX_ATTEMPTS} attempts; outputting last candidate anyway")
+    sys.stdout.write(candidate + "\n")
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
