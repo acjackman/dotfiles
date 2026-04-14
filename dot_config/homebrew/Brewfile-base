@@ -14,6 +14,7 @@ tap "raine/workmux"
 tap "max-sixty/worktrunk"
 tap "steipete/tap"
 tap "tonisives/tap"
+tap "xykong/tap"
 tap "yakitrak/yakitrak"
 
 ######################################
@@ -201,7 +202,7 @@ cask "steipete/tap/codexbar"               # AI coding assistant menubar
 # Utilties
 brew "duti"                                # Set macOS default apps
 cask "neovide-app"                         # Neovim GUI
-cask "marked-app"                          # Markdown Viewer
+cask "xykong/tap/flux-markdown"            # Markdown Viewer
 cask "soulver"                             # Calculator
 cask "cleanshot"                           # Screanshots
 cask "superwhisper"                        # Voice-to-text dictation with LLM
