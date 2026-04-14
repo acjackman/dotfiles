@@ -56,6 +56,7 @@ jobs:
 
       - name: Render chezmoi templates
         run: |
+          mkdir -p /tmp/chezmoi-dest
           chezmoi apply \
             --source="$GITHUB_WORKSPACE" \
             --destination=/tmp/chezmoi-dest \
