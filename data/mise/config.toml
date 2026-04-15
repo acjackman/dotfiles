@@ -3,6 +3,9 @@ python.uv_venv_auto = false
 idiomatic_version_file_enable_tools = ["python"]
 experimental = true
 
+[env]
+CLOUDSDK_PYTHON = "{{env.HOME}}/.config/gcloud/virtenv/bin/python"
+
 [tools]
 age = "latest"
 node = "22"
