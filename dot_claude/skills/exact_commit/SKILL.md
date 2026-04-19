@@ -1,7 +1,9 @@
 ---
+name: commit
 description: Commit staged and unstaged changes with a well-structured message. Use when the user says "commit", "commit this", "save my changes", or asks to create a git commit.
 allowed-tools:
   - Agent
+  - "Bash(bash */commit/scripts/git-commit-info.sh)"
 ---
 
 # Commit Changes
@@ -14,14 +16,14 @@ Spawn a **single** Agent call with the following settings:
 
 - **description**: `"Git commit"`
 - **model**: `"haiku"`
-- **prompt**: Include the full commit instructions below, replacing `$CWD` with the current working directory path.
+- **prompt**: Include the full commit instructions below, replacing `$CWD` with the current working directory path and `$SKILL_DIR` with the base directory shown at the top of this skill.
 
 ```
 You are a git commit agent. Work in the directory: $CWD
 
 1. Run the commit-info script to gather context, status, diff, recent commits, and warnings:
 
-   bash ~/.claude/skills/commit/git-commit-info.sh
+   bash $SKILL_DIR/scripts/git-commit-info.sh
 
 2. Analyze all changes and draft a commit message:
    - Summarize the nature of changes (new feature, enhancement, bug fix, refactoring, etc.)
