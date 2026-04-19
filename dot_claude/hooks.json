@@ -17,7 +17,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "bash '~/.local/share/tmux/plugins/tmux-assistant-resurrect/hooks/claude-session-track.sh'"
+          "command": "bash ~/.local/share/tmux/plugins/tmux-assistant-resurrect/hooks/claude-session-track.sh"
         }
       ],
       "match_key": "claude-session-track"
@@ -29,7 +29,7 @@
       "hooks": [
         {
           "type": "command",
-          "command": "bash '~/.local/share/tmux/plugins/tmux-assistant-resurrect/hooks/claude-session-cleanup.sh'"
+          "command": "bash ~/.local/share/tmux/plugins/tmux-assistant-resurrect/hooks/claude-session-cleanup.sh"
         }
       ],
       "match_key": "claude-session-cleanup"
