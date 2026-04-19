@@ -1,0 +1,25 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+# ,agnt - Start Claude in the git repo root (or current dir with --here)
+#
+# Usage: ,agnt [--here] [claude args...]
+
+local dir
+local -a args
+
+for arg in "$@"; do
+  if [[ "$arg" == "--here" ]]; then
+    dir="."
+  else
+    args+=("$arg")
+  fi
+done
+
+if [[ -z "$dir" ]]; then
+  dir="$(git rev-parse --show-toplevel 2>/dev/null)" || {
+    >&2 echo ",agnt: not in a git repository"
+    return 1
+  }
+fi
+
+(cd "$dir" && claude "${args[@]}")
