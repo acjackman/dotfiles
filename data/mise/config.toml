@@ -9,7 +9,7 @@ CLOUDSDK_PYTHON = "{{env.HOME}}/.config/gcloud/virtenv/bin/python"
 [tools]
 age = "latest"
 node = "22"
-gcloud = { version = "latest", postinstall = "gcloud components install gke-gcloud-auth-plugin --quiet && $(gcloud info --format='value(config.paths.global_config_dir)')/virtenv/bin/pip install numpy" }
+gcloud = { version = "latest", postinstall = "python3 -m venv ~/.config/gcloud/virtenv && gcloud components install gke-gcloud-auth-plugin --quiet && ~/.config/gcloud/virtenv/bin/pip install numpy" }
 
 "pipx:httpie" = "latest"
 "pipx:pre-commit" = "latest"

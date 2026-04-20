@@ -1,6 +1,6 @@
 # Mise Config
 
-The `run_onchange_after_mise-up.sh` script runs automatically when `data/mise/config.toml` changes, updating mise tool versions via `mise update`.
+The `run_onchange_after_mise-up.sh` script runs automatically when `data/mise/config.toml` changes, upgrading mise tool versions via `mise upgrade`.
 
 ## Worktree Apply
 
@@ -9,5 +9,5 @@ The `run_onchange_after_mise-up.sh` script runs automatically when `data/mise/co
 Instead, run mise directly:
 
 ```sh
-mise update
+mise upgrade
 ```

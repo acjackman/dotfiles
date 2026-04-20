@@ -36,7 +36,7 @@ Some configs require extra steps or alternative apply methods (especially from w
 - **`data/karabiner/`** — Run `goku` directly instead of `chezmoi apply`
 - **`dot_config/nvim/`** — Run `nvim --headless "+Lazy! restore" +qa` directly
 - **`private_Library/.../Cursor/User/`** — Install extensions via `cursor --install-extension` directly
-- **`data/mise/`** — Run `mise update` directly
+- **`data/mise/`** — Run `mise upgrade` directly
 - **`dot_config/alfred/`** — No simple manual workaround; merge to main first
 
 ## Claude Code Skills

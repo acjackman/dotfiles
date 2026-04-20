@@ -13,7 +13,7 @@ function show-header() {
 command -v mise &>/dev/null
 if [ $? -eq 0 ]; then
   show-header "Mise"
-  mise update && echo "Mise tools updated" || echo "Mise failed update"
+  mise upgrade && echo "Mise tools updated" || echo "Mise failed update"
 fi
 
 # Set llm key
