@@ -21,12 +21,11 @@ finicky.js
 .config/claude/permissions.json
 .config/claude/CLAUDE.md
 .claude/commands/commit
-.claude/commands/spawn
 .claude/commands/spawn-session
 .claude/commands/spawn-window
 .claude/commands/create-pr.md
-.claude/commands
 .claude/skills/apply
+.claude/skills/spawn
 .config/zsh/functions/,prc
 .config/zsh/functions/,prl
 .config/zsh/functions/,pro

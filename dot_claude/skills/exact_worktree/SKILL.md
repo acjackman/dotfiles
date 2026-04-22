@@ -1,7 +1,7 @@
 ---
 description: Create or reuse a worktrunk-managed worktree. Use when the user says "worktree", "create a worktree", or needs an isolated branch for a sub-agent.
 allowed-tools:
-  - Bash(~/.claude/skills/spawn/setup-worktree.sh:*)
+  - Bash(~/.claude/skills/worktree/setup-worktree.sh:*)
 ---
 
 # Worktree
@@ -17,7 +17,7 @@ $ARGUMENTS should contain a branch name, optionally followed by `--base <ref>`.
 1. Run the setup script:
 
    ```bash
-   ~/.claude/skills/spawn/setup-worktree.sh <branch> [--base <ref>]
+   ~/.claude/skills/worktree/setup-worktree.sh <branch> [--base <ref>]
    ```
 
 2. Extract the path from the JSON output using `jq -r '.path'`.

@@ -1,5 +1,6 @@
 ---
-description: Spawn a new Claude agent in an isolated worktree via tmux. Use when the user says "spawn", "start an agent", or wants to delegate a task to a parallel Claude session.
+description: Spawn a new Claude agent in an isolated worktree via tmux
+argument-hint: [--base <ref>] [--repo <path>] [--model <model>] [--session] <task description>
 ---
 
 # Spawn Claude Agent
@@ -14,7 +15,7 @@ $ARGUMENTS contains the task description and optional flags for the new Claude a
 
 **Supported flags** (extract these from $ARGUMENTS before deriving the task description):
 
-- `--base <ref>` — Pass through to `setup-worktree.sh` to create the worktree from a specific git ref
+- `--base <ref>` — Pass through to `spawn-setup-worktree` to create the worktree from a specific git ref
 - `--repo <path>` — Target a different repository (see Cross-Repo Tasks below)
 - `--model <model>` — Override the automatic model selection
 - `--session` — Create a tmux session instead of a window (default: window)
@@ -28,13 +29,15 @@ Sometimes a task belongs in a different repository than the one you're currently
 - The user provides a path to another repo (e.g., `~/dev/other-project: fix X`)
 - Your investigation reveals the fix belongs in a different codebase
 
-Pass `--repo <path>` to `setup-worktree.sh` to target the other repo. If it's a bare repo managed by worktrunk, a worktree is created there. If it's a regular checkout, the agent runs directly in that directory (no worktree or branch is created — the branch name is only used for tmux naming).
+Pass `--repo <path>` to `spawn-setup-worktree` to target the other repo. If it's a bare repo managed by worktrunk, a worktree is created there. If it's a regular checkout, the agent runs directly in that directory (no worktree or branch is created — the branch name is only used for tmux naming).
 
 ## Available Scripts
 
-- **`setup-worktree.sh`** — Creates or reuses a worktrunk-managed worktree. Returns JSON `{branch, path}`. Also on PATH as `spawn-setup-worktree`.
-- **`spawn-tmux.sh`** — Spawns a tmux window or session and launches an interactive Claude session inside it. Also on PATH as `spawn-tmux`.
-- **`launch.sh`** — Reads a prompt file and `exec`s into `claude`. Called by `spawn-tmux.sh` internally.
+These are on PATH:
+
+- **`spawn-setup-worktree`** — Creates or reuses a worktrunk-managed worktree. Returns JSON `{branch, path}`.
+- **`spawn-tmux`** — Spawns a tmux window or session and launches an interactive Claude session inside it.
+- **`spawn-launch`** — Reads a prompt file and `exec`s into `claude`. Called by `spawn-tmux` internally.
 
 ## Pre-flight Checks
 
@@ -94,10 +97,10 @@ If there are uncommitted changes, warn the user: "The working tree has uncommitt
 
    Default to `sonnet` unless the task clearly warrants `opus`.
 
-2. Create (or reuse) the worktree and get its path (also available as `spawn-setup-worktree` on PATH):
+2. Create (or reuse) the worktree and get its path:
 
    ```bash
-   ${CLAUDE_SKILL_DIR}/setup-worktree.sh <name> [--base <ref>] [--repo <path>]
+   spawn-setup-worktree <name> [--base <ref>] [--repo <path>]
    ```
 
    The script prints a JSON object. Extract the path:
@@ -122,15 +125,14 @@ If there are uncommitted changes, warn the user: "The working tree has uncommitt
 
    Remember the absolute path to this file for the next step.
 
-4. Spawn a full interactive Claude session in tmux (also available as
-   `spawn-tmux` on PATH). Never use `claude -p`/`--print`. The tmux name is
+4. Spawn a full interactive Claude session in tmux. Never use `claude -p`/`--print`. The tmux name is
    derived automatically from the worktree path using `tmux-window-name` or
    `tmux-session-name` (consistent with all other tmux naming in the dotfiles).
 
    Use `--window` (default) or `--session` if the user passed `--session`:
 
    ```bash
-   ${CLAUDE_SKILL_DIR}/spawn-tmux.sh --window --name <name> --dir <worktree-path> --prompt <absolute-path-to-prompt-file> [--model <model>]
+   spawn-tmux --window --name <name> --dir <worktree-path> --prompt <absolute-path-to-prompt-file> [--model <model>]
    ```
 
 5. Confirm to the user:
