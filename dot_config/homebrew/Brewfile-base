@@ -112,6 +112,7 @@ brew "hub"
 cask "caarlos0/tap/svu"
 
 cask "claude-code"
+brew "rtk"                                 # Token-optimized CLI proxy for LLMs
 cask "codex"                               # OpenAI Codex coding agent
 
 ######################################

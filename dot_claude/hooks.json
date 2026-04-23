@@ -23,6 +23,18 @@
       "match_key": "claude-session-track"
     }
   ],
+  "PreToolUse": [
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "~/.claude/hooks/rtk-rewrite.sh"
+        }
+      ],
+      "match_key": "rtk-rewrite"
+    }
+  ],
   "SessionEnd": [
     {
       "matcher": "",
