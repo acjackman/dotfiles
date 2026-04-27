@@ -36,7 +36,13 @@ export default {
       browser: "{{ .chezmoi.homeDir }}/Applications/OpenMeetInChrome.app",
     },
     {
-      match: /https:\/\/linear\.app\/(?!docs\/).+/,
+      // Open Linear workspace content in the app; marketing/help/changelog pages go to default browser
+      match: (url) => {
+        if (url.host !== "linear.app") return false;
+        if (url.search.includes("noRedirect=1")) return false;
+        const nonWorkspacePaths = /^\/(docs|changelog|help|settings|login|signup|api|blog|integrations|customers|pricing|about|readme|method)(\/|$)/;
+        return url.pathname !== "/" && !nonWorkspacePaths.test(url.pathname);
+      },
       url: { protocol: "linear" },
       browser: "Linear",
     },

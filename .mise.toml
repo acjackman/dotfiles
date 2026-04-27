@@ -2,3 +2,7 @@
 _.path = [
   "{{config_root}}/.bin"
 ]
+
+[tasks.test]
+description = "Run all tests"
+run = "node --test dot_config/**/*.test.mjs"
