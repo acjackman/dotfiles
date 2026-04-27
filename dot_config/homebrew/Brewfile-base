@@ -14,6 +14,7 @@ tap "raine/workmux"
 tap "max-sixty/worktrunk"
 tap "steipete/tap"
 tap "tonisives/tap"
+tap "umputun/apps"
 tap "xykong/tap"
 tap "yakitrak/yakitrak"
 
@@ -113,6 +114,7 @@ brew "hub"
 cask "caarlos0/tap/svu"
 
 cask "claude-code"
+brew "umputun/apps/revdiff"                # Interactive diff review with annotations
 brew "rtk"                                 # Token-optimized CLI proxy for LLMs
 cask "codex"                               # OpenAI Codex coding agent
 

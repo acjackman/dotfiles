@@ -1,19 +1,27 @@
 {
   "marketplaces": [
     "anthropics/claude-plugins-official",
-    "max-sixty/worktrunk"
+    "max-sixty/worktrunk",
+    "umputun/revdiff"
   ],
   "plugins": [
     "pyright-lsp@claude-plugins-official",
     "gopls-lsp@claude-plugins-official",
     "worktrunk@worktrunk",
-    "code-review@claude-plugins-official"
+    "code-review@claude-plugins-official",
+    "revdiff@revdiff"
   ],
   "extraKnownMarketplaces": {
     "worktrunk": {
       "source": {
         "source": "github",
         "repo": "max-sixty/worktrunk"
+      }
+    },
+    "revdiff": {
+      "source": {
+        "source": "github",
+        "repo": "umputun/revdiff"
       }
     }
   }
