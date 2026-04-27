@@ -1,7 +1,7 @@
 export default {
   defaultBrowser: {
     name: "{{ .default_browser }}",
-    profile: "Default",
+    profile: "Person 1",
   },
   handlers: [
     {
@@ -31,14 +31,18 @@ export default {
       url: { protocol: "discord" },
       browser: "Discord",
     },
-    {{- if hasKey . "google_meet_app_id" }}
     {
       match: /meet\.google\.com\/.+/,
-      browser: "{{ .google_meet_app_id }}",
+      browser: "{{ .chezmoi.homeDir }}/Applications/OpenMeetInChrome.app",
     },
-    {{- end }}
     {
-      match: /https:\/\/linear\.app\/(?!docs\/).+/,
+      // Open Linear workspace content in the app; marketing/help/changelog pages go to default browser
+      match: (url) => {
+        if (url.host !== "linear.app") return false;
+        if (url.search.includes("noRedirect=1")) return false;
+        const nonWorkspacePaths = /^\/(docs|changelog|help|settings|login|signup|api|blog|integrations|customers|pricing|about|readme|method)(\/|$)/;
+        return url.pathname !== "/" && !nonWorkspacePaths.test(url.pathname);
+      },
       url: { protocol: "linear" },
       browser: "Linear",
     },
@@ -51,7 +55,7 @@ export default {
       match: ["https://github.com/*", "http://github.com/*"],
       browser: {
         name: "Google Chrome",
-        profile: "Default",
+        profile: "Person 1",
       },
     },
     {

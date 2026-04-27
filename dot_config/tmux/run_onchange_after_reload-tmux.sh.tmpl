@@ -2,6 +2,21 @@
 # hash: {{ include "dot_config/tmux/tmux.conf" | sha256sum }}
 # hash: {{ include "dot_config/tmux/tmux.reset.conf" | sha256sum }}
 
+# Checksum: {{ include "dot_config/aerospace/aerospace.toml" | sha256sum }}
+function show-header() {
+  command -v gum &>/dev/null
+  if [ $? -eq 0 ]; then
+    gum style --border=double --align=left --padding "0 2" --width=75 $@
+  else
+    echo $@
+  fi
+}
+
+# Reload aerospace configuration after changes
+show-header "tmux"
+
+~/.local/share/tmux/plugins/tpm/bin/install_plugins 2>&1
+
 if tmux list-sessions &>/dev/null; then
   tmux source-file ~/.config/tmux/tmux.conf
   tmux display-message "Config reloaded"
