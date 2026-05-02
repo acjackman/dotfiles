@@ -26,10 +26,11 @@ DECLARED_HOOKS=$(cat "$HOOKS_FILE")
 STATUSLINE=$(jq '.statusLine' "$STATUSLINE_FILE")
 DEFAULTS=$(cat "$DEFAULTS_FILE")
 
-# Ensure declared hooks exist in settings without overwriting existing hooks.
-# For each event in hooks.json, each entry has a "match_key" used to check
-# if that hook is already present (by searching command strings). If not found,
-# the entry is appended. The "match_key" field is stripped from the output.
+# Sync declared hooks into settings, identified by "match_key" (a substring
+# present in the command). For each declared hook, drop any existing entry
+# whose hook commands match the key, then append the fresh entry. This keeps
+# user-added hooks (no matching key) intact while replacing stale versions
+# of declared hooks. The "match_key" field is stripped from the output.
 ensure_hooks() {
     local settings_file="$1"
     local events
@@ -40,19 +41,32 @@ ensure_hooks() {
         count=$(jq -r --arg e "$event" '.[$e] | length' <<< "$DECLARED_HOOKS")
 
         for ((i=0; i<count; i++)); do
-            local match_key
+            local match_key entry existing_cmd declared_cmd action
             match_key=$(jq -r --arg e "$event" --argjson i "$i" '.[$e][$i].match_key' <<< "$DECLARED_HOOKS")
+            entry=$(jq --arg e "$event" --argjson i "$i" '.[$e][$i] | del(.match_key)' <<< "$DECLARED_HOOKS")
+            declared_cmd=$(jq -r '.hooks[0].command // ""' <<< "$entry")
 
-            # Check if a hook with this match_key already exists
-            if jq -e --arg e "$event" --arg k "$match_key" \
-                '.hooks[$e][]?.hooks[]? | select((.command // "") | contains($k))' \
-                "$settings_file" >/dev/null 2>&1; then
+            existing_cmd=$(jq -r --arg e "$event" --arg k "$match_key" \
+                'first(.hooks[$e][]? | .hooks[]? | select((.command // "") | contains($k)) | .command) // ""' \
+                "$settings_file")
+
+            if [ "$existing_cmd" = "$declared_cmd" ]; then
                 continue
             fi
 
-            # Append the hook entry (without the match_key field)
-            local entry
-            entry=$(jq --arg e "$event" --argjson i "$i" '.[$e][$i] | del(.match_key)' <<< "$DECLARED_HOOKS")
+            if [ -n "$existing_cmd" ]; then
+                action="Updated"
+                # Drop any existing entries whose hooks reference this match_key
+                jq --arg e "$event" --arg k "$match_key" '
+                    if .hooks[$e] then
+                        .hooks[$e] |= map(select(
+                            (.hooks // []) | all((.command // "") | contains($k) | not)
+                        ))
+                    else . end
+                ' "$settings_file" > "$settings_file.tmp" && mv "$settings_file.tmp" "$settings_file"
+            else
+                action="Added"
+            fi
 
             jq --arg e "$event" --argjson entry "$entry" '
                 .hooks //= {} |
@@ -60,7 +74,7 @@ ensure_hooks() {
                 .hooks[$e] += [$entry]
             ' "$settings_file" > "$settings_file.tmp" && mv "$settings_file.tmp" "$settings_file"
 
-            echo "  Added hook: $event ($match_key)"
+            echo "  $action hook: $event ($match_key)"
         done
     done
 }
