@@ -29,10 +29,10 @@
       "hooks": [
         {
           "type": "command",
-          "command": "~/.claude/hooks/rtk-rewrite.sh"
+          "command": "rtk hook claude"
         }
       ],
-      "match_key": "rtk-rewrite"
+      "match_key": "rtk hook claude"
     }
   ],
   "SessionEnd": [
