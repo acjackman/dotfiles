@@ -1,4 +1,5 @@
 #!/bin/bash
+# shellcheck disable=SC2068,SC2086,SC2199
 
 # From https://gist.github.com/ChillingHsu/513f9d0333f03592576338f90bc2f898
 

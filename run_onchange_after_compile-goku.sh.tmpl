@@ -3,9 +3,9 @@
 function show-header() {
   command -v gum &>/dev/null
   if [ $? -eq 0 ]; then
-    gum style --border=double --align=left --padding "0 2" --width=75 $@
+    gum style --border=double --align=left --padding "0 2" --width=75 "$@"
   else
-    echo $@
+    echo "$@"
   fi
 }
 

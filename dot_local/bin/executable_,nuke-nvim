@@ -16,7 +16,7 @@ function confirm() {
   if [ $? -eq 0 ]; then
     gum confirm "$@"
   else
-    read -p "$@ (y/N): " -n 1 -r
+    read -rp "$* (y/N): " -n 1
     echo
     [[ $REPLY =~ ^[Yy]$ ]]
   fi
