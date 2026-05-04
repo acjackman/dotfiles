@@ -98,6 +98,16 @@ sketchybar --add item aerospace left \
         click_script="aerospace reload-config" \
         script="$CONFIG_DIR/plugins/aerospace-plugin"
 
+{{ if .sketchybar.compact -}}
+# Hides space.X items for empty, unfocused workspaces. Drawn=off so it
+# occupies no space; exists only to host the event subscription.
+sketchybar --add item aerospace_filter left \
+           --subscribe aerospace_filter aerospace_workspace_change \
+           --subscribe aerospace_filter aerospace_focus_change \
+           --set aerospace_filter drawing=off \
+                                  script="$PLUGIN_DIR/aerospace-filter.sh"
+{{ end -}}
+
 ##### Adding Left Items #####
 # We add some regular items to the left side of the bar, where
 # only the properties deviating from the current defaults need to be set
@@ -108,10 +118,15 @@ sketchybar --add item aerospace left \
 #            --set front_app icon.drawing=off script="$PLUGIN_DIR/front_app.sh" \
 #            --subscribe front_app front_app_switched
 
-##### Adding Center Items #####
-
+{{ if .sketchybar.compact -}}
+# Compact mode: timing lives on the left so the laptop's notch doesn't hide it.
+# aerospace-filter.sh keeps it ordered to the right of the workspace icons.
+sketchybar --add item timing left \
+           --set timing update_freq=10 script="$PLUGIN_DIR/timing.sh"
+{{ else -}}
 sketchybar --add item timing center \
            --set timing update_freq=10 script="$PLUGIN_DIR/timing.sh"
+{{ end -}}
 
 ##### Adding Right Items #####
 # In the same way as the left items we can add items to the right side.

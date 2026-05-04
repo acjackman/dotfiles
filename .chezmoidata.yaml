@@ -2,6 +2,10 @@ gh_extensions:
   - dlvhdr/gh-dash
 
 sketchybar:
+  # Compact mode shifts items to the left half of the bar (avoiding the MBP
+  # notch) and hides empty aerospace workspaces. Enable per-machine in
+  # ~/.config/chezmoi/chezmoi.toml: [data.sketchybar] compact = true
+  compact: false
   stats:
     cpu: true
     memory: true
