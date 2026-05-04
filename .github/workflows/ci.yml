@@ -75,6 +75,12 @@ jobs:
             /tmp/chezmoi-dest "$GITHUB_WORKSPACE" \
             --ruff --quiet
 
+      - name: Install ShellCheck
+        run: sudo apt-get install -y --no-install-recommends shellcheck
+
+      - name: ShellCheck rendered scripts and run scripts
+        run: .github/scripts/shellcheck-rendered.sh /tmp/chezmoi-dest "$GITHUB_WORKSPACE"
+
       - name: Upload rendered output
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
