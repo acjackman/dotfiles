@@ -34,8 +34,6 @@ echo = print if quiet else devnull
 def walk_trees(files):
     for f in files:
         root_file = Path(f)
-        basename = root_file.name
-        root_is_file = not root_file.is_dir()
         for file in walk_tree(root_file):
             yield str(file), str(file.relative_to(root_file.parent))
 

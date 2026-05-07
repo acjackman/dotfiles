@@ -64,10 +64,16 @@ jobs:
             --no-tty
 
       - name: Install validator dependencies
-        run: python3 -m pip install --quiet pyyaml
+        run: python3 -m pip install --quiet pyyaml ruff
 
       - name: Validate rendered configs (TOML/YAML/JSON/plist)
         run: python3 .github/scripts/validate-configs.py /tmp/chezmoi-dest --quiet
+
+      - name: Validate rendered Python (py_compile + ruff)
+        run: |
+          python3 .github/scripts/pycheck-rendered.py \
+            /tmp/chezmoi-dest "$GITHUB_WORKSPACE" \
+            --ruff --quiet
 
       - name: Upload rendered output
         if: always()

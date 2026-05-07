@@ -55,7 +55,7 @@ if search_item:
 
 fields = item["details"].get("fields", [])
 if fields:
-    print(f"- Fields")
+    print("- Fields")
     for field in fields:
         id = field['name'] or field['designation']
         if id:

@@ -28,7 +28,6 @@ v2 node fields supported:
 from __future__ import annotations
 
 import json
-import os
 import shutil
 import subprocess
 import sys
@@ -293,7 +292,6 @@ def main() -> int:
         print("No files found.")
         return 1
 
-    src_dir = Path(os.path.expanduser("~/.config/leader-key"))
     toml_files = [Path(x[0]) for x in FILES]
 
     # Normalize each TOML to v2 and merge predictably

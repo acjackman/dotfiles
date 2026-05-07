@@ -30,7 +30,6 @@ from: https://gist.github.com/vpontis/46e5d3154cda92ce3e0f
 """
 
 import subprocess
-import sys
 
 from IPython.core.magic import register_line_cell_magic
 
