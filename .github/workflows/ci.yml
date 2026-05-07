@@ -63,7 +63,14 @@ jobs:
             --exclude=scripts,externals \
             --no-tty
 
+      - name: Install validator dependencies
+        run: python3 -m pip install --quiet pyyaml
+
+      - name: Validate rendered configs (TOML/YAML/JSON/plist)
+        run: python3 .github/scripts/validate-configs.py /tmp/chezmoi-dest --quiet
+
       - name: Upload rendered output
+        if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: rendered-${{ matrix.name }}
