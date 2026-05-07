@@ -87,6 +87,8 @@ jobs:
         with:
           name: rendered-${{ matrix.name }}
           path: /tmp/chezmoi-dest
+          # Required so dotfile dirs (.config, .claude, etc.) end up in the artifact.
+          include-hidden-files: true
           retention-days: 3
 
   test:
@@ -109,8 +111,11 @@ jobs:
 
       - name: Place rendered configs for tests
         run: |
-          # Tests import from deployed paths — symlink rendered output to HOME
-          cp -r /tmp/chezmoi-dest/.config "$HOME/.config"
+          # Tests import from deployed paths (e.g. ~/.config/finicky/finicky.js).
+          # Merge into $HOME instead of copying onto it so an existing ~/.config
+          # on the runner doesn't turn this into ~/.config/.config.
+          mkdir -p "$HOME/.config"
+          cp -r /tmp/chezmoi-dest/.config/. "$HOME/.config/"
 
       - name: Run tests
         run: node --test dot_config/**/*.test.mjs
