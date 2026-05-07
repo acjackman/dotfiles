@@ -16,7 +16,8 @@ vim.keymap.set("n", "<leader>fy", function()
   local path
 
   -- Try to get path relative to git root
-  local git_root = vim.fn.systemlist("git -C " .. vim.fn.shellescape(vim.fn.expand("%:p:h")) .. " rev-parse --show-toplevel")[1]
+  local git_root =
+    vim.fn.systemlist("git -C " .. vim.fn.shellescape(vim.fn.expand("%:p:h")) .. " rev-parse --show-toplevel")[1]
   if vim.v.shell_error == 0 and git_root then
     -- In a git repo, use path relative to git root
     path = vim.fn.fnamemodify(abs_path, ":s?" .. git_root .. "/??")
