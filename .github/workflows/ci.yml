@@ -81,6 +81,20 @@ jobs:
       - name: ShellCheck rendered scripts and run scripts
         run: .github/scripts/shellcheck-rendered.sh /tmp/chezmoi-dest "$GITHUB_WORKSPACE"
 
+      - name: Install Lua + StyLua
+        run: |
+          sudo apt-get install -y --no-install-recommends lua5.4
+          # StyLua isn't in the default apt repos; pull a release binary.
+          STYLUA_VERSION=2.4.1
+          curl -fsSL -o /tmp/stylua.zip \
+            "https://github.com/JohnnyMorganz/StyLua/releases/download/v${STYLUA_VERSION}/stylua-linux-x86_64.zip"
+          unzip -o /tmp/stylua.zip -d "$HOME/.local/bin"
+          chmod +x "$HOME/.local/bin/stylua"
+          stylua --version
+
+      - name: Lua syntax + StyLua format check
+        run: .github/scripts/lualint-rendered.sh /tmp/chezmoi-dest "$GITHUB_WORKSPACE"
+
       - name: Upload rendered output
         if: always()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
