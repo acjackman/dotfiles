@@ -1,0 +1,10 @@
+{{- $isChrome := eq .default_browser "Google Chrome" -}}
+{{- $isMoov := has "moov" .extras -}}
+{
+  "extras": {{ .extras | toJson }},
+  "default_browser_name": {{ .default_browser | toJson }},
+  "default_browser_profile": {{ if $isChrome }}{{ if $isMoov }}"Moov"{{ else }}"Person 1"{{ end }}{{ else }}null{{ end }},
+  "github_browser": {{ if $isMoov }}{ "name": "Google Chrome", "profile": "Moov" }{{ else }}null{{ end }},
+  "spacelift_browser": {{ if $isMoov }}{ "name": "Google Chrome", "profile": "Moov" }{{ else }}null{{ end }},
+  "meet_app_path": {{ printf "%s/Applications/OpenMeetInChrome.app" .chezmoi.homeDir | toJson }}
+}

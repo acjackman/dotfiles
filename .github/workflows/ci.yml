@@ -69,6 +69,12 @@ jobs:
       - name: Validate rendered configs (TOML/YAML/JSON/plist)
         run: python3 .github/scripts/validate-configs.py /tmp/chezmoi-dest --quiet
 
+      - name: Finicky fixture drift check
+        run: |
+          python3 .github/scripts/finicky-fixture-drift.py \
+            /tmp/chezmoi-dest/.config/finicky/extras.json \
+            tests/finicky/fixtures/${{ matrix.name }}.json
+
       - name: Validate rendered Python (py_compile + ruff)
         run: |
           python3 .github/scripts/pycheck-rendered.py \
@@ -108,7 +114,6 @@ jobs:
   test:
     name: Tests
     runs-on: ubuntu-latest
-    needs: render
 
     steps:
       - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
@@ -117,19 +122,5 @@ jobs:
         with:
           node-version: "22"
 
-      - name: Download rendered config (personal)
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: rendered-personal
-          path: /tmp/chezmoi-dest
-
-      - name: Place rendered configs for tests
-        run: |
-          # Tests import from deployed paths (e.g. ~/.config/finicky/finicky.js).
-          # Merge into $HOME instead of copying onto it so an existing ~/.config
-          # on the runner doesn't turn this into ~/.config/.config.
-          mkdir -p "$HOME/.config"
-          cp -r /tmp/chezmoi-dest/.config/. "$HOME/.config/"
-
       - name: Run tests
-        run: node --test dot_config/**/*.test.mjs
+        run: node --test tests/**/*.test.mjs

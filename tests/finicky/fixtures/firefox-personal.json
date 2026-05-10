@@ -1,0 +1,7 @@
+{
+  "extras": ["personal"],
+  "default_browser_name": "Firefox",
+  "default_browser_profile": null,
+  "github_browser": null,
+  "spacelift_browser": null
+}

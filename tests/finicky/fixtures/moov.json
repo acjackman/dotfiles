@@ -1,0 +1,7 @@
+{
+  "extras": ["moov"],
+  "default_browser_name": "Google Chrome",
+  "default_browser_profile": "Moov",
+  "github_browser": { "name": "Google Chrome", "profile": "Moov" },
+  "spacelift_browser": { "name": "Google Chrome", "profile": "Moov" }
+}
