@@ -8,8 +8,11 @@ for brew_path in "/opt/homebrew/bin/brew" "/usr/local/bin/brew"; do
   fi
 done
 
-# OrbStack bin — must precede Homebrew so docker resolves to OrbStack
-[ -d "$HOME/.orbstack/bin" ] && export PATH="$HOME/.orbstack/bin:$PATH"
+# OrbStack — PATH must precede Homebrew so docker resolves to OrbStack
+if [ -d "$HOME/.orbstack/bin" ]; then
+  export PATH="$HOME/.orbstack/bin:$PATH"
+  fpath+=(/Applications/OrbStack.app/Contents/MacOS/../Resources/completions/zsh)
+fi
 
 # Golang
 export GOROOT="$(brew --prefix golang)/libexec"
