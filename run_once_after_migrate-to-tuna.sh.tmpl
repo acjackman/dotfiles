@@ -1,0 +1,50 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# One-shot migration: Leader Key + Alfred → Tuna.
+#
+# Quits the old launchers (so they release Cmd+Space / Opt+Space) and removes
+# Leader Key's Application Support state. Cask uninstall is handled by
+# Brewfile drift via the existing brew-bundle-cleanup machinery. The Alfred
+# preferences tree at ~/.config/alfred is taken down by .chezmoiremove.
+#
+# Idempotent: on machines that never had Leader Key or Alfred installed,
+# every branch becomes a no-op. Chezmoi only runs this script once per
+# machine (hash-tracked).
+
+set -euo pipefail
+
+app_running() {
+  local name="$1"
+  [ "$(osascript -e "application \"$name\" is running" 2>/dev/null)" = "true" ]
+}
+
+quit_app() {
+  local name="$1"
+  if app_running "$name"; then
+    echo "Quitting $name..."
+    osascript -e "tell application \"$name\" to quit" || true
+    # Wait briefly so the next launcher can bind the same global hotkey.
+    for _ in $(seq 1 40); do
+      if ! app_running "$name"; then
+        break
+      fi
+      sleep 0.25
+    done
+  fi
+}
+
+quit_app "Leader Key"
+quit_app "Alfred"
+quit_app "Alfred 5"  # cask installs as "Alfred 5.app" — osascript may need either name
+
+LEADER_SUPPORT="${HOME}/Library/Application Support/Leader Key"
+if [ -d "$LEADER_SUPPORT" ]; then
+  echo "Removing $LEADER_SUPPORT"
+  rm -rf "$LEADER_SUPPORT"
+fi
+
+# Defaults domain — tidy up Leader Key's preferences. Harmless if absent.
+defaults delete com.brnbw.Leader-Key 2>/dev/null || true
+
+echo "Tuna migration cleanup complete."
+{{ end -}}
