@@ -1,0 +1,174 @@
+[[comboMode.bindings]]
+key = 't'
+
+    [[comboMode.bindings.children]]
+    key = 't'
+    url = 'tuna://run/path.%252FApplications%252FGhostty.app/Open'
+
+    [[comboMode.bindings.children]]
+    key = 'c'
+    url = 'tuna://run/path.%252FApplications%252Fcmux.app/Open'
+
+    [[comboMode.bindings.children]]
+    key = 'n'
+    label = 'New Window + Sesh'
+    url = 'tuna://run/text.~%252F.config%252Fghostty%252Fghostty-sesh/Run%20Text%20as%20Shell%20Command'
+
+    [[comboMode.bindings.children]]
+    key = 'd'
+    label = 'Dotfiles Session'
+    url = 'tuna://run/text.~%252F.config%252Ftmux%252Factivate-or-open-ghostty.sh%2520dotfiles%2520~%252F.local%252Fshare%252Fchezmoi/Run%20Text%20as%20Shell%20Command'
+
+    [[comboMode.bindings.children]]
+    key = 'i'
+    label = 'Infra Session'
+    url = 'tuna://run/text.~%252F.config%252Ftmux%252Factivate-or-open-ghostty.sh%2520infra%2520~%252Fdev%252Fmoov%252Finfra/Run%20Text%20as%20Shell%20Command'
+
+[[comboMode.bindings]]
+key = 'e'
+url = 'tuna://run/path.%252FApplications%252Fcmux.app/Open'
+
+[[comboMode.bindings]]
+key = 'r'
+
+    [[comboMode.bindings.children]]
+    key = 's'
+    url = 'tuna://run/path.%252FApplications%252FSafari.app/Open'
+
+    [[comboMode.bindings.children]]
+    key = 'c'
+    url = 'tuna://run/path.%252FApplications%252FGoogle%2520Chrome.app/Open'
+
+    [[comboMode.bindings.children]]
+    key = 'a'
+    url = 'tuna://run/path.%252FApplications%252FArc.app/Open'
+
+    [[comboMode.bindings.children]]
+    key = 'b'
+    url = 'tuna://run/path.%252FApplications%252FBrave%2520Browser.app/Open'
+
+[[comboMode.bindings]]
+key = 'p'
+label = 'DeskPad'
+
+    [[comboMode.bindings.children]]
+    key = 'p'
+    url = 'tuna://run/path.%252FApplications%252FDeskPad.app/Open'
+
+    [[comboMode.bindings.children]]
+    key = 'q'
+    label = 'Quit DeskPad'
+    url = "tuna://run/text.osascript%2520-e%2520'quit%2520app%2520%2522DeskPad%2522'/Run%20Text%20as%20Shell%20Command"
+
+[[comboMode.bindings]]
+key = 'u'
+label = 'UI Tweaks'
+
+    [[comboMode.bindings.children]]
+    key = 'p'
+    label = 'Toggle DeskPad'
+    url = "tuna://run/text.osascript%2520-e%2520'if%2520application%2520%2522DeskPad%2522%2520is%2520running%2520then'%2520-e%2520'quit%2520app%2520%2522DeskPad%2522'%2520-e%2520'else'%2520-e%2520'tell%2520application%2520%2522DeskPad%2522%2520to%2520activate'%2520-e%2520'end%2520if'/Run%20Text%20as%20Shell%20Command"
+
+    [[comboMode.bindings.children]]
+    key = 'w'
+    label = 'Rotate Wallpapers'
+    url = 'tuna://run/url.hammerspoon:%252F%252Frotate-wallpapers/Open%20URL'
+
+    [[comboMode.bindings.children]]
+    key = 'd'
+    label = 'Toggle Dark Mode'
+    url = "tuna://run/text.osascript%2520-e%2520'tell%2520app%2520%2522System%2520Events%2522%2520to%2520tell%2520appearance%2520preferences%2520to%2520set%2520dark%2520mode%2520to%2520not%2520dark%2520mode'/Run%20Text%20as%20Shell%20Command"
+
+    [[comboMode.bindings.children]]
+    key = 'v'
+    label = 'Toggle Vim Mode (ovim)'
+    url = 'tuna://run/text.,ovim-in-place/Run%20Text%20as%20Shell%20Command'
+
+    [[comboMode.bindings.children]]
+    key = 'h'
+    label = 'HazeOver'
+
+        [[comboMode.bindings.children.children]]
+        key = 'h'
+        label = 'Toggle'
+        url = "tuna://run/text.osascript%2520-e%2520'tell%2520app%2520%2522HazeOver%2522%2520to%2520set%2520enabled%2520to%2520not%2520enabled'/Run%20Text%20as%20Shell%20Command"
+
+        [[comboMode.bindings.children.children]]
+        key = '='
+        label = 'Increase Opacity'
+        url = "tuna://run/text.osascript%2520-e%2520'tell%2520app%2520%2522HazeOver%2522%2520to%2520set%2520intensity%2520to%2520(intensity%2520+%252010)'/Run%20Text%20as%20Shell%20Command"
+
+        [[comboMode.bindings.children.children]]
+        key = '-'
+        label = 'Decrease Opacity'
+        url = "tuna://run/text.osascript%2520-e%2520'tell%2520app%2520%2522HazeOver%2522%2520to%2520set%2520intensity%2520to%2520(intensity%2520-%252010)'/Run%20Text%20as%20Shell%20Command"
+
+[[comboMode.bindings]]
+key = 'a'
+label = 'SuperWhisper'
+
+    [[comboMode.bindings.children]]
+    key = 'r'
+    label = 'Toggle Recording'
+    url = "tuna://run/text.osascript%2520-e%2520'tell%2520application%2520%2522System%2520Events%2522%2520to%2520key%2520code%252064%2520using%2520%257Bcommand%2520down,%2520option%2520down,%2520control%2520down,%2520shift%2520down%257D'/Run%20Text%20as%20Shell%20Command"
+
+    [[comboMode.bindings.children]]
+    key = 'm'
+    label = 'Change Mode'
+    url = "tuna://run/text.osascript%2520-e%2520'tell%2520application%2520%2522System%2520Events%2522%2520to%2520key%2520code%252064%2520using%2520%257Bcommand%2520down,%2520option%2520down,%2520control%2520down%257D'/Run%20Text%20as%20Shell%20Command"
+
+[[comboMode.bindings]]
+key = 'o'
+label = 'Open'
+
+    [[comboMode.bindings.children]]
+    key = 'e'
+    url = 'tuna://run/path.%252FApplications%252FMail.app/Open'
+
+    [[comboMode.bindings.children]]
+    key = 'i'
+    url = 'tuna://run/path.%252FSystem%252FApplications%252FMusic.app/Open'
+
+    [[comboMode.bindings.children]]
+    key = 'm'
+    url = 'tuna://run/path.%252FApplications%252FMessages.app/Open'
+
+[[comboMode.bindings]]
+key = 'enter'
+label = 'Brain'
+
+    [[comboMode.bindings.children]]
+    iconPath = '/Applications/Obsidian.app'
+    key = 'enter'
+    label = 'Log Entry'
+    url = 'tuna://run/text.brain-log/Run%20Text%20as%20Shell%20Command'
+
+    [[comboMode.bindings.children]]
+    iconPath = '/Applications/Obsidian.app'
+    key = 'b'
+    label = 'Today'
+    url = 'tuna://run/text.brain-today/Run%20Text%20as%20Shell%20Command'
+
+    [[comboMode.bindings.children]]
+    iconPath = '/Applications/Obsidian.app'
+    key = 'space'
+    label = 'Capture'
+    url = 'tuna://run/text.brain-capture/Run%20Text%20as%20Shell%20Command'
+
+    [[comboMode.bindings.children]]
+    iconPath = '/Applications/Obsidian.app'
+    key = 'h'
+    label = 'Launchpad'
+    url = 'tuna://run/text.brain-launchpad/Run%20Text%20as%20Shell%20Command'
+
+    [[comboMode.bindings.children]]
+    iconPath = '/Applications/Obsidian.app'
+    key = 'a'
+    label = 'Atlas'
+    url = 'tuna://run/text.brain-atlas/Run%20Text%20as%20Shell%20Command'
+
+    [[comboMode.bindings.children]]
+    iconPath = '/Applications/Alacritty.app'
+    key = 't'
+    label = 'Terminal'
+    url = 'tuna://run/text.brain-terminal/Run%20Text%20as%20Shell%20Command'

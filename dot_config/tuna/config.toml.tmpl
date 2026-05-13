@@ -1,0 +1,15 @@
+{{/*
+  Tuna config — assembled by chezmoi from .chezmoitemplates/tuna/{bindings,settings}.
+
+  - Edit `.chezmoitemplates/tuna/bindings`  to change combo-mode bindings.
+  - Edit `.chezmoitemplates/tuna/settings`  to change hotkeys, theme, or the
+    clipboard-history shortcut.
+
+  Drift caught by `chezmoi diff` after Tuna's UI rewrites the deployed file.
+  Backport via `chezmoi merge ~/.config/tuna/config.toml` (or copy the
+  changed lines into the relevant fragment by hand).
+*/ -}}
+schemaVersion = 1
+
+{{ template "tuna/bindings" . }}
+{{ template "tuna/settings" . -}}

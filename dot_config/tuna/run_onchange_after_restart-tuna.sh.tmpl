@@ -1,0 +1,29 @@
+{{- if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Restart Tuna whenever the rendered config.toml content changes. Tuna doesn't
+# watch its config file, so a manual quit + relaunch is the only way to make
+# binding/hotkey/theme edits take effect.
+#
+# The hash below is recomputed at chezmoi-template time from the two fragments
+# this script's twin config.toml.tmpl concatenates. Any edit to those
+# fragments changes this script's content, which is how chezmoi knows to
+# re-run it (run_onchange_ tracks content hashes).
+#
+# fragment-hash: {{ include ".chezmoitemplates/tuna/bindings" | sha256sum }}-{{ include ".chezmoitemplates/tuna/settings" | sha256sum }}
+
+set -euo pipefail
+
+if [ "$(osascript -e 'application "Tuna" is running' 2>/dev/null)" = "true" ]; then
+  echo "Quitting Tuna..."
+  osascript -e 'tell application "Tuna" to quit' || true
+  for _ in $(seq 1 40); do
+    [ "$(osascript -e 'application "Tuna" is running' 2>/dev/null)" != "true" ] && break
+    sleep 0.25
+  done
+fi
+
+if [ -d /Applications/Tuna.app ]; then
+  open -a Tuna
+  echo "Restarted Tuna."
+fi
+{{ end -}}

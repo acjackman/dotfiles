@@ -51,7 +51,7 @@ Check each integration point and add config where relevant:
 
 - **Aerospace** (`dot_config/aerospace/`): Add `on-window-detected` rules for window management (floating, workspace assignment, etc.). Check the app's `app-id` with: `mdls -name kMDItemCFBundleIdentifier /Applications/<App>.app`
 - **Sketchybar** (`dot_config/sketchybar/`): Add status bar items or plugins if the app has state worth displaying
-- **Tuna** (`dot_config/tuna/`): Add launch/toggle keybindings to `config.toml` (or a sibling `.toml`) under appropriate combo-mode groups
+- **Tuna** (`.chezmoitemplates/tuna/bindings`): Add launch/toggle keybindings as a new `[[comboMode.bindings]]` block (or a `[[comboMode.bindings.children]]` under an existing group). Easiest authoring path: add the binding in Tuna's UI first, then copy the rendered line(s) out of `~/.config/tuna/config.toml`.
 - **Karabiner/Goku** (`dot_config/karabiner/`): Add keyboard shortcuts or modifier rules
 - **PATH** (`dot_local/bin/`): If the app bundles a CLI tool, create a symlink so it's on PATH: `symlink_toolname` pointing to the app's binary
 - **Shell** (`dot_config/zsh/`): Add aliases, completions, or environment variables if needed

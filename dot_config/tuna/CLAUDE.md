@@ -1,84 +1,59 @@
 # Tuna Config
 
-Tuna (https://tunaformac.com) reads `~/.config/tuna/config.toml`, but that
-file is **generated** — never edit it directly. The generator script writes
-it on every `chezmoi apply` and on hand-runs of /apply.
-
-After editing anything under `sources/`, run `/apply`. The
-`run_onchange_after_generate_config.py.tmpl` script merges the v2-tree binding
-sources, prepends `schemaVersion`, appends `sources/settings.toml`, writes
-the result to `~/.config/tuna/config.toml`, and restarts Tuna.
+Tuna (https://tunaformac.com) reads `~/.config/tuna/config.toml`. chezmoi
+owns this file: the source is `dot_config/tuna/config.toml.tmpl`, which
+concatenates two raw-Tuna-format fragments from `.chezmoitemplates/tuna/`.
 
 ## Layout
 
-- `sources/config.toml` — top-level binding tree.
-- `sources/notes.toml.tmpl` — Brain/notes leader sub-tree (templated for
-  vault name).
-- `sources/settings.toml` — seed for `[hotkeys.*]` + `[settings]` used only
-  on fresh installs. After the first run Tuna owns those tables; the
-  generator preserves whatever Tuna last wrote so UI-driven theme/hotkey
-  changes survive `chezmoi apply`. NOT merged into the binding tree.
-- `shims/` — small executables placed on `PATH` so leader bindings can
-  invoke `brain-log`, `brain-capture`, etc. as plain commands.
-- `run_onchange_after_generate_config.py.tmpl` — the generator. Re-runs
-  whenever any source `*.toml` (except `settings.toml`) changes.
+    .chezmoitemplates/tuna/
+    ├── bindings              ← raw [[comboMode.bindings]] section
+    └── settings              ← raw [hotkeys.*] + [[hotkeys.custom]] + [settings]
 
-The deployed structure on disk is:
+    dot_config/tuna/
+    ├── config.toml.tmpl      ← deploys to ~/.config/tuna/config.toml
+    ├── shims/                ← brain-* executables, deploys to ~/.config/tuna/shims/
+    └── run_onchange_after_restart-tuna.sh.tmpl  ← restarts Tuna on fragment changes
 
-    ~/.config/tuna/
-    ├── config.toml     ← GENERATED (do not edit)
-    ├── sources/        ← chezmoi-managed v2 sources
-    └── shims/
+## Workflow
 
-Sources live in a subdir so chezmoi doesn't deploy a v2 TOML on top of
-Tuna's own `config.toml`.
+**Edit bindings:** modify `.chezmoitemplates/tuna/bindings` then `/apply`.
+**Edit hotkeys/theme/clipboard hotkey:** modify `.chezmoitemplates/tuna/settings`.
 
-## Source format (v2 nested map)
+## Drift detection (UI-driven changes)
 
-```toml
-[t]
-rank = 10                       # lower sorts earlier among siblings
+Because chezmoi owns the deployed file, anything Tuna's UI writes that
+diverges from the templates shows up as `chezmoi diff`. To backport a
+UI change into source:
 
-[t.children.n]
-label = "New Window + Sesh"     # group / leaf label
-
-[t.children.n.action]
-rank = 20
-kind = "command"                # "application" | "command" | "url"
-value = "~/.config/ghostty/ghostty-sesh"
-iconPath = "/Applications/Ghostty.app"   # optional, leaf-only
+```sh
+chezmoi diff dot_config/tuna             # see what differs
+chezmoi merge ~/.config/tuna/config.toml # interactive 3-way merge
+# …then split the merged content back into the bindings/settings fragments.
 ```
 
-A node is a **group** if it has `children`, a **leaf** if it has `action`.
-Mixing both on one node is rejected. `rank` may be set on either the node
-or the action; lower sorts first, ties broken by label then key.
+Or just inspect the diff and hand-edit the right fragment.
 
-Set `disabled = true` to omit a node from the emitted config.
+## URL encoding
 
-Multiple files in this directory are merged: children deep-merge by key,
-labels prefer non-empty overrides, actions override.
+Combo-mode action URLs use Tuna's native format:
 
-## Output format (Tuna's TOML)
+    tuna://run/<type>.<DOUBLE-URL-encoded-value>/<URL-encoded-action-label>
 
-Each `kind` maps to a `tuna://run/<type>.<value>/<action>` URL:
-
-| kind          | type   | action label                  |
+| Action kind   | type   | action label                  |
 |---------------|--------|-------------------------------|
-| `application` | `path` | `Open`                        |
-| `command`     | `text` | `Run Text as Shell Command`   |
-| `url`         | `url`  | `Open URL`                    |
+| Open an app   | `path` | `Open`                        |
+| Shell command | `text` | `Run%20Text%20as%20Shell%20Command` |
+| Open a URL    | `url`  | `Open%20URL`                  |
 
-The action's `value` is URL-encoded **twice** (only `A-Za-z0-9-_.~` plus
-`!$&'()*+,:;=@` stay literal — matches Swift's `urlPathAllowed` minus `/`).
-The action label is URL-encoded once.
+The value is URL-encoded **twice**. Characters that stay literal:
+`A-Za-z0-9-_.~` plus `!$&'()*+,:;=@` (Swift's `urlPathAllowed` minus `/`).
+Easiest way to author a new binding: add it through Tuna's UI, then copy
+the line out of `~/.config/tuna/config.toml` into the fragment.
 
-Round-trip is validated against Tuna's own writer; if you add a new `kind`
-or hit an encoding mismatch, update `_URL_SAFE` / `_KIND_TO_TUNA` in the
-generator and re-test against a hand-written `~/.config/tuna/config.toml`.
+## Restart behavior
 
-## Migration footnote
-
-Quitting Leader Key + Alfred (and removing their stale state) is handled by
-the separate `run_once_after_migrate-to-tuna.sh.tmpl` at the repo root, not
-by this generator. The generator only owns the Tuna config file and Tuna
-restarts.
+Tuna doesn't watch its own config file. The
+`run_onchange_after_restart-tuna.sh.tmpl` script computes a hash of both
+fragments at chezmoi-template time and re-runs whenever either changes,
+quitting + relaunching Tuna so new bindings/hotkeys take effect.
