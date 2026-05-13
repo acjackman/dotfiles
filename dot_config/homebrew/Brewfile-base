@@ -10,6 +10,7 @@ tap "ttscoff/thelab"
 tap "FelixKratz/formulae"
 tap "yqrashawn/goku"
 tap "manaflow-ai/cmux"
+tap "mikker/tap"
 tap "raine/workmux"
 tap "max-sixty/worktrunk"
 tap "steipete/tap"
@@ -191,7 +192,7 @@ cask "linearmouse"                         # Trackpad natural, mouseweel normal 
 cask "raycast"                             # Launcher
 cask "espanso"                             # Text expansion
 cask "homerow"                             # keyboard driven clicks
-cask "leader-key"                          # Leader Key
+cask "mikker/tap/tuna"                     # Tuna – hotkey launcher (replaces Leader Key)
 cask "hazeover"                            # Dim inactive windows
 cask "contexts"                            # Window switcher
 

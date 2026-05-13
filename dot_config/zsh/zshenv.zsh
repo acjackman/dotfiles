@@ -8,5 +8,6 @@ export GOKU_EDN_CONFIG_FILE="${XDG_CONFIG_HOME}/karabiner/karabiner.edn"
 
 export CODEX_HOME="${XDG_CONFIG_HOME}/codex"
 
-# Leader Key shims — sourced by all zsh shells (login, interactive, or plain)
-export PATH="$PATH:$HOME/.config/leader-key/shims"
+# Tuna shims — sourced by all zsh shells (login, interactive, or plain).
+# Lets combo-mode bindings invoke brain-* as plain commands.
+export PATH="$PATH:$HOME/.config/tuna/shims"
