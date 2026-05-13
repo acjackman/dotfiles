@@ -1,6 +1,22 @@
 {{- if eq .chezmoi.os "darwin" -}}
 #!/bin/bash
+# Explicit uninstalls. brew bundle does not remove casks/formulae that are
+# absent from the Brewfile — those have to be torn down here. This script
+# re-runs whenever its content changes (run_onchange_), so each removal
+# fires once per machine.
 
-# Uninstall apps
+set -uo pipefail
 
-{{- end -}}
+uninstall_cask() {
+  local cask="$1"
+  if brew list --cask "$cask" >/dev/null 2>&1; then
+    echo "Uninstalling cask: $cask"
+    brew uninstall --cask "$cask" || true
+  fi
+}
+
+# Tuna migration — Leader Key + Alfred replaced by Tuna.
+uninstall_cask "leader-key"
+uninstall_cask "alfred"
+
+{{ end -}}
