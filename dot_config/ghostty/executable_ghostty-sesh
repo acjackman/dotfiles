@@ -1,6 +1,6 @@
 #!/bin/bash
 # Open a new Ghostty window with the sesh session picker.
-# Used by Hammerspoon (Cmd+N) and leader-key.
+# Used by Hammerspoon (Cmd+N) and Tuna.
 #
 # NOTE: Do not use `open -na Ghostty.app --args -e ...` here — it spawns a
 # separate Ghostty process which adds extra Dock icons. Instead we use

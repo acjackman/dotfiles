@@ -22,7 +22,7 @@ If none of these apply, make it a script. Scripts are shell-agnostic, independen
 - Use type hints (from `typing` import)
 - Prefer `pathlib.Path` over string paths
 - Use `tomllib` (3.11+) or `tomli` for TOML parsing
-- Follow existing patterns: see `dot_config/leader-key/run_onchange_after_generate_config.py.tmpl`
+- Follow existing patterns: see `dot_config/tuna/run_onchange_after_generate_config.py.tmpl`
 
 ## Lua (Neovim)
 

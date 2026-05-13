@@ -26,7 +26,7 @@ All three files are symlinked from `~/Library/Application Support/ovim/` → `~/
 
 - **Sketchybar**: `plugins/ovim.sh` shows vim mode in center bar, reads `settings.yaml` for enabled state
 - **Aerospace**: `aerospace.toml` floats both `org.alacritty` and `com.tonis.ovim`
-- **Leader Key**: `u → v` runs `,ovim-in-place` to toggle in-place mode
+- **Tuna**: `u → v` (under "UI Tweaks") runs `,ovim-in-place` to toggle in-place mode
 - **Brewfile**: `tonisives/tap/ovim` and `alacritty` casks
 - **PATH**: `~/.local/bin/ovim` symlinks to `/Applications/ovim.app/Contents/MacOS/ovim`
 

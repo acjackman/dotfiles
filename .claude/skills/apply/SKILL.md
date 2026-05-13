@@ -46,4 +46,3 @@ Apply chezmoi dotfile changes from the source repository to their target locatio
   - `dot_config/nvim/` — run `nvim --headless "+Lazy! restore" +qa`
   - `private_Library/.../Cursor/User/` — run `cursor --install-extension` directly
   - `data/mise/` — run `mise upgrade` directly
-  - `dot_config/alfred/` — no simple workaround; merge to main first

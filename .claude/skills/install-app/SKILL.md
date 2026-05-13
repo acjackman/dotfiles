@@ -51,7 +51,7 @@ Check each integration point and add config where relevant:
 
 - **Aerospace** (`dot_config/aerospace/`): Add `on-window-detected` rules for window management (floating, workspace assignment, etc.). Check the app's `app-id` with: `mdls -name kMDItemCFBundleIdentifier /Applications/<App>.app`
 - **Sketchybar** (`dot_config/sketchybar/`): Add status bar items or plugins if the app has state worth displaying
-- **Leader Key** (`dot_config/leader-key/`): Add launch/toggle keybindings under appropriate groups
+- **Tuna** (`dot_config/tuna/`): Add launch/toggle keybindings to `config.toml` (or a sibling `.toml`) under appropriate combo-mode groups
 - **Karabiner/Goku** (`dot_config/karabiner/`): Add keyboard shortcuts or modifier rules
 - **PATH** (`dot_local/bin/`): If the app bundles a CLI tool, create a symlink so it's on PATH: `symlink_toolname` pointing to the app's binary
 - **Shell** (`dot_config/zsh/`): Add aliases, completions, or environment variables if needed

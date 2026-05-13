@@ -29,6 +29,6 @@ echo -n '{"shift":false,"key":"-","command":false,"control":true,"option":false}
 
 - **Ghostty**: `dot_config/ghostty/` — terminal settings (fonts, theme, colors)
 - **Aerospace**: `dot_config/aerospace/aerospace.toml` — workspace `T` rule
-- **Leader Key**: `dot_config/leader-key/config.toml` — `t > c` launch binding
+- **Tuna**: `dot_config/tuna/config.toml` — `t > c` launch binding (and `e` opens cmux directly)
 - **Karabiner**: `data/karabiner/karabiner.edn` — excluded from "Simultaneous jk" rule
 - **Brewfile**: `dot_config/homebrew/Brewfile-base` — `cask "cmux"`
