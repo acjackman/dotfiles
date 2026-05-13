@@ -14,10 +14,10 @@ the result to `~/.config/tuna/config.toml`, and restarts Tuna.
 - `sources/config.toml` — top-level binding tree.
 - `sources/notes.toml.tmpl` — Brain/notes leader sub-tree (templated for
   vault name).
-- `sources/settings.toml` — static `[hotkeys.*]` + `[settings]` block. NOT
-  merged into the binding tree; appended verbatim after the generated
-  bindings. Edit by hand to change hotkeys, theme, or clipboard-history
-  shortcut.
+- `sources/settings.toml` — seed for `[hotkeys.*]` + `[settings]` used only
+  on fresh installs. After the first run Tuna owns those tables; the
+  generator preserves whatever Tuna last wrote so UI-driven theme/hotkey
+  changes survive `chezmoi apply`. NOT merged into the binding tree.
 - `shims/` — small executables placed on `PATH` so leader bindings can
   invoke `brain-log`, `brain-capture`, etc. as plain commands.
 - `run_onchange_after_generate_config.py.tmpl` — the generator. Re-runs

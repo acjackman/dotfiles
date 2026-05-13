@@ -297,6 +297,50 @@ def emit_bindings(root: Tree) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Existing-config splice
+# ---------------------------------------------------------------------------
+
+
+def _extract_tail(path: Path) -> str | None:
+    """Return the [hotkeys.*]/[settings]/[[hotkeys.custom]] portion of an
+    existing Tuna config.toml so it can be preserved across regenerations.
+
+    Heuristic: find the first top-level table header (line starting with `[`
+    or `[[`, ignoring whitespace) whose namespace is NOT `comboMode.bindings`.
+    Everything from that header to EOF is the tail.
+
+    Returns None when no existing file or no recognizable tail (e.g. fresh
+    install) — caller should fall back to the seed.
+    """
+    if not path.exists():
+        return None
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception:
+        return None
+
+    lines = text.splitlines(keepends=True)
+    saw_binding = False
+    for i, raw_line in enumerate(lines):
+        stripped = raw_line.lstrip()
+        if stripped.startswith("[[comboMode.bindings") or stripped.startswith(
+            "[comboMode.bindings"
+        ):
+            saw_binding = True
+            continue
+        # Top-level (non-indented) header that isn't a binding subtable
+        # marks where the tail begins.
+        if (
+            raw_line.startswith("[")
+            and saw_binding
+            and not stripped.startswith("[[comboMode")
+            and not stripped.startswith("[comboMode")
+        ):
+            return "".join(lines[i:]).rstrip("\n") + "\n"
+    return None  # file has bindings only (or nothing) — no tail to preserve
+
+
+# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -331,21 +375,30 @@ def main() -> int:
     bindings_block = emit_bindings(root)
 
     # Compose final config.toml:
-    #   schemaVersion preamble → bindings → settings.toml verbatim.
-    # schemaVersion lives in the generator (not settings.toml) so the static
-    # file can be a clean run of [hotkeys.*] + [settings] tables.
+    #   schemaVersion (preamble)
+    #   [[comboMode.bindings]]   ← generator-owned
+    #   [hotkeys.*] + [settings] ← Tuna-owned, preserved from existing file
+    #
+    # On fresh machines (no existing config.toml) we splice in
+    # sources/settings.toml as a seed so the user has working hotkeys and a
+    # theme without launching Tuna's UI first. On subsequent applies we
+    # take the tail verbatim from whatever Tuna last wrote, so UI-driven
+    # changes to theme/hotkeys/clipboard-history survive.
     preamble = "schemaVersion = 1\n\n"
-
-    if not SETTINGS_PATH.exists():
-        print(f"Warning: {SETTINGS_PATH} not found — emitting bindings only.")
-        settings_block = ""
+    tail = _extract_tail(DEST_PATH)
+    if tail is None:
+        if SETTINGS_PATH.exists():
+            tail = SETTINGS_PATH.read_text(encoding="utf-8").rstrip("\n") + "\n"
+            print(f"Seeded [hotkeys]/[settings] from {SETTINGS_PATH}.")
+        else:
+            tail = ""
+            print(f"Warning: {SETTINGS_PATH} not found and no existing tail to preserve.")
     else:
-        settings_block = SETTINGS_PATH.read_text(encoding="utf-8").rstrip("\n") + "\n"
+        print("Preserved [hotkeys]/[settings] tail from existing config.")
 
     output = preamble + bindings_block
-    if settings_block:
-        # One blank line separating bindings from the settings block.
-        output = output.rstrip("\n") + "\n\n" + settings_block
+    if tail:
+        output = output.rstrip("\n") + "\n\n" + tail
 
     CONFIG_DIR.mkdir(parents=True, exist_ok=True)
 

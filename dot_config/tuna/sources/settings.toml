@@ -1,8 +1,15 @@
-# Static, non-binding portions of Tuna's config. Appended verbatim after the
-# generated [[comboMode.bindings]] section. Edit by hand; the generator does
-# not touch this file. The leading `schemaVersion` key Tuna writes at the top
-# of its own config.toml is emitted by the generator, not stored here, so
-# this file can stay a clean run of [hotkeys.*] + [settings] tables.
+# Seed values for the non-binding portion of Tuna's config. The generator
+# splices this in only on FRESH installs (when ~/.config/tuna/config.toml
+# doesn't exist yet). On subsequent runs Tuna owns these tables and the
+# generator preserves whatever Tuna last wrote, so theme/hotkey/clipboard
+# changes made through Tuna's UI survive `chezmoi apply`.
+#
+# Editing this file therefore changes the seed for new machines; existing
+# machines already have a [hotkeys]/[settings] tail in their config.toml
+# and will keep using that.
+#
+# The leading `schemaVersion` key is emitted by the generator, not stored
+# here.
 #
 # Hotkey modifiers are Carbon constants:
 #   cmdKey      = 256
