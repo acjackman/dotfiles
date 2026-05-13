@@ -1,25 +1,37 @@
 # Tuna Config
 
-Tuna (https://tunaformac.com) reads `~/.config/tuna/config.toml`. This
-directory is the source of truth — never edit the deployed file directly;
-chezmoi will overwrite it.
+Tuna (https://tunaformac.com) reads `~/.config/tuna/config.toml`, but that
+file is **generated** — never edit it directly. The generator script writes
+it on every `chezmoi apply` and on hand-runs of /apply.
 
-After making changes to any `*.toml` here, run `/apply`. The
+After editing anything under `sources/`, run `/apply`. The
 `run_onchange_after_generate_config.py.tmpl` script merges the v2-tree binding
-sources, prepends `schemaVersion`, appends `settings.toml`, writes the result
-to `~/.config/tuna/config.toml`, and restarts Tuna.
+sources, prepends `schemaVersion`, appends `sources/settings.toml`, writes
+the result to `~/.config/tuna/config.toml`, and restarts Tuna.
 
 ## Layout
 
-- `config.toml` — top-level binding tree.
-- `notes.toml.tmpl` — Brain/notes leader sub-tree (templated for vault name).
-- `settings.toml` — static `[hotkeys.*]` + `[settings]` block. NOT merged
-  into the binding tree; appended verbatim after the generated bindings.
-  Edit by hand to change hotkeys, theme, or clipboard-history shortcut.
+- `sources/config.toml` — top-level binding tree.
+- `sources/notes.toml.tmpl` — Brain/notes leader sub-tree (templated for
+  vault name).
+- `sources/settings.toml` — static `[hotkeys.*]` + `[settings]` block. NOT
+  merged into the binding tree; appended verbatim after the generated
+  bindings. Edit by hand to change hotkeys, theme, or clipboard-history
+  shortcut.
 - `shims/` — small executables placed on `PATH` so leader bindings can
   invoke `brain-log`, `brain-capture`, etc. as plain commands.
 - `run_onchange_after_generate_config.py.tmpl` — the generator. Re-runs
   whenever any source `*.toml` (except `settings.toml`) changes.
+
+The deployed structure on disk is:
+
+    ~/.config/tuna/
+    ├── config.toml     ← GENERATED (do not edit)
+    ├── sources/        ← chezmoi-managed v2 sources
+    └── shims/
+
+Sources live in a subdir so chezmoi doesn't deploy a v2 TOML on top of
+Tuna's own `config.toml`.
 
 ## Source format (v2 nested map)
 
@@ -66,7 +78,7 @@ generator and re-test against a hand-written `~/.config/tuna/config.toml`.
 
 ## Migration footnote
 
-The first run after Leader Key → Tuna also quits any running `Leader Key`
-and `Alfred` instances. The trigger is "no `[[comboMode.bindings]]` header
-in the existing `config.toml`" — so once the new config is in place this
-step becomes a no-op on subsequent applies.
+Quitting Leader Key + Alfred (and removing their stale state) is handled by
+the separate `run_once_after_migrate-to-tuna.sh.tmpl` at the repo root, not
+by this generator. The generator only owns the Tuna config file and Tuna
+restarts.

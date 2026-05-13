@@ -1,8 +1,22 @@
 #!/usr/bin/env python3
 """
-Merge all *.toml under ~/.config/tuna (except settings.toml) into a single
-v2 binding tree, emit it as the [[comboMode.bindings]] section of
-~/.config/tuna/config.toml, append settings.toml verbatim, and restart Tuna.
+Merge all *.toml under ~/.config/tuna/sources (except settings.toml) into a
+single v2 binding tree, emit it as the [[comboMode.bindings]] section of
+~/.config/tuna/config.toml, append sources/settings.toml verbatim, and
+restart Tuna.
+
+Layout:
+
+    ~/.config/tuna/
+    ├── config.toml           ← OUTPUT (written by this script; Tuna reads it)
+    ├── sources/              ← INPUT (chezmoi-managed)
+    │   ├── config.toml       ← v2 binding tree
+    │   ├── notes.toml        ← v2 binding tree
+    │   └── settings.toml     ← static hotkeys/theme block, appended verbatim
+    └── shims/                ← chezmoi-managed brain-* executables
+
+Keeping sources in a subdir avoids the collision where chezmoi would otherwise
+deploy a v2 TOML on top of Tuna's own config.toml.
 
 Source format (per file) — same v2 nested map shape leader-key used:
 
@@ -45,14 +59,14 @@ Value is URL-encoded TWICE; only the unreserved set
 A-Za-z0-9-_.~ plus !$&'()*+,:;=@ stays literal (matches Swift's
 urlPathAllowed minus '/'). The action label is URL-encoded ONCE.
 
-On first run when ~/.config/tuna/config.toml has no [[comboMode.bindings]]
-yet, also quit Leader Key and Alfred so the new bindings take over cleanly.
+When the config actually changed, Tuna is quit + relaunched so it reloads.
+Migration cleanup (quitting Leader Key + Alfred, removing old state) lives
+in run_once_after_migrate-to-tuna.sh.tmpl at the repo root.
 """
 
 from __future__ import annotations
 
 import json
-import re
 import shutil
 import subprocess
 import sys
@@ -79,7 +93,7 @@ FILES = [
     line.strip().split(",")
     for line in """
 {{- $home := .chezmoi.homeDir -}}
-{{- range (glob (printf "%s/.config/tuna/*.toml" $home)) -}}
+{{- range (glob (printf "%s/.config/tuna/sources/*.toml" $home)) -}}
 {{- if ne (base .) "settings.toml" }}
 {{ . }},{{ include . | sha256sum }}
 {{- end -}}
@@ -88,8 +102,9 @@ FILES = [
 ]
 
 CONFIG_DIR = Path("~/.config/tuna").expanduser()
+SOURCES_DIR = CONFIG_DIR / "sources"
 DEST_PATH = CONFIG_DIR / "config.toml"
-SETTINGS_PATH = CONFIG_DIR / "settings.toml"
+SETTINGS_PATH = SOURCES_DIR / "settings.toml"
 
 # Tuna's percent-encoding: alphanumerics + unreserved (-._~) are always safe
 # in Python's quote(); we add the extra Swift-urlPathAllowed chars on top.
@@ -282,24 +297,6 @@ def emit_bindings(root: Tree) -> str:
 
 
 # ---------------------------------------------------------------------------
-# Existing-config awareness
-# ---------------------------------------------------------------------------
-
-
-def existing_has_bindings(path: Path) -> bool:
-    """True iff config.toml already contains a [[comboMode.bindings]] header.
-    Used to suppress the first-run quit-old-launchers step on subsequent
-    apply runs."""
-    if not path.exists():
-        return False
-    try:
-        text = path.read_text(encoding="utf-8")
-    except Exception:
-        return False
-    return bool(re.search(r"^\s*\[\[\s*comboMode\.bindings\s*\]\]", text, re.M))
-
-
-# ---------------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------------
 
@@ -324,8 +321,6 @@ def main() -> int:
     if not FILES or all(len(e) != 2 for e in FILES):
         print("No source TOML files found.")
         return 1
-
-    is_first_migration = not existing_has_bindings(DEST_PATH)
 
     # Parse + merge sources into a single v2 root tree.
     root: Tree = {}
@@ -371,16 +366,18 @@ def main() -> int:
     if sys.platform != "darwin":
         return 0
 
+    if not config_changed:
+        return 0
+
+    # Restart Tuna so it reloads the new config. Migration cleanup (quitting
+    # Leader Key + Alfred, removing old state) lives in the separate
+    # run_once_after_migrate-to-tuna.sh script — one responsibility each.
     try:
         _quit_app("Tuna")
-        if is_first_migration:
-            for app in ("Leader Key", "Alfred"):
-                _quit_app(app)
-        if config_changed or is_first_migration:
-            subprocess.run(["open", "-a", "Tuna"], check=False)
-            print("Restarted Tuna to reload configuration.")
+        subprocess.run(["open", "-a", "Tuna"], check=False)
+        print("Restarted Tuna to reload configuration.")
     except Exception as e:
-        print(f"Warning: app restart sequence failed: {type(e).__name__}: {e}")
+        print(f"Warning: Tuna restart failed: {type(e).__name__}: {e}")
     return 0
 
 
