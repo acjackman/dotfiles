@@ -1,0 +1,40 @@
+# Static, non-binding portions of Tuna's config. Appended verbatim after the
+# generated [[comboMode.bindings]] section. Edit by hand; the generator does
+# not touch this file. The leading `schemaVersion` key Tuna writes at the top
+# of its own config.toml is emitted by the generator, not stored here, so
+# this file can stay a clean run of [hotkeys.*] + [settings] tables.
+#
+# Hotkey modifiers are Carbon constants:
+#   cmdKey      = 256
+#   shiftKey    = 512
+#   optionKey   = 2048
+#   controlKey  = 4096
+#   key code 49 = Space, key code 6 = V
+
+# Opt+Space — opens Tuna's text mode (Spotlight-style search).
+[hotkeys.app.activate]
+carbonKeyCode = 49
+carbonModifiers = 2048
+
+# Cmd+Space — opens combo mode (the leader-style binding tree below).
+[hotkeys.app.comboMode]
+carbonKeyCode = 49
+carbonModifiers = 256
+
+# Ctrl+Shift+Cmd+V — clipboard history browser.
+[[hotkeys.custom]]
+id = 'F73C9531-A7CB-4B84-9D47-3ACE0DD97201'
+presentation = 'auto'
+
+    [hotkeys.custom.command]
+    actionIdentifier = 'Tuna.BasicActionsCatalog.Browse'
+    subjectIdentifier = 'Tuna.Internal.ClipboardProxyCatalog.Clipboard History'
+
+    [hotkeys.custom.shortcut]
+    carbonKeyCode = 6
+    carbonModifiers = 6912
+
+[settings]
+comboModeThemeStyle = 'cheatsheet'
+screenPreference = 'activeWindow'
+themeIdentifier = 'com.brnbw.tuna.themes.default'

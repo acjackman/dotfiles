@@ -1,0 +1,426 @@
+#!/usr/bin/env python3
+"""
+Merge all *.toml under ~/.config/tuna (except settings.toml) into a single
+v2 binding tree, emit it as the [[comboMode.bindings]] section of
+~/.config/tuna/config.toml, append settings.toml verbatim, and restart Tuna.
+
+Source format (per file) — same v2 nested map shape leader-key used:
+
+    [t]
+    rank = 10
+
+    [t.children.n]
+    label = "New Window + Sesh"
+
+    [t.children.n.action]
+    rank = 20
+    kind = "command"          # "application" | "command" | "url"
+    value = "~/.config/ghostty/ghostty-sesh"
+    iconPath = "/Applications/Ghostty.app"   # optional
+
+Node fields:
+- label:    optional string
+- action:   { kind, value, rank?, iconPath? } — leaf
+- children: map[key]node — group
+- rank:     optional number; lower sorts first within siblings (action.rank
+            is consulted if node.rank is unset)
+- disabled: optional bool; skip this node when emitting
+
+Output format (Tuna):
+
+    [[comboMode.bindings]]
+    key = 't'
+
+        [[comboMode.bindings.children]]
+        key = 'n'
+        label = 'New Window + Sesh'
+        url = 'tuna://run/text.<2x-urlenc(value)>/Run%20Text%20as%20Shell%20Command'
+
+URL kind→prefix mapping:
+    application → path./Open
+    command     → text./Run Text as Shell Command
+    url         → url./Open URL
+
+Value is URL-encoded TWICE; only the unreserved set
+A-Za-z0-9-_.~ plus !$&'()*+,:;=@ stays literal (matches Swift's
+urlPathAllowed minus '/'). The action label is URL-encoded ONCE.
+
+On first run when ~/.config/tuna/config.toml has no [[comboMode.bindings]]
+yet, also quit Leader Key and Alfred so the new bindings take over cleanly.
+"""
+
+from __future__ import annotations
+
+import json
+import re
+import shutil
+import subprocess
+import sys
+import time
+from datetime import datetime
+from pathlib import Path
+from typing import Any, Dict, Iterable, List, Tuple
+from urllib.parse import quote
+
+try:
+    import tomllib  # Python 3.11+
+except Exception:  # pragma: no cover
+    tomllib = None  # type: ignore[assignment]
+try:
+    import tomli  # type: ignore
+except Exception:  # pragma: no cover
+    tomli = None  # type: ignore[assignment]
+
+
+# chezmoi expands this glob at template time; the script then ingests the
+# fully-qualified paths. settings.toml is excluded — it's the static
+# hotkey/theme block, appended verbatim after the generated bindings.
+FILES = [
+    line.strip().split(",")
+    for line in """
+{{- $home := .chezmoi.homeDir -}}
+{{- range (glob (printf "%s/.config/tuna/*.toml" $home)) -}}
+{{- if ne (base .) "settings.toml" }}
+{{ . }},{{ include . | sha256sum }}
+{{- end -}}
+{{- end }}
+""".strip().split("\n")
+]
+
+CONFIG_DIR = Path("~/.config/tuna").expanduser()
+DEST_PATH = CONFIG_DIR / "config.toml"
+SETTINGS_PATH = CONFIG_DIR / "settings.toml"
+
+# Tuna's percent-encoding: alphanumerics + unreserved (-._~) are always safe
+# in Python's quote(); we add the extra Swift-urlPathAllowed chars on top.
+# '/' is NOT in this set, so paths get split into segments — desired.
+_URL_SAFE = "!$&'()*+,:;=@"
+
+_KIND_TO_TUNA: Dict[str, Tuple[str, str]] = {
+    "application": ("path", "Open"),
+    "command": ("text", "Run Text as Shell Command"),
+    "url": ("url", "Open URL"),
+}
+
+
+# ---------------------------------------------------------------------------
+# TOML loading
+# ---------------------------------------------------------------------------
+
+
+def load_toml_bytes(data: bytes) -> Any:
+    if tomllib is not None:
+        return tomllib.loads(data.decode("utf-8"))
+    if tomli is not None:
+        return tomli.loads(data.decode("utf-8"))  # type: ignore[misc]
+    raise RuntimeError("Reading TOML requires Python 3.11+ or the 'tomli' package.")
+
+
+# ---------------------------------------------------------------------------
+# v2 tree merge (ported from the leader-key generator)
+# ---------------------------------------------------------------------------
+
+Node = Dict[str, Any]
+Tree = Dict[str, Node]
+
+
+def normalize_to_v2_root(obj: Any) -> Tree:
+    """Accept either { root = {...} } / { tree = {...} } or a bare map of keys."""
+    if isinstance(obj, dict) and isinstance(obj.get("root"), dict):
+        return obj["root"]
+    if isinstance(obj, dict) and isinstance(obj.get("tree"), dict):
+        return obj["tree"]
+    if isinstance(obj, dict):
+        return obj
+    return {}
+
+
+def merge_nodes(base: Node, override: Node) -> Node:
+    # Group × Group: deep-merge children
+    if "children" in base and "children" in override:
+        merged_children: Tree = dict(base["children"])
+        for k, v in override["children"].items():
+            if k in merged_children:
+                merged_children[k] = merge_nodes(merged_children[k], v)
+            else:
+                merged_children[k] = v
+        result: Node = {"children": merged_children}
+        base_label = base.get("label")
+        override_label = override.get("label")
+        if override_label not in (None, ""):
+            result["label"] = override_label
+        elif base_label not in (None, ""):
+            result["label"] = base_label
+        for field in ("disabled", "rank"):
+            if field in override:
+                result[field] = override[field]
+            elif field in base:
+                result[field] = base[field]
+        return result
+
+    # Leaf × Leaf, or mixed: override wins (allows promoting a leaf to a group)
+    return override
+
+
+def merge_v2_roots(base_root: Tree, override_root: Tree) -> Tree:
+    result: Tree = dict(base_root)
+    for key, override_node in override_root.items():
+        if key in result:
+            result[key] = merge_nodes(result[key], override_node)
+        else:
+            result[key] = override_node
+    return result
+
+
+def sort_items(items: Iterable[Tuple[str, Node]]) -> List[Tuple[str, Node]]:
+    def key_fn(kv: Tuple[str, Node]):
+        key, node = kv
+        rank_value = node.get("rank")
+        if rank_value is None:
+            rank_value = (node.get("action") or {}).get("rank")
+        primary = float(rank_value) if isinstance(rank_value, (int, float)) else float("inf")
+        label = node.get("label") or ""
+        return (primary, label.lower(), key)
+
+    return sorted(items, key=key_fn)
+
+
+# ---------------------------------------------------------------------------
+# URL encoding
+# ---------------------------------------------------------------------------
+
+
+def tuna_url(kind: str, value: str) -> str:
+    """Build a tuna://run/... URL for an action.
+
+    Swift's URL percent-encoding leaves !$&'()*+,:;=@ literal in addition to
+    the always-unreserved set. Tuna encodes the value twice."""
+    if kind not in _KIND_TO_TUNA:
+        raise ValueError(f"Unknown action kind: {kind!r}")
+    type_segment, action_label = _KIND_TO_TUNA[kind]
+    enc_value = quote(quote(value, safe=_URL_SAFE), safe=_URL_SAFE)
+    enc_action = quote(action_label, safe="")
+    return f"tuna://run/{type_segment}.{enc_value}/{enc_action}"
+
+
+# ---------------------------------------------------------------------------
+# TOML emit (array-of-tables shape)
+# ---------------------------------------------------------------------------
+
+
+def _toml_string(value: str) -> str:
+    """Emit a TOML basic/literal string matching Tuna's own formatting:
+    prefer single-quoted literal strings, fall back to double-quoted basic
+    strings (escaping " and \\) when the value contains a literal apostrophe."""
+    if "'" not in value and "\n" not in value and "\r" not in value:
+        return f"'{value}'"
+    escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
+# Field emission order on a binding (matches Tuna's own writer).
+_BINDING_FIELD_ORDER = ("iconPath", "key", "label", "url")
+
+
+def _emit_binding(
+    out: List[str],
+    key: str,
+    node: Node,
+    table_path: str,
+    indent: int,
+) -> None:
+    """Append one binding (and its descendants) to `out`. Does NOT append a
+    trailing blank line — the caller separates siblings."""
+    pad = "    " * indent
+    action = node.get("action") or {}
+
+    fields: Dict[str, str] = {"key": key}
+    if node.get("label") is not None:
+        fields["label"] = node["label"]
+
+    if "children" in node:
+        if action:
+            raise ValueError(
+                f"Node {key!r} has both `children` and `action`; pick one."
+            )
+    else:
+        if not action:
+            raise ValueError(f"Leaf node {key!r} has no action.")
+        if action.get("iconPath") is not None:
+            fields["iconPath"] = action["iconPath"]
+        if action.get("label") is not None and "label" not in fields:
+            fields["label"] = action["label"]
+        kind = action.get("kind") or action.get("type")
+        if kind is None:
+            raise ValueError(f"Leaf node {key!r} action missing `kind`.")
+        fields["url"] = tuna_url(kind, action["value"])
+
+    out.append(f"{pad}[[{table_path}]]")
+    for field in _BINDING_FIELD_ORDER:
+        if field in fields:
+            out.append(f"{pad}{field} = {_toml_string(fields[field])}")
+
+    if "children" in node:
+        child_path = f"{table_path}.children"
+        children = [
+            (k, v) for k, v in node["children"].items() if not v.get("disabled")
+        ]
+        for child_key, child_node in sort_items(children):
+            out.append("")  # blank line separating siblings (and parent from first child)
+            _emit_binding(out, child_key, child_node, child_path, indent + 1)
+
+
+def emit_bindings(root: Tree) -> str:
+    """Return the [[comboMode.bindings]] section as a TOML string."""
+    lines: List[str] = []
+    top = [(k, v) for k, v in root.items() if not v.get("disabled")]
+    for idx, (key, node) in enumerate(sort_items(top)):
+        if idx > 0:
+            lines.append("")
+        _emit_binding(lines, key, node, "comboMode.bindings", indent=0)
+    return "\n".join(lines) + "\n"
+
+
+# ---------------------------------------------------------------------------
+# Existing-config awareness
+# ---------------------------------------------------------------------------
+
+
+def existing_has_bindings(path: Path) -> bool:
+    """True iff config.toml already contains a [[comboMode.bindings]] header.
+    Used to suppress the first-run quit-old-launchers step on subsequent
+    apply runs."""
+    if not path.exists():
+        return False
+    try:
+        text = path.read_text(encoding="utf-8")
+    except Exception:
+        return False
+    return bool(re.search(r"^\s*\[\[\s*comboMode\.bindings\s*\]\]", text, re.M))
+
+
+# ---------------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------------
+
+
+def main() -> int:
+    header_text = "\n".join(
+        [
+            "╔═══════════════════════════════════════════════════════════════════════════╗",
+            "║  Tuna                                                                     ║",
+            "╚═══════════════════════════════════════════════════════════════════════════╝",
+        ]
+    )
+    print(header_text)
+    print(f"Merging {len(FILES)} TOML file(s):")
+    for entry in FILES:
+        if len(entry) != 2:
+            print(f"Warning: skipping malformed file entry: {entry}")
+            continue
+        path, checksum = entry
+        print(f"- {path}: {checksum}")
+
+    if not FILES or all(len(e) != 2 for e in FILES):
+        print("No source TOML files found.")
+        return 1
+
+    is_first_migration = not existing_has_bindings(DEST_PATH)
+
+    # Parse + merge sources into a single v2 root tree.
+    root: Tree = {}
+    for path_str, _ in (e for e in FILES if len(e) == 2):
+        doc = load_toml_bytes(Path(path_str).read_bytes())
+        root = merge_v2_roots(root, normalize_to_v2_root(doc))
+
+    bindings_block = emit_bindings(root)
+
+    # Compose final config.toml:
+    #   schemaVersion preamble → bindings → settings.toml verbatim.
+    # schemaVersion lives in the generator (not settings.toml) so the static
+    # file can be a clean run of [hotkeys.*] + [settings] tables.
+    preamble = "schemaVersion = 1\n\n"
+
+    if not SETTINGS_PATH.exists():
+        print(f"Warning: {SETTINGS_PATH} not found — emitting bindings only.")
+        settings_block = ""
+    else:
+        settings_block = SETTINGS_PATH.read_text(encoding="utf-8").rstrip("\n") + "\n"
+
+    output = preamble + bindings_block
+    if settings_block:
+        # One blank line separating bindings from the settings block.
+        output = output.rstrip("\n") + "\n\n" + settings_block
+
+    CONFIG_DIR.mkdir(parents=True, exist_ok=True)
+
+    config_changed = True
+    if DEST_PATH.exists():
+        try:
+            existing = DEST_PATH.read_text(encoding="utf-8")
+            config_changed = existing != output
+        except Exception:
+            config_changed = True
+        if config_changed:
+            stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
+            shutil.copy2(DEST_PATH, DEST_PATH.with_name(DEST_PATH.name + f".bak.{stamp}"))
+
+    DEST_PATH.write_text(output, encoding="utf-8")
+    print(f"Wrote {DEST_PATH} ({len(output)} bytes, changed={config_changed})")
+
+    if sys.platform != "darwin":
+        return 0
+
+    try:
+        _quit_app("Tuna")
+        if is_first_migration:
+            for app in ("Leader Key", "Alfred"):
+                _quit_app(app)
+        if config_changed or is_first_migration:
+            subprocess.run(["open", "-a", "Tuna"], check=False)
+            print("Restarted Tuna to reload configuration.")
+    except Exception as e:
+        print(f"Warning: app restart sequence failed: {type(e).__name__}: {e}")
+    return 0
+
+
+def _quit_app(name: str) -> None:
+    """Quit a macOS app if running; wait briefly for it to terminate."""
+    try:
+        running = subprocess.run(
+            ["osascript", "-e", f'application "{name}" is running'],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if running.stdout.strip().lower() != "true":
+            return
+    except Exception:
+        return
+
+    subprocess.run(
+        ["osascript", "-e", f'tell application "{name}" to quit'],
+        check=False,
+    )
+    deadline = time.time() + 10.0
+    while time.time() < deadline:
+        check = subprocess.run(
+            ["osascript", "-e", f'application "{name}" is running'],
+            check=False,
+            capture_output=True,
+            text=True,
+        )
+        if check.stdout.strip().lower() != "true":
+            break
+        time.sleep(0.25)
+    print(f"Quit {name}.")
+
+
+if __name__ == "__main__":  # pragma: no cover
+    try:
+        raise SystemExit(main())
+    except SystemExit:
+        raise
+    except Exception as e:
+        print(f"Generator failed: {type(e).__name__}: {e}")
+        raise SystemExit(5)
