@@ -14,10 +14,10 @@ if [ -d "$HOME/.orbstack/bin" ]; then
   fpath+=(/Applications/OrbStack.app/Contents/MacOS/../Resources/completions/zsh)
 fi
 
-# Golang
+# Golang — GOPATH/bin prepended so locally-installed Go tools win over Homebrew shims
 export GOROOT="$(brew --prefix golang)/libexec"
 export GOPATH="$HOME/.local/go"
-export PATH="$PATH:${GOPATH}/bin:${GOROOT}/bin"
+export PATH="${GOPATH}/bin:$PATH:${GOROOT}/bin"
 
 # Rust
 export PATH="$PATH:$HOME/.cargo/bin"
