@@ -22,4 +22,14 @@ if [[ -z "$dir" ]]; then
   }
 fi
 
-(cd "$dir" && claude "${args[@]}")
+# Disable git signing for the agent subshell — non-interactive commits shouldn't
+# trigger signing prompts or be attributed to the user. GIT_CONFIG_COUNT layers
+# over system/global/local config without touching any files.
+(
+  cd "$dir" && \
+  GIT_CONFIG_COUNT=3 \
+  GIT_CONFIG_KEY_0=commit.gpgsign GIT_CONFIG_VALUE_0=false \
+  GIT_CONFIG_KEY_1=tag.gpgsign    GIT_CONFIG_VALUE_1=false \
+  GIT_CONFIG_KEY_2=push.gpgsign   GIT_CONFIG_VALUE_2=false \
+  claude "${args[@]}"
+)
