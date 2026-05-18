@@ -12,61 +12,18 @@ PLUGIN_DIR="$CONFIG_DIR/plugins"
 # If you are looking for other colors, see the color picker:
 # https://felixkratz.github.io/SketchyBar/config/tricks#color-picker
 
-# Restrict the bar to specific displays by excluding any display
-# whose marketing name contains "DeskPad" (case-insensitive).
-# This keeps SketchyBar from showing on the Deskpad monitor.
-INCLUDE_DISPLAYS=$(python3 - <<'PY'
-import json, subprocess, sys
+sketchybar --bar position=top height=40 blur_radius=30 color=0xff000000
 
-exclude_names = ["deskpad", "elgato prom"]
+# Restrict the bar to currently-attached displays via plugins/configure-displays.sh,
+# which excludes names matching DeskPad / Prompter. A hidden display_filter
+# item below re-runs the script on every `display_change` event so the include
+# list stays correct when monitors are attached or removed.
+"$PLUGIN_DIR/configure-displays.sh"
 
-sp = subprocess.run(["system_profiler", "SPDisplaysDataType", "-json"], capture_output=True, text=True)
-if sp.returncode != 0:
-    print(end="")
-    raise SystemExit(0)
-
-try:
-    data = json.loads(sp.stdout)
-    nds = data.get("SPDisplaysDataType", [{}])[0].get("spdisplays_ndrvs", [])
-except Exception:
-    print(end="")
-    raise SystemExit(0)
-
-exclude_ids = set()
-for d in nds:
-    name = d.get("_name", "").lower()
-    if any(x in name for x in exclude_names):
-        id_hex = d.get("_spdisplays_displayID")
-        try:
-            exclude_ids.add(int(id_hex, 16))
-        except Exception:
-            pass
-
-sb = subprocess.run(["sketchybar", "--query", "displays"], capture_output=True, text=True)
-if sb.returncode != 0:
-    print(end="")
-    raise SystemExit(0)
-
-try:
-    displays = json.loads(sb.stdout)
-except Exception:
-    print(end="")
-    raise SystemExit(0)
-
-include = [str(d.get("arrangement-id")) for d in displays if d.get("DirectDisplayID") not in exclude_ids]
-print(",".join(include), end="")
-PY
-)
-
-if [[ -n "$INCLUDE_DISPLAYS" ]]; then
-  echo "Setting bar to displays: $INCLUDE_DISPLAYS" >&2
-  sketchybar --bar position=top height=40 blur_radius=30 color=0xff000000
-  sketchybar --bar display="$INCLUDE_DISPLAYS"
-else
-  # Fallback if detection fails - show on all displays
-  echo "Display detection failed, showing on all displays" >&2
-  sketchybar --bar position=top height=40 blur_radius=30 color=0xff000000
-fi
+sketchybar --add item display_filter left \
+           --subscribe display_filter display_change \
+           --set display_filter drawing=off \
+                                script="$PLUGIN_DIR/configure-displays.sh"
 
 ##### Changing Defaults #####
 # We now change some default values, which are applied to all further items.
