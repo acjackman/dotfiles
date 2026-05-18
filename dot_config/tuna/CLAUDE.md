@@ -11,9 +11,10 @@ concatenates two raw-Tuna-format fragments from `.chezmoitemplates/tuna/`.
     └── settings              ← raw [hotkeys.*] + [[hotkeys.custom]] + [settings]
 
     dot_config/tuna/
-    ├── config.toml.tmpl      ← deploys to ~/.config/tuna/config.toml
-    ├── shims/                ← brain-* executables, deploys to ~/.config/tuna/shims/
-    └── run_onchange_after_restart-tuna.sh.tmpl  ← restarts Tuna on fragment changes
+    ├── config.toml.tmpl                              ← deploys to ~/.config/tuna/config.toml
+    ├── shims/                                        ← brain-* executables, deploys to ~/.config/tuna/shims/
+    ├── run_once_after_register-tuna-loginitem.sh.tmpl ← adds Tuna to macOS login items (per-machine)
+    └── run_onchange_after_restart-tuna.sh.tmpl       ← restarts Tuna + writes ConfigSync plist keys on fragment changes
 
 ## Workflow
 
@@ -57,3 +58,9 @@ Tuna doesn't watch its own config file. The
 `run_onchange_after_restart-tuna.sh.tmpl` script computes a hash of both
 fragments at chezmoi-template time and re-runs whenever either changes,
 quitting + relaunching Tuna so new bindings/hotkeys take effect.
+
+While Tuna is stopped, the same script also writes
+`com.brnbw.Tuna.ConfigSyncCustomFolderPath` and `ConfigSyncUsesCustomFolder`
+so Tuna reads `~/.config/tuna/config.toml` instead of its default
+Application Support location. Those keys live in the plist, not the
+config.toml, so a fresh machine would otherwise ignore the deployed config.

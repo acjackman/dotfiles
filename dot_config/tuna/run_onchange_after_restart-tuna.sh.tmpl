@@ -1,20 +1,24 @@
 {{- if eq .chezmoi.os "darwin" -}}
 #!/usr/bin/env bash
-# Restart Tuna whenever the rendered config.toml content changes. Tuna doesn't
-# watch its config file, so a manual quit + relaunch is the only way to make
-# binding/hotkey/theme edits take effect.
-#
-# The hash below is recomputed at chezmoi-template time from the two fragments
-# this script's twin config.toml.tmpl concatenates. Any edit to those
-# fragments changes this script's content, which is how chezmoi knows to
-# re-run it (run_onchange_ tracks content hashes).
-#
-# fragment-hash: {{ include ".chezmoitemplates/tuna/bindings" | sha256sum }}-{{ include ".chezmoitemplates/tuna/settings" | sha256sum }}
 
-set -euo pipefail
+# Checksums (re-run when any fragment changes):
+# - bindings: {{ include ".chezmoitemplates/tuna/bindings" | sha256sum }}
+# - settings: {{ include ".chezmoitemplates/tuna/settings" | sha256sum }}
+
+function show-header() {
+  if command -v gum &>/dev/null; then
+    gum style --border=double --align=left --padding "0 2" --width=75 "$@"
+  else
+    echo "$@"
+  fi
+}
+
+# Tuna doesn't watch its config file or expose a reload CLI, so the only way
+# to apply binding/hotkey/theme edits is to quit and relaunch.
+show-header "Tuna"
+echo "Restarting Tuna to apply config changes"
 
 if [ "$(osascript -e 'application "Tuna" is running' 2>/dev/null)" = "true" ]; then
-  echo "Quitting Tuna..."
   osascript -e 'tell application "Tuna" to quit' || true
   for _ in $(seq 1 40); do
     [ "$(osascript -e 'application "Tuna" is running' 2>/dev/null)" != "true" ] && break
@@ -22,8 +26,13 @@ if [ "$(osascript -e 'application "Tuna" is running' 2>/dev/null)" = "true" ]; t
   done
 fi
 
+# Point Tuna at the chezmoi-managed config dir. These prefs live in Tuna's
+# plist, not config.toml, so they don't follow the dotfiles on their own.
+# Written while Tuna is stopped so it can't clobber them on quit.
+defaults write com.brnbw.Tuna ConfigSyncCustomFolderPath -string "${HOME}/.config/tuna"
+defaults write com.brnbw.Tuna ConfigSyncUsesCustomFolder -bool true
+
 if [ -d /Applications/Tuna.app ]; then
   open -a Tuna
-  echo "Restarted Tuna."
 fi
 {{ end -}}
