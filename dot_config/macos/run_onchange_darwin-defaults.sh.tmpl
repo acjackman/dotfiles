@@ -8,6 +8,38 @@
 osascript -e 'tell application "System Preferences" to quit'
 
 ###############################################################################
+# sudo / interactivity check                                                  #
+###############################################################################
+# This script writes a few /Library/Preferences plists and runs pmset /
+# systemsetup, which all require sudo. Sudo can only prompt when a terminal
+# is attached, so we bail early when chezmoi runs us non-interactively
+# rather than printing a wall of "a terminal is required" errors. Re-run
+# from a real terminal with: `sudo -v && chezmoi apply ~/.config/macos`.
+
+if sudo -n true 2>/dev/null; then
+  :  # sudo creds already cached, proceed
+elif [ -t 0 ] && [ -t 1 ]; then
+  sudo -v  # interactive: prompt once and cache
+else
+  cat <<'EOF' >&2
+darwin-defaults: needs sudo, but no cached credentials and no terminal to
+prompt. Skipping — chezmoi will re-try on the next apply. To run it now:
+
+  sudo -v && chezmoi apply ~/.config/macos
+
+EOF
+  # Exit non-zero so chezmoi doesn't record this run as complete; that way
+  # the script re-fires next apply (when the user may be at a terminal)
+  # instead of being skipped silently until the file changes.
+  exit 1
+fi
+
+# Keep the sudo timestamp warm for the rest of the script.
+( while true; do sudo -n true; sleep 60; kill -0 "$$" 2>/dev/null || exit; done ) &
+SUDO_KEEPALIVE_PID=$!
+trap 'kill "$SUDO_KEEPALIVE_PID" 2>/dev/null || true' EXIT
+
+###############################################################################
 # General UI/UX                                                               #
 ###############################################################################
 
@@ -55,7 +87,8 @@ defaults write com.apple.print.PrintingPrefs "Quit When Finished" -bool true
 defaults write com.apple.LaunchServices LSQuarantine -bool false
 
 # Remove duplicates in the “Open With” menu (also see `lscleanup` alias)
-/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -kill -r -domain local -domain system -domain user
+# The -kill flag was removed in modern macOS; -r rebuilds the registration db.
+/System/Library/Frameworks/CoreServices.framework/Frameworks/LaunchServices.framework/Support/lsregister -r -domain local -domain system -domain user
 
 # Display ASCII control characters using caret notation in standard text views
 # Try e.g. `cd /tmp; unidecode "\x{0000}" > cc.txt; open -e cc.txt`
@@ -175,8 +208,11 @@ sudo pmset -a lidwake 1
 # Restart automatically on power loss
 sudo pmset -a autorestart 1
 
-# Restart automatically if the computer freezes
-sudo systemsetup -setrestartfreeze on
+# Restart automatically if the computer freezes.
+# Stderr is silenced because modern systemsetup emits an unrelated -99
+# InternetServices error from an internal probe; the actual setting still
+# applies. Verify with `sudo systemsetup -getrestartfreeze`.
+sudo systemsetup -setrestartfreeze on 2>/dev/null
 
 # Sleep the display after 15 minutes
 sudo pmset -a displaysleep 15
@@ -448,13 +484,14 @@ find "${HOME}/Library/Application Support/Dock" -name "*-*.db" -maxdepth 1 -dele
 # Window Restore                                                              #
 ###############################################################################
 
-# Prevent applications from being restored on reboot. Speeds up booting from crashes
-# https://apple.stackexchange.com/a/322787
-
-# clear the file if it isn't empty
-find ~/Library/Preferences/ByHost/ -name 'com.apple.loginwindow*' ! -size 0 -exec tee {} \; </dev/null
-# set the user immutable flag
-find ~/Library/Preferences/ByHost/ -name 'com.apple.loginwindow*' -exec chflags uimmutable {} \;
+# Prevent applications from being restored on reboot.
+#
+# The historical recipe was to truncate ~/Library/Preferences/ByHost/
+# com.apple.loginwindow.<UUID>.plist and chflags it immutable, but on modern
+# macOS cfprefsd keeps that file open and rejects direct writes (EPERM)
+# regardless of file flags or sudo. Use the documented defaults keys instead:
+defaults write com.apple.loginwindow TALLogoutSavesState -bool false
+defaults write com.apple.loginwindow LoginwindowLaunchesRelaunchApps -bool false
 
 {{ if false }}
 # macos v15 changed the defaults settings for Safari, need to update these
@@ -721,11 +758,9 @@ defaults write com.apple.ActivityMonitor SortDirection -int 0
 # Address Book, Dashboard, iCal, TextEdit, and Disk Utility                   #
 ###############################################################################
 
-# Enable the debug menu in Address Book
-defaults write com.apple.addressbook ABShowDebugMenu -bool true
-
-# Enable Dashboard dev mode (allows keeping widgets on the desktop)
-# defaults write com.apple.dashboard devmode -bool true
+# (Removed: com.apple.addressbook ABShowDebugMenu — the domain is sandboxed
+#  on modern macOS and writes fail with "Could not write domain".)
+# (Removed: com.apple.dashboard devmode — Dashboard was removed in Catalina.)
 
 # Enable the debug menu in iCal (pre-10.8)
 defaults write com.apple.iCal IncludeDebugMenu -bool true
