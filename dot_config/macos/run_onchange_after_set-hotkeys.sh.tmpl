@@ -1,0 +1,56 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+#
+# macOS symbolic-hotkey overrides — disables system shortcuts that conflict
+# with our launcher (Tuna) and tiling WM (AeroSpace).
+#
+# Symbolic-hotkey IDs are stable across macOS versions but undocumented by
+# Apple — see CLAUDE.md in this directory for the ID + modifier-mask cheatsheet.
+# A logout/login is required for some shortcuts to fully release; the killall
+# cfprefsd below flushes the prefs cache so System Settings reflects state.
+
+# set_hotkey <id> <enabled> [<char> <keycode> <modifier-mask>]
+#
+# enabled: 0 to disable, 1 to enable
+# When all five args are given, also overwrites the binding's parameters.
+# When only id+enabled, only the enabled bit is touched (current binding
+# is left in place — useful when disabling Apple's default shortcut).
+set_hotkey() {
+  local id="$1"
+  local enabled="$2"
+  if [ "$#" -ge 5 ]; then
+    local char="$3" code="$4" mod="$5"
+    defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add "$id" \
+      "{enabled = $enabled; value = { parameters = ($char, $code, $mod); type = standard; }; }"
+  else
+    defaults write com.apple.symbolichotkeys AppleSymbolicHotKeys -dict-add "$id" \
+      "{enabled = $enabled;}"
+  fi
+}
+
+# Mission Control / Dashboard / Help — AeroSpace owns window management.
+set_hotkey 32  0                       # All windows         (ctrl+↑)
+set_hotkey 33  0                       # App Exposé          (ctrl+↓)
+set_hotkey 34  0                       # Show Desktop
+set_hotkey 35  0                       # Dashboard
+set_hotkey 44  0                       # Show Help menu
+
+# Move focus between Spaces — AeroSpace handles these.
+set_hotkey 79  0 65535 123 8650752     # Move to Space Left  (ctrl+←)
+set_hotkey 81  0 65535 124 8650752     # Move to Space Right (ctrl+→)
+set_hotkey 118 0 65535 18  262144      # Switch to Desktop 1 (ctrl+1)
+set_hotkey 119 0 65535 19  262144      # Switch to Desktop 2 (ctrl+2)
+
+# Input source cycling — free ctrl+space.
+set_hotkey 60  0 32 49 262144          # Select previous source (ctrl+space)
+set_hotkey 61  0 32 49 786432          # Select next source     (opt+ctrl+space)
+
+# Spotlight — free cmd+space for Tuna.
+set_hotkey 64  0 32 49 1048576         # Show Spotlight search  (cmd+space)
+set_hotkey 65  0 32 49 1572864         # Show Spotlight window  (cmd+opt+space)
+
+# Flush prefs cache so System Settings reflects the new state.
+killall cfprefsd 2>/dev/null || true
+
+echo "macOS symbolic hotkeys updated. Log out + back in to fully release them."
+{{ end -}}

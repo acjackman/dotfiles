@@ -11,15 +11,28 @@ concatenates two raw-Tuna-format fragments from `.chezmoitemplates/tuna/`.
     └── settings              ← raw [hotkeys.*] + [[hotkeys.custom]] + [settings]
 
     dot_config/tuna/
-    ├── config.toml.tmpl                              ← deploys to ~/.config/tuna/config.toml
-    ├── shims/                                        ← brain-* executables, deploys to ~/.config/tuna/shims/
-    ├── run_once_after_register-tuna-loginitem.sh.tmpl ← adds Tuna to macOS login items (per-machine)
-    └── run_onchange_after_restart-tuna.sh.tmpl       ← restarts Tuna + writes ConfigSync plist keys on fragment changes
+    ├── config.toml.tmpl                         ← deploys to ~/.config/tuna/config.toml
+    ├── shims/                                   ← brain-* executables, deploys to ~/.config/tuna/shims/
+    └── run_onchange_after_restart-tuna.sh.tmpl  ← restarts Tuna + writes ConfigSync plist keys on fragment changes
 
 ## Workflow
 
 **Edit bindings:** modify `.chezmoitemplates/tuna/bindings` then `/apply`.
 **Edit hotkeys/theme/clipboard hotkey:** modify `.chezmoitemplates/tuna/settings`.
+
+## Per-machine manual setup
+
+A few pieces of state aren't reachable from dotfiles. Do these once on every
+new Mac after the first `chezmoi apply`:
+
+- **Launch at Login** — toggle on inside Tuna's preferences. Tuna uses
+  `SMAppService.mainApp`, which can only be flipped by Tuna's own code;
+  there's no public CLI or AppleScript path to register it externally.
+- **Accessibility / Input Monitoring** — grant in System Settings → Privacy
+  & Security. Required for global hotkeys to fire.
+
+The Spotlight `cmd+space` conflict is handled automatically by
+`dot_config/macos/run_onchange_after_set-hotkeys.sh.tmpl`.
 
 ## Drift detection (UI-driven changes)
 

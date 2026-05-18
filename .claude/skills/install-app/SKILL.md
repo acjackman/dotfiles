@@ -30,7 +30,7 @@ Work through each phase in order. Commit after completing each phase. Skip phase
 1. **Find config location** — check where the app stores its configuration:
    - `~/.config/<app>/` — manage directly via chezmoi in `dot_config/`
    - `~/Library/Application Support/<app>/` — use chezmoi's `private_Library/` or a `run_onchange_` deploy script
-   - `~/Library/Preferences/` (plist) — manage via `defaults write` in the darwin-defaults script
+   - `~/Library/Preferences/` (plist) — manage via `defaults write` in `dot_config/macos/run_onchange_darwin-defaults.sh.tmpl` (system-wide bits) or a dedicated per-app `dot_config/<app>/run_onchange_after_set-defaults.sh.tmpl`
    - Custom location — create a symlink or deploy script as needed
 
 2. **Create chezmoi source files** — add config files under the appropriate chezmoi source directory. Use correct prefixes: `dot_`, `private_`, `executable_`, `symlink_`.
@@ -81,8 +81,8 @@ Create a `CLAUDE.md` in the app's config directory (e.g., `dot_config/<app>/CLAU
 Check if the app needs `defaults write` commands:
 
 1. Search for existing defaults: `defaults read <app-bundle-id>` or `defaults find <app-name>`
-2. Add needed defaults to `run_onchange_darwin-defaults.sh.tmpl`
-3. Check for conflicts with existing system shortcuts (especially keyboard shortcuts the app needs)
+2. Add needed defaults to `dot_config/macos/run_onchange_darwin-defaults.sh.tmpl` (for system-wide bits) or a per-app `dot_config/<app>/run_onchange_after_set-defaults.sh.tmpl` (preferred when the keys are app-specific)
+3. Check for conflicts with existing system shortcuts. Symbolic-hotkey overrides live in `dot_config/macos/run_onchange_after_set-hotkeys.sh.tmpl`
 4. Apply with `/apply`
 
 ## Important
