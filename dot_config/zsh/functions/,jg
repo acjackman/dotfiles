@@ -13,19 +13,24 @@ if [[ -z "$repo_root" ]]; then
 fi
 
 # Get the main branch (usually master or main)
-local main_branch
-main_branch=$(git -C "$repo_root" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)
-if [[ $? -ne 0 || -z "$main_branch" || "$main_branch" == "origin/HEAD" || "$main_branch" == "HEAD" ]]; then
-    if git -C "$repo_root" rev-parse --verify origin/main >/dev/null 2>&1; then
-        main_branch="main"
-    elif git -C "$repo_root" rev-parse --verify origin/master >/dev/null 2>&1; then
-        main_branch="master"
+local main_branch=""
+if command -v wt >/dev/null 2>&1; then
+    main_branch=$(wt -C "$repo_root" step eval '{{ default_branch }}' 2>/dev/null)
+fi
+if [[ -z "$main_branch" ]]; then
+    main_branch=$(git -C "$repo_root" rev-parse --abbrev-ref origin/HEAD 2>/dev/null)
+    if [[ $? -ne 0 || -z "$main_branch" || "$main_branch" == "origin/HEAD" || "$main_branch" == "HEAD" ]]; then
+        if git -C "$repo_root" rev-parse --verify origin/main >/dev/null 2>&1; then
+            main_branch="main"
+        elif git -C "$repo_root" rev-parse --verify origin/master >/dev/null 2>&1; then
+            main_branch="master"
+        else
+            echo "Could not determine default branch (origin/HEAD is unset and neither origin/main nor origin/master exists)" >&2
+            return 1
+        fi
     else
-        echo "Could not determine default branch (origin/HEAD is unset and neither origin/main nor origin/master exists)" >&2
-        return 1
+        main_branch="${main_branch#origin/}"
     fi
-else
-    main_branch="${main_branch#origin/}"
 fi
 
 # Get all directories containing modified files (repo-wide)
