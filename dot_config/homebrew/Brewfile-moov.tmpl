@@ -1,0 +1,48 @@
+{{- if has "moov" .extras -}}
+# -*- mode: ruby; -*- vim: set ft=ruby;
+brew "openssl"
+brew "zstd"
+brew "librdkafka"
+brew "pkg-config"
+
+# cask "google-cloud-sdk" # installed with mise
+brew "kubectl"
+
+brew "opa"
+
+cask "notion"
+cask "linear"
+cask "google-drive"
+cask "postman"
+cask "insomnia"
+cask "zoom"
+cask "microsoft-teams"
+cask "notunes"
+
+# Homeport
+tap "homeport/tap"
+brew "homeport/tap/dyff"
+
+# Spacelift
+tap "spacelift-io/spacelift"
+cask "spacelift-io/spacelift/spacectl"
+
+# Redpanda
+tap "redpanda-data/tap"
+brew "redpanda-data/tap/redpanda"
+
+# Confluent
+tap "confluentinc/tap"
+brew "confluentinc/tap/cli"
+
+# Graphite
+tap "withgraphite/tap"
+brew "withgraphite/tap/graphite"
+
+# Moov
+tap "moovfinancial/moovbrew"
+
+brew "eng-scripts"
+brew "infra-scripts"
+cask "infra-templater"
+{{- end -}}
