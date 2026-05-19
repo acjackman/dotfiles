@@ -1,0 +1,10 @@
+#!/bin/bash
+# ,doctor-mise — Apply common mise fixes.
+#
+# Currently:
+#   * Re-runs inline tool `postinstall` hooks via `mise-post-install`,
+#     working around https://github.com/jdx/mise/discussions/6933 where
+#     `mise upgrade` skips per-tool postinstall for asdf-backed tools.
+
+set -euo pipefail
+exec mise-post-install "$@"

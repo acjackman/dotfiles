@@ -1,0 +1,123 @@
+#!/usr/bin/env python3
+"""Run inline `postinstall` commands defined on mise tools.
+
+Workaround for mise's per-tool `postinstall` hook not firing reliably during
+`mise upgrade` for asdf-backed tools (gcloud in particular). See
+https://github.com/jdx/mise/discussions/6933.
+
+Discovers every config in `mise config ls --json`, parses each one for
+`[tools]` entries with a `postinstall` field, and runs each command once
+against the currently-active install, mimicking mise's own env vars:
+MISE_TOOL_NAME, MISE_TOOL_VERSION, MISE_TOOL_INSTALL_PATH.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tomllib
+from pathlib import Path
+
+
+def mise_config_files() -> list[Path]:
+    out = subprocess.run(
+        ["mise", "config", "ls", "--json"],
+        capture_output=True,
+        text=True,
+        check=True,
+    ).stdout
+    return [Path(c["path"]) for c in json.loads(out)]
+
+
+def active_install(tool: str) -> tuple[str, str] | None:
+    result = subprocess.run(
+        ["mise", "ls", "--current", "--json", tool],
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode != 0:
+        return None
+    try:
+        entries = json.loads(result.stdout)
+    except json.JSONDecodeError:
+        return None
+    for entry in entries:
+        if entry.get("active"):
+            return entry["version"], entry["install_path"]
+    return None
+
+
+def find_postinstalls(config_path: Path):
+    try:
+        data = tomllib.loads(config_path.read_text())
+    except (OSError, tomllib.TOMLDecodeError):
+        return
+    for name, value in data.get("tools", {}).items():
+        if isinstance(value, dict) and "postinstall" in value:
+            yield name, value["postinstall"]
+
+
+def run_postinstall(tool: str, cmd: str, dry_run: bool) -> bool:
+    install = active_install(tool)
+    if install is None:
+        print(f"  skip {tool}: not currently installed", file=sys.stderr)
+        return True
+    version, install_path = install
+    env = {
+        **os.environ,
+        "MISE_TOOL_NAME": tool,
+        "MISE_TOOL_VERSION": version,
+        "MISE_TOOL_INSTALL_PATH": install_path,
+        "PATH": f"{install_path}/bin:{os.environ.get('PATH', '')}",
+    }
+    print(f"  run  {tool}@{version}", file=sys.stderr)
+    print(f"       $ {cmd}", file=sys.stderr)
+    if dry_run:
+        return True
+    result = subprocess.run(cmd, shell=True, env=env)
+    if result.returncode != 0:
+        print(f"  fail {tool}@{version}: exit {result.returncode}", file=sys.stderr)
+        return False
+    return True
+
+
+def main() -> int:
+    parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
+    parser.add_argument(
+        "-n", "--dry-run", action="store_true",
+        help="Print what would run without executing.",
+    )
+    parser.add_argument(
+        "tool", nargs="?",
+        help="Limit to a single tool name (e.g. gcloud).",
+    )
+    args = parser.parse_args()
+
+    if not shutil.which("mise"):
+        print("mise not found in PATH", file=sys.stderr)
+        return 1
+
+    seen: set[str] = set()
+    failures = 0
+    for config in mise_config_files():
+        for tool, cmd in find_postinstalls(config):
+            if args.tool and tool != args.tool:
+                continue
+            if tool in seen:
+                continue
+            seen.add(tool)
+            if not run_postinstall(tool, cmd, args.dry_run):
+                failures += 1
+
+    if not seen:
+        target = f" matching {args.tool!r}" if args.tool else ""
+        print(f"No mise tools with `postinstall`{target} found.", file=sys.stderr)
+    return 1 if failures else 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
