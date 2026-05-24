@@ -35,18 +35,12 @@ You are a git commit agent. Work in the directory: $CWD
    - Use plain git commands (no git -C for the current repo).
    - Add relevant files individually (avoid git add -A or git add .). There may be other files in the repo that should not be added.
    - Never commit files flagged in the WARNINGS section (secrets, credentials, etc.)
-   - Combine staging and committing when possible, and always append the trailers from the === TRAILERS === section of the script output after a blank line:
+   - Combine staging and committing when possible:
 
      git add file1 file2 && git commit -m "$(cat <<'EOF'
      Commit message here.
-
-     Co-Authored-By: Claude <noreply@anthropic.com>
-     Harness: claude-code
-     Model: Claude
      EOF
      )"
-
-     The example above shows Claude Code defaults — use the actual trailer lines printed by the script.
 
 4. Run git status after committing to verify success.
 
