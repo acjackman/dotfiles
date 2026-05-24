@@ -36,8 +36,7 @@ Pass `--repo <path>` to `spawn-setup-worktree` to target the other repo. If it's
 These are on PATH:
 
 - **`spawn-setup-worktree`** — Creates or reuses a worktrunk-managed worktree. Returns JSON `{branch, path}`.
-- **`spawn-tmux`** — Spawns a tmux window or session and launches an interactive Claude session inside it.
-- **`spawn-launch`** — Reads a prompt file and `exec`s into `claude`. Called by `spawn-tmux` internally.
+- **`spawn-tmux`** — Spawns a tmux window or session and launches an interactive Claude session inside it (pipes the prompt file into `claude`).
 
 ## Pre-flight Checks
 

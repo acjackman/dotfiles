@@ -61,3 +61,4 @@ finicky.js
 .local/bin/wtrm
 .local/bin/wtm
 .local/lib/wt-tmux-cleanup.sh
+.local/bin/spawn-launch

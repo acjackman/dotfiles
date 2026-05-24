@@ -30,10 +30,9 @@ done
 # Derive Claude session name from the worktree directory
 claude_session_name=$(tmux-window-name "$dir")
 
-# Build launch command with optional flags. spawn-launch is on PATH.
-launch_cmd="spawn-launch"
+# Build launch command: pipe prompt file into an interactive claude session
+launch_cmd="cat '$prompt' | claude --permission-mode=auto --name '$claude_session_name'"
 [[ -n "$model" ]] && launch_cmd+=" --model '$model'"
-launch_cmd+=" --session-name '$claude_session_name' '$prompt'"
 
 # Derive tmux name from the worktree path using shared naming conventions
 if [[ "$mode" == "window" ]]; then
