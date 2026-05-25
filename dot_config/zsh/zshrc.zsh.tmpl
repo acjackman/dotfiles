@@ -24,6 +24,11 @@ source "${ZINIT_HOME}/zinit.zsh"
 unalias zi
 
 
+# Mise: run offline during shell startup so a network outage can't hang the
+# prompt on pipx/python checks. A precmd hook below clears MISE_OFFLINE after
+# the first prompt renders, restoring normal behavior for later mise commands.
+export MISE_OFFLINE=1
+
 # Mise for pinned binaries, env vars, and tasks
 zinit as="command" lucid from="gh-r" for \
     id-as="usage" \
@@ -36,6 +41,14 @@ zinit as="command" lucid from="gh-r" for \
     atpull="%atclone" \
     atload='eval "$(mise activate zsh)"' \
     jdx/mise
+
+autoload -Uz add-zsh-hook
+function _mise_offline_clear() {
+  unset MISE_OFFLINE
+  add-zsh-hook -d precmd _mise_offline_clear
+  unfunction _mise_offline_clear
+}
+add-zsh-hook precmd _mise_offline_clear
 
 # =============
 # ENV Vairables & App Settings
