@@ -135,7 +135,36 @@ If there are uncommitted changes, warn the user: "The working tree has uncommitt
    spawn-tmux --window --name <name> --dir <worktree-path> --prompt <absolute-path-to-prompt-file> [--model <model>]
    ```
 
-5. Confirm to the user:
+   The tmux name printed/derived is whatever `tmux-window-name <worktree-path>` (or `tmux-session-name`) returns — capture it for the next step.
+
+5. **Verify the session actually started** (don't trust the spawn step blindly).
+   Wait ~3 seconds for shell init + claude startup, then check the foreground
+   process running in the pane:
+
+   ```bash
+   sleep 3
+   tmux display-message -t '=<tmux_name>' -p '#{pane_current_command}'
+   ```
+
+   - Output is `claude` — the session is up, proceed.
+   - Output is `zsh` (or another shell) — claude either hasn't finished
+     starting or failed to launch. Capture the pane for diagnosis:
+
+     ```bash
+     tmux capture-pane -t '=<tmux_name>' -p | tail -30
+     ```
+
+     Known failure signals — any of these means the spawn did NOT succeed and
+     you must report the failure verbatim instead of claiming success:
+
+     - `mise ERROR` / `Config files ... are not trusted` — `.mise.toml` trust hook missed
+     - `command not found` — `spawn-launch`, `claude`, or another tool is missing from PATH inside that pane
+     - `No such file or directory` referencing the prompt file
+
+   - `tmux list-panes` no longer shows the pane — claude exited immediately,
+     report the failure.
+
+6. Confirm to the user:
    - The branch/worktree that was created (or target repo for cross-repo tasks)
    - The prompt file path
    - How to switch:
