@@ -1,0 +1,23 @@
+{{ if has "moov" .extras -}}
+#!/bin/bash
+OP_PATH="op://Employee/Honeycomb/AdamJ/claudecode"
+
+function show-header() {
+  command -v gum &>/dev/null
+  if [ $? -eq 0 ]; then
+    gum style --border=double --align=left --padding "0 2" --width=75 "$@"
+  else
+    echo "$@"
+  fi
+}
+
+show-header "Honeycomb API Key (Claude Code)"
+TOKEN="$(op read --account moovfinancialinc.1password.com "$OP_PATH")"
+if [ -n "$TOKEN" ]; then
+  security add-generic-password -a "$USER" -s "CLAUDE_CODE_HONEYCOMB_API_KEY" -w "$TOKEN" -U
+  echo "Stored CLAUDE_CODE_HONEYCOMB_API_KEY in Keychain"
+else
+  echo "Failed to read Honeycomb key from 1Password" >&2
+  exit 1
+fi
+{{- end }}

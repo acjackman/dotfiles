@@ -113,8 +113,37 @@ apply_settings() {
 
     echo "Updated: $settings_file"
 }
-
+{{ if has "moov" .extras }}
+# Merge Honeycomb OTEL env into settings.json. Key seeded into Keychain by
+# run_onchange_before_store-honeycomb-key.sh.tmpl earlier in the same apply.
+apply_honeycomb_env() {
+    local settings_file="$1"
+    local key
+    key="$(security find-generic-password -a "$USER" -s CLAUDE_CODE_HONEYCOMB_API_KEY -w 2>/dev/null)"
+    if [ -z "$key" ]; then
+        echo "Warning: CLAUDE_CODE_HONEYCOMB_API_KEY not in Keychain; skipping OTEL env for $settings_file" >&2
+        return
+    fi
+    jq --arg key "$key" '
+        .env = ((.env // {}) + {
+            CLAUDE_CODE_ENABLE_TELEMETRY: "1",
+            CLAUDE_CODE_ENHANCED_TELEMETRY_BETA: "1",
+            OTEL_TRACES_EXPORTER: "otlp",
+            OTEL_METRICS_EXPORTER: "otlp",
+            OTEL_LOGS_EXPORTER: "otlp",
+            OTEL_EXPORTER_OTLP_PROTOCOL: "http/protobuf",
+            OTEL_EXPORTER_OTLP_ENDPOINT: "https://api.honeycomb.io",
+            OTEL_METRIC_EXPORT_INTERVAL: "1000",
+            OTEL_EXPORTER_OTLP_HEADERS: ("x-honeycomb-team=" + $key)
+        })
+    ' "$settings_file" > "$settings_file.tmp" && mv "$settings_file.tmp" "$settings_file"
+    echo "Merged Honeycomb OTEL env: $settings_file"
+}
+{{ end }}
 apply_settings "$HOME/.claude/settings.json"
+{{ if has "moov" .extras -}}
+apply_honeycomb_env "$HOME/.claude/settings.json"
+{{- end }}
 
 for profile_dir in "$HOME/.config/claude/profiles"/*/; do
     [ -d "$profile_dir" ] || continue
