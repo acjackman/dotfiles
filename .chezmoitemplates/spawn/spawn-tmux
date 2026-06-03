@@ -27,13 +27,11 @@ done
 [[ ! -d "$dir" ]] && echo "Error: directory '$dir' does not exist" && exit 1
 [[ ! -f "$prompt" ]] && echo "Error: prompt file '$prompt' does not exist" && exit 1
 
-launch_script="$HOME/.claude/skills/spawn/launch.sh"
-
 # Derive Claude session name from the worktree directory
 claude_session_name=$(tmux-window-name "$dir")
 
-# Build launch command with optional flags
-launch_cmd="$launch_script"
+# Build launch command with optional flags. spawn-launch is on PATH.
+launch_cmd="spawn-launch"
 [[ -n "$model" ]] && launch_cmd+=" --model '$model'"
 launch_cmd+=" --session-name '$claude_session_name' '$prompt'"
 
