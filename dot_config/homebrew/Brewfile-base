@@ -189,7 +189,6 @@ brew "yqrashawn/goku/goku"                 # Karabiner EDN compiler
 cask "hammerspoon"                         # Automation
 # cask "bettertouchtool"                     # Input Customization
 cask "linearmouse"                         # Trackpad natural, mouseweel normal scroll
-cask "raycast"                             # Launcher
 cask "espanso"                             # Text expansion
 cask "homerow"                             # keyboard driven clicks
 cask "mikker/tap/tuna"                     # Tuna – hotkey launcher (replaces Leader Key)

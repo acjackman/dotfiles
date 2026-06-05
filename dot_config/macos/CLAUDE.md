@@ -88,6 +88,17 @@ A fuller community-maintained reference lives at [rderik's macOS hotkey list](ht
 
 4. Copy the `enabled` value and `parameters` tuple into a `set_hotkey` line.
 
+## Re-running after macOS upgrades
+
+macOS upgrades silently re-enable some of the shortcuts this script disables —
+most painfully `ctrl+space` (input-source switching, ID 60), which steals the
+tmux prefix. Because `run_onchange_` only re-fires when the script's rendered
+content changes, `set-hotkeys.sh.tmpl` embeds the current OS version via
+`{{ "{{ output \"sw_vers\" \"-productVersion\" }}" }}` + `-buildVersion` in a
+comment near the top. Any macOS update (major, point, or build) changes that
+string, so the overrides re-apply automatically on the next `/apply`. Keep that
+marker line in place.
+
 ## Applying
 
 `/apply` will re-fire both scripts when their content changes. After apply,

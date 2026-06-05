@@ -8,6 +8,13 @@
 # Apple — see CLAUDE.md in this directory for the ID + modifier-mask cheatsheet.
 # A logout/login is required for some shortcuts to fully release; the killall
 # cfprefsd below flushes the prefs cache so System Settings reflects state.
+#
+# Re-run trigger: macOS upgrades silently re-enable some of these shortcuts
+# (notably ctrl+space for input-source switching, which collides with the tmux
+# prefix). run_onchange_ only re-fires when this script's rendered content
+# changes, so the macOS version below is embedded to force a re-run after every
+# OS update (major, point, or build). Do not remove this line.
+# macOS version: {{ output "sw_vers" "-productVersion" | trim }} (build {{ output "sw_vers" "-buildVersion" | trim }})
 
 # set_hotkey <id> <enabled> [<char> <keycode> <modifier-mask>]
 #
