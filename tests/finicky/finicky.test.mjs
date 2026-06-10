@@ -78,9 +78,31 @@ function matches(handler, url) {
   return matchOne(m, url);
 }
 
-function resolveHandler(config, urlString) {
-  const url = parseUrl(urlString);
+function resolveHandlerForUrl(config, url) {
   return config.handlers.find((h) => matches(h, url)) ?? null;
+}
+
+function resolveHandler(config, urlString) {
+  return resolveHandlerForUrl(config, parseUrl(urlString));
+}
+
+function rebuildHref(url) {
+  if (url.protocol === "slack") return `slack://${url.host}?${url.search}`;
+  const q = url.search ? `?${url.search}` : "";
+  const h = url.hash ? `#${url.hash}` : "";
+  return `${url.protocol}://${url.host}${url.pathname}${q}${h}`;
+}
+
+// Replicate Finicky's rewrite pass: each matching rewrite's url() result is
+// merged onto the url, and href is rebuilt so later matchers see the change.
+function applyRewrites(config, urlString) {
+  let url = parseUrl(urlString);
+  for (const r of config.rewrite) {
+    if (!matches(r, url)) continue;
+    url = { ...url, ...r.url(url) };
+    url.href = rebuildHref(url);
+  }
+  return url;
 }
 
 function browserName(handler) {
@@ -218,6 +240,28 @@ for (const { name, data } of fixtures) {
       it("catches donotreply.biz links", () => {
         const handler = resolveHandler(config, "https://evil.donotreply.biz/click");
         assert.ok(handler, "should match phishing handler");
+      });
+    });
+
+    describe("Slack deep links", () => {
+      const archiveUrl =
+        "https://moovfinancial.slack.com/archives/C037430LC69/p1781120745904239";
+
+      it("rewrites a moovfinancial archive link to a slack:// deep link", () => {
+        const out = applyRewrites(config, archiveUrl);
+        assert.equal(out.protocol, "slack");
+        assert.equal(out.host, "channel");
+        assert.equal(out.search, "team=T07A1C5N35M&id=C037430LC69&message=1781120745.904239");
+      });
+
+      it("routes the rewritten deep link to the Slack app", () => {
+        const out = applyRewrites(config, archiveUrl);
+        assert.equal(browserName(resolveHandlerForUrl(config, out)), "/Applications/Slack.app");
+      });
+
+      it("leaves unknown workspaces for the browser", () => {
+        const out = applyRewrites(config, "https://nope.slack.com/archives/C1/p1700000000000000");
+        assert.equal(out.protocol, "https");
       });
     });
 

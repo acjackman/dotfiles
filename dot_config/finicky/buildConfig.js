@@ -1,12 +1,22 @@
 // Pure factory for the Finicky config. All variant-specific values come in
 // through `extras` so this file stays static and testable.
 
+// Slack workspace subdomain → team ID, used to rewrite web links into
+// slack:// deep links so they open in the desktop app. Subdomains not listed
+// here fall through to the browser. Find a team ID in any existing
+// slack://...?team=T... deep link, or in the Slack desktop app's local
+// storage (`grep -ro 'T[0-9A-Z]\{8,\}' ~/Library/Application\ Support/Slack/storage`).
+const SLACK_TEAM_IDS = {
+  moovfinancial: "T07A1C5N35M",
+  "moov-io": "TAG0V15PC",
+};
+
 export function buildConfig(extras) {
   const handlers = [
     {
       match: "*.donotreply.biz*",
       browser: ({ urlString }) => {
-        finicky.notify("Phishing Test", "This link is a phishing test and has been blocked.");
+        console.warn(`Finicky: blocked phishing-test link ${urlString}`);
         return null;
       },
     },
@@ -119,17 +129,13 @@ export function buildConfig(extras) {
           let team,
             patterns = {};
           if (subdomain != "app") {
-            switch (subdomain) {
-              case "<teamname>":
-              case "<corpname>.enterprise":
-                team = "T00000000";
-                break;
-              default:
-                finicky.notify(
-                  `No Slack team ID found for ${url.host}`,
-                  `Add the team ID to ~/.finicky.js to allow direct linking to Slack.`,
-                );
-                return url;
+            team = SLACK_TEAM_IDS[subdomain];
+            if (!team) {
+              console.warn(
+                `Finicky: no Slack team ID configured for ${url.host}; opening in browser. ` +
+                  `Add it to SLACK_TEAM_IDS in buildConfig.js to deep-link into the app.`,
+              );
+              return url;
             }
 
             if (subdomain.slice(-11) == ".enterprise") {
@@ -183,7 +189,7 @@ export function buildConfig(extras) {
                   hash: "",
                 };
                 let outputStr = `${output.protocol}://${output.host}?${output.search}`;
-                finicky.log(`Rewrote Slack URL ${urlString} to deep link ${outputStr}`);
+                console.log(`Rewrote Slack URL ${urlString} to deep link ${outputStr}`);
                 return output;
               }
             }
