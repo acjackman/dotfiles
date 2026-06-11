@@ -7,6 +7,7 @@ concatenates two raw-Tuna-format fragments from `.chezmoitemplates/tuna/`.
 ## Layout
 
     .chezmoitemplates/tuna/
+    ├── catalogs              ← raw [catalogs] + [[catalogs.globalScopes]]
     ├── bindings              ← raw [[comboMode.bindings]] section
     └── settings              ← raw [hotkeys.*] + [[hotkeys.custom]] + [settings]
 
@@ -17,6 +18,7 @@ concatenates two raw-Tuna-format fragments from `.chezmoitemplates/tuna/`.
 
 ## Workflow
 
+**Edit catalogs:** modify `.chezmoitemplates/tuna/catalogs` then `/apply`.
 **Edit bindings:** modify `.chezmoitemplates/tuna/bindings` then `/apply`.
 **Edit hotkeys/theme/clipboard hotkey:** modify `.chezmoitemplates/tuna/settings`.
 

@@ -1,6 +1,7 @@
 {{/*
-  Tuna config — assembled by chezmoi from .chezmoitemplates/tuna/{bindings,settings}.
+  Tuna config — assembled by chezmoi from .chezmoitemplates/tuna/{catalogs,bindings,settings}.
 
+  - Edit `.chezmoitemplates/tuna/catalogs`  to change catalog global scopes.
   - Edit `.chezmoitemplates/tuna/bindings`  to change combo-mode bindings.
   - Edit `.chezmoitemplates/tuna/settings`  to change hotkeys, theme, or the
     clipboard-history shortcut.
@@ -11,5 +12,6 @@
 */ -}}
 schemaVersion = 1
 
+{{ template "tuna/catalogs" . }}
 {{ template "tuna/bindings" . }}
 {{ template "tuna/settings" . -}}
