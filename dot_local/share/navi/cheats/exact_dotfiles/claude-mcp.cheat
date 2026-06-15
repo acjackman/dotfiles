@@ -11,3 +11,6 @@ claude mcp add --transport http linear-server https://mcp.linear.app/mcp
 
 # Add Honeyocmb MCP server to project
 claude mcp add honeycomb --transport http https://mcp.honeycomb.io/mcp
+
+# Add Browser MCP server to project
+claude mcp add browsermcp -- npx @browsermcp/mcp@latest
