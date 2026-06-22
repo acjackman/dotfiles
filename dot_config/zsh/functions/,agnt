@@ -16,10 +16,26 @@ for arg in "$@"; do
 done
 
 if [[ -z "$dir" ]]; then
-  dir="$(git rev-parse --show-toplevel 2>/dev/null)" || {
+  dir="$(git rev-parse --show-toplevel 2>/dev/null)"
+
+  # Bare repos (e.g. the worktrunk layout: .bare/ alongside per-branch
+  # worktrees) have no work tree, so --show-toplevel fails. Fall back to the
+  # worktree checked out to the default branch.
+  if [[ -z "$dir" && "$(git rev-parse --is-bare-repository 2>/dev/null)" == "true" ]]; then
+    local default_branch
+    default_branch="$(git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null)"
+    default_branch="${default_branch#origin/}"
+    [[ -z "$default_branch" ]] && default_branch=main
+    dir="$(git worktree list --porcelain | awk -v b="refs/heads/$default_branch" '
+      /^worktree / { wt=$2 }
+      $0 == "branch " b { print wt; exit }
+    ')"
+  fi
+
+  if [[ -z "$dir" ]]; then
     >&2 echo ",agnt: not in a git repository"
     return 1
-  }
+  fi
 fi
 
 # Disable git signing for the agent subshell — non-interactive commits shouldn't
