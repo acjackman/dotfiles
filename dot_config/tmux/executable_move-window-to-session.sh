@@ -1,9 +1,10 @@
 #!/usr/bin/env bash
 # TODO: handle non-git paths (currently tmux-session-name falls back to basename)
 
-# Get session name based on the current pane's directory
+# Relocate the current window to its project (bare repo) session, dropping any
+# branch suffix so a stray worktree window lands in the right project session.
 pane_path="$1"
-session_name=$(tmux-session-name "$pane_path")
+session_name=$(tmux-session-name --repo "$pane_path")
 
 # Get current session and window info
 current_session="$2"
@@ -13,6 +14,10 @@ current_window="$3"
 if [[ "$current_session" == "$session_name" ]]; then
     exit 0
 fi
+
+# Rename the window from its repo/worktree so it matches sibling windows
+window_name=$(~/.config/tmux/rename-from-repo.sh "$pane_path")
+[[ -n "$window_name" ]] && tmux rename-window -t "${current_session}:${current_window}" "$window_name"
 
 # If session exists, move the current window into it
 if tmux has-session -t "=$session_name" 2>/dev/null; then

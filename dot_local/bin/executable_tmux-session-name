@@ -5,6 +5,15 @@
 #   2. repo/branch for non-default git branches
 #   3. repo name for default git branch
 #   4. basename fallback for non-git directories
+#
+# With --repo, the branch suffix is dropped so any worktree maps to its
+# project (bare repo) session — used when relocating a stray window.
+
+repo_only=false
+if [[ "$1" == "--repo" ]]; then
+  repo_only=true
+  shift
+fi
 
 dir="${1:-.}"
 cd "$dir" || exit 1
@@ -58,7 +67,7 @@ else
   repo=$(basename "$main_wt")
 fi
 
-if [[ "$branch" == "$default_branch" ]]; then
+if [[ "$repo_only" == true || "$branch" == "$default_branch" ]]; then
   echo "$repo"
 else
   echo "$repo/$branch"

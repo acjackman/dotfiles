@@ -7,8 +7,8 @@ pane_path="$1"
 current_session="$2"
 current_window="$3"
 
-# Name the new session based on the worktree/repo
-session_name=$(tmux-session-name "$pane_path")
+# Name the new session based on the project (bare repo), dropping branch suffix
+session_name=$(tmux-session-name --repo "$pane_path")
 
 # Already in the right session — just signal Ghostty activation
 if [[ "$current_session" == "$session_name" ]]; then
