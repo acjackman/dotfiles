@@ -1,0 +1,203 @@
+#!/usr/bin/env bash
+#
+# ,doctor-git-default-branch — repoint local clones after a remote default-branch
+# rename (master -> main). Handles BOTH layouts found under the base dir:
+#   * regular checkout      -> repo/.git is a directory
+#   * bare repo + worktrees -> repo/.git is a file pointing at a bare gitdir
+#                              (e.g. "gitdir: .bare"), with worktree subdirs
+#
+# What it does, per repo (only when the remote's CURRENT default is the target):
+#   1. fetch --prune origin        (drop the deleted origin/master, get origin/main)
+#   2. remote set-head origin --auto   (fix origin/HEAD -> origin/main)
+#   3. rename local 'master' -> 'main' (also updates bare HEAD + worktree HEADs)
+#   4. set upstream  main -> origin/main
+#   5. (bare) ensure the bare repo HEAD points at refs/heads/main
+#
+# It is idempotent and conservative: repos whose remote default is still
+# 'master' (or anything other than the target) are reported and left untouched.
+#
+# DEFAULT IS A DRY RUN. Re-run with --apply to make changes.
+#
+# Usage:
+#   ,doctor-git-default-branch [options] [repo ...]
+#
+# Options:
+#   --apply                 Actually make changes (default: dry run).
+#   --base DIR              Directory containing the repos (default: cwd).
+#   --target BRANCH         New default branch to migrate to (default: main).
+#   --rename-worktree-dir   For bare+worktree repos, also `git worktree move`
+#                           a worktree dir literally named like the OLD branch
+#                           (master/) to the new name (main/).
+#   --prune-stale-master    Delete a leftover local 'master' branch IF it is
+#                           fully merged into 'main' (never force-deletes).
+#   -h, --help              Show this help.
+
+set -uo pipefail
+
+# Never block on credential / host-key prompts — fail fast and move on.
+export GIT_TERMINAL_PROMPT=0
+export GIT_SSH_COMMAND="${GIT_SSH_COMMAND:-ssh -oBatchMode=yes}"
+
+APPLY=0
+BASE="$(pwd)"
+TARGET=main
+OLD=master
+RENAME_WT=0
+PRUNE_MASTER=0
+ONLY=()
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --apply)               APPLY=1 ;;
+    --base)                BASE="$2"; shift ;;
+    --target)              TARGET="$2"; shift ;;
+    --rename-worktree-dir) RENAME_WT=1 ;;
+    --prune-stale-master)  PRUNE_MASTER=1 ;;
+    -h|--help)             sed -n '2,46p' "$0"; exit 0 ;;
+    -*)                    echo "unknown option: $1" >&2; exit 2 ;;
+    *)                     ONLY+=("$1") ;;
+  esac
+  shift
+done
+
+if [ -t 1 ]; then
+  B=$'\e[1m'; R=$'\e[31m'; G=$'\e[32m'; Y=$'\e[33m'; C=$'\e[36m'; X=$'\e[0m'
+else
+  B=; R=; G=; Y=; C=; X=
+fi
+
+mode="${Y}DRY RUN${X} (no changes) — re-run with --apply to execute"
+[ "$APPLY" = 1 ] && mode="${R}APPLY${X} (making changes)"
+echo "${B},doctor-git-default-branch${X}  ${OLD} -> ${TARGET}  mode: ${mode}"
+echo "scanning git repos one level under ${C}${BASE}${X} (direct children only, not recursive)"
+[ ${#ONLY[@]} -gt 0 ] && echo "limited to: ${ONLY[*]}"
+echo
+
+n_ok=0; n_plan=0; n_skip=0; n_err=0
+
+want_repo() {
+  [ ${#ONLY[@]} -eq 0 ] && return 0
+  local r="$1" x
+  for x in "${ONLY[@]}"; do [ "$x" = "$r" ] && return 0; done
+  return 1
+}
+
+for path in "$BASE"/*/ ; do
+  repo="${path%/}"
+  name="$(basename "$repo")"
+  want_repo "$name" || continue
+
+  # ---- classify checkout type & build the right git invocation ----
+  if [ -d "$repo/.git" ]; then
+    type=regular
+    gitargs=(-C "$repo")
+  elif [ -f "$repo/.git" ]; then
+    gd="$(sed -n 's/^gitdir: //p' "$repo/.git" | head -1)"
+    [ -z "$gd" ] && continue
+    case "$gd" in /*) gitdir="$gd" ;; *) gitdir="$repo/$gd" ;; esac
+    [ -d "$gitdir" ] || continue
+    type="bare+wt"
+    gitargs=(--git-dir "$gitdir")
+  else
+    continue
+  fi
+
+  printf "%s%-30s%s [%-7s] " "$B" "$name" "$X" "$type"
+
+  if ! git "${gitargs[@]}" remote get-url origin >/dev/null 2>&1; then
+    echo "${Y}no 'origin' remote — skipped${X}"; n_skip=$((n_skip+1)); continue
+  fi
+
+  # ---- authoritative, read-only: what is the remote's default branch NOW? ----
+  symref="$(git "${gitargs[@]}" ls-remote --symref origin HEAD 2>/dev/null \
+            | awk '/^ref:/ { sub("refs/heads/","",$2); print $2; exit }')"
+  if [ -z "$symref" ]; then
+    echo "${R}could not reach origin — skipped${X}"; n_err=$((n_err+1)); continue
+  fi
+  if [ "$symref" != "$TARGET" ]; then
+    echo "${C}remote default is '$symref' (not '$TARGET') — nothing to do${X}"
+    n_skip=$((n_skip+1)); continue
+  fi
+
+  # ---- remote default IS the target. Inspect local state & build a plan. ----
+  has_old=0;  git "${gitargs[@]}" show-ref --verify --quiet "refs/heads/$OLD"    && has_old=1
+  has_new=0;  git "${gitargs[@]}" show-ref --verify --quiet "refs/heads/$TARGET" && has_new=1
+  cur_oh="$(git "${gitargs[@]}" symbolic-ref --short -q refs/remotes/origin/HEAD || echo '-')"
+  up="$(git "${gitargs[@]}" rev-parse --abbrev-ref --symbolic-full-name "$TARGET@{upstream}" 2>/dev/null || echo '-')"
+
+  plan=()
+  [ "$cur_oh" != "origin/$TARGET" ] && plan+=("origin/HEAD: $cur_oh -> origin/$TARGET")
+  if [ "$has_new" = 0 ] && [ "$has_old" = 1 ]; then
+    plan+=("rename branch $OLD -> $TARGET")
+  fi
+  if [ "$has_new" = 1 ] || [ "$has_old" = 1 ]; then
+    [ "$up" != "origin/$TARGET" ] && plan+=("set upstream $TARGET -> origin/$TARGET")
+  fi
+  if [ "$has_new" = 1 ] && [ "$has_old" = 1 ]; then
+    if [ "$PRUNE_MASTER" = 1 ]; then plan+=("delete merged stale '$OLD'")
+    else plan+=("stale local '$OLD' present (kept; --prune-stale-master to remove)"); fi
+  fi
+  if [ "$type" = "bare+wt" ]; then
+    bh="$(git "${gitargs[@]}" symbolic-ref -q HEAD || echo '')"
+    [ "$bh" != "refs/heads/$TARGET" ] && plan+=("bare HEAD -> refs/heads/$TARGET")
+    if [ "$RENAME_WT" = 1 ] && [ -d "$repo/$OLD" ] && [ ! -e "$repo/$TARGET" ]; then
+      plan+=("move worktree dir $OLD/ -> $TARGET/")
+    fi
+  fi
+
+  if [ ${#plan[@]} -eq 0 ]; then
+    echo "${G}already correct${X}"; n_ok=$((n_ok+1)); continue
+  fi
+
+  echo "${Y}needs:${X} $(IFS='; '; echo "${plan[*]}")"
+  if [ "$APPLY" != 1 ]; then n_plan=$((n_plan+1)); continue; fi
+
+  # --------------------------------- APPLY ---------------------------------
+  ok=1
+  git "${gitargs[@]}" fetch -q --prune origin || { echo "   ${R}fetch failed${X}"; ok=0; }
+  git "${gitargs[@]}" remote set-head origin --auto >/dev/null 2>&1 \
+    || git "${gitargs[@]}" symbolic-ref "refs/remotes/origin/HEAD" "refs/remotes/origin/$TARGET" 2>/dev/null \
+    || true
+
+  has_old=0; git "${gitargs[@]}" show-ref --verify --quiet "refs/heads/$OLD"    && has_old=1
+  has_new=0; git "${gitargs[@]}" show-ref --verify --quiet "refs/heads/$TARGET" && has_new=1
+
+  if [ "$has_new" = 0 ] && [ "$has_old" = 1 ]; then
+    if git "${gitargs[@]}" branch -m "$OLD" "$TARGET"; then has_new=1; has_old=0
+    else echo "   ${R}rename failed${X}"; ok=0; fi
+  fi
+
+  if [ "$has_new" = 1 ]; then
+    git "${gitargs[@]}" branch --set-upstream-to="origin/$TARGET" "$TARGET" >/dev/null 2>&1 \
+      || echo "   ${Y}could not set upstream (origin/$TARGET missing?)${X}"
+  fi
+
+  if [ "$type" = "bare+wt" ] && [ "$has_new" = 1 ]; then
+    bh="$(git "${gitargs[@]}" symbolic-ref -q HEAD || echo '')"
+    [ "$bh" != "refs/heads/$TARGET" ] && git "${gitargs[@]}" symbolic-ref HEAD "refs/heads/$TARGET" || true
+  fi
+
+  if [ "$has_old" = 1 ] && [ "$has_new" = 1 ] && [ "$PRUNE_MASTER" = 1 ]; then
+    if git "${gitargs[@]}" branch --merged "$TARGET" --format='%(refname:short)' | grep -qx "$OLD"; then
+      git "${gitargs[@]}" branch -d "$OLD" >/dev/null && echo "   ${G}deleted merged stale '$OLD'${X}"
+    else
+      echo "   ${Y}stale '$OLD' not fully merged — kept${X}"
+    fi
+  fi
+
+  if [ "$type" = "bare+wt" ] && [ "$RENAME_WT" = 1 ] && [ -d "$repo/$OLD" ] && [ ! -e "$repo/$TARGET" ]; then
+    if git "${gitargs[@]}" worktree move "$repo/$OLD" "$repo/$TARGET" 2>/dev/null; then
+      echo "   ${G}moved worktree $OLD/ -> $TARGET/${X}"
+    else
+      echo "   ${Y}worktree move failed (open shell in $OLD/?) — left as-is${X}"
+    fi
+  fi
+
+  if [ "$ok" = 1 ]; then echo "   ${G}fixed${X}"; n_plan=$((n_plan+1)); else n_err=$((n_err+1)); fi
+done
+
+echo
+verb=$([ "$APPLY" = 1 ] && echo fixed || echo "to fix")
+echo "${B}summary:${X} ${G}${n_ok} already ok${X}  ${Y}${n_plan} ${verb}${X}  ${C}${n_skip} skipped${X}  ${R}${n_err} errors${X}"
+[ "$APPLY" != 1 ] && echo "Re-run with ${B}--apply${X} to perform the changes listed above."
+exit 0
