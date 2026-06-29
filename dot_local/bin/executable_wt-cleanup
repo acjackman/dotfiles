@@ -4,17 +4,18 @@ set -euo pipefail
 # wt-cleanup — Safely remove merged worktrees and their branches
 #
 # For each non-main worktree, checks for:
-#   1. Unmerged changes (branch not fully merged into main)
-#   2. Open tmux panes with working directory inside the worktree
-#   3. Untracked/ignored artifacts (.tmp files, tmp/ dirs)
-#   4. Active Claude Code sessions in the worktree directory
+#   1. Unmerged changes — local ancestry first, then GitHub PR state via `gh`
+#      so squash/rebase merges (which break local ancestry) count as merged
+#   2. Untracked/ignored artifacts (.tmp files, tmp/ dirs)
+#
+# Removal is delegated to `wt remove`, whose [pre-remove] tmux hook does the
+# live-session safety checks: it aborts if a busy pane (e.g. a running claude)
+# sits in the worktree, and kills idle shell panes before removal.
 #
 # Safe worktrees are removed automatically. Unsafe ones are skipped with
 # a warning, unless --interactive is passed to prompt for confirmation.
 #
 # Usage: wt-cleanup [--interactive] [--dry-run]
-
-IDLE_SHELLS="^(zsh|bash|fish|sh)$"
 
 interactive=false
 dry_run=false
@@ -34,84 +35,81 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
-# --- Resolve main worktree ---
-main_wt="$(git worktree list --porcelain | head -1 | sed 's/^worktree //')"
-main_wt_real="$(cd "$main_wt" && pwd -P)"
-main_branch="$(git -C "$main_wt" symbolic-ref --short HEAD 2>/dev/null || echo "main")"
+# --- Resolve default branch (worktrunk state, then origin/HEAD, then 'main') ---
+# Don't infer from `worktree list | head -1`: in a bare/worktrunk layout the
+# first entry is the .bare repo, not the default-branch worktree.
+default_branch="$(wt config state default-branch 2>/dev/null || true)"
+[[ -z "$default_branch" ]] && \
+  default_branch="$(git symbolic-ref --short -q refs/remotes/origin/HEAD 2>/dev/null | sed 's|^origin/||')"
+[[ -z "$default_branch" ]] && default_branch="main"
 
-# --- Collect all worktrees ---
-declare -A worktrees  # branch -> path
+# --- GitHub PR state (catches squash/rebase merges local ancestry misses) ---
+gh_repo=""
+if command -v gh &>/dev/null; then
+  gh_repo="$(gh repo view --json nameWithOwner --jq '.nameWithOwner' 2>/dev/null || echo "")"
+fi
+# Refresh remote state so PR/branch lookups are accurate; best-effort.
+git fetch origin --prune --quiet 2>/dev/null || true
+
+# Returns a branch's PR state: MERGED, CLOSED, OPEN, or NOT_FOUND.
+check_pr_state() {
+  local branch="$1"
+  [[ -z "$gh_repo" ]] && { echo "NOT_FOUND"; return; }
+  gh pr list --repo "$gh_repo" --head "$branch" --state all \
+    --json state --jq '.[0].state' 2>/dev/null || echo "NOT_FOUND"
+}
+
+# --- Collect candidate worktrees (indexed array of "branch<TAB>path"; bash 3.2 safe) ---
+# The .bare entry has no `branch` line, so it is skipped naturally. The
+# default-branch worktree is recorded as primary_wt and excluded from removal.
+worktrees=()
+primary_wt=""
 while IFS= read -r line; do
   case "$line" in
     worktree\ *) current_path="${line#worktree }" ;;
     branch\ *)
       current_branch="${line#branch refs/heads/}"
       path_real="$(cd "$current_path" && pwd -P)"
-      [[ "$path_real" == "$main_wt_real" ]] && continue
-      worktrees["$current_branch"]="$path_real"
+      if [[ "$current_branch" == "$default_branch" ]]; then
+        primary_wt="$path_real"
+        continue
+      fi
+      worktrees+=("${current_branch}"$'\t'"${path_real}")
       ;;
   esac
 done < <(git worktree list --porcelain)
 
 if [[ ${#worktrees[@]} -eq 0 ]]; then
-  echo "No non-main worktrees found."
+  echo "No non-default-branch worktrees found."
   exit 0
 fi
 
-# --- Build tmux pane index (once, for all worktrees) ---
-declare -a tmux_panes=()
-if [[ -n "${TMUX:-}" ]]; then
-  while IFS=$'\t' read -r pane_id pane_path pane_cmd session_name; do
-    tmux_panes+=("$pane_id	$pane_path	$pane_cmd	$session_name")
-  done < <(tmux list-panes -a -F "#{pane_id}	#{pane_current_path}	#{pane_current_command}	#{session_name}" 2>/dev/null || true)
+# Run `wt remove` from the primary worktree; fall back to the first worktree.
+if [[ -z "$primary_wt" ]]; then
+  primary_wt="$(git worktree list --porcelain | sed -n '1s/^worktree //p')"
 fi
-
-# --- Build Claude process index (once, for all worktrees) ---
-declare -a claude_cwds=()
-while IFS= read -r pid; do
-  cwd="$(readlink "/proc/$pid/cwd" 2>/dev/null)" || continue
-  claude_cwds+=("$cwd")
-done < <(pgrep -x claude 2>/dev/null || true)
 
 # --- Check each worktree ---
 removed=0
 skipped=0
 
-for branch in "${!worktrees[@]}"; do
-  wt_path="${worktrees[$branch]}"
+for entry in "${worktrees[@]}"; do
+  IFS=$'\t' read -r branch wt_path <<< "$entry"
   warnings=()
+  force_delete=false
 
-  # 1. Unmerged changes
-  if ! git merge-base --is-ancestor "$branch" "$main_branch" 2>/dev/null; then
-    warnings+=("unmerged: branch '$branch' is not fully merged into '$main_branch'")
+  # 1. Unmerged changes — local ancestry, then GitHub PR state (squash merges)
+  if ! git merge-base --is-ancestor "$branch" "$default_branch" 2>/dev/null; then
+    pr_state="$(check_pr_state "$branch")"
+    if [[ "$pr_state" == "MERGED" ]]; then
+      # Squash/rebase-merged: wt won't see local ancestry, so force branch delete
+      force_delete=true
+    else
+      warnings+=("unmerged: branch '$branch' not merged into '$default_branch' (PR: ${pr_state:-none})")
+    fi
   fi
 
-  # 2. Open tmux panes
-  busy_panes=()
-  idle_panes=()
-  for entry in "${tmux_panes[@]+"${tmux_panes[@]}"}"; do
-    IFS=$'\t' read -r pane_id pane_path pane_cmd session_name <<< "$entry"
-    pane_path_real="$(cd "$pane_path" 2>/dev/null && pwd -P)" || continue
-    case "$pane_path_real" in
-      "$wt_path"|"$wt_path"/*)
-        if [[ "$pane_cmd" =~ $IDLE_SHELLS ]]; then
-          idle_panes+=("$pane_id")
-        else
-          busy_panes+=("[$session_name] $pane_cmd ($pane_path_real)")
-        fi
-        ;;
-    esac
-  done
-  if [[ ${#busy_panes[@]} -gt 0 ]]; then
-    for desc in "${busy_panes[@]}"; do
-      warnings+=("busy pane: $desc")
-    done
-  fi
-  if [[ ${#idle_panes[@]} -gt 0 ]]; then
-    warnings+=("idle tmux panes: ${#idle_panes[@]} shell(s) open in worktree")
-  fi
-
-  # 3. Untracked/ignored artifacts
+  # 2. Untracked/ignored artifacts
   artifacts=()
   if [[ -d "$wt_path/tmp" ]]; then
     artifacts+=("tmp/")
@@ -125,16 +123,6 @@ for branch in "${!worktrees[@]}"; do
   if [[ ${#artifacts[@]} -gt 0 ]]; then
     warnings+=("artifacts found: ${artifacts[*]}")
   fi
-
-  # 4. Active Claude Code sessions
-  for cwd in "${claude_cwds[@]+"${claude_cwds[@]}"}"; do
-    case "$cwd" in
-      "$wt_path"|"$wt_path"/*)
-        warnings+=("active Claude Code session (cwd: $cwd)")
-        break
-        ;;
-    esac
-  done
 
   # --- Decision ---
   if [[ ${#warnings[@]} -gt 0 ]]; then
@@ -167,23 +155,16 @@ for branch in "${!worktrees[@]}"; do
   # --- Remove ---
   echo "REMOVE  $branch ($wt_path)"
 
-  # Kill idle tmux panes in this worktree before removal
-  if [[ ${#idle_panes[@]} -gt 0 ]]; then
-    for pane_id in "${idle_panes[@]}"; do
-      [[ "${TMUX_PANE:-}" == "$pane_id" ]] && continue
-      tmux kill-pane -t "$pane_id" 2>/dev/null || true
-    done
-  fi
-
-  git worktree remove --force "$wt_path" 2>/dev/null || {
-    echo "  error: failed to remove worktree" >&2
+  # Delegate to `wt remove`: its [pre-remove] tmux hook aborts on a busy pane
+  # (e.g. a running claude) and clears idle shells. --force-delete only when we
+  # confirmed a squash merge above (wt's own merge check would miss it).
+  remove_args=(--foreground)
+  $force_delete && remove_args+=(--force-delete)
+  if ! wt -C "$primary_wt" remove "${remove_args[@]}" "$branch"; then
+    echo "  error: wt remove failed (busy pane or hook abort?)" >&2
     skipped=$((skipped + 1))
+    echo ""
     continue
-  }
-
-  # Delete the branch if it still exists
-  if git show-ref --verify --quiet "refs/heads/$branch" 2>/dev/null; then
-    git branch -d "$branch" 2>/dev/null || git branch -D "$branch" 2>/dev/null || true
   fi
 
   removed=$((removed + 1))
