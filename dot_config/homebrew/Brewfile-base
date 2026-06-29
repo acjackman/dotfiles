@@ -66,9 +66,6 @@ cask "ghostty"
 cask "alacritty"
 cask "cmux"                          # AI agent terminal (Ghostty-based)
 
-# Vim modal input
-cask "tonisives/tap/ovim"
-
 # *Nix utitlites
 brew "coreutils"
 brew "rsync"

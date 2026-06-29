@@ -80,11 +80,6 @@ label = 'UI Tweaks'
     url = "tuna://run/text.osascript%2520-e%2520'tell%2520app%2520%2522System%2520Events%2522%2520to%2520tell%2520appearance%2520preferences%2520to%2520set%2520dark%2520mode%2520to%2520not%2520dark%2520mode'/Run%20Text%20as%20Shell%20Command"
 
     [[comboMode.bindings.children]]
-    key = 'v'
-    label = 'Toggle Vim Mode (ovim)'
-    url = 'tuna://run/text.,ovim-in-place/Run%20Text%20as%20Shell%20Command'
-
-    [[comboMode.bindings.children]]
     key = 'h'
     label = 'HazeOver'
 

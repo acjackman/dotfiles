@@ -97,7 +97,7 @@ sketchybar --add item timing center \
 # https://felixkratz.github.io/SketchyBar/config/events
 
 # Right-side items are added rightmost-first.
-# Desired order (left to right): ovim, cpu, mem, disk, battery, volume, clock
+# Desired order (left to right): cpu, mem, disk, battery, volume, clock
 
 sketchybar --add item clock right \
            --set clock update_freq=5 script="$PLUGIN_DIR/clock.sh" \
@@ -124,11 +124,6 @@ sketchybar --add item memory right \
 sketchybar --add item cpu right \
            --set cpu update_freq=2 script="$PLUGIN_DIR/cpu.sh"
 {{ end -}}
-
-sketchybar --add item ovim_mode right \
-           --set ovim_mode update_freq=1 \
-                           icon.font="Hack Nerd Font:Bold:20.0" \
-                           script="$PLUGIN_DIR/ovim.sh"
 
 ##### Force all scripts to run the first time (never do this in a script) #####
 sketchybar --update

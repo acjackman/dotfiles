@@ -62,3 +62,9 @@ finicky.js
 .local/bin/wtm
 .local/lib/wt-tmux-cleanup.sh
 .local/bin/spawn-launch
+# ovim removal — no longer used
+.config/ovim
+Library/Application Support/ovim
+.local/bin/ovim
+.local/bin/,ovim-in-place
+.config/sketchybar/plugins/ovim.sh

@@ -265,10 +265,6 @@ if.app-id = 'org.alacritty'
 run = 'layout floating'
 
 [[on-window-detected]]
-if.app-id = 'com.tonis.ovim'
-run = 'layout floating'
-
-[[on-window-detected]]
 if.app-id = 'com.github.wez.wezterm'
 run = 'move-node-to-workspace T'
 
