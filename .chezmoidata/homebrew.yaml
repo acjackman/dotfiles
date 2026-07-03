@@ -1,0 +1,44 @@
+# Homebrew tap trust allowlist.
+#
+# Homebrew 6.0+ refuses to load a third-party tap's (unsandboxed) Ruby until the
+# tap is explicitly trusted. This list is the deliberate "I vouch for this code
+# source" decision, kept separate from the install list on purpose: a tap is
+# trusted only if it appears BOTH here AND in an active Brewfile. Adding a tap to
+# a Brewfile without adding it here surfaces a warning at apply time rather than
+# silently trusting it (catches typosquats / unintended additions).
+#
+# Scoped per machine exactly like the Brewfiles: base is always applied; the
+# other profiles follow the same selection as Brewfile-<profile> (`.extras` /
+# hostname). Keep entries lowercase (Homebrew normalizes tap names).
+#
+# Consumed by dot_config/homebrew/run_onchange_darwin-install-packages.sh.tmpl.
+homebrew:
+  trusted_taps:
+    base:
+      - caarlos0/tap
+      - derailed/k9s
+      - felixkratz/formulae
+      - github/gh
+      - goreleaser/tap
+      - manaflow-ai/cmux
+      - max-sixty/worktrunk
+      - mikker/tap
+      - nikitabobko/tap
+      - noahgorstein/tap
+      - raine/workmux
+      - steipete/tap
+      - tonisives/tap
+      - ttscoff/thelab
+      - umputun/apps
+      - xykong/tap
+      - yakitrak/yakitrak
+      - yqrashawn/goku
+    moov:
+      - confluentinc/tap
+      - homeport/tap
+      - moovfinancial/moovbrew
+      - redpanda-data/tap
+      - spacelift-io/spacelift
+      - withgraphite/tap
+    personal: []
+    odin: []

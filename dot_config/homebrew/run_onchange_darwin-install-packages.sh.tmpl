@@ -19,6 +19,94 @@ brewfiles=(
 {{- end }}
 )
 
+######################################
+# Tap trust
+######################################
+# Homebrew 6.0+ won't load a third-party tap's (unsandboxed) Ruby until the tap
+# is explicitly trusted. Trust is granted only for taps that are BOTH on the
+# allowlist (.chezmoidata/homebrew.yaml, scoped per machine like the Brewfiles)
+# AND referenced by an active Brewfile. New taps are trusted automatically
+# (trust-on-first-use); a tap whose local remote no longer matches its canonical
+# GitHub URL is reported and skipped, never silently re-pinned (ownership-change
+# guard). A Brewfile tap that isn't on the allowlist is warned about, not trusted.
+
+lc() { tr '[:upper:]' '[:lower:]'; }
+
+# Allowlist for this machine (base + active profiles), rendered by chezmoi:
+allowlist="$(cat <<'ALLOWLIST' | lc | sort -u
+{{- range .homebrew.trusted_taps.base }}
+{{ . }}
+{{- end }}
+{{- if has "moov" .extras }}{{ range .homebrew.trusted_taps.moov }}
+{{ . }}
+{{- end }}{{ end }}
+{{- if has "personal" .extras }}{{ range .homebrew.trusted_taps.personal }}
+{{ . }}
+{{- end }}{{ end }}
+{{- if eq .hostname "Odin" }}{{ range .homebrew.trusted_taps.odin }}
+{{ . }}
+{{- end }}{{ end }}
+ALLOWLIST
+)"
+
+# Extract every third-party tap referenced in a Brewfile:
+#   - explicit `tap "owner/repo"` lines
+#   - fully-qualified `brew`/`cask "owner/repo/name"` entries (tap = owner/repo)
+function taps-in() {
+  local file="$1"
+  grep -E '^[[:space:]]*tap[[:space:]]+"' "$file" |
+    sed -E 's/.*"([^"]+)".*/\1/'
+  grep -E '^[[:space:]]*(brew|cask)[[:space:]]+"[^"]+/[^"]+/[^"]+"' "$file" |
+    sed -E 's|.*"([^/]+/[^/]+)/[^"]+".*|\1|'
+}
+
+# Taps referenced across all active Brewfiles (lowercased, unique):
+brewfile_taps="$(
+  for filename in "${brewfiles[@]}"; do
+    [[ "$filename" == *.lock.json ]] && continue
+    taps-in "$filename"
+  done | lc | sort -u
+)"
+
+# Taps Homebrew currently trusts (read from brew itself, not the JSON file):
+trusted_taps="$(brew trust 2>/dev/null | awk '
+  /^Trusted taps:/     { s=1; next }
+  /^Trusted (casks|formulae|commands):/ { s=0 }
+  s && /^[[:space:]]+/ { gsub(/^[[:space:]]+/,""); print }
+' | lc | sort -u)"
+
+in_set() { grep -qxF "$1" <<<"$2"; }
+
+# Drift: a Brewfile wants a tap we have not vouched for -> warn, do not trust.
+while read -r tap; do
+  [ -z "$tap" ] && continue
+  in_set "$tap" "$allowlist" ||
+    echo "Warning: tap '$tap' is used by a Brewfile but not on the trust allowlist (.chezmoidata/homebrew.yaml); Homebrew will skip it until it is vouched for."
+done <<<"$brewfile_taps"
+
+# Trust the intersection of allowlist and active Brewfiles.
+while read -r tap; do
+  [ -z "$tap" ] && continue
+  in_set "$tap" "$brewfile_taps" || continue   # allowlisted but unused on this machine
+
+  # Ownership-change guard: if the tap is already checked out with a remote that
+  # doesn't match its canonical GitHub URL, warn and skip instead of trusting.
+  repo_path="$(brew --repo "$tap" 2>/dev/null)"
+  if [ -n "$repo_path" ] && [ -d "$repo_path/.git" ]; then
+    remote="$(git -C "$repo_path" remote get-url origin 2>/dev/null | lc)"
+    canonical="https://github.com/${tap%%/*}/homebrew-${tap##*/}"
+    if [ "${remote%.git}" != "$canonical" ]; then
+      echo "Warning: tap '$tap' remote is '${remote:-<none>}', expected '${canonical}'."
+      echo "         Possible ownership change; NOT auto-trusting. Run 'brew trust $tap' manually if this is expected."
+      continue
+    fi
+  fi
+
+  in_set "$tap" "$trusted_taps" && continue     # already trusted and remote OK
+  echo "Trusting tap: $tap"
+  brew trust "$tap" || echo "Warning: failed to trust $tap"
+done <<<"$allowlist"
+
 # Loop through and install each Brewfile
 for filename in "${brewfiles[@]}"; do
   # Skip .lock files
