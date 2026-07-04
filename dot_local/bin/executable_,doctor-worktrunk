@@ -1,0 +1,181 @@
+#!/usr/bin/env bash
+#
+# ,doctor-worktrunk — ensure bare worktree repos carry the worktrunk mise config.
+#
+# The `,gr-*` helpers (,gr-init / ,gr-clone / ,gr-bare) set up a bare-repo +
+# worktrees layout and drop a `.config/mise.local.toml` at the repo root that
+# tells worktrunk where to place new worktrees:
+#
+#     [env]
+#     WORKTRUNK_WORKTREE_PATH = "{% raw %}../{{ branch | sanitize }}{% endraw %}"
+#
+# (the {% raw %} guard stops mise's own templating from eating the worktrunk
+# `{{ branch | sanitize }}` expression, which worktrunk evaluates later.)
+#
+# Over time repos drift: the file goes missing, holds a stale value, or was
+# never `mise trust`ed. This doctor scans bare repos and repairs that config.
+#
+# What it does, per bare repo found under BASE (two levels deep, e.g.
+# ~/dev/<org>/<repo>):
+#   1. create .config/mise.local.toml if missing
+#   2. set/correct the WORKTRUNK_WORKTREE_PATH value
+#   3. `mise trust` the file if it isn't trusted yet
+#
+# It is idempotent: a healthy repo is a no-op. Regular (non-bare) checkouts and
+# non-git directories are ignored.
+#
+# Usage:
+#   ,doctor-worktrunk [options]
+#
+# Options:
+#   --dry-run       Report what would change without touching anything.
+#   --base DIR      Directory to scan (default: ~/dev). Repos are matched at
+#                   DIR/*/* (two levels deep).
+#   -h, --help      Show this help.
+
+set -uo pipefail
+
+DRY_RUN=0
+BASE="$HOME/dev"
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --dry-run)  DRY_RUN=1 ;;
+    --base)     BASE="$2"; shift ;;
+    -h|--help)  sed -n '2,42p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -*)         echo "unknown option: $1" >&2; exit 2 ;;
+    *)          echo "unexpected argument: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+if [ -t 1 ]; then
+  B=$'\e[1m'; R=$'\e[31m'; G=$'\e[32m'; Y=$'\e[33m'; C=$'\e[36m'; X=$'\e[0m'
+else
+  B=; R=; G=; Y=; C=; X=
+fi
+
+# The one line every bare worktrunk repo must carry, verbatim.
+EXPECTED_VALUE='{% raw %}../{{ branch | sanitize }}{% endraw %}'
+EXPECTED_LINE="WORKTRUNK_WORKTREE_PATH = \"$EXPECTED_VALUE\""
+
+mode="${R}APPLY${X} (making changes)"
+[ "$DRY_RUN" = 1 ] && mode="${Y}DRY RUN${X} (no changes) — omit --dry-run to fix"
+echo "${B},doctor-worktrunk${X}  mode: ${mode}"
+echo "scanning bare repos under ${C}${BASE}${X} (two levels deep: */*)"
+echo
+
+n_ok=0; n_fix=0; n_err=0
+
+# Is the repo-root mise config trusted by mise? Trust is stored outside the
+# repo, so ask mise directly. `mise trust --show` prints "<dir>: trusted" or
+# "<dir>: untrusted", abbreviating $HOME to ~.
+is_trusted() {
+  local repo="$1" out
+  out="$( cd "$repo" 2>/dev/null && mise trust --show 2>/dev/null )"
+  # mise prints the full path, or abbreviates $HOME to ~ for repos under it.
+  printf '%s\n' "$out" | grep -qxF "$repo: trusted" && return 0
+  printf '%s\n' "$out" | grep -qxF "~${repo#$HOME}: trusted"
+}
+
+for path in "$BASE"/*/*/ ; do
+  repo="${path%/}"
+  [ -d "$repo" ] || continue
+
+  # ---- keep only bare-repo + worktree layouts (.git is a file -> gitdir) ----
+  [ -f "$repo/.git" ] || continue
+  gd="$(sed -n 's/^gitdir: //p' "$repo/.git" | head -1)"
+  [ -n "$gd" ] || continue
+  case "$gd" in /*) gitdir="$gd" ;; *) gitdir="$repo/$gd" ;; esac
+  [ -d "$gitdir" ] || continue
+  [ "$(git --git-dir "$gitdir" rev-parse --is-bare-repository 2>/dev/null)" = true ] || continue
+
+  name="${repo#$BASE/}"
+  printf "%s%-34s%s " "$B" "$name" "$X"
+
+  cfg="$repo/.config/mise.local.toml"
+  plan=()
+
+  # ---- content ----
+  content_ok=0
+  if [ ! -f "$cfg" ]; then
+    plan+=("create .config/mise.local.toml")
+  else
+    cur="$(sed -n 's/^WORKTRUNK_WORKTREE_PATH[[:space:]]*=[[:space:]]*"\(.*\)"[[:space:]]*$/\1/p' "$cfg" | head -1)"
+    if [ -z "$cur" ]; then
+      plan+=("add WORKTRUNK_WORKTREE_PATH")
+    elif [ "$cur" != "$EXPECTED_VALUE" ]; then
+      plan+=("fix WORKTRUNK_WORKTREE_PATH value")
+    else
+      content_ok=1
+    fi
+  fi
+
+  # ---- trust (only meaningful once the file exists) ----
+  need_trust=0
+  if [ "$content_ok" = 1 ]; then
+    is_trusted "$repo" || { need_trust=1; plan+=("mise trust"); }
+  else
+    # file will exist after we fix content; it'll need trusting too.
+    need_trust=1; plan+=("mise trust")
+  fi
+
+  if [ ${#plan[@]} -eq 0 ]; then
+    echo "${G}ok${X}"; n_ok=$((n_ok+1)); continue
+  fi
+
+  echo "${Y}needs:${X} $(IFS='; '; echo "${plan[*]}")"
+  if [ "$DRY_RUN" = 1 ]; then n_fix=$((n_fix+1)); continue; fi
+
+  # --------------------------------- APPLY ---------------------------------
+  ok=1
+  if [ "$content_ok" = 1 ]; then
+    : # content already correct; only the trust step below is needed
+  elif [ ! -f "$cfg" ]; then
+    if mkdir -p "$repo/.config" && printf '[env]\n%s\n' "$EXPECTED_LINE" > "$cfg"; then
+      echo "   ${G}wrote${X} .config/mise.local.toml"
+    else
+      echo "   ${R}failed to write config${X}"; ok=0
+    fi
+  elif grep -q '^WORKTRUNK_WORKTREE_PATH' "$cfg"; then
+    # replace the existing (wrong) value line in place. Pass the replacement via
+    # awk -v so the `|` in the value isn't treated as a delimiter/regex.
+    tmp="$cfg.doctor.$$"
+    if awk -v line="$EXPECTED_LINE" '/^WORKTRUNK_WORKTREE_PATH[ \t]*=/{print line; next} {print}' "$cfg" > "$tmp" && mv "$tmp" "$cfg"; then
+      echo "   ${G}corrected${X} WORKTRUNK_WORKTREE_PATH"
+    else
+      rm -f "$tmp"; echo "   ${R}failed to update config${X}"; ok=0
+    fi
+  else
+    # file exists but lacks the key — add it under [env] (creating the section)
+    if grep -q '^\[env\]' "$cfg"; then
+      tmp="$cfg.doctor.$$"
+      if awk -v line="$EXPECTED_LINE" '{print} /^\[env\]/ && !done {print line; done=1}' "$cfg" > "$tmp" && mv "$tmp" "$cfg"; then
+        echo "   ${G}added${X} WORKTRUNK_WORKTREE_PATH"
+      else
+        rm -f "$tmp"; echo "   ${R}failed to update config${X}"; ok=0
+      fi
+    elif printf '\n[env]\n%s\n' "$EXPECTED_LINE" >> "$cfg"; then
+      echo "   ${G}added${X} [env] WORKTRUNK_WORKTREE_PATH"
+    else
+      echo "   ${R}failed to update config${X}"; ok=0
+    fi
+  fi
+
+  if [ "$ok" = 1 ] && [ "$need_trust" = 1 ]; then
+    if ( cd "$repo" && mise trust .config/mise.local.toml >/dev/null 2>&1 ); then
+      echo "   ${G}trusted${X} config"
+    else
+      echo "   ${Y}could not mise trust config${X}"; ok=0
+    fi
+  fi
+
+  if [ "$ok" = 1 ]; then n_fix=$((n_fix+1)); else n_err=$((n_err+1)); fi
+done
+
+echo
+verb=$([ "$DRY_RUN" = 1 ] && echo "to fix" || echo fixed)
+echo "${B}summary:${X} ${G}${n_ok} ok${X}  ${Y}${n_fix} ${verb}${X}  ${R}${n_err} errors${X}"
+[ "$DRY_RUN" = 1 ] && [ "$n_fix" -gt 0 ] && echo "Re-run without ${B}--dry-run${X} to apply."
+[ "$n_err" -gt 0 ] && exit 1
+exit 0
