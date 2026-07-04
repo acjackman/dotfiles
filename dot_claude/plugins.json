@@ -1,27 +1,34 @@
 {
   "marketplaces": [
     "anthropics/claude-plugins-official",
-    "max-sixty/worktrunk",
-    "umputun/revdiff"
+    "max-sixty/worktrunk"
   ],
   "plugins": [
     "pyright-lsp@claude-plugins-official",
     "gopls-lsp@claude-plugins-official",
     "worktrunk@worktrunk",
-    "code-review@claude-plugins-official",
+    "code-review@claude-plugins-official"
+  ],
+  "extras": {
+    "base": [],
+    "moov": [],
+    "personal": [
+      "skill-creator@claude-plugins-official"
+    ],
+    "odin": []
+  },
+  "remove": [
     "revdiff@revdiff"
   ],
+  "removeMarketplaces": [
+    "revdiff"
+  ],
+  "prune": false,
   "extraKnownMarketplaces": {
     "worktrunk": {
       "source": {
         "source": "github",
         "repo": "max-sixty/worktrunk"
-      }
-    },
-    "revdiff": {
-      "source": {
-        "source": "github",
-        "repo": "umputun/revdiff"
       }
     }
   }

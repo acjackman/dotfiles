@@ -1,5 +1,6 @@
 #!/bin/bash
 # plugins hash: {{ include "dot_claude/plugins.json" | sha256sum }}
+# Profile: extras={{ .extras }} hostname={{ .hostname }}
 
 # Allow `claude plugin` CLI commands when chezmoi apply is run from within a Claude Code session
 unset CLAUDECODE
@@ -9,17 +10,45 @@ if ! command -v claude &> /dev/null; then
     exit 0
 fi
 
-PLUGINS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/plugins.json"
-
 if ! command -v jq &> /dev/null; then
-    echo "Warning: jq not found. Cannot install Claude plugins automatically."
+    echo "Warning: jq not found. Cannot manage Claude plugins automatically."
     exit 1
 fi
 
+PLUGINS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/plugins.json"
+
 FAILURES=0
 
-# Add marketplaces
-for marketplace in $(jq -r '.marketplaces[]' "$PLUGINS_FILE"); do
+# --- Desired state for THIS machine -----------------------------------------
+# Desired plugins = curated core (.plugins) + the extras profiles active on
+# this machine. Profile selection mirrors the Brewfile/tap-allowlist logic in
+# dot_config/homebrew: `base` always, then `.extras` choices and hostname.
+#
+# `base` is always active; `.extras` (personal/work) and hostname select the rest.
+active_profiles=("base")
+{{ if has "moov" .extras }}active_profiles+=("moov"){{ end }}
+{{ if has "personal" .extras }}active_profiles+=("personal"){{ end }}
+{{ if eq .hostname "Odin" }}active_profiles+=("odin"){{ end }}
+
+# Build the newline-delimited desired-plugin set (core + active extras, unique).
+desired_plugins="$(
+  {
+    jq -r '.plugins[]?' "$PLUGINS_FILE"
+    for profile in "${active_profiles[@]}"; do
+      jq -r --arg p "$profile" '.extras[$p][]?' "$PLUGINS_FILE"
+    done
+  } | sort -u
+)"
+
+desired_marketplaces="$(jq -r '.marketplaces[]?' "$PLUGINS_FILE")"
+remove_plugins="$(jq -r '.remove[]?' "$PLUGINS_FILE")"
+remove_marketplaces="$(jq -r '.removeMarketplaces[]?' "$PLUGINS_FILE")"
+prune="$(jq -r '.prune // false' "$PLUGINS_FILE")"
+
+in_set() { [ -n "$1" ] && grep -qxF -- "$1" <<<"$2"; }
+
+# --- Add marketplaces -------------------------------------------------------
+for marketplace in $desired_marketplaces; do
     marketplace_name="${marketplace##*/}"
     if claude plugin marketplace list 2>/dev/null | grep -q "$marketplace_name"; then
         echo "Marketplace $marketplace_name already registered"
@@ -34,15 +63,16 @@ done
 
 # Verify marketplaces are available before installing plugins
 MARKETPLACE_LIST=$(claude plugin marketplace list 2>/dev/null)
-for marketplace in $(jq -r '.marketplaces[]' "$PLUGINS_FILE"); do
+for marketplace in $desired_marketplaces; do
     marketplace_name="${marketplace##*/}"
     if ! echo "$MARKETPLACE_LIST" | grep -q "$marketplace_name"; then
         echo "Warning: Marketplace $marketplace_name is not available, plugins from it may fail to install"
     fi
 done
 
-# Install plugins
-for plugin in $(jq -r '.plugins[]' "$PLUGINS_FILE"); do
+# --- Install desired plugins ------------------------------------------------
+while IFS= read -r plugin; do
+    [ -z "$plugin" ] && continue
     if claude plugin list 2>/dev/null | grep -q "$plugin"; then
         echo "Plugin $plugin already installed"
     else
@@ -52,7 +82,49 @@ for plugin in $(jq -r '.plugins[]' "$PLUGINS_FILE"); do
             FAILURES=$((FAILURES + 1))
         fi
     fi
+done <<<"$desired_plugins"
+
+# --- Explicit removals (ALWAYS enforced, every machine) ---------------------
+# Uninstall plugins first so their marketplace can be removed cleanly.
+for plugin in $remove_plugins; do
+    if claude plugin list 2>/dev/null | grep -q "$plugin"; then
+        echo "Removing plugin: $plugin"
+        if ! claude plugin uninstall "$plugin"; then
+            echo "Warning: Failed to uninstall plugin $plugin"
+            FAILURES=$((FAILURES + 1))
+        fi
+    fi
 done
+for marketplace in $remove_marketplaces; do
+    marketplace_name="${marketplace##*/}"
+    if claude plugin marketplace list 2>/dev/null | grep -q "$marketplace_name"; then
+        echo "Removing marketplace: $marketplace_name"
+        if ! claude plugin marketplace remove "$marketplace_name"; then
+            echo "Warning: Failed to remove marketplace $marketplace_name"
+            FAILURES=$((FAILURES + 1))
+        fi
+    fi
+done
+
+# --- Prune pass: installed plugins that aren't declared ---------------------
+# Until `prune` is true this only WARNS, so a machine with plugins we haven't
+# inventoried yet surfaces drift instead of silently uninstalling it. Once the
+# desired lists (.plugins / .extras) cover every machine, flip "prune": true.
+installed_plugins="$(claude plugin list 2>/dev/null | grep -oE '[A-Za-z0-9._-]+@[A-Za-z0-9._-]+' | sort -u)"
+while IFS= read -r plugin; do
+    [ -z "$plugin" ] && continue
+    in_set "$plugin" "$desired_plugins" && continue
+    in_set "$plugin" "$remove_plugins" && continue   # already handled above
+    if [ "$prune" = "true" ]; then
+        echo "Pruning unmanaged plugin: $plugin"
+        if ! claude plugin uninstall "$plugin"; then
+            echo "Warning: Failed to prune plugin $plugin"
+            FAILURES=$((FAILURES + 1))
+        fi
+    else
+        echo "WARN: unmanaged plugin installed: $plugin (add to .plugins/.extras to keep, or .remove to drop; then set .prune=true)"
+    fi
+done <<<"$installed_plugins"
 
 if [ "$FAILURES" -gt 0 ]; then
     echo "Warning: $FAILURES plugin operation(s) failed. Run 'chezmoi apply' again to retry."
