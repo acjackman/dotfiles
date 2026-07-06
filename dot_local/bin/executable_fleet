@@ -203,6 +203,19 @@ cmd_spawn() {
   # Claude session name mirrors the worktree (tmux parity); herdr tracks by label.
   local sname; sname=$(tmux-window-name "$cwd" 2>/dev/null || basename "$cwd")
   local launch; launch="cat $(sq "$prompt") | claude --permission-mode=auto --name $(sq "$sname")"
+  # Autonomous work-agents must not stall at the "N new MCP servers found —
+  # enable?" prompt for an unapproved project .mcp.json (bit us spawning the
+  # policybot agent into the infra worktree). enableAllProjectMcpServers
+  # auto-approves project-scoped MCP servers while leaving global/user MCP
+  # servers untouched (unlike --strict-mcp-config, which would drop them).
+  # Override with FLEET_SPAWN_MCP_SETTINGS='' to restore the interactive prompt.
+  local mcp_settings
+  if [ "${FLEET_SPAWN_MCP_SETTINGS+set}" = set ]; then
+    mcp_settings="$FLEET_SPAWN_MCP_SETTINGS"
+  else
+    mcp_settings='{"enableAllProjectMcpServers":true}'
+  fi
+  [ -n "$mcp_settings" ] && launch+=" --settings $(sq "$mcp_settings")"
   [ -n "$model" ] && launch+=" --model $(sq "$model")"
   local b; b=$(choose_backend "$backend")
   if [ "$b" = herdr ]; then
