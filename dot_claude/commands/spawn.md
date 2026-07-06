@@ -5,7 +5,7 @@ argument-hint: [--base <ref>] [--repo <path>] [--model <model>] [--session] <tas
 
 # Spawn Claude Agent
 
-Spawn a new Claude agent in an isolated worktree via tmux. Always creates a **tmux window** in the current session.
+Spawn a new Claude agent in an isolated worktree on a new interactive surface. The surface is opened by the `fleet` substrate adapter, which uses **herdr** when it's the active multiplexer and falls back to **tmux** otherwise (see "Substrate" below) — you don't choose; `fleet` dispatches on context.
 
 Each agent gets its own worktree created by worktrunk, so it can work without conflicting with the current session.
 
@@ -18,7 +18,7 @@ $ARGUMENTS contains the task description and optional flags for the new Claude a
 - `--base <ref>` — Pass through to `spawn-setup-worktree` to create the worktree from a specific git ref
 - `--repo <path>` — Target a different repository (see Cross-Repo Tasks below)
 - `--model <model>` — Override the automatic model selection
-- `--session` — Create a tmux session instead of a window (default: window)
+- `--session` — On the tmux backend, create a session instead of a window (default: window). Ignored on herdr, which always opens an isolated workspace per agent.
 
 Everything remaining after extracting flags is the task description.
 
@@ -36,7 +36,7 @@ Pass `--repo <path>` to `spawn-setup-worktree` to target the other repo. If it's
 These are on PATH:
 
 - **`spawn-setup-worktree`** — Creates or reuses a worktrunk-managed worktree. Returns JSON `{branch, path}`.
-- **`spawn-tmux`** — Spawns a tmux window or session and launches an interactive Claude session inside it (pipes the prompt file into `claude`).
+- **`fleet`** — Substrate adapter. `fleet spawn` opens a new surface (herdr workspace or tmux window/session, by context) and launches an interactive Claude session inside it (pipes the prompt file into `claude`), tagging it with a `--label` for tracking. `fleet state <label>` reports the agent's semantic state. `fleet backend` prints which backend the current context resolves to.
 
 ## Pre-flight Checks
 
@@ -124,48 +124,60 @@ If there are uncommitted changes, warn the user: "The working tree has uncommitt
 
    Remember the absolute path to this file for the next step.
 
-4. Spawn a full interactive Claude session in tmux. Never use `claude -p`/`--print`. The tmux name is
-   derived automatically from the worktree path using `tmux-window-name` or
-   `tmux-session-name` (consistent with all other tmux naming in the dotfiles).
+4. Spawn a full interactive Claude session on a new surface. Never use `claude -p`/`--print`. Use the **branch name** as the tracking `--label` (the effort/ticket-id convention `fleet state` keys on). `fleet` chooses herdr or tmux by context and, on tmux, derives the window/session name from the worktree path automatically.
 
-   Use `--window` (default) or `--session` if the user passed `--session`:
+   Pass `--session` only if the user passed it (tmux-only; herdr ignores it):
 
    ```bash
-   spawn-tmux --window --name <name> --dir <worktree-path> --prompt <absolute-path-to-prompt-file> [--model <model>]
+   fleet spawn --cwd <worktree-path> --label <branch-name> --prompt <absolute-path-to-prompt-file> [--model <model>] [--session]
    ```
 
-   The tmux name printed/derived is whatever `tmux-window-name <worktree-path>` (or `tmux-session-name`) returns — capture it for the next step.
+   `fleet spawn` prints `substrate:`, `label:`, `handle:` and backend ids — capture `substrate` and `label` for the next steps.
 
-5. **Verify the session actually started** (don't trust the spawn step blindly).
-   Wait ~3 seconds for shell init + claude startup, then check the foreground
-   process running in the pane:
+5. **Verify the agent actually started** (don't trust the spawn step blindly).
+   Wait ~3 seconds for shell init + claude startup, then ask the adapter for the
+   agent's state:
 
    ```bash
    sleep 3
-   tmux display-message -t '=<tmux_name>' -p '#{pane_current_command}'
+   fleet state <branch-name>
    ```
 
-   - Output is `claude` — the session is up, proceed.
-   - Output is `zsh` (or another shell) — claude either hasn't finished
-     starting or failed to launch. Capture the pane for diagnosis:
+   This prints a JSON object with a `state` field:
+
+   - `working`, `idle`, or `blocked` — the agent is up, proceed. (`blocked` this
+     early usually means a permission/trust prompt is waiting — worth mentioning
+     to the user.)
+   - `done` or `unknown`, or `state:"none"` / exit code 3 (label not found) —
+     claude failed to launch or exited immediately. On the tmux backend, capture
+     the pane's buffer for diagnosis (get the pane id from the `fleet state`
+     output, or from `fleet list`):
 
      ```bash
-     tmux capture-pane -t '=<tmux_name>' -p | tail -30
+     tmux capture-pane -t '<pane_id>' -p | tail -30
+     ```
+
+     On herdr, read the pane buffer instead (use the `pane_id` from the
+     `fleet state` / `fleet spawn` output — herdr's `agent` targets are keyed by
+     agent name/pane, not by our workspace label):
+
+     ```bash
+     herdr pane read <pane_id> --lines 30
      ```
 
      Known failure signals — any of these means the spawn did NOT succeed and
      you must report the failure verbatim instead of claiming success:
 
      - `mise ERROR` / `Config files ... are not trusted` — `.mise.toml` trust hook missed
-     - `command not found` — `spawn-launch`, `claude`, or another tool is missing from PATH inside that pane
+     - `command not found` — `claude` or another tool is missing from PATH inside that surface
      - `No such file or directory` referencing the prompt file
-
-   - `tmux list-panes` no longer shows the pane — claude exited immediately,
-     report the failure.
 
 6. Confirm to the user:
    - The branch/worktree that was created (or target repo for cross-repo tasks)
+   - The **substrate** the agent was spawned on (herdr or tmux) and its label
    - The prompt file path
-   - How to switch:
-     - Window: `tmux select-window -t '=<name>'`
-     - Session: `tmux switch-client -t '=<name>'`
+   - How to switch to it (use the ids from the `fleet spawn` output):
+     - **herdr**: `herdr workspace focus <workspace_id>` (or open the workspace
+       picker with `prefix o` and pick it by its `<branch-name>` label)
+     - **tmux window**: `tmux select-window -t '=<handle>'`
+     - **tmux session**: `tmux switch-client -t '=<handle>'`

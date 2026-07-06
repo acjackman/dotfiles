@@ -51,6 +51,50 @@ vim-tmux-navigator). Two sides:
   plugin's nav logic. It falls back to `:TmuxNavigate*` when `$TMUX` is set, so
   the same mappings work in both herdr and tmux.
 
+## `fleet` substrate adapter (`~/.local/bin/fleet`)
+
+`spawn`, `revdiff`, and XO's fleet tracking all need the same primitive — "open
+a new interactive surface running a command, then ask what state it's in." The
+`fleet` script is that adapter: it detects herdr and uses it when it's the active
+multiplexer, falling back to tmux otherwise, so herdr stays **additive**
+(tmux-only machines are unchanged).
+
+**Verbs:** `fleet open` (core primitive), `fleet spawn` (a Claude work-agent),
+`fleet list` (JSONL of tracked agents), `fleet state <label>` (semantic state),
+`fleet watch` (poll-based state-change stream), `fleet backend` (which backend
+the current context resolves to).
+
+**Backend dispatch (coexistence rule):** a surface opened inside a herdr context
+(`$HERDR_ENV`/`$HERDR_SESSION`) opens in herdr; one opened inside `$TMUX` opens in
+tmux — never crossed, so a session stays inside one multiplexer. With no host
+context, herdr wins when its server is up, else tmux. Override with `--backend` /
+`$FLEET_BACKEND`.
+
+**Identity:** herdr IDs are ephemeral (compacted on close), so the durable key is
+the **workspace `--label`** (an effort/ticket id), re-queried every call — never
+cached. On tmux the key is the `@fleet_label` pane option (set with `-p`, so it
+doesn't leak across the session). herdr's own `agent` targets are keyed by agent
+*name* (`claude`) not our label, so operate on the `pane_id`/`workspace_id` that
+`fleet` reports (e.g. `herdr pane read <pane_id>`, `herdr workspace focus <ws>`).
+
+**XO vs general:** every `fleet` surface is tracked (`@fleet_label` / workspace
+label), but only surfaces opened with `--xo` are marked as XO's *managed fleet*
+(tmux `@xo_agent`; surfaced as `xo:true` in `fleet list`/`state`). XO's launcher
+passes `--xo`; a general `fleet open` / `/spawn` does not, so plain spawns never
+count as XO agents. (herdr has no tag equivalent — XO tracks its herdr agents by
+the labels it recorded.)
+
+**Version gate:** herdr's wire protocol churns pre-1.0 and needs a server restart
+on upgrade, so `fleet` only uses herdr when `herdr status server` reports a
+protocol in `$FLEET_HERDR_PROTOCOLS` (default `14`); an unrecognised protocol
+degrades to tmux with a warning. Bump that env (or the default) after vetting a
+new herdr release. herdr is pinned via `brew "herdr"` in `Brewfile-personal.tmpl`.
+
+**Callers:** `~/.claude/commands/spawn.md` launches via `fleet spawn` and verifies
+via `fleet state`; `spawn-tmux` is now a thin shim over `fleet spawn --backend
+tmux`; `~/.claude/skills/revdiff/launch-revdiff.sh` adds a herdr-pane path beside
+its tmux-window path.
+
 ## Apply notes
 
 `chezmoi apply` deploys these files and the `run_onchange` script reloads a

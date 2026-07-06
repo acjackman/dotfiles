@@ -32,13 +32,18 @@
 
 set -euo pipefail
 
-# tmux-only by design (matches this user's environment). For other terminals,
-# fall back to the plugin skill (/revdiff:revdiff), which supports popups in
-# zellij/kitty/wezterm/ghostty/iterm2/etc.
-if [ -z "${TMUX:-}" ] || ! command -v tmux >/dev/null 2>&1; then
-    echo "error: not inside a tmux session — this launcher is tmux-only" >&2
-    echo "hint: use the plugin skill /revdiff:revdiff for non-tmux terminals" >&2
-    exit 1
+# Surface selection: open the review in whichever multiplexer is hosting the
+# caller (coexistence rule — never cross herdr and tmux). herdr when we're in a
+# herdr context and its server is up; tmux otherwise. Both are async and use the
+# same sentinel/output-file handshake below; the tmux path additionally requires
+# being inside a tmux session (the hard-fail moved into that branch). For other
+# terminals, fall back to the plugin skill (/revdiff:revdiff), which supports
+# popups in zellij/kitty/wezterm/ghostty/iterm2/etc.
+SURFACE=tmux
+if [ -n "${HERDR_ENV:-}${HERDR_SESSION:-}" ] \
+    && command -v herdr >/dev/null 2>&1 \
+    && herdr status server 2>/dev/null | grep -q '^status: running'; then
+    SURFACE=herdr
 fi
 
 # resolve revdiff to an absolute path so the tmux child shell (whose PATH may
@@ -115,10 +120,39 @@ for arg in "$@"; do
 done
 WINDOW_TITLE="rd: ${DIR_NAME}${TITLE_REF:+ [$TITLE_REF]}"
 
-# run revdiff in a new window, then touch the sentinel when it exits. tmux runs
-# this whole string via `/bin/sh -c`, so REVDIFF_CMD (already sq-quoted) plus
-# the trailing `; touch <sentinel>` is a single well-formed command line.
+# revdiff plus a sentinel touch is one command line the surface's shell runs;
+# when it finishes, the skill's Monitor sees the sentinel file appear. REVDIFF_CMD
+# is already sq-quoted, so this is a single well-formed command line.
 FULL_CMD="$REVDIFF_CMD; touch $(sq "$SENTINEL")"
+
+if [ "$SURFACE" = herdr ]; then
+    # Open the review in a herdr pane split beside the current one. herdr panes
+    # host a shell (unlike tmux's command-window), so append `exit` to drop that
+    # shell when revdiff quits — the pane then closes cleanly. --background opens
+    # it without stealing focus (for a spawned/background agent).
+    FOCUS=--focus
+    [ "$BACKGROUND" -eq 1 ] && FOCUS=--no-focus
+    SPLIT=$(herdr pane split --direction right --cwd "$CWD" "$FOCUS") \
+        || { echo "error: herdr pane split failed" >&2; exit 1; }
+    PANE_ID=$(printf '%s' "$SPLIT" | jq -r '.result.pane.pane_id // empty')
+    [ -n "$PANE_ID" ] || { echo "error: could not resolve herdr pane id from split" >&2; exit 1; }
+    herdr pane run "$PANE_ID" "$FULL_CMD; exit" >/dev/null \
+        || { echo "error: herdr pane run failed" >&2; exit 1; }
+
+    echo "output_file: $OUTPUT_FILE"
+    echo "sentinel: $SENTINEL"
+    echo "pane_id: $PANE_ID"
+    exit 0
+fi
+
+# tmux path (default). Requires being inside a tmux session; tmux runs the whole
+# FULL_CMD string via `/bin/sh -c`.
+if [ -z "${TMUX:-}" ] || ! command -v tmux >/dev/null 2>&1; then
+    echo "error: not inside a tmux session — this launcher needs tmux or herdr" >&2
+    echo "hint: use the plugin skill /revdiff:revdiff for other terminals" >&2
+    exit 1
+fi
+
 NEWWIN_ARGS=(new-window -P -F '#{window_id}' -n "$WINDOW_TITLE" -c "$CWD")
 # -d opens the window in the background without switching focus to it.
 [ "$BACKGROUND" -eq 1 ] && NEWWIN_ARGS+=(-d)

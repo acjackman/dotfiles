@@ -3,26 +3,32 @@ name: revdiff
 description: Review diffs, files, and documents with inline annotations in a revdiff TUI opened in a new tmux window (async — the agent stays free while you review), then capture annotations and address them. Works in git, hg, and jj repos (auto-detected). Activates on "revdiff", "review diff", "review changes", "annotate diff", "review with revdiff", "review jj change", "interactive diff review", "revdiff all files", "review all files", "revdiff <file>", "review this file", "annotate this file", "open this review in revdiff", "review in revdiff". For deep revdiff config/theme/keybinding questions, defer to the plugin skill (revdiff:revdiff) or `revdiff --help`.
 ---
 
-# revdiff — async TUI diff review (new tmux window)
+# revdiff — async TUI diff review (new multiplexer surface)
 
-Review diffs with inline annotations using the revdiff TUI, opened in a **new tmux
-window** instead of a blocking popup. Works in git, hg, and jj repos (auto-detected).
+Review diffs with inline annotations using the revdiff TUI, opened in a **new
+surface** (a herdr pane when herdr is the active multiplexer, otherwise a tmux
+window) instead of a blocking popup. Works in git, hg, and jj repos (auto-detected).
 
 **Why this exists (vs. the bundled `revdiff:revdiff` plugin skill):** the plugin
 launches revdiff in a tmux `display-popup` and **blocks the agent's Bash call**
 until you quit. Long reviews (10+ min) blow past the Bash-tool timeout. This skill
-opens revdiff in its own tmux window and returns immediately, then uses a
+opens revdiff in its own surface and returns immediately, then uses a
 **Monitor** to be re-invoked when you finish — so the agent is free the whole time
 and there is no timeout. This skill shadows the plugin at the `/revdiff` name; the
-plugin remains available as `/revdiff:revdiff` (e.g. for non-tmux terminals).
+plugin remains available as `/revdiff:revdiff` (e.g. for other terminals).
+
+The launcher picks the surface by the caller's context (the substrate adapter's
+coexistence rule): inside herdr it splits a herdr pane; inside tmux it opens a
+tmux window. Either way the async handshake (`output_file` + `sentinel` + Monitor)
+is identical, so the steps below are backend-agnostic.
 
 ## How it works
 
-1. Detect the ref/mode (Step 1) and launch revdiff in a new tmux window (Step 2).
+1. Detect the ref/mode (Step 1) and launch revdiff in a new surface (Step 2).
    The launcher **returns immediately** with an `output_file` and a `sentinel` path.
 2. Arm a **Monitor** on the sentinel (Step 3). Tell the user revdiff is open. The
    agent is now free — do other requested work, or just wait.
-3. You review in the tmux window, add annotations, and quit (`q`). The window
+3. You review in the new surface, add annotations, and quit (`q`). The surface
    auto-closes; the sentinel appears; Monitor fires and re-invokes the agent.
 4. Read `output_file`, classify + address annotations (Steps 4–6), then loop:
    re-launch to verify. Done when you quit with no annotations.
@@ -30,7 +36,7 @@ plugin remains available as `/revdiff:revdiff` (e.g. for non-tmux terminals).
 ## Scripts
 
 - `~/.claude/skills/revdiff/detect-ref.sh` — smart ref detection (VCS auto-detect)
-- `~/.claude/skills/revdiff/launch-revdiff.sh` — async tmux-window launcher
+- `~/.claude/skills/revdiff/launch-revdiff.sh` — async launcher (herdr pane / tmux window)
 
 ## Answering questions (don't launch the TUI)
 
@@ -98,21 +104,23 @@ do NOT background it — it's already non-blocking):
 ~/.claude/skills/revdiff/launch-revdiff.sh [--background] [ref] [against] [--staged] [--only=file] [--all-files] [--exclude=prefix] [--description=text|--description-file=path]
 ```
 
-By default the review window **takes tmux focus** so the user lands in it to
+By default the review surface **takes focus** so the user lands in it to
 review — correct for a foreground session. Pass **`--background`** only when *you*
 are a background or spawned agent (the user is working elsewhere and shouldn't
-have their view yanked to the review window); it opens the window with
-`tmux new-window -d` instead. When unsure, omit it.
+have their view yanked to the review); it opens the surface without stealing
+focus (`tmux new-window -d`, or a herdr `--no-focus` split). When unsure, omit it.
 
-Capture the three fields it prints:
+Capture the fields it prints (the third is `window_id:` on tmux or `pane_id:` on
+herdr — diagnostic only; the first two are load-bearing):
 
 ```
 output_file: /path/to/revdiff-output-XXXXXX
 sentinel:    /path/to/revdiff-done-XXXXXX
-window_id:   @N
+window_id:   @N          # or  pane_id: wN:pM  on herdr
 ```
 
-If it errors with "not inside a tmux session", fall back to `/revdiff:revdiff`.
+If it errors with "not inside a tmux session" (and herdr isn't active either),
+fall back to `/revdiff:revdiff`.
 
 ### Step 3: Arm the Monitor and free up
 
@@ -124,7 +132,7 @@ closes, giving you a single wake-up (substitute the real `sentinel` path):
 - **timeout_ms**: `3600000` (60 min — the max; covers long review sessions)
 - **persistent**: `false`
 
-Then tell the user: *"revdiff is open in a new tmux window — annotate and press `q`
+Then tell the user: *"revdiff is open in a new window — annotate and press `q`
 to finish (`Q` to discard). I'll pick up your annotations automatically when you're
 done, and I'm free to keep working meanwhile."* End your turn or continue other
 work; the Monitor notification will re-invoke you.

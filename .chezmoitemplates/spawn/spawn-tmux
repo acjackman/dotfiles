@@ -1,16 +1,20 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Spawn a tmux window or session and send a launch command into it.
-# Usage: spawn-tmux.sh --window|--session --name <name> --dir <path> --prompt <file> [--model <model>]
+# spawn-tmux — thin compatibility shim. The tmux window/session spawn logic now
+# lives in the `fleet` substrate adapter (~/.local/bin/fleet), which dispatches
+# herdr-or-tmux by context. This wrapper preserves the old CLI (used by muscle
+# memory and older callers) by delegating to `fleet spawn` with the tmux backend
+# forced, so its behaviour is unchanged. New code should call `fleet spawn`.
+#
+# Usage: spawn-tmux --window|--session --name <name> --dir <path> --prompt <file> [--model <model>]
 
 usage() {
-    echo "Usage: spawn-tmux.sh --window|--session --name <name> --dir <path> --prompt <file>"
+    echo "Usage: spawn-tmux --window|--session --name <name> --dir <path> --prompt <file> [--model <model>]" >&2
     exit 1
 }
 
 mode="" name="" dir="" prompt="" model=""
-
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --window)  mode="window";  shift ;;
@@ -24,27 +28,11 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -z "$mode" || -z "$name" || -z "$dir" || -z "$prompt" ]] && usage
-[[ ! -d "$dir" ]] && echo "Error: directory '$dir' does not exist" && exit 1
-[[ ! -f "$prompt" ]] && echo "Error: prompt file '$prompt' does not exist" && exit 1
 
-# Derive Claude session name from the worktree directory
-claude_session_name=$(tmux-window-name "$dir")
+# --name is the fleet tracking label (old spawn-tmux only echoed it; the tmux
+# window/session name is still derived from the worktree by fleet).
+args=(spawn --backend tmux --cwd "$dir" --label "$name" --prompt "$prompt")
+[[ "$mode" == "session" ]] && args+=(--session)
+[[ -n "$model" ]] && args+=(--model "$model")
 
-# Build launch command: pipe prompt file into an interactive claude session
-launch_cmd="cat '$prompt' | claude --permission-mode=auto --name '$claude_session_name'"
-[[ -n "$model" ]] && launch_cmd+=" --model '$model'"
-
-# Derive tmux name from the worktree path using shared naming conventions
-if [[ "$mode" == "window" ]]; then
-    tmux_name=$(tmux-window-name "$dir")
-    pane_id=$(tmux new-window -d -n "$tmux_name" -c "$dir" -P -F "#{pane_id}")
-    tmux set-option -t "$pane_id" automatic-rename off
-    tmux send-keys -t "$pane_id" "$launch_cmd" Enter
-elif [[ "$mode" == "session" ]]; then
-    tmux_name=$(tmux-session-name "$dir")
-    pane_id=$(tmux new-session -d -s "$tmux_name" -c "$dir" -P -F "#{pane_id}")
-    tmux set-option -t "$pane_id" automatic-rename off
-    tmux send-keys -t "$pane_id" "$launch_cmd" Enter
-fi
-
-echo "Spawned $mode '$name' in $dir"
+exec fleet "${args[@]}"

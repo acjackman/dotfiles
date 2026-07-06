@@ -1,0 +1,364 @@
+#!/usr/bin/env bash
+# fleet — substrate adapter for opening interactive surfaces and tracking agent
+# state on either herdr or tmux, chosen by the caller's multiplexer context.
+#
+# `spawn`, `revdiff`, and XO's fleet launcher all need the same primitive —
+# "open a new interactive surface running a command, and later ask what state
+# it's in." This script is that primitive, with a herdr backend (real semantic
+# agent state) and a tmux backend (fallback), behind one detection probe. herdr
+# is additive: tmux-only machines behave exactly as before.
+#
+# Verbs:
+#   fleet open   --cwd DIR --label L [--session] [--focus] [--xo] [--backend B] -- CMD...
+#       Core primitive. Open a surface in DIR running CMD, tagged L.
+#   fleet spawn  --cwd DIR --label L --prompt FILE [--model M] [--session] [--focus] [--xo] [--backend B]
+#       Spawn a Claude work-agent (claude reading FILE). Thin wrapper over `open`.
+#
+# --xo marks the surface as part of XO's managed fleet (tmux: the @xo_agent pane
+# option; surfaced as `xo:true` in list/state). ONLY XO's launcher passes it — a
+# general `fleet open` / `/spawn` leaves surfaces unmarked. (herdr has no tag
+# equivalent; XO tracks its herdr agents by the labels it recorded.)
+#   fleet list   [--backend herdr|tmux|all]
+#       Enumerate tracked agents/surfaces as JSONL (one object per line).
+#   fleet state  LABEL [--backend B]
+#       Report the semantic state of the surface tagged LABEL as a JSON object.
+#       Exit 0 if found, 3 if not.
+#   fleet watch  [--interval SECS] [--backend B]
+#       Emit JSONL as agent states change (poll-based; works on both backends).
+#   fleet backend
+#       Print the backend that would be chosen for the current context.
+#
+# Backend dispatch (coexistence rule): a surface opened inside a herdr-hosted
+# context ($HERDR_ENV/$HERDR_SESSION) opens in herdr; one opened inside tmux
+# ($TMUX) opens in tmux — never cross the streams, so any given session stays
+# inside one multiplexer. With no host context, prefer herdr when its server is
+# up (and protocol-compatible), else tmux. Override with --backend / $FLEET_BACKEND.
+#
+# herdr identity: herdr IDs are ephemeral (compacted on close) so we NEVER cache
+# them — the durable key is the workspace --label (an effort/ticket id) which we
+# re-query every call. tmux identity: the @fleet_label pane option.
+#
+# herdr version gate: the wire protocol churns pre-1.0 and needs a server restart
+# on upgrade, so herdr is only used when `herdr status server` reports a protocol
+# in $FLEET_HERDR_PROTOCOLS. An unrecognised protocol degrades to tmux with a
+# one-line warning rather than talking to an incompatible server.
+
+set -euo pipefail
+
+FLEET_HERDR_PROTOCOLS="${FLEET_HERDR_PROTOCOLS:-14}"
+
+warn() { printf 'fleet: %s\n' "$*" >&2; }
+die()  { warn "$*"; exit 1; }
+
+# shell-quote one argument for safe embedding in a command string that a shell
+# (tmux send-keys / herdr pane run) will re-parse.
+sq() { printf "'%s'" "$(printf '%s' "$1" | sed "s/'/'\\\\''/g")"; }
+
+# ---- detection -------------------------------------------------------------
+
+# herdr is "active" only when the server is running AND speaks a protocol we
+# pin. A mismatched protocol is treated as absent so we fall back to tmux.
+herdr_active() {
+  command -v herdr >/dev/null 2>&1 || return 1
+  local st proto
+  st=$(herdr status server 2>/dev/null) || return 1
+  grep -q '^status: running' <<<"$st" || return 1
+  proto=$(sed -n 's/^protocol: *//p' <<<"$st" | head -1)
+  case " $FLEET_HERDR_PROTOCOLS " in
+    *" ${proto:-none} "*) return 0 ;;
+    *) warn "herdr protocol '${proto:-?}' not in supported set '$FLEET_HERDR_PROTOCOLS' — using tmux (pin herdr, restart its server, or set FLEET_HERDR_PROTOCOLS)"; return 1 ;;
+  esac
+}
+
+tmux_active() { command -v tmux >/dev/null 2>&1 && tmux info >/dev/null 2>&1; }
+
+# choose_backend [explicit] — implements the coexistence rule.
+choose_backend() {
+  local b="${1:-${FLEET_BACKEND:-}}"
+  case "$b" in
+    herdr) herdr_active || die "backend 'herdr' requested but herdr server is not available/compatible"; echo herdr; return 0 ;;
+    tmux)  command -v tmux >/dev/null 2>&1 || die "backend 'tmux' requested but tmux is not installed"; echo tmux; return 0 ;;
+    "")    : ;;
+    *)     die "unknown backend '$b' (want herdr|tmux)" ;;
+  esac
+  # Dispatch on the caller's multiplexer context first.
+  if [ -n "${HERDR_ENV:-}${HERDR_SESSION:-}" ] && herdr_active; then echo herdr; return 0; fi
+  if [ -n "${TMUX:-}" ]; then echo tmux; return 0; fi
+  # No host context — prefer herdr when it's up, else tmux.
+  if herdr_active; then echo herdr; return 0; fi
+  if command -v tmux >/dev/null 2>&1; then echo tmux; return 0; fi
+  die "no usable backend: neither a herdr server nor tmux is available"
+}
+
+# ---- surface open backends -------------------------------------------------
+
+# _herdr_open CWD LABEL FOCUS CMD — new isolated workspace running CMD.
+# herdr always gets its own workspace per surface (isolated per-agent), so the
+# tmux window/session distinction collapses to "a new workspace" here.
+_herdr_open() {
+  local cwd="$1" label="$2" focus="$3" cmd="$4"
+  local focusflag out pane ws
+  if [ "$focus" = 1 ]; then focusflag=--focus; else focusflag=--no-focus; fi
+  out=$(herdr workspace create --cwd "$cwd" --label "$label" "$focusflag") \
+    || die "herdr workspace create failed"
+  pane=$(jq -r '.result.root_pane.pane_id // empty' <<<"$out")
+  ws=$(jq -r '.result.workspace.workspace_id // empty' <<<"$out")
+  [ -n "$pane" ] || die "herdr: could not resolve pane id from workspace create"
+  # pane run types the command into the workspace's shell and presses Enter,
+  # so the pipe in the claude launch line is evaluated by that shell.
+  herdr pane run "$pane" "$cmd" >/dev/null || die "herdr pane run failed"
+  printf 'substrate: herdr\nlabel: %s\nhandle: %s\nworkspace_id: %s\npane_id: %s\n' \
+    "$label" "$label" "$ws" "$pane"
+}
+
+# _tmux_open CWD LABEL SESSION FOCUS NAME XO CMD — reproduces the old spawn-tmux
+# window/session creation, plus the @fleet_label pane tag (always) and the
+# @xo_agent tag (only when XO=1) for tracking.
+_tmux_open() {
+  local cwd="$1" label="$2" session="$3" focus="$4" name="$5" xo="$6" cmd="$7"
+  local tmux_name pane_id
+  if [ "$session" = 1 ]; then
+    tmux_name="${name:-$(tmux-session-name "$cwd")}"
+    pane_id=$(tmux new-session -d -s "$tmux_name" -c "$cwd" -P -F '#{pane_id}') \
+      || die "tmux new-session failed"
+  else
+    tmux_name="${name:-$(tmux-window-name "$cwd")}"
+    local args=(new-window -n "$tmux_name" -c "$cwd" -P -F '#{pane_id}')
+    # window is created in the background unless focus was requested (spawn's
+    # historical behaviour is a background -d window).
+    [ "$focus" = 1 ] || args+=(-d)
+    pane_id=$(tmux "${args[@]}") || die "tmux new-window failed"
+  fi
+  tmux set-option -t "$pane_id" automatic-rename off >/dev/null 2>&1 || true
+  # -p scopes these to the pane; without it they become session options that
+  # leak (via inheritance) onto every other pane in the session.
+  if [ -n "$label" ]; then
+    tmux set-option -p -t "$pane_id" @fleet_label "$label" >/dev/null 2>&1 || true
+  fi
+  # @xo_agent marks a pane as part of XO's managed fleet, set ONLY when --xo is
+  # passed (XO's launcher) — never for a general `fleet open` / `/spawn`.
+  if [ "$xo" = 1 ]; then
+    tmux set-option -p -t "$pane_id" @xo_agent 1 >/dev/null 2>&1 || true
+  fi
+  tmux send-keys -t "$pane_id" "$cmd" Enter
+  printf 'substrate: tmux\nlabel: %s\nhandle: %s\npane_id: %s\n' \
+    "$label" "$tmux_name" "$pane_id"
+}
+
+# ---- verbs -----------------------------------------------------------------
+
+cmd_open() {
+  local cwd="" label="" session=0 focus=0 backend="" name="" xo=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --cwd)     cwd="$2"; shift 2 ;;
+      --label)   label="$2"; shift 2 ;;
+      --name)    name="$2"; shift 2 ;;
+      --session) session=1; shift ;;
+      --window)  session=0; shift ;;
+      --focus)   focus=1; shift ;;
+      --no-focus) focus=0; shift ;;
+      --xo)      xo=1; shift ;;
+      --backend) backend="$2"; shift 2 ;;
+      --)        shift; break ;;
+      *)         die "open: unexpected argument '$1'" ;;
+    esac
+  done
+  [ -n "$cwd" ] || die "open: --cwd is required"
+  [ -d "$cwd" ] || die "open: cwd '$cwd' does not exist"
+  [ $# -gt 0 ] || die "open: missing command after '--'"
+  cwd=$(cd "$cwd" && pwd)
+  local cmd="$*"   # raw command line — the caller is responsible for quoting
+  local b; b=$(choose_backend "$backend")
+  if [ "$b" = herdr ]; then
+    _herdr_open "$cwd" "$label" "$focus" "$cmd"
+  else
+    _tmux_open "$cwd" "$label" "$session" "$focus" "$name" "$xo" "$cmd"
+  fi
+}
+
+cmd_spawn() {
+  local cwd="" label="" prompt="" model="" session=0 focus=0 backend="" xo=0
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --cwd)     cwd="$2"; shift 2 ;;
+      --label)   label="$2"; shift 2 ;;
+      --prompt)  prompt="$2"; shift 2 ;;
+      --model)   model="$2"; shift 2 ;;
+      --session) session=1; shift ;;
+      --window)  session=0; shift ;;
+      --focus)   focus=1; shift ;;
+      --no-focus) focus=0; shift ;;
+      --xo)      xo=1; shift ;;
+      --backend) backend="$2"; shift 2 ;;
+      *)         die "spawn: unexpected argument '$1'" ;;
+    esac
+  done
+  [ -n "$cwd" ]    || die "spawn: --cwd is required"
+  [ -d "$cwd" ]    || die "spawn: cwd '$cwd' does not exist"
+  [ -n "$label" ]  || die "spawn: --label is required (the effort/ticket id used to track the agent)"
+  [ -n "$prompt" ] || die "spawn: --prompt is required"
+  [ -f "$prompt" ] || die "spawn: prompt file '$prompt' does not exist"
+  cwd=$(cd "$cwd" && pwd)
+  # Claude session name mirrors the worktree (tmux parity); herdr tracks by label.
+  local sname; sname=$(tmux-window-name "$cwd" 2>/dev/null || basename "$cwd")
+  local launch; launch="cat $(sq "$prompt") | claude --permission-mode=auto --name $(sq "$sname")"
+  [ -n "$model" ] && launch+=" --model $(sq "$model")"
+  local b; b=$(choose_backend "$backend")
+  if [ "$b" = herdr ]; then
+    _herdr_open "$cwd" "$label" "$focus" "$launch"
+  else
+    _tmux_open "$cwd" "$label" "$session" "$focus" "" "$xo" "$launch"
+  fi
+}
+
+# herdr agents joined to their workspace label.
+_herdr_list() {
+  local agents ws
+  agents=$(herdr agent list 2>/dev/null) || return 0
+  ws=$(herdr workspace list 2>/dev/null) || ws='{"result":{"workspaces":[]}}'
+  jq -c -n --argjson a "$agents" --argjson w "$ws" '
+    ($w.result.workspaces // []) as $wl
+    | ($a.result.agents // [])[]
+    | . as $ag
+    | ([ $wl[] | select(.workspace_id == $ag.workspace_id) | .label ] | .[0]) as $label
+    | {substrate:"herdr", label:($label // ""), agent:$ag.agent,
+       state:$ag.agent_status, handle:($label // $ag.workspace_id),
+       pane_id:$ag.pane_id, workspace_id:$ag.workspace_id, cwd:$ag.cwd}'
+}
+
+# tmux panes carrying an @fleet_label tag, classified from their buffer. Fields
+# are cut individually (not `read`, which collapses empty tab-separated fields).
+_tmux_list() {
+  tmux_active || return 0
+  local line label pane xo cwd st xj
+  while IFS= read -r line; do
+    label=$(cut -f1 <<<"$line")
+    [ -n "$label" ] || continue
+    pane=$(cut -f2 <<<"$line"); xo=$(cut -f3 <<<"$line"); cwd=$(cut -f4 <<<"$line")
+    st=$(_tmux_state_of "$pane")
+    xj=$([ "$xo" = 1 ] && echo true || echo false)
+    jq -c -n --arg l "$label" --arg p "$pane" --arg c "$cwd" --arg s "$st" --argjson x "$xj" \
+      '{substrate:"tmux", label:$l, agent:"claude", state:$s, xo:$x, handle:$l, pane_id:$p, cwd:$c}'
+  done < <(tmux list-panes -a -f '#{@fleet_label}' -F '#{@fleet_label}'$'\t''#{pane_id}'$'\t''#{@xo_agent}'$'\t''#{pane_current_path}' 2>/dev/null)
+}
+
+cmd_list() {
+  local backend="all"
+  [ "${1:-}" = --backend ] && { backend="$2"; shift 2; }
+  case "$backend" in
+    all)   herdr_active && _herdr_list; tmux_active && _tmux_list ;;
+    herdr) herdr_active && _herdr_list ;;
+    tmux)  _tmux_list ;;
+    *)     die "list: unknown backend '$backend'" ;;
+  esac
+  return 0
+}
+
+# Classify a tmux pane's Claude state from its visible buffer. Heuristic — the
+# same category of terminal-scraping herdr replaces, kept only for the fallback.
+_tmux_state_of() {
+  local pane="$1" buf
+  tmux list-panes -a -F '#{pane_id}' 2>/dev/null | grep -qx "$pane" || { echo done; return; }
+  buf=$(tmux capture-pane -p -t "$pane" 2>/dev/null | tr -d '\r') || { echo unknown; return; }
+  if grep -Eqi 'Do you want to (proceed|allow)|❯ *[0-9]\.|Allow this|Yes, and|approve this action|waiting for your' <<<"$buf"; then
+    echo blocked; return
+  fi
+  if grep -Eqi 'esc to interrupt|✻|✽|·|Thinking…|Running…|tokens\)' <<<"$buf"; then
+    echo working; return
+  fi
+  echo idle
+}
+
+_herdr_state() {
+  local label="$1" agents ws res
+  ws=$(herdr workspace list 2>/dev/null)  || return 1
+  agents=$(herdr agent list 2>/dev/null)  || return 1
+  res=$(jq -c -n --arg l "$label" --argjson w "$ws" --argjson a "$agents" '
+    ([ $w.result.workspaces[] | select(.label==$l) ] | .[0]) as $wsm
+    | if $wsm == null then empty
+      else
+        ([ $a.result.agents[] | select(.workspace_id==$wsm.workspace_id) ] | .[0]) as $ag
+        | {substrate:"herdr", label:$l, workspace_id:$wsm.workspace_id,
+           state:($ag.agent_status // $wsm.agent_status // "unknown"),
+           pane_id:($ag.pane_id // null), handle:$l}
+      end')
+  [ -n "$res" ] || return 1
+  echo "$res"
+}
+
+_tmux_state() {
+  local label="$1" line pane xo cwd st xj
+  line=$(tmux list-panes -a -f '#{@fleet_label}' -F '#{@fleet_label}'$'\t''#{pane_id}'$'\t''#{@xo_agent}'$'\t''#{pane_current_path}' 2>/dev/null \
+    | awk -F'\t' -v l="$label" '$1==l{print; exit}')
+  [ -n "$line" ] || return 1
+  pane=$(cut -f2 <<<"$line"); xo=$(cut -f3 <<<"$line"); cwd=$(cut -f4 <<<"$line")
+  st=$(_tmux_state_of "$pane")
+  xj=$([ "$xo" = 1 ] && echo true || echo false)
+  jq -c -n --arg l "$label" --arg p "$pane" --arg s "$st" --arg c "$cwd" --argjson x "$xj" \
+    '{substrate:"tmux", label:$l, state:$s, xo:$x, pane_id:$p, handle:$l, cwd:$c}'
+}
+
+cmd_state() {
+  local backend="" label=""
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --backend) backend="$2"; shift 2 ;;
+      -*)        die "state: unknown flag '$1'" ;;
+      *)         label="$1"; shift ;;
+    esac
+  done
+  [ -n "$label" ] || die "state: LABEL is required"
+  local res=""
+  if [ "$backend" != tmux ] && herdr_active; then
+    if res=$(_herdr_state "$label"); then echo "$res"; return 0; fi
+  fi
+  if [ "$backend" != herdr ] && tmux_active; then
+    if res=$(_tmux_state "$label"); then echo "$res"; return 0; fi
+  fi
+  jq -c -n --arg l "$label" '{substrate:"none", label:$l, state:"unknown"}'
+  return 3
+}
+
+cmd_watch() {
+  local backend="all" interval=2
+  while [ $# -gt 0 ]; do
+    case "$1" in
+      --backend)  backend="$2"; shift 2 ;;
+      --interval) interval="$2"; shift 2 ;;
+      *)          die "watch: unknown argument '$1'" ;;
+    esac
+  done
+  # Poll-based so it works identically on herdr and tmux (and survives herdr's
+  # pre-1.0 event-schema churn). herdr's socket events.subscribe is available
+  # for a lower-latency path if this ever needs it.
+  warn "watching '$backend' every ${interval}s (Ctrl-C to stop)…"
+  local prev="" cur
+  while :; do
+    cur=$(cmd_list --backend "$backend" 2>/dev/null | jq -c '{label,substrate,state}' 2>/dev/null | sort || true)
+    if [ "$cur" != "$prev" ]; then
+      comm -13 <(printf '%s\n' "$prev") <(printf '%s\n' "$cur") 2>/dev/null | grep . || true
+      prev="$cur"
+    fi
+    sleep "$interval"
+  done
+}
+
+usage() {
+  sed -n '2,40p' "$0" | sed 's/^# \{0,1\}//'
+}
+
+# ---- dispatch --------------------------------------------------------------
+
+[ $# -gt 0 ] || { usage; exit 1; }
+verb="$1"; shift
+case "$verb" in
+  open)    cmd_open "$@" ;;
+  spawn)   cmd_spawn "$@" ;;
+  list)    cmd_list "$@" ;;
+  state)   cmd_state "$@" ;;
+  watch)   cmd_watch "$@" ;;
+  backend) choose_backend "${1:-}" ;;
+  -h|--help|help) usage ;;
+  *)       die "unknown verb '$verb' (want open|spawn|list|state|watch|backend)" ;;
+esac
