@@ -1,6 +1,5 @@
 #!/bin/bash
 # permissions hash: {{ include "dot_claude/permissions.json" | sha256sum }}
-# plugins hash: {{ include "dot_claude/plugins.json" | sha256sum }}
 # hooks hash: {{ include "dot_claude/hooks.json" | sha256sum }}
 # statusline hash: {{ include "dot_claude/statusline.json.tmpl" | sha256sum }}
 # defaults hash: {{ include "dot_claude/settings-defaults.json" | sha256sum }}
@@ -9,7 +8,6 @@
 
 SOURCE_DIR="{{ .chezmoi.sourceDir }}/dot_claude"
 PERMISSIONS_FILE="$SOURCE_DIR/permissions.json"
-PLUGINS_FILE="$SOURCE_DIR/plugins.json"
 HOOKS_FILE="$SOURCE_DIR/hooks.json"
 DEFAULTS_FILE="$SOURCE_DIR/settings-defaults.json"
 STATUSLINE_FILE="$HOME/.claude/statusline.json"
@@ -20,8 +18,11 @@ if ! command -v jq &> /dev/null; then
 fi
 
 PERMISSIONS=$(cat "$PERMISSIONS_FILE")
-ENABLED_PLUGINS=$(jq '[.plugins[]] | map({(.): true}) | add // {}' "$PLUGINS_FILE")
-EXTRA_MARKETPLACES=$(jq '.extraKnownMarketplaces // {}' "$PLUGINS_FILE")
+# NOTE: enabledPlugins / extraKnownMarketplaces are intentionally NOT managed here.
+# Plugin + marketplace state is per-config-dir (each CLAUDE_CONFIG_DIR has its own
+# plugins/ tree), so run_onchange_after_install-plugins.sh owns it authoritatively
+# via the `claude plugin` CLI, per profile. Hand-writing enabledPlugins here (the
+# old approach) merged additively and never pruned, which caused stale-plugin drift.
 DECLARED_HOOKS=$(cat "$HOOKS_FILE")
 STATUSLINE=$(jq '.statusLine' "$STATUSLINE_FILE")
 DEFAULTS=$(cat "$DEFAULTS_FILE")
@@ -91,18 +92,14 @@ apply_settings() {
 
     # Build the updated settings:
     # 1. Start with defaults (lowest priority)
-    # 2. Overlay existing settings (preserves Claude-managed values)
-    # 3. Force-set managed fields (permissions, plugins, statusline, marketplaces)
-    #    - enabledPlugins and extraKnownMarketplaces merge to preserve profile-specific extras
+    # 2. Overlay existing settings (preserves Claude-managed values, incl.
+    #    enabledPlugins / extraKnownMarketplaces owned by install-plugins)
+    # 3. Force-set managed fields (permissions, statusline)
     jq --argjson defaults "$DEFAULTS" \
        --argjson perms "$PERMISSIONS" \
-       --argjson plugins "$ENABLED_PLUGINS" \
-       --argjson marketplaces "$EXTRA_MARKETPLACES" \
        --argjson statusline "$STATUSLINE" \
        '$defaults + . |
         .permissions = $perms |
-        .enabledPlugins = ((.enabledPlugins // {}) + $plugins) |
-        .extraKnownMarketplaces = ((.extraKnownMarketplaces // {}) + $marketplaces) |
         .statusLine = $statusline |
         .autoUpdaterStatus = "disabled"' \
         <<< "$existing" > "$settings_file.tmp" && \

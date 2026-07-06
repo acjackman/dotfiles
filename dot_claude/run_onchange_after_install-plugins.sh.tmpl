@@ -1,8 +1,17 @@
 #!/bin/bash
 # plugins hash: {{ include "dot_claude/plugins.json" | sha256sum }}
 # Profile: extras={{ .extras }} hostname={{ .hostname }}
+#
+# Authoritative, per-config-dir plugin management. Plugin / marketplace / enable
+# state is stored PER CLAUDE_CONFIG_DIR — each config dir has its own plugins/
+# tree and its own settings.json enabledPlugins. So we reconcile every config
+# dir we know about: the default ~/.claude plus each ~/.config/claude/profiles/*/.
+#
+# Enablement here is the SOLE authority. run_onchange_after_generate_settings.sh
+# deliberately no longer writes enabledPlugins / extraKnownMarketplaces (that
+# additive hand-editing was the source of stale-plugin drift).
 
-# Allow `claude plugin` CLI commands when chezmoi apply is run from within a Claude Code session
+# Allow `claude plugin` CLI commands when chezmoi apply runs inside a session.
 unset CLAUDECODE
 
 if ! command -v claude &> /dev/null; then
@@ -16,117 +25,168 @@ if ! command -v jq &> /dev/null; then
 fi
 
 PLUGINS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/plugins.json"
-
 FAILURES=0
 
-# --- Desired state for THIS machine -----------------------------------------
-# Desired plugins = curated core (.plugins) + the extras profiles active on
-# this machine. Profile selection mirrors the Brewfile/tap-allowlist logic in
-# dot_config/homebrew: `base` always, then `.extras` choices and hostname.
-#
-# `base` is always active; `.extras` (personal/work) and hostname select the rest.
-active_profiles=("base")
-{{ if has "moov" .extras }}active_profiles+=("moov"){{ end }}
-{{ if has "personal" .extras }}active_profiles+=("personal"){{ end }}
-{{ if eq .hostname "Odin" }}active_profiles+=("odin"){{ end }}
+# Run from a scratch dir with no .claude/ so project/local scopes never
+# interfere with the CLI — every operation targets user scope, i.e. the config
+# dir named by $CLAUDE_CONFIG_DIR. (A stray project .claude/settings.json in the
+# cwd is what previously blocked `uninstall` with "enabled at project scope".)
+SCRATCH="$(mktemp -d)"
+trap 'rm -rf "$SCRATCH"' EXIT
+cd "$SCRATCH" || exit 1
 
-# Build the newline-delimited desired-plugin set (core + active extras, unique).
-desired_plugins="$(
-  {
-    jq -r '.plugins[]?' "$PLUGINS_FILE"
-    for profile in "${active_profiles[@]}"; do
-      jq -r --arg p "$profile" '.extras[$p][]?' "$PLUGINS_FILE"
-    done
-  } | sort -u
-)"
-
-desired_marketplaces="$(jq -r '.marketplaces[]?' "$PLUGINS_FILE")"
 remove_plugins="$(jq -r '.remove[]?' "$PLUGINS_FILE")"
 remove_marketplaces="$(jq -r '.removeMarketplaces[]?' "$PLUGINS_FILE")"
 prune="$(jq -r '.prune // false' "$PLUGINS_FILE")"
 
 in_set() { [ -n "$1" ] && grep -qxF -- "$1" <<<"$2"; }
 
-# --- Add marketplaces -------------------------------------------------------
-for marketplace in $desired_marketplaces; do
-    marketplace_name="${marketplace##*/}"
-    if claude plugin marketplace list 2>/dev/null | grep -q "$marketplace_name"; then
-        echo "Marketplace $marketplace_name already registered"
-    else
-        echo "Adding marketplace: $marketplace"
-        if ! claude plugin marketplace add "$marketplace"; then
-            echo "Warning: Failed to add marketplace $marketplace"
-            FAILURES=$((FAILURES + 1))
-        fi
-    fi
-done
+installed_ids() {
+    claude plugin list 2>/dev/null | grep -oE '[A-Za-z0-9._-]+@[A-Za-z0-9._-]+' | sort -u
+}
 
-# Verify marketplaces are available before installing plugins
-MARKETPLACE_LIST=$(claude plugin marketplace list 2>/dev/null)
-for marketplace in $desired_marketplaces; do
-    marketplace_name="${marketplace##*/}"
-    if ! echo "$MARKETPLACE_LIST" | grep -q "$marketplace_name"; then
-        echo "Warning: Marketplace $marketplace_name is not available, plugins from it may fail to install"
-    fi
-done
+# Uninstall regardless of the scope a plugin was installed under. Enablement
+# always lives in the config dir's settings.json (so `disable --scope user`
+# suffices), but the INSTALL record may be user- OR project-scoped — legacy
+# installs are scope=project with projectPath=$HOME. Try user first, then
+# project/local from $HOME so projectPath resolves to match those records.
+uninstall_any_scope() {
+    local plugin="$1"
+    claude plugin uninstall "$plugin" --scope user &>/dev/null && return 0
+    ( cd "$HOME" && claude plugin uninstall "$plugin" --scope project ) &>/dev/null && return 0
+    ( cd "$HOME" && claude plugin uninstall "$plugin" --scope local ) &>/dev/null && return 0
+    return 1
+}
 
-# --- Install desired plugins ------------------------------------------------
-while IFS= read -r plugin; do
-    [ -z "$plugin" ] && continue
-    if claude plugin list 2>/dev/null | grep -q "$plugin"; then
-        echo "Plugin $plugin already installed"
-    else
-        echo "Installing plugin: $plugin"
-        if ! claude plugin install "$plugin"; then
-            echo "Warning: Failed to install plugin $plugin"
-            FAILURES=$((FAILURES + 1))
-        fi
+# Resolve a marketplace's registered name to the repo slug used to add it.
+# Prefer extraKnownMarketplaces (authoritative name→repo); fall back to a
+# .marketplaces entry whose basename matches (covers built-ins like
+# claude-plugins-official that aren't in extraKnownMarketplaces).
+marketplace_slug() {
+    local name="$1" slug
+    slug="$(jq -r --arg n "$name" '.extraKnownMarketplaces[$n].source.repo // empty' "$PLUGINS_FILE")"
+    if [ -z "$slug" ]; then
+        slug="$(jq -r --arg n "$name" 'first(.marketplaces[]? | select((split("/") | last) == $n)) // empty' "$PLUGINS_FILE")"
     fi
-done <<<"$desired_plugins"
+    printf '%s' "$slug"
+}
 
-# --- Explicit removals (ALWAYS enforced, every machine) ---------------------
-# Uninstall plugins first so their marketplace can be removed cleanly.
-for plugin in $remove_plugins; do
-    if claude plugin list 2>/dev/null | grep -q "$plugin"; then
-        echo "Removing plugin: $plugin"
-        if ! claude plugin uninstall "$plugin"; then
-            echo "Warning: Failed to uninstall plugin $plugin"
-            FAILURES=$((FAILURES + 1))
-        fi
-    fi
-done
-for marketplace in $remove_marketplaces; do
-    marketplace_name="${marketplace##*/}"
-    if claude plugin marketplace list 2>/dev/null | grep -q "$marketplace_name"; then
-        echo "Removing marketplace: $marketplace_name"
-        if ! claude plugin marketplace remove "$marketplace_name"; then
-            echo "Warning: Failed to remove marketplace $marketplace_name"
-            FAILURES=$((FAILURES + 1))
-        fi
-    fi
-done
+# Desired plugin set for a config dir = core .plugins + the given extras (unique).
+desired_for() {
+    {
+        jq -r '.plugins[]?' "$PLUGINS_FILE"
+        for profile in "$@"; do
+            jq -r --arg p "$profile" '.extras[$p][]?' "$PLUGINS_FILE"
+        done
+    } | sort -u
+}
 
-# --- Prune pass: installed plugins that aren't declared ---------------------
-# Until `prune` is true this only WARNS, so a machine with plugins we haven't
-# inventoried yet surfaces drift instead of silently uninstalling it. Once the
-# desired lists (.plugins / .extras) cover every machine, flip "prune": true.
-installed_plugins="$(claude plugin list 2>/dev/null | grep -oE '[A-Za-z0-9._-]+@[A-Za-z0-9._-]+' | sort -u)"
-while IFS= read -r plugin; do
-    [ -z "$plugin" ] && continue
-    in_set "$plugin" "$desired_plugins" && continue
-    in_set "$plugin" "$remove_plugins" && continue   # already handled above
-    if [ "$prune" = "true" ]; then
-        echo "Pruning unmanaged plugin: $plugin"
-        if ! claude plugin uninstall "$plugin"; then
-            echo "Warning: Failed to prune plugin $plugin"
-            FAILURES=$((FAILURES + 1))
+# Reconcile one config dir to its desired set. $1 = config dir, rest = extras.
+reconcile() {
+    local cfg_dir="$1"; shift
+    local extras=("$@")
+    local label="${cfg_dir/#$HOME/\~}"
+    export CLAUDE_CONFIG_DIR="$cfg_dir"
+    echo "── Reconciling $label  (extras: ${extras[*]})"
+
+    local desired installed marketplace marketplace_name plugin mkt_list
+    local needed_marketplaces name slug
+    desired="$(desired_for "${extras[@]}")"
+
+    # --- Marketplaces: only those THIS profile's desired plugins need --------
+    # Derive each needed marketplace from a desired plugin's "@<marketplace>"
+    # suffix, resolve it to a repo slug, and add if missing. `marketplace list`
+    # prints the Source repo, so a basename match works even when the registered
+    # name differs from the repo (honeycombio/agent-skill → "honeycomb-plugins").
+    mkt_list="$(claude plugin marketplace list 2>/dev/null)"
+    needed_marketplaces="$(sed 's/.*@//' <<<"$desired" | sort -u)"
+    while IFS= read -r name; do
+        [ -z "$name" ] && continue
+        slug="$(marketplace_slug "$name")"
+        if [ -z "$slug" ]; then
+            echo "  Warning: no source known for marketplace '$name'"; FAILURES=$((FAILURES+1)); continue
         fi
-    else
-        echo "WARN: unmanaged plugin installed: $plugin (add to .plugins/.extras to keep, or .remove to drop; then set .prune=true)"
-    fi
-done <<<"$installed_plugins"
+        if ! grep -qiF "${slug##*/}" <<<"$mkt_list"; then
+            echo "  Adding marketplace: $slug"
+            claude plugin marketplace add "$slug" \
+                || { echo "  Warning: failed to add marketplace $slug"; FAILURES=$((FAILURES+1)); }
+        fi
+    done <<<"$needed_marketplaces"
+
+    # --- Install + enable desired -------------------------------------------
+    installed="$(installed_ids)"
+    while IFS= read -r plugin; do
+        [ -z "$plugin" ] && continue
+        if ! in_set "$plugin" "$installed"; then
+            echo "  Installing: $plugin"
+            claude plugin install "$plugin" \
+                || { echo "  Warning: failed to install $plugin"; FAILURES=$((FAILURES+1)); continue; }
+        fi
+        claude plugin enable "$plugin" --scope user &>/dev/null || true
+    done <<<"$desired"
+
+    # --- Explicit removals (uninstall plugin, then drop its marketplace) -----
+    for plugin in $remove_plugins; do
+        if claude plugin list 2>/dev/null | grep -qF "$plugin"; then
+            echo "  Removing: $plugin"
+            claude plugin disable "$plugin" --scope user &>/dev/null || true
+            uninstall_any_scope "$plugin" \
+                || { echo "  Warning: failed to uninstall $plugin"; FAILURES=$((FAILURES+1)); }
+        fi
+    done
+    for marketplace in $remove_marketplaces; do
+        marketplace_name="${marketplace##*/}"
+        if claude plugin marketplace list 2>/dev/null | grep -qiF "$marketplace_name"; then
+            echo "  Removing marketplace: $marketplace_name"
+            claude plugin marketplace remove "$marketplace_name" \
+                || { echo "  Warning: failed to remove marketplace $marketplace_name"; FAILURES=$((FAILURES+1)); }
+        fi
+    done
+
+    # --- Authoritative pass -------------------------------------------------
+    # Enable is always authoritative: anything installed here but not desired is
+    # DISABLED. It's only UNINSTALLED when prune=true; otherwise we warn, so an
+    # un-inventoried plugin surfaces as drift instead of vanishing silently.
+    installed="$(installed_ids)"
+    while IFS= read -r plugin; do
+        [ -z "$plugin" ] && continue
+        in_set "$plugin" "$desired" && continue
+        in_set "$plugin" "$remove_plugins" && continue
+        claude plugin disable "$plugin" --scope user &>/dev/null || true
+        if [ "$prune" = "true" ]; then
+            echo "  Pruning undeclared: $plugin"
+            uninstall_any_scope "$plugin" \
+                || { echo "  Warning: failed to prune $plugin"; FAILURES=$((FAILURES+1)); }
+        else
+            echo "  WARN: undeclared plugin in $label: $plugin (disabled; add to .plugins/.extras to keep, .remove to drop, or set .prune=true)"
+        fi
+    done <<<"$installed"
+
+    unset CLAUDE_CONFIG_DIR
+}
+
+# --- Default config (~/.claude): machine-environment extras -----------------
+# base always; moov / odin gated by machine identity. `personal` is a Claude
+# profile, not part of the default/work config, so it is not applied here.
+default_extras=("base")
+{{ if has "moov" .extras }}default_extras+=("moov"){{ end }}
+{{ if eq .hostname "Odin" }}default_extras+=("odin"){{ end }}
+reconcile "$HOME/.claude" "${default_extras[@]}"
+
+# --- Named profiles: base + namesake extras (when declared) -----------------
+if [ -d "$HOME/.config/claude/profiles" ]; then
+    for profile_dir in "$HOME/.config/claude/profiles"/*/; do
+        [ -d "$profile_dir" ] || continue
+        name="$(basename "$profile_dir")"
+        extras=("base")
+        if [ "$(jq --arg n "$name" '(.extras // {}) | has($n)' "$PLUGINS_FILE")" = "true" ]; then
+            extras+=("$name")
+        fi
+        reconcile "${profile_dir%/}" "${extras[@]}"
+    done
+fi
 
 if [ "$FAILURES" -gt 0 ]; then
     echo "Warning: $FAILURES plugin operation(s) failed. Run 'chezmoi apply' again to retry."
-    exit 0
 fi
+exit 0

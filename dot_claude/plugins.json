@@ -1,7 +1,9 @@
 {
   "marketplaces": [
     "anthropics/claude-plugins-official",
-    "max-sixty/worktrunk"
+    "max-sixty/worktrunk",
+    "acjackman/claude-productivity",
+    "honeycombio/agent-skill"
   ],
   "plugins": [
     "pyright-lsp@claude-plugins-official",
@@ -10,15 +12,22 @@
     "code-review@claude-plugins-official"
   ],
   "extras": {
-    "base": [],
-    "moov": [],
+    "base": [
+      "productivity@claude-productivity"
+    ],
+    "moov": [
+      "moov@claude-productivity",
+      "honeycomb@honeycomb-plugins",
+      "slack@claude-plugins-official"
+    ],
     "personal": [
       "skill-creator@claude-plugins-official"
     ],
     "odin": []
   },
   "remove": [
-    "revdiff@revdiff"
+    "revdiff@revdiff",
+    "swift-lsp@claude-plugins-official"
   ],
   "removeMarketplaces": [
     "revdiff"
@@ -29,6 +38,19 @@
       "source": {
         "source": "github",
         "repo": "max-sixty/worktrunk"
+      }
+    },
+    "claude-productivity": {
+      "source": {
+        "source": "github",
+        "repo": "acjackman/claude-productivity"
+      },
+      "autoUpdate": true
+    },
+    "honeycomb-plugins": {
+      "source": {
+        "source": "github",
+        "repo": "honeycombio/agent-skill"
       }
     }
   }
