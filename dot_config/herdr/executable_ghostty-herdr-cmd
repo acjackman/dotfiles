@@ -1,0 +1,25 @@
+#!/bin/bash
+# Runs inside a new Ghostty window — launches herdr.
+# Called via: exec ~/.config/herdr/ghostty-herdr-cmd (see ghostty-herdr).
+#
+# `herdr` with no args launches or attaches to the persistent session, spinning
+# up the background server on demand — the herdr analogue of the tmux launcher's
+# `tmux new-session -A`.
+
+printf '\033c'
+
+export SHELL="${SHELL:-/bin/zsh}"
+
+# Pick up a Homebrew-installed herdr even if PATH isn't fully set up yet.
+if ! command -v herdr &>/dev/null; then
+  for dir in /opt/homebrew/bin /usr/local/bin; do
+    [[ -x "$dir/herdr" ]] && export PATH="$PATH:$dir" && break
+  done
+fi
+
+if ! command -v herdr &>/dev/null; then
+  echo "herdr not found in PATH — install it with: brew install herdr" >&2
+  exec "$SHELL"
+fi
+
+exec herdr

@@ -1,0 +1,16 @@
+#!/bin/bash
+# Open a new Ghostty window running herdr — the tmux-launcher equivalent for the
+# herdr trial. Mirrors ghostty-sesh: instead of the sesh/tmux picker it launches
+# herdr, which attaches to (or starts) its own persistent server-backed session.
+#
+# NOTE: Do not use `open -na Ghostty.app --args -e ...` here — it spawns a
+# separate Ghostty process which adds extra Dock icons. Instead we use Ghostty's
+# AppleScript API (added in 1.3.0) to create a window in the existing instance.
+
+osascript -e '
+tell application "Ghostty"
+  set cfg to new surface configuration
+  set initial input of cfg to "exec '"$HOME"'/.config/herdr/ghostty-herdr-cmd\n"
+  new window with configuration cfg
+end tell
+'

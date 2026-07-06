@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# hash: {{ include "dot_config/herdr/config.toml" | sha256sum }}
+#
+# Keep the herdr trial wired up: ensure the vim-herdr-navigation plugin is
+# installed, then reload the running server's config after the keybindings in
+# config.toml change. Guarded on herdr being present, so this is a clean no-op
+# on machines that haven't opted into the trial (`brew "herdr"` is personal).
+set -euo pipefail
+
+command -v herdr >/dev/null 2>&1 || exit 0
+
+# Plugins to keep installed: "<plugin_id> <owner/repo>".
+#   vim-herdr-navigation   — <C-h/j/k/l> between herdr panes and Neovim splits
+#   rjyo.window-title-sync — sync the terminal/Ghostty title with the focused
+#                            workspace/tab/agent (event-driven; needs bun on PATH,
+#                            provided by the global mise `bun` tool)
+#   worktrunk              — worktree switch/create/remove via worktrunk (`wt`);
+#                            needs wt >= 0.60, fzf, jq (already in the toolchain)
+plugins=(
+  "vim-herdr-navigation paulbkim-dev/vim-herdr-navigation"
+  "rjyo.window-title-sync rjyo/herdr-window-title-sync"
+  "worktrunk devashish2203/herdr-worktrunk"
+)
+
+installed="$(herdr plugin list 2>/dev/null || true)"
+for entry in "${plugins[@]}"; do
+  id="${entry%% *}"
+  repo="${entry##* }"
+  if ! grep -q "$id" <<<"$installed"; then
+    echo "Installing $id plugin…"
+    herdr plugin install "$repo" --yes
+  fi
+done
+
+# Reload config in the running server; harmless no-op when none is up.
+if herdr server reload-config >/dev/null 2>&1; then
+  echo "herdr config reloaded"
+fi

@@ -9,6 +9,7 @@ CLOUDSDK_PYTHON = "{{env.HOME}}/.config/gcloud/virtenv/bin/python"
 [tools]
 age = "latest"
 node = "22"
+bun = "latest"  # runtime for herdr's window-title-sync plugin
 gcloud = { version = "latest", postinstall = "python3 -m venv ~/.config/gcloud/virtenv && gcloud components install gke-gcloud-auth-plugin --quiet && ~/.config/gcloud/virtenv/bin/pip install numpy" }
 
 "pipx:httpie" = "latest"

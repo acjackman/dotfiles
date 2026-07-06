@@ -1,0 +1,80 @@
+# herdr configuration — trialling herdr side-by-side with tmux (see CLAUDE.md).
+#
+# herdr ships built-in defaults and writes no default config.toml; this file is
+# purely additive. Overriding a [keys] action *replaces* its binding; actions
+# left unset keep herdr's defaults (press prefix+? in-app for the live list).
+# herdr validates keybindings and warns on bad ones in herdr-server.log.
+#
+# Keybindings below close the gaps between herdr's (already tmux-like) defaults
+# and the muscle memory in dot_config/tmux/tmux.reset.conf. Verified vs herdr 0.7.1.
+
+[keys]
+# tmux: `set -g prefix C-Space` — the single biggest "feel at home" change.
+# Same Ctrl+Space caveat as the tmux leader: a macOS input-source shortcut can
+# steal it after OS upgrades (see the tmux-prefix note).
+prefix = "ctrl+space"
+
+# tmux: `bind d detach-client` (herdr's default is prefix+q, still useful to know).
+detach = "prefix+d"
+
+# Splits, tmux-style: `|` side-by-side, `-` stacked.
+# tmux: `bind | split-window -h` / `bind - split-window -v`.
+# (If the orientation feels swapped, flip these two — herdr's "vertical" =
+# vertical divider = side-by-side.)
+split_vertical = "prefix+backslash" # prefix then \  (Shift-\ = | )
+split_horizontal = "prefix+minus"   # matches herdr's default; kept explicit
+
+# tmux-faithful tab (≈ window) ops. Each RECLAIMS a key from a herdr default;
+# that default is relocated below so nothing is lost (one action per key).
+new_tab = "prefix+n"    # tmux: bind n new-window   (herdr default was prefix+c)
+close_tab = "prefix+w"  # tmux: bind w kill-window   (herdr default was prefix+shift+x)
+rename_tab = "prefix+r" # tmux: bind r rename-window (herdr default was prefix+shift+t)
+
+# tmux `bind o` sesh picker. herdr workspaces ≈ tmux sessions, so the workspace
+# picker is the closest analogue (herdr default was prefix+w, reclaimed above).
+workspace_picker = "prefix+o"
+
+# Relocated herdr defaults displaced by the reclaims above:
+next_tab = "prefix+shift+p"   # was prefix+n; previous_tab stays prefix+p
+resize_mode = "prefix+shift+r" # was prefix+r (herdr's interactive resize mode)
+
+# ── Plugin actions ───────────────────────────────────────────────────────────
+
+# vim-herdr-navigation: <C-h/j/k/l> across herdr panes and Neovim splits.
+[[keys.command]]
+key = "ctrl+h"
+type = "plugin_action"
+command = "vim-herdr-navigation.left"
+description = "navigate left (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+j"
+type = "plugin_action"
+command = "vim-herdr-navigation.down"
+description = "navigate down (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+k"
+type = "plugin_action"
+command = "vim-herdr-navigation.up"
+description = "navigate up (vim/herdr)"
+
+[[keys.command]]
+key = "ctrl+l"
+type = "plugin_action"
+command = "vim-herdr-navigation.right"
+description = "navigate right (vim/herdr)"
+
+# herdr-worktrunk: worktree switch/create + remove via worktrunk (`wt`) + fzf.
+# Mirrors the tmux wt-sesh-select bindings; overrides herdr's raw worktree keys.
+[[keys.command]]
+key = "prefix+shift+g"
+type = "plugin_action"
+command = "worktrunk.open"
+description = "Worktree: switch / create (worktrunk)"
+
+[[keys.command]]
+key = "prefix+shift+d"
+type = "plugin_action"
+command = "worktrunk.remove"
+description = "Worktree: remove (worktrunk)"
