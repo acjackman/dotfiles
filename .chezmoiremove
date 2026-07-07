@@ -34,6 +34,8 @@ finicky.js
 # command (routed through the `clank` adapter); these dead handles are dropped.
 .claude/skills/spawn-session
 .claude/skills/spawn-window
+# fleet -> clank rename (2026-07-06): old binary is dropped, clean cut, no shim.
+.local/bin/fleet
 .config/zsh/functions/,prc
 .config/zsh/functions/,prl
 .config/zsh/functions/,pro
