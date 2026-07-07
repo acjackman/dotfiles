@@ -39,10 +39,20 @@ set -euo pipefail
 # being inside a tmux session (the hard-fail moved into that branch). For other
 # terminals, fall back to the plugin skill (/revdiff:revdiff), which supports
 # popups in zellij/kitty/wezterm/ghostty/iterm2/etc.
+#
+# herdr detection uses `herdr pane current` (resolves the caller's own pane by
+# controlling TTY) rather than the $HERDR_ENV/$HERDR_SESSION env vars — those
+# are plain env vars that must survive every layer of process inheritance
+# (Claude's Bash tool, Task-tool subagents, `cat prompt | claude` pipes,
+# long-lived sessions predating this adapter) to stay trustworthy. A dropped
+# var silently degrades to the tmux branch below, which then blindly trusts
+# whatever stale/foreign $TMUX happens to be inherited — attaching a review to
+# an unrelated tmux session instead of the caller's actual herdr pane. The TTY
+# check is env-independent, so it can't silently go stale the same way.
 SURFACE=tmux
-if [ -n "${HERDR_ENV:-}${HERDR_SESSION:-}" ] \
-    && command -v herdr >/dev/null 2>&1 \
-    && herdr status server 2>/dev/null | grep -q '^status: running'; then
+if command -v herdr >/dev/null 2>&1 \
+    && herdr status server 2>/dev/null | grep -q '^status: running' \
+    && herdr pane current >/dev/null 2>&1; then
     SURFACE=herdr
 fi
 

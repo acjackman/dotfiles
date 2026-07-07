@@ -33,10 +33,11 @@
 #       Print the backend that would be chosen for the current context.
 #
 # Backend dispatch (coexistence rule): a surface opened inside a herdr-hosted
-# context ($HERDR_ENV/$HERDR_SESSION) opens in herdr; one opened inside tmux
-# ($TMUX) opens in tmux — never cross the streams, so any given session stays
-# inside one multiplexer. With no host context, prefer herdr when its server is
-# up (and protocol-compatible), else tmux. Override with --backend / $CLANK_BACKEND.
+# context (checked via the caller's own TTY, see herdr_hosted below) opens in
+# herdr; one opened inside tmux ($TMUX) opens in tmux — never cross the
+# streams, so any given session stays inside one multiplexer. With no host
+# context, prefer herdr when its server is up (and protocol-compatible), else
+# tmux. Override with --backend / $CLANK_BACKEND.
 #
 # herdr identity: herdr IDs are ephemeral (compacted on close) so we NEVER cache
 # them — the durable key is the workspace --label (an effort/ticket id) which we
@@ -76,6 +77,19 @@ herdr_active() {
 
 tmux_active() { command -v tmux >/dev/null 2>&1 && tmux info >/dev/null 2>&1; }
 
+# herdr_hosted — TTY-based ground truth for "is the CALLER's own terminal a
+# herdr pane", independent of $HERDR_ENV/$HERDR_SESSION. Those are plain env
+# vars that must survive every layer of process inheritance (Claude's Bash
+# tool, Task-tool subagents, `cat prompt | claude` pipes, long-lived sessions
+# predating this adapter) to stay trustworthy — a dropped var silently
+# degrades dispatch to tmux, which then trusts whatever stale/foreign $TMUX
+# happens to be inherited. `herdr pane current` resolves the current pane by
+# controlling TTY, so it can't go stale the same way.
+herdr_hosted() {
+  herdr_active || return 1
+  herdr pane current >/dev/null 2>&1
+}
+
 # choose_backend [explicit] — implements the coexistence rule.
 choose_backend() {
   local b="${1:-${CLANK_BACKEND:-}}"
@@ -86,7 +100,7 @@ choose_backend() {
     *)     die "unknown backend '$b' (want herdr|tmux)" ;;
   esac
   # Dispatch on the caller's multiplexer context first.
-  if [ -n "${HERDR_ENV:-}${HERDR_SESSION:-}" ] && herdr_active; then echo herdr; return 0; fi
+  if herdr_hosted; then echo herdr; return 0; fi
   if [ -n "${TMUX:-}" ]; then echo tmux; return 0; fi
   # No host context — prefer herdr when it's up, else tmux.
   if herdr_active; then echo herdr; return 0; fi
