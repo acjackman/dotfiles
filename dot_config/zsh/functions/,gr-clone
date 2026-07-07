@@ -61,6 +61,14 @@ WORKTRUNK_WORKTREE_PATH = "{% raw %}../{{ branch | sanitize }}{% endraw %}"
 EOF
   mise trust .config/mise.local.toml
 
+  # Also pin worktrunk's worktree-path via a machine-local [projects] override,
+  # so `wt` places worktrees as top-level siblings even OUTSIDE a mise-activated
+  # shell (e.g. herdr's worktrunk plugin). The mise var above only applies in an
+  # activated shell; this covers non-interactive callers too.
+  if [[ -x "$HOME/.local/bin/,worktrunk-project-path" ]]; then
+    "$HOME/.local/bin/,worktrunk-project-path" "$PWD" || true
+  fi
+
   # Setup default branch worktree
   local DEFAULT_BRANCH=$(git remote show origin | sed -n '/HEAD branch/s/.*: //p')
   if [[ -z "$DEFAULT_BRANCH" ]]; then

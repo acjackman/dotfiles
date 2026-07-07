@@ -84,6 +84,13 @@ WORKTRUNK_WORKTREE_PATH = "{% raw %}../{{ branch | sanitize }}{% endraw %}"
 EOF
   mise trust .config/mise.local.toml
 
+  # Also pin worktrunk's worktree-path via a machine-local [projects] override,
+  # so `wt` places worktrees as top-level siblings even OUTSIDE a mise-activated
+  # shell (e.g. herdr's worktrunk plugin). No-ops for a remote-less repo.
+  if [[ -x "$HOME/.local/bin/,worktrunk-project-path" ]]; then
+    "$HOME/.local/bin/,worktrunk-project-path" "$REPO_ROOT" || true
+  fi
+
   # Create worktree for current branch (no checkout since we'll restore our files)
   echo "Creating worktree for $CURRENT_BRANCH..."
   git worktree add --no-checkout "$CURRENT_BRANCH"

@@ -44,7 +44,11 @@ Arguments:
     return 1
   fi
 
-  # Use mise to configure worktrunk paths
+  # Use mise to configure worktrunk paths. (A ,gr-init repo has no remote yet, so
+  # it has no worktrunk project identifier — the env-independent [projects]
+  # override that ,worktrunk-project-path adds isn't possible until a remote is
+  # set; run ,doctor-worktrunk after adding one. Until then the mise var below
+  # is the mechanism, which is fine for a purely local repo.)
   mkdir -p .config
   cat >.config/mise.local.toml <<EOF
 [env]

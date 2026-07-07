@@ -1,0 +1,194 @@
+#!/usr/bin/env python3
+"""
+,worktrunk-project-path — pin a bare-worktree repo's worktrunk worktree-path via
+a machine-local [projects] override, so new worktrees land as top-level siblings
+(`../{{ branch | sanitize }}`) even when `wt` runs WITHOUT the repo's mise env
+active.
+
+Why this exists: the `,gr-*` helpers drop a repo-local `.config/mise.local.toml`
+setting `WORKTRUNK_WORKTREE_PATH = "../{{ branch | sanitize }}"`. That only takes
+effect in a mise-activated shell. Any non-interactive `wt` caller that doesn't
+load the repo's mise env — notably herdr's worktrunk plugin, but also cron or a
+bare `bash -c` — falls back to worktrunk's global default `.worktrees/...`, which
+for a bare repo resolves against `.bare` and mis-nests worktrees under
+`.bare/.worktrees/<flattened-branch>`. A per-project override in worktrunk's own
+config is env-independent, so it fixes every caller.
+
+Durability: writes into the [projects] section of ~/.config/worktrunk/config.toml.
+The chezmoi `run_onchange_after_merge-worktrunk-config` script preserves local
+[projects] entries across `chezmoi apply`, so this survives without any template
+change and without an apply-time filesystem scan.
+
+Scope: only acts on bare repos that have a remote-derived worktrunk identifier
+(host/org/repo). Remote-less repos (e.g. a fresh `,gr-init`) have no such
+identifier and keep relying on the mise env var — a no-op here.
+
+Idempotent. Usage: ,worktrunk-project-path [--check] [REPO_DIR]  (default cwd)
+
+  --check   Report only, write nothing. Exit 0 if no change is needed (already
+            pinned, or not applicable — non-bare / remote-less / no config);
+            exit 10 if a run would change the config.
+"""
+
+from __future__ import annotations
+
+import os
+import re
+import subprocess
+import sys
+from pathlib import Path
+
+try:
+    import tomllib
+except ImportError:  # Python < 3.11
+    try:
+        import tomli as tomllib  # type: ignore
+    except ImportError:
+        sys.stderr.write("worktrunk-project-path: needs Python 3.11+ or tomli\n")
+        sys.exit(0)  # soft-fail: never break repo creation over this
+
+DESIRED = "../{{ branch | sanitize }}"
+ANSI = re.compile(r"\x1b\[[0-9;]*m")
+CONFIG = Path(os.path.expanduser("~/.config/worktrunk/config.toml"))
+
+
+def run(args: list[str]) -> str:
+    try:
+        return subprocess.run(
+            args, capture_output=True, text=True, check=False
+        ).stdout
+    except Exception:
+        return ""
+
+
+def is_bare_repo(repo: Path) -> bool:
+    """True for the bare `.git`-file + worktrees layout the ,gr-* helpers create."""
+    dotgit = repo / ".git"
+    if not dotgit.is_file():
+        return False
+    m = re.search(r"^gitdir:\s*(.+)$", dotgit.read_text(errors="ignore"), re.M)
+    if not m:
+        return False
+    gd = m.group(1).strip()
+    gitdir = gd if os.path.isabs(gd) else str(repo / gd)
+    out = run(["git", "--git-dir", gitdir, "rev-parse", "--is-bare-repository"])
+    return out.strip() == "true"
+
+
+def worktrunk_identifier(repo: Path) -> str | None:
+    """Worktrunk's own project identifier (host/org/repo), or None if not derivable."""
+    for line in run(["wt", "-C", str(repo), "config", "show"]).splitlines():
+        line = ANSI.sub("", line)
+        if "Identifier:" in line:
+            ident = line.split("Identifier:", 1)[1].strip()
+            # Require host/org/repo shape; reject "Not found"/local fallbacks.
+            if ident.count("/") >= 2 and " " not in ident:
+                return ident
+            return None
+    return None
+
+
+def format_toml_value(value) -> str:
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, str):
+        escaped = value.replace("\\", "\\\\").replace('"', '\\"')
+        return f'"{escaped}"'
+    if isinstance(value, list):
+        return "[" + ", ".join(format_toml_value(v) for v in value) + "]"
+    if isinstance(value, dict):
+        return "{" + ", ".join(f"{k} = {format_toml_value(v)}" for k, v in value.items()) + "}"
+    return str(value)
+
+
+def write_projects_section(projects: dict) -> str:
+    lines = ["[projects]"]
+    for key, value in projects.items():
+        if isinstance(value, dict):
+            lines.append(f'[projects."{key}"]')
+            for k, v in value.items():
+                lines.append(f"{k} = {format_toml_value(v)}")
+        else:
+            lines.append(f"{key} = {format_toml_value(value)}")
+    return "\n".join(lines) + "\n"
+
+
+def main() -> int:
+    args = sys.argv[1:]
+    check = "--check" in args
+    args = [a for a in args if a != "--check"]
+    repo = Path(args[0] if args else ".").resolve()
+
+    if not is_bare_repo(repo):
+        return 0  # only bare repos mis-resolve relative worktree-path
+    ident = worktrunk_identifier(repo)
+    if not ident:
+        return 0  # remote-less repo: mise env var remains the mechanism
+    if not CONFIG.exists():
+        sys.stderr.write(
+            f"worktrunk-project-path: {CONFIG} not found; run chezmoi apply first\n"
+        )
+        return 0
+
+    text = CONFIG.read_text()
+
+    # Everything up to the first bare `[projects]` header is the chezmoi-managed
+    # block (which may itself contain managed [projects."..."] subtables such as
+    # the dotfiles override) — preserve it verbatim. The trailing region that
+    # starts at the bare `[projects]` header holds machine-local overrides and is
+    # the only part we regenerate. If a repo's identifier is already managed in
+    # the head, leave it alone.
+    lines = text.splitlines()
+    split = next((i for i, ln in enumerate(lines) if ln.strip() == "[projects]"), None)
+
+    if split is None:
+        head = text.rstrip("\n") + "\n"
+        local: dict = {}
+    else:
+        head = "\n".join(lines[:split]).rstrip("\n") + "\n"
+        region_text = "\n".join(lines[split:])
+        parsed = tomllib.loads(region_text)
+        # We regenerate the region from `parsed["projects"]` alone, so anything
+        # else living after the bare `[projects]` header would be silently lost.
+        # The merge script guarantees `[projects]` is the terminal section, but
+        # if that ever changes (a hand-added or newly-templated table after it),
+        # refuse to rewrite rather than corrupt the config.
+        extra = set(parsed) - {"projects"}
+        if extra:
+            sys.stderr.write(
+                "worktrunk-project-path: unexpected table(s) after [projects] "
+                f"({', '.join(sorted(extra))}); refusing to rewrite {CONFIG}\n"
+            )
+            return 0
+        local = parsed.get("projects", {})
+
+    # Managed elsewhere (e.g. the dotfiles override the merge script owns): never
+    # duplicate its subtable. When split is None, `head` is the whole file.
+    if f'[projects."{ident}"]' in head:
+        return 0
+
+    existing = local.get(ident)
+    if isinstance(existing, dict) and existing.get("worktree-path") == DESIRED:
+        if not check:
+            print(f"worktrunk-project-path: {ident} already pinned")
+        return 0
+
+    if check:
+        return 10  # a run would change the config
+
+    entry = dict(existing) if isinstance(existing, dict) else {}
+    entry["worktree-path"] = DESIRED
+    local[ident] = entry
+
+    # Atomic write: other callers (,gr-*, ,doctor-worktrunk, the chezmoi merge
+    # script) touch this same file, so temp+rename avoids a partial/torn config.
+    new_text = head + "\n" + write_projects_section(local)
+    tmp = CONFIG.with_name(CONFIG.name + ".tmp")
+    tmp.write_text(new_text)
+    os.replace(tmp, CONFIG)
+    print(f'worktrunk-project-path: pinned {ident} -> "{DESIRED}"')
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

@@ -20,6 +20,9 @@
 #   1. create .config/mise.local.toml if missing
 #   2. set/correct the WORKTRUNK_WORKTREE_PATH value
 #   3. `mise trust` the file if it isn't trusted yet
+#   4. pin a machine-local worktrunk [projects] override so `wt` places
+#      worktrees correctly even OUTSIDE a mise-activated shell (e.g. herdr's
+#      worktrunk plugin) — via ,worktrunk-project-path; repos with a remote only
 #
 # It is idempotent: a healthy repo is a no-op. Regular (non-bare) checkouts and
 # non-git directories are ignored.
@@ -120,6 +123,18 @@ for path in "$BASE"/*/*/ ; do
     need_trust=1; plan+=("mise trust")
   fi
 
+  # ---- worktrunk [projects] override (env-independent worktree-path) ----
+  # The mise var above only takes effect in a mise-activated shell. A per-project
+  # override in ~/.config/worktrunk/config.toml pins worktree placement to
+  # top-level siblings even when `wt` runs WITHOUT this repo's mise env (e.g.
+  # herdr's worktrunk plugin, cron). Applies only to repos with a remote-derived
+  # worktrunk identifier; ,worktrunk-project-path no-ops otherwise.
+  WT_PIN="$HOME/.local/bin/,worktrunk-project-path"
+  wt_pin_needed=0
+  if [ -x "$WT_PIN" ] && ! "$WT_PIN" --check "$repo" >/dev/null 2>&1; then
+    wt_pin_needed=1; plan+=("pin worktrunk worktree-path")
+  fi
+
   if [ ${#plan[@]} -eq 0 ]; then
     echo "${G}ok${X}"; n_ok=$((n_ok+1)); continue
   fi
@@ -167,6 +182,14 @@ for path in "$BASE"/*/*/ ; do
       echo "   ${G}trusted${X} config"
     else
       echo "   ${Y}could not mise trust config${X}"; ok=0
+    fi
+  fi
+
+  if [ "$ok" = 1 ] && [ "$wt_pin_needed" = 1 ]; then
+    if "$WT_PIN" "$repo" >/dev/null 2>&1; then
+      echo "   ${G}pinned${X} worktrunk worktree-path (top-level siblings)"
+    else
+      echo "   ${Y}could not pin worktrunk worktree-path${X}"; ok=0
     fi
   fi
 
