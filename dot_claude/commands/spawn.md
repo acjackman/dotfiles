@@ -5,7 +5,7 @@ argument-hint: [--base <ref>] [--repo <path>] [--model <model>] [--session] <tas
 
 # Spawn Claude Agent
 
-Spawn a new Claude agent in an isolated worktree on a new interactive surface. The surface is opened by the `fleet` substrate adapter, which uses **herdr** when it's the active multiplexer and falls back to **tmux** otherwise (see "Substrate" below) — you don't choose; `fleet` dispatches on context.
+Spawn a new Claude agent in an isolated worktree on a new interactive surface. The surface is opened by the `clank` substrate adapter, which uses **herdr** when it's the active multiplexer and falls back to **tmux** otherwise (see "Substrate" below) — you don't choose; `clank` dispatches on context.
 
 Each agent gets its own worktree created by worktrunk, so it can work without conflicting with the current session.
 
@@ -36,7 +36,7 @@ Pass `--repo <path>` to `spawn-setup-worktree` to target the other repo. If it's
 These are on PATH:
 
 - **`spawn-setup-worktree`** — Creates or reuses a worktrunk-managed worktree. Returns JSON `{branch, path}`.
-- **`fleet`** — Substrate adapter. `fleet spawn` opens a new surface (herdr workspace or tmux window/session, by context) and launches an interactive Claude session inside it (pipes the prompt file into `claude`), tagging it with a `--label` for tracking. `fleet state <label>` reports the agent's semantic state. `fleet backend` prints which backend the current context resolves to.
+- **`clank`** — Substrate adapter. `clank spawn` opens a new surface (herdr workspace or tmux window/session, by context) and launches an interactive Claude session inside it (pipes the prompt file into `claude`), tagging it with a `--label` for tracking. `clank state <label>` reports the agent's semantic state. `clank close <label>` tears the surface down when the agent is done. `clank backend` prints which backend the current context resolves to.
 
 ## Pre-flight Checks
 
@@ -124,15 +124,15 @@ If there are uncommitted changes, warn the user: "The working tree has uncommitt
 
    Remember the absolute path to this file for the next step.
 
-4. Spawn a full interactive Claude session on a new surface. Never use `claude -p`/`--print`. Use the **branch name** as the tracking `--label` (the effort/ticket-id convention `fleet state` keys on). `fleet` chooses herdr or tmux by context and, on tmux, derives the window/session name from the worktree path automatically.
+4. Spawn a full interactive Claude session on a new surface. Never use `claude -p`/`--print`. Use the **branch name** as the tracking `--label` (the effort/ticket-id convention `clank state` keys on). `clank` chooses herdr or tmux by context and, on tmux, derives the window/session name from the worktree path automatically.
 
    Pass `--session` only if the user passed it (tmux-only; herdr ignores it):
 
    ```bash
-   fleet spawn --cwd <worktree-path> --label <branch-name> --prompt <absolute-path-to-prompt-file> [--model <model>] [--session]
+   clank spawn --cwd <worktree-path> --label <branch-name> --prompt <absolute-path-to-prompt-file> [--model <model>] [--session]
    ```
 
-   `fleet spawn` prints `substrate:`, `label:`, `handle:` and backend ids — capture `substrate` and `label` for the next steps.
+   `clank spawn` prints `substrate:`, `label:`, `handle:` and backend ids — capture `substrate` and `label` for the next steps.
 
 5. **Verify the agent actually started** (don't trust the spawn step blindly).
    Wait ~3 seconds for shell init + claude startup, then ask the adapter for the
@@ -140,7 +140,7 @@ If there are uncommitted changes, warn the user: "The working tree has uncommitt
 
    ```bash
    sleep 3
-   fleet state <branch-name>
+   clank state <branch-name>
    ```
 
    This prints a JSON object with a `state` field:
@@ -150,15 +150,15 @@ If there are uncommitted changes, warn the user: "The working tree has uncommitt
      to the user.)
    - `done` or `unknown`, or `state:"none"` / exit code 3 (label not found) —
      claude failed to launch or exited immediately. On the tmux backend, capture
-     the pane's buffer for diagnosis (get the pane id from the `fleet state`
-     output, or from `fleet list`):
+     the pane's buffer for diagnosis (get the pane id from the `clank state`
+     output, or from `clank list`):
 
      ```bash
      tmux capture-pane -t '<pane_id>' -p | tail -30
      ```
 
      On herdr, read the pane buffer instead (use the `pane_id` from the
-     `fleet state` / `fleet spawn` output — herdr's `agent` targets are keyed by
+     `clank state` / `clank spawn` output — herdr's `agent` targets are keyed by
      agent name/pane, not by our workspace label):
 
      ```bash
@@ -176,8 +176,19 @@ If there are uncommitted changes, warn the user: "The working tree has uncommitt
    - The branch/worktree that was created (or target repo for cross-repo tasks)
    - The **substrate** the agent was spawned on (herdr or tmux) and its label
    - The prompt file path
-   - How to switch to it (use the ids from the `fleet spawn` output):
+   - How to switch to it (use the ids from the `clank spawn` output):
      - **herdr**: `herdr workspace focus <workspace_id>` (or open the workspace
        picker with `prefix o` and pick it by its `<branch-name>` label)
      - **tmux window**: `tmux select-window -t '=<handle>'`
      - **tmux session**: `tmux switch-client -t '=<handle>'`
+
+7. When the agent's work has been merged/handled and the surface is no longer
+   needed, tear it down with:
+
+   ```bash
+   clank close <branch-name>
+   ```
+
+   This resolves the label to the underlying herdr workspace or tmux window and
+   closes it. Exit code 3 means the label wasn't found (already closed, or
+   never resolved) — safe to ignore.

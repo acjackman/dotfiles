@@ -31,7 +31,7 @@ finicky.js
 .claude/skills/spawn
 # Orphaned spawn skill variants — thin wrappers over the now-removed
 # .claude/skills/spawn base skill. The general spawn interface is the /spawn
-# command (routed through the `fleet` adapter); these dead handles are dropped.
+# command (routed through the `clank` adapter); these dead handles are dropped.
 .claude/skills/spawn-session
 .claude/skills/spawn-window
 .config/zsh/functions/,prc

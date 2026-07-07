@@ -2,10 +2,10 @@
 set -euo pipefail
 
 # spawn-tmux — thin compatibility shim. The tmux window/session spawn logic now
-# lives in the `fleet` substrate adapter (~/.local/bin/fleet), which dispatches
+# lives in the `clank` substrate adapter (~/.local/bin/clank), which dispatches
 # herdr-or-tmux by context. This wrapper preserves the old CLI (used by muscle
-# memory and older callers) by delegating to `fleet spawn` with the tmux backend
-# forced, so its behaviour is unchanged. New code should call `fleet spawn`.
+# memory and older callers) by delegating to `clank spawn` with the tmux backend
+# forced, so its behaviour is unchanged. New code should call `clank spawn`.
 #
 # Usage: spawn-tmux --window|--session --name <name> --dir <path> --prompt <file> [--model <model>]
 
@@ -29,10 +29,10 @@ done
 
 [[ -z "$mode" || -z "$name" || -z "$dir" || -z "$prompt" ]] && usage
 
-# --name is the fleet tracking label (old spawn-tmux only echoed it; the tmux
-# window/session name is still derived from the worktree by fleet).
+# --name is the clank tracking label (old spawn-tmux only echoed it; the tmux
+# window/session name is still derived from the worktree by clank).
 args=(spawn --backend tmux --cwd "$dir" --label "$name" --prompt "$prompt")
 [[ "$mode" == "session" ]] && args+=(--session)
 [[ -n "$model" ]] && args+=(--model "$model")
 
-exec fleet "${args[@]}"
+exec clank "${args[@]}"
