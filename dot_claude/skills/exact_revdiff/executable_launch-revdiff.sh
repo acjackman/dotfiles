@@ -136,13 +136,25 @@ WINDOW_TITLE="rd: ${DIR_NAME}${TITLE_REF:+ [$TITLE_REF]}"
 FULL_CMD="$REVDIFF_CMD; touch $(sq "$SENTINEL")"
 
 if [ "$SURFACE" = herdr ]; then
-    # Open the review in a herdr pane split beside the current one. herdr panes
-    # host a shell (unlike tmux's command-window), so append `exit` to drop that
-    # shell when revdiff quits — the pane then closes cleanly. --background opens
-    # it without stealing focus (for a spawned/background agent).
+    # Open the review in a herdr pane split beside the CALLER's pane — not
+    # whatever pane happens to be focused. `herdr pane split` with no target
+    # splits the focused pane, which silently diverges from the caller when
+    # the user's focus has moved elsewhere (e.g. a background/spawned agent,
+    # or the user clicked away while the agent was working). Resolve the
+    # caller's own pane id via `herdr pane current` (same TTY-based lookup
+    # used for surface detection above) and pass it explicitly as the split
+    # target so the review always lands beside the invoking agent.
+    CALLER_PANE=$(herdr pane current | jq -r '.result.pane.pane_id // empty') \
+        || { echo "error: herdr pane current failed" >&2; exit 1; }
+    [ -n "$CALLER_PANE" ] || { echo "error: could not resolve caller pane id" >&2; exit 1; }
+
+    # herdr panes host a shell (unlike tmux's command-window), so append
+    # `exit` to drop that shell when revdiff quits — the pane then closes
+    # cleanly. --background opens it without stealing focus (for a
+    # spawned/background agent).
     FOCUS=--focus
     [ "$BACKGROUND" -eq 1 ] && FOCUS=--no-focus
-    SPLIT=$(herdr pane split --direction right --cwd "$CWD" "$FOCUS") \
+    SPLIT=$(herdr pane split "$CALLER_PANE" --direction right --cwd "$CWD" "$FOCUS") \
         || { echo "error: herdr pane split failed" >&2; exit 1; }
     PANE_ID=$(printf '%s' "$SPLIT" | jq -r '.result.pane.pane_id // empty')
     [ -n "$PANE_ID" ] || { echo "error: could not resolve herdr pane id from split" >&2; exit 1; }
