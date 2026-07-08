@@ -10,6 +10,11 @@ data
 .config/alfred/Alfred.alfredpreferences/remote
 .config/alfred/Alfred.alfredpreferences/remote/**
 
+# Python bytecode
+**/__pycache__/
+**/__pycache__/**
+*.pyc
+
 # Tests
 tests
 tests/**
