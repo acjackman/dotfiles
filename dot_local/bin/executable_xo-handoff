@@ -1,0 +1,206 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["pyyaml"]
+# ///
+"""xo-handoff: async handoff channel INTO XO from another surface (phone, a doer, a
+side Claude session) for when Adam is not in the live XO chat.
+
+Sole schema-writer of files under <inbox-dir>/*.md. XO ingests them on its own
+schedule (cold-start / cycle) and moves each file to <inbox-dir>/seen/ once
+ingested — that mv is the "seen" marker; this CLI never rewrites status.
+"""
+
+import argparse
+import os
+import re
+import socket
+import sys
+from datetime import datetime
+from pathlib import Path
+
+import yaml
+
+PRIORITY_RANK = {"high": 0, "normal": 1, "low": 2}
+
+FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n(.*)$", re.DOTALL)
+
+
+def parse_handoff(raw: str):
+    m = FRONTMATTER_RE.match(raw)
+    if not m:
+        raise ValueError("missing YAML frontmatter block")
+    fm_text, body = m.group(1), m.group(2)
+    meta = yaml.safe_load(fm_text)
+    return meta, fm_text, body
+
+
+def render_handoff(
+    *,
+    id: str,
+    queued_by: str,
+    source: str,
+    working_dir: str,
+    files: list[str],
+    priority: str,
+    target: str | None,
+    ask: str,
+    context: str,
+) -> str:
+    """Render an inbox handoff file's bytes.
+
+    This is the SOLE schema-writer for inbox files. The byte layout here must
+    stay in lock-step with the xo-skill reader: a leading `---` YAML
+    frontmatter block (id, type: handoff, status: new, created-at, source,
+    queued-by, priority, target, files inline-list, working-dir), then
+    `## Ask` (required) and `## Context` (optional free-form notes).
+    """
+    created_at = datetime.now().astimezone().isoformat(timespec="seconds")
+    fm_lines = [
+        f"id: {id}",
+        "type: handoff",
+        "status: new",
+        f"created-at: {created_at}",
+        f"source: {source}",
+        f"queued-by: {queued_by}",
+        f"priority: {priority}",
+    ]
+    if target:
+        fm_lines.append(f"target: {target}")
+    fm_lines.append(f"files: [{', '.join(files)}]")
+    fm_lines.append(f"working-dir: {working_dir}")
+    fm = "\n".join(fm_lines)
+    body = f"## Ask\n{ask}\n"
+    if context:
+        body += f"## Context\n{context}\n"
+    return f"---\n{fm}\n---\n{body}"
+
+
+def do_add(args, inbox_dir: Path) -> int:
+    """`xo-handoff add` — write one handoff file into inbox_dir."""
+    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    id_ = f"{timestamp}-{args.slug}" if args.slug else timestamp
+    dest = inbox_dir / f"{id_}.md"
+    if dest.exists():
+        print(f"! handoff already queued: {dest}", file=sys.stderr)
+        return 1
+
+    context = args.context
+    if context is None:
+        if sys.stdin.isatty():
+            editor = os.environ.get("EDITOR")
+            if editor:
+                import subprocess
+                import tempfile
+
+                with tempfile.NamedTemporaryFile(
+                    mode="w+", suffix=".md", delete=False
+                ) as tf:
+                    tmp_path = Path(tf.name)
+                try:
+                    subprocess.run([editor, str(tmp_path)], check=False)
+                    context = tmp_path.read_text().strip()
+                finally:
+                    tmp_path.unlink(missing_ok=True)
+            else:
+                context = ""
+        else:
+            context = ""
+
+    source = args.source or os.environ.get("XO_HANDOFF_SOURCE") or socket.gethostname()
+    working_dir = args.working_dir or str(Path.cwd())
+
+    content = render_handoff(
+        id=id_,
+        queued_by=args.queued_by,
+        source=source,
+        working_dir=working_dir,
+        files=args.files or [],
+        priority=args.priority,
+        target=args.target,
+        ask=args.ask,
+        context=context,
+    )
+    dest.write_text(content)
+    print(str(dest))
+    return 0
+
+
+def do_list(inbox_dir: Path) -> int:
+    """`xo-handoff list` — print pending inbox items."""
+    entries = []
+    for f in sorted(inbox_dir.glob("*.md")):
+        try:
+            raw = f.read_text()
+            meta, _, body = parse_handoff(raw)
+        except Exception as e:
+            print(f"! skipping malformed handoff {f.name}: {e}", file=sys.stderr)
+            continue
+        ask_line = ""
+        for line in body.splitlines():
+            if line.strip() and not line.startswith("## "):
+                ask_line = line.strip()
+                break
+        entries.append((f, meta, ask_line))
+
+    entries.sort(
+        key=lambda e: (
+            PRIORITY_RANK.get(e[1].get("priority", "normal"), 1),
+            str(e[1].get("created-at", "")),
+        )
+    )
+    if not entries:
+        print("inbox empty: no pending handoffs.")
+        return 0
+    for f, meta, ask_line in entries:
+        print(f"{meta.get('id', f.stem)}  [{meta.get('priority', 'normal')}]  {ask_line}")
+    return 0
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Write/list async handoffs into the xo inbox."
+    )
+    parser.add_argument(
+        "--inbox-dir",
+        type=Path,
+        default=Path.home() / ".local/state/xo/inbox",
+        help="directory containing pending *.md and a seen/ subdir (default: %(default)s)",
+    )
+
+    sub = parser.add_subparsers(dest="command")
+
+    add_p = sub.add_parser("add", help="write a new handoff (the sole schema-writer)")
+    add_p.add_argument("ask", help="the task/instruction — one line or short paragraph")
+    add_p.add_argument("-c", "--context", dest="context", default=None, help="## Context body")
+    add_p.add_argument(
+        "-p", "--priority", dest="priority", default="normal", choices=["high", "normal", "low"]
+    )
+    add_p.add_argument("-s", "--source", dest="source", default=None)
+    add_p.add_argument("-t", "--target", dest="target", default=None, help="effort or ticket to associate")
+    add_p.add_argument("--slug", dest="slug", default=None, help="appended to the timestamp id")
+    add_p.add_argument(
+        "--file", action="append", dest="files", default=[], metavar="PATH",
+        help="an affected file; repeatable",
+    )
+    add_p.add_argument("--working-dir", dest="working_dir", default=None)
+    add_p.add_argument("--queued-by", dest="queued_by", default="adam")
+
+    sub.add_parser("list", help="print pending inbox items")
+
+    args = parser.parse_args()
+
+    inbox_dir = args.inbox_dir.expanduser().resolve()
+    (inbox_dir / "seen").mkdir(parents=True, exist_ok=True)
+
+    if args.command == "add":
+        return do_add(args, inbox_dir)
+    elif args.command == "list":
+        return do_list(inbox_dir)
+    else:
+        parser.print_help()
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())
