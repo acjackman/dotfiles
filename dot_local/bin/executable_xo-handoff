@@ -46,14 +46,22 @@ def render_handoff(
     target: str | None,
     ask: str,
     context: str,
+    safe_to_close: bool = False,
 ) -> str:
     """Render an inbox handoff file's bytes.
 
     This is the SOLE schema-writer for inbox files. The byte layout here must
     stay in lock-step with the xo-skill reader: a leading `---` YAML
     frontmatter block (id, type: handoff, status: new, created-at, source,
-    queued-by, priority, target, files inline-list, working-dir), then
-    `## Ask` (required) and `## Context` (optional free-form notes).
+    queued-by, priority, target, files inline-list, working-dir,
+    close-surface), then `## Ask` (required) and `## Context` (optional
+    free-form notes).
+
+    When `safe_to_close` is set, `close-surface: {source}` is appended — a
+    signal to the xo-skill reader that the surface named by `source` may be
+    torn down (`clank close`) once XO has ingested this handoff. This ties
+    source==label: the reader closes the clank surface whose label equals
+    `source`, so `--source` must name the live surface in that case.
     """
     created_at = datetime.now().astimezone().isoformat(timespec="seconds")
     fm_lines = [
@@ -69,6 +77,8 @@ def render_handoff(
         fm_lines.append(f"target: {target}")
     fm_lines.append(f"files: [{', '.join(files)}]")
     fm_lines.append(f"working-dir: {working_dir}")
+    if safe_to_close:
+        fm_lines.append(f"close-surface: {source}")
     fm = "\n".join(fm_lines)
     body = f"## Ask\n{ask}\n"
     if context:
@@ -120,6 +130,7 @@ def do_add(args, inbox_dir: Path) -> int:
         target=args.target,
         ask=args.ask,
         context=context,
+        safe_to_close=args.safe_to_close,
     )
     dest.write_text(content)
     print(str(dest))
@@ -185,6 +196,15 @@ def main():
     )
     add_p.add_argument("--working-dir", dest="working_dir", default=None)
     add_p.add_argument("--queued-by", dest="queued_by", default="adam")
+    add_p.add_argument(
+        "--safe-to-close",
+        dest="safe_to_close",
+        action="store_true",
+        help=(
+            "close the surface named by --source after XO ingests "
+            "(ties source==label: emits close-surface: <source>)"
+        ),
+    )
 
     sub.add_parser("list", help="print pending inbox items")
 
