@@ -1,0 +1,305 @@
+#!/usr/bin/env -S uv run --script
+# /// script
+# requires-python = ">=3.11"
+# dependencies = ["pyyaml"]
+# ///
+"""Slice-1 decision-queue spike: drain queue/pending/*.md through revdiff, one file at a time.
+
+Throwaway ergonomics probe — not production tooling.
+"""
+
+import argparse
+import re
+import subprocess
+import sys
+import tempfile
+import time
+from datetime import datetime
+from pathlib import Path
+
+import yaml
+
+ROOT = Path(__file__).resolve().parent
+
+# Set by main() from --queue-dir; expects <queue-dir>/pending and <queue-dir>/resolved.
+PENDING_DIR = ROOT / "queue" / "pending"
+RESOLVED_DIR = ROOT / "queue" / "resolved"
+
+PRIORITY_RANK = {"high": 0, "normal": 1, "low": 2}
+
+FRONTMATTER_RE = re.compile(r"^---\n(.*?)\n---\n(.*)$", re.DOTALL)
+
+
+def parse_decision(raw: str):
+    m = FRONTMATTER_RE.match(raw)
+    if not m:
+        raise ValueError("missing YAML frontmatter block")
+    fm_text, body = m.group(1), m.group(2)
+    meta = yaml.safe_load(fm_text)
+    return meta, fm_text, body
+
+
+_warned_malformed: set[str] = set()
+
+
+def load_pending(skip_ids=frozenset()):
+    entries = []
+    for f in sorted(PENDING_DIR.glob("*.md")):
+        try:
+            raw = f.read_text()
+            meta, fm_text, body = parse_decision(raw)
+        except Exception as e:
+            # Tolerate a malformed file: skip + warn once so a persistently-bad
+            # file can't crash the (long-running) watch loop or spam output.
+            if str(f) not in _warned_malformed:
+                print(f"! skipping malformed decision {f.name}: {e}")
+                _warned_malformed.add(str(f))
+            continue
+        if meta.get("status") != "pending" or meta.get("id") in skip_ids:
+            continue
+        entries.append((f, meta, fm_text, body))
+    entries.sort(
+        key=lambda e: (
+            PRIORITY_RANK.get(e[1].get("priority", "normal"), 1),
+            str(e[1].get("queued-at", "")),
+        )
+    )
+    return entries
+
+
+def extract_annotation_text(output_text: str) -> str:
+    # revdiff --output writes "## <file> (file-level)" / "## <file>:<line>" headers
+    # per annotation block; strip the headers and keep the annotation prose.
+    lines = [l for l in output_text.splitlines() if not l.startswith("## ")]
+    return "\n".join(lines).strip()
+
+
+def resolve_file(f: Path, fm_text: str, body: str, annotation_text: str):
+    new_fm_text = re.sub(
+        r"^status:\s*pending\s*$", "status: resolved", fm_text, flags=re.MULTILINE
+    )
+    resolved_at = datetime.now().astimezone().isoformat(timespec="seconds")
+    new_fm_text = new_fm_text.rstrip("\n") + f"\nresolved-at: {resolved_at}"
+
+    new_body = re.sub(
+        r"(## Verdict\n)(.*)$",
+        lambda m: m.group(1) + annotation_text + "\n",
+        body,
+        flags=re.DOTALL,
+    )
+
+    new_content = f"---\n{new_fm_text}\n---\n{new_body}"
+    dest = RESOLVED_DIR / f.name
+    dest.write_text(new_content)
+    f.unlink()
+    return dest
+
+
+def review_one(f: Path, meta: dict, fm_text: str, body: str) -> str:
+    """Returns "resolved", "deferred", or "fatal"."""
+    print(f"\n=== reviewing {f.name} (priority={meta.get('priority')}, id={meta.get('id')}) ===")
+    with tempfile.TemporaryDirectory() as td:
+        out_path = Path(td) / "annotations.md"
+        with f.open("rb") as stdin_f:
+            proc = subprocess.run(
+                [
+                    "revdiff",
+                    "--stdin",
+                    f"--stdin-name={f.name}",
+                    f"--output={out_path}",
+                    "--exit-code-on-annotations",
+                ],
+                stdin=stdin_f,
+                check=False,
+            )
+
+        if proc.returncode == 10:
+            if not out_path.exists():
+                print(f"! revdiff exited 10 but wrote no output for {f.name}, leaving pending")
+                return "fatal"
+            annotation_text = extract_annotation_text(out_path.read_text())
+            dest = resolve_file(f, fm_text, body, annotation_text)
+            print(f"resolved -> {dest}")
+            return "resolved"
+        elif proc.returncode == 0:
+            print(f"deferred (empty quit) -> left pending: {f.name}")
+            return "deferred"
+        else:
+            print(f"! unexpected revdiff exit code {proc.returncode} for {f.name}, leaving pending, stopping")
+            return "fatal"
+
+
+def drain_pass(deferred_ids: set) -> str:
+    """Process actionable pending decisions until none remain this pass.
+
+    Returns "fatal" if a review hit a fatal condition (caller should stop),
+    else "drained". Deferred (empty-quit) ids are added to *deferred_ids* so
+    they're skipped for the rest of the session but genuinely new files aren't.
+    """
+    while True:
+        entries = load_pending(skip_ids=deferred_ids)
+        if not entries:
+            return "drained"
+        f, meta, fm_text, body = entries[0]
+        outcome = review_one(f, meta, fm_text, body)
+        if outcome == "deferred":
+            deferred_ids.add(meta.get("id"))
+        elif outcome == "fatal":
+            return "fatal"
+
+
+def report_drained():
+    still_pending = load_pending()
+    if not still_pending:
+        print("\ninbox-zero: no pending decisions remain.")
+    else:
+        names = ", ".join(f.name for f, *_ in still_pending)
+        print(f"\ndrained for this pass — {len(still_pending)} deferred decision(s) still pending: {names}")
+
+
+def render_pending(
+    *,
+    id: str,
+    type_: str,
+    queued_by: str,
+    working_dir: str,
+    files: list[str],
+    priority: str,
+    context: str,
+    options: list[str],
+) -> str:
+    """Render a pending decision file's bytes.
+
+    This is the SOLE schema-writer for pending files. The byte layout here must
+    stay in lock-step with the drain-loop parser (parse_decision / resolve_file
+    above) and the decide-channel `parseFile` reader, both of which read these
+    files: a leading `---` YAML frontmatter block (id, type, status: pending,
+    queued-at, queued-by, working-dir, files inline-list, priority), then
+    `## Context`, `## Options` (one `- ` bullet per option), and an empty
+    `## Verdict` heading terminated by a single newline.
+    """
+    queued_at = datetime.now().astimezone().isoformat(timespec="seconds")
+    fm = "\n".join(
+        [
+            f"id: {id}",
+            f"type: {type_}",
+            "status: pending",
+            f"queued-at: {queued_at}",
+            f"queued-by: {queued_by}",
+            f"working-dir: {working_dir}",
+            f"files: [{', '.join(files)}]",
+            f"priority: {priority}",
+        ]
+    )
+    opts = "\n".join(f"- {o}" for o in options)
+    return f"---\n{fm}\n---\n## Context\n{context}\n## Options\n{opts}\n## Verdict\n"
+
+
+def do_add(args) -> int:
+    """`decide add` — enqueue one pending decision into PENDING_DIR."""
+    today = datetime.now().strftime("%Y%m%d")
+    id_ = f"{today}-{args.slug}"
+    dest = PENDING_DIR / f"{id_}.md"
+    if dest.exists():
+        print(f"! decision already queued today: {dest}", file=sys.stderr)
+        return 1
+    working_dir = args.working_dir or str(Path.cwd())
+    content = render_pending(
+        id=id_,
+        type_=args.type_,
+        queued_by=args.queued_by,
+        working_dir=working_dir,
+        files=args.files or [],
+        priority=args.priority,
+        context=args.context,
+        options=args.options,
+    )
+    dest.write_text(content)
+    print(str(dest))
+    return 0
+
+
+def main():
+    global PENDING_DIR, RESOLVED_DIR
+
+    parser = argparse.ArgumentParser(description="Drain queue/pending/*.md decisions through revdiff.")
+    parser.add_argument(
+        "--queue-dir",
+        type=Path,
+        default=Path.home() / ".local/state/decide",
+        help="directory containing pending/ and resolved/ subdirs (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--watch",
+        action="store_true",
+        help="after draining, keep polling pending/ (~2s) for new decisions until Ctrl-C",
+    )
+
+    sub = parser.add_subparsers(dest="command")
+    add_p = sub.add_parser("add", help="enqueue a new pending decision (the sole schema-writer)")
+    add_p.add_argument(
+        "--queue-dir",
+        type=Path,
+        default=Path.home() / ".local/state/decide",
+        help="directory containing pending/ and resolved/ subdirs (default: %(default)s)",
+    )
+    add_p.add_argument("--slug", required=True, help="short slug; id = <today YYYYMMDD>-<slug>")
+    add_p.add_argument("--context", required=True, help="decision context (## Context body)")
+    add_p.add_argument(
+        "--option",
+        action="append",
+        dest="options",
+        required=True,
+        metavar='"A: ..."',
+        help="an option bullet; repeatable (at least one required)",
+    )
+    add_p.add_argument("--priority", default="normal", choices=["high", "normal", "low"])
+    add_p.add_argument(
+        "--file", action="append", dest="files", default=[], metavar="PATH",
+        help="an affected file; repeatable",
+    )
+    add_p.add_argument("--working-dir", dest="working_dir", default=None)
+    add_p.add_argument("--queued-by", dest="queued_by", default="xo")
+    add_p.add_argument("--type", dest="type_", default="local-revdiff")
+
+    args = parser.parse_args()
+
+    queue_dir = args.queue_dir.expanduser().resolve()
+    PENDING_DIR = queue_dir / "pending"
+    RESOLVED_DIR = queue_dir / "resolved"
+    PENDING_DIR.mkdir(parents=True, exist_ok=True)
+    RESOLVED_DIR.mkdir(parents=True, exist_ok=True)
+
+    if args.command == "add":
+        return do_add(args)
+
+    # Default / drain: identical behaviour to the original one-shot + --watch mode.
+    deferred_ids: set = set()
+
+    # Initial drain (identical behaviour to the one-shot mode).
+    if drain_pass(deferred_ids) == "fatal":
+        return 1
+    report_drained()
+
+    if not args.watch:
+        return
+
+    # Watch mode: poll for genuinely-new pending decisions until interrupted.
+    # Print "waiting…" once per idle transition, not per poll, to stay quiet.
+    print("\nwaiting for decisions… (Ctrl-C to stop)")
+    try:
+        while True:
+            time.sleep(2)
+            if not load_pending(skip_ids=deferred_ids):
+                continue  # still idle — stay quiet
+            if drain_pass(deferred_ids) == "fatal":
+                return 1
+            report_drained()
+            print("\nwaiting for decisions… (Ctrl-C to stop)")
+    except KeyboardInterrupt:
+        print("\nstopping watch.")
+        return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
