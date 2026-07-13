@@ -14,7 +14,7 @@ alias trim='tr -d "\n"'
 alias oc="opencode"
 
 # Command Shortcuts
-alias dcmp="docker-compose"
+alias dcmp="docker compose"
 alias o=open
 
 alias rgf="rg --files-with-matches"
