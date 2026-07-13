@@ -75,25 +75,3 @@ Library/Application Support/ovim
 .local/bin/ovim
 .local/bin/,ovim-in-place
 .config/sketchybar/plugins/ovim.sh
-# Engineering skill suite (Matt Pocock port, vault-tracked) pulled out of the
-# user-level set on 2026-07-13 — parked on the `eng-skills` branch (commit
-# 2f0db08) to be re-added on an individual-project basis as needed, not globally.
-# Remove the relevant line(s) if any of these ever come back at user level.
-.claude/skills/ask
-.claude/skills/eng-setup
-.claude/skills/triage
-.claude/skills/to-spec
-.claude/skills/to-tickets
-.claude/skills/wayfinder
-.claude/skills/implement
-.claude/skills/codebase-design
-.claude/skills/diagnosing-bugs
-.claude/skills/domain-modeling
-.claude/skills/prototype
-.claude/skills/tdd
-.claude/skills/improve-codebase-architecture
-.claude/skills/grilling
-.claude/skills/grill-me
-.claude/skills/grill-with-docs
-.claude/skills/handoff
-.claude/skills/resolving-merge-conflicts
