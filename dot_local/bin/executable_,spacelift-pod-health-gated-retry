@@ -1,0 +1,303 @@
+#!/usr/bin/env python3
+"""
+spacelift-pod-health-gated-retry
+
+Pod-health-gated Spacelift stack retry.
+
+Some Spacelift stacks go red on an apply-time Kubernetes rollout-wait timeout
+(e.g. `kubernetes_manifest.workload` / `kubernetes_deployment` with
+`wait_for_rollout`) even though the underlying workload actually rolled out fine
+-- the terraform wait just timed out. The safe manual remediation is: check the
+target workload's pod/rollout health by hand, and only if it is genuinely
+healthy, retry the failed Spacelift run. This script scripts that gate.
+
+For each target stack:
+  1. Resolve the k8s Deployment/StatefulSet health (rollout status + pod
+     readiness + crash-loop detection) against the given cluster context/namespace.
+  2. If healthy -> the rollout-wait almost certainly just timed out -> safe to
+     retry the failed Spacelift run.
+  3. If unhealthy (or health can't be determined -- e.g. kubectl/gcloud auth
+     failure) -> SKIP. Never retry into a workload we can't positively confirm
+     is healthy (fail-closed).
+
+SAFETY: retries are gated behind --apply (default OFF / dry-run). Without
+--apply this script only enumerates stacks, checks health, and prints what it
+WOULD do.
+
+Targets come from a manifest file (--manifest) or a single ad-hoc target on the
+command line (--stack ...). There is no built-in target list -- this is a
+generic tool; the stacks you care about live in the manifest.
+
+Manifest format (JSON): either a top-level list of target objects, or an object
+with a "targets" key holding that list. Each target:
+
+  [
+    {
+      "stack_id":  "my-spacelift-stack-slug",   // required
+      "context":   "my-kube-context",           // required
+      "namespace": "apps",                       // required
+      "kind":      "Deployment",                 // required: Deployment|StatefulSet
+      "name":      "my-workload",                // required: k8s object name
+      "note":      "free-text, printed as-is"    // optional
+    }
+  ]
+
+Usage:
+  ./spacelift-pod-health-gated-retry --manifest targets.json           # dry-run (default)
+  ./spacelift-pod-health-gated-retry --manifest targets.json --apply   # actually retry the healthy ones
+  ./spacelift-pod-health-gated-retry --stack <id> --context <ctx> --namespace <ns> \\
+      --kind Deployment --name <name>                                  # ad hoc single-stack check (dry-run)
+
+Requires: kubectl (with the relevant contexts configured + valid auth for
+whatever auth plugin the clusters use), spacectl (Spacelift CLI, authenticated
+profile).
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import subprocess
+import sys
+from dataclasses import dataclass, field
+
+
+@dataclass
+class StackTarget:
+    stack_id: str          # Spacelift stack slug
+    context: str           # kubectl context
+    namespace: str         # k8s namespace
+    kind: str              # Deployment | StatefulSet
+    name: str              # k8s object name
+    note: str = ""
+
+
+VALID_KINDS = ("Deployment", "StatefulSet")
+
+
+def load_manifest(path: str) -> list[StackTarget]:
+    """Parse a JSON manifest (list, or {"targets": [...]}) into StackTargets."""
+    try:
+        with open(path) as fh:
+            data = json.load(fh)
+    except FileNotFoundError:
+        raise SystemExit(f"manifest not found: {path}")
+    except json.JSONDecodeError as e:
+        raise SystemExit(f"manifest is not valid JSON ({path}): {e}")
+
+    if isinstance(data, dict):
+        data = data.get("targets", [])
+    if not isinstance(data, list) or not data:
+        raise SystemExit(f"manifest must be a non-empty list of targets (or {{\"targets\": [...]}}): {path}")
+
+    required = ("stack_id", "context", "namespace", "kind", "name")
+    targets: list[StackTarget] = []
+    for i, entry in enumerate(data):
+        if not isinstance(entry, dict):
+            raise SystemExit(f"manifest target #{i} is not an object: {entry!r}")
+        missing = [k for k in required if not entry.get(k)]
+        if missing:
+            raise SystemExit(f"manifest target #{i} ({entry.get('stack_id', '?')}) missing: {', '.join(missing)}")
+        if entry["kind"] not in VALID_KINDS:
+            raise SystemExit(f"manifest target #{i} ({entry['stack_id']}) has invalid kind {entry['kind']!r}; must be one of {VALID_KINDS}")
+        targets.append(StackTarget(
+            stack_id=entry["stack_id"],
+            context=entry["context"],
+            namespace=entry["namespace"],
+            kind=entry["kind"],
+            name=entry["name"],
+            note=entry.get("note", ""),
+        ))
+    return targets
+
+
+@dataclass
+class HealthResult:
+    verdict: str  # "healthy" | "unhealthy" | "unknown"
+    detail: str
+    raw: dict = field(default_factory=dict)
+
+
+def run(cmd: list[str], timeout: int = 20) -> subprocess.CompletedProcess:
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+
+
+def check_workload_health(target: StackTarget) -> HealthResult:
+    """Read-only health check: rollout status + pod readiness + crash-loop scan."""
+    kind_lower = target.kind.lower()
+
+    # 1. Fetch the workload object.
+    get_cmd = [
+        "kubectl", "--context", target.context, "-n", target.namespace,
+        "get", kind_lower, target.name, "-o", "json",
+    ]
+    try:
+        proc = run(get_cmd)
+    except subprocess.TimeoutExpired:
+        return HealthResult("unknown", f"kubectl get {target.kind} timed out")
+
+    if proc.returncode != 0:
+        stderr = proc.stderr.strip()
+        if "NotFound" in stderr:
+            return HealthResult("unhealthy", f"{target.kind}/{target.name} not found in {target.namespace}@{target.context}")
+        return HealthResult("unknown", f"kubectl get {target.kind} failed: {stderr.splitlines()[-1] if stderr else 'unknown error'}")
+
+    try:
+        obj = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return HealthResult("unknown", "could not parse kubectl get output")
+
+    spec_replicas = obj.get("spec", {}).get("replicas", 1)
+    status = obj.get("status", {})
+
+    if target.kind == "Deployment":
+        ready = status.get("readyReplicas", 0)
+        updated = status.get("updatedReplicas", 0)
+        available = status.get("availableReplicas", 0)
+        rollout_ok = ready == spec_replicas and updated == spec_replicas and available == spec_replicas
+        rollout_detail = f"ready={ready} updated={updated} available={available} desired={spec_replicas}"
+    else:  # StatefulSet
+        ready = status.get("readyReplicas", 0)
+        current = status.get("currentReplicas", 0)
+        updated = status.get("updatedReplicas", 0)
+        rollout_ok = ready == spec_replicas and current == spec_replicas
+        rollout_detail = f"ready={ready} current={current} updated={updated} desired={spec_replicas}"
+
+    if not rollout_ok:
+        return HealthResult("unhealthy", f"rollout not complete ({rollout_detail})", obj)
+
+    # 2. Cross-check actual pods via the workload's selector for crash-looping
+    #    containers that a replica-count check alone would miss.
+    match_labels = obj.get("spec", {}).get("selector", {}).get("matchLabels", {})
+    if match_labels:
+        selector = ",".join(f"{k}={v}" for k, v in match_labels.items())
+        pods_cmd = [
+            "kubectl", "--context", target.context, "-n", target.namespace,
+            "get", "pods", "-l", selector, "-o", "json",
+        ]
+        try:
+            pproc = run(pods_cmd)
+        except subprocess.TimeoutExpired:
+            return HealthResult("unknown", "kubectl get pods timed out")
+
+        if pproc.returncode != 0:
+            return HealthResult("unknown", f"kubectl get pods failed: {pproc.stderr.strip().splitlines()[-1] if pproc.stderr else 'unknown error'}")
+
+        try:
+            pods = json.loads(pproc.stdout).get("items", [])
+        except json.JSONDecodeError:
+            return HealthResult("unknown", "could not parse kubectl get pods output")
+
+        bad_pods = []
+        for pod in pods:
+            pname = pod.get("metadata", {}).get("name", "?")
+            pod_ready = all(
+                c.get("status") == "True"
+                for c in pod.get("status", {}).get("conditions", [])
+                if c.get("type") == "Ready"
+            )
+            for cs in pod.get("status", {}).get("containerStatuses", []):
+                waiting_reason = cs.get("state", {}).get("waiting", {}).get("reason")
+                restarts = cs.get("restartCount", 0)
+                if waiting_reason in ("CrashLoopBackOff", "ImagePullBackOff", "ErrImagePull"):
+                    bad_pods.append(f"{pname}:{waiting_reason}")
+                elif not cs.get("ready", False) and not pod_ready:
+                    bad_pods.append(f"{pname}:NotReady(restarts={restarts})")
+
+        if bad_pods:
+            return HealthResult("unhealthy", f"unhealthy pods: {', '.join(bad_pods)}", obj)
+
+    return HealthResult("healthy", f"rollout complete, pods Ready ({rollout_detail})", obj)
+
+
+def latest_failed_run_id(stack_id: str) -> str | None:
+    """Look up the most recent FAILED run id for a stack via spacectl."""
+    proc = run(["spacectl", "stack", "run", "list", "--id", stack_id, "-o", "json", "--max-results", "5"], timeout=30)
+    if proc.returncode != 0:
+        return None
+    try:
+        runs = json.loads(proc.stdout)
+    except json.JSONDecodeError:
+        return None
+    for r in runs:
+        if r.get("state") == "FAILED":
+            return r.get("id")
+    return None
+
+
+def retry_stack(stack_id: str, run_id: str) -> tuple[bool, str]:
+    proc = run(["spacectl", "stack", "retry", "--id", stack_id, "--run", run_id], timeout=60)
+    if proc.returncode == 0:
+        return True, proc.stdout.strip()
+    return False, (proc.stderr or proc.stdout).strip()
+
+
+def main() -> int:
+    ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--apply", action="store_true", help="Actually trigger Spacelift retries for healthy stacks. Default: dry-run only.")
+    ap.add_argument("--manifest", help="Path to a JSON manifest of target stacks (see module docstring for the format).")
+    ap.add_argument("--stack", help="Ad hoc: single Spacelift stack id (alternative to --manifest)")
+    ap.add_argument("--context", help="Ad hoc: kubectl context (required with --stack)")
+    ap.add_argument("--namespace", help="Ad hoc: k8s namespace (required with --stack)")
+    ap.add_argument("--kind", choices=list(VALID_KINDS), help="Ad hoc: workload kind (required with --stack)")
+    ap.add_argument("--name", help="Ad hoc: k8s object name (required with --stack)")
+    args = ap.parse_args()
+
+    if args.manifest and args.stack:
+        ap.error("--manifest and --stack are mutually exclusive")
+    if args.manifest:
+        targets = load_manifest(args.manifest)
+    elif args.stack:
+        missing = [f for f in ("context", "namespace", "kind", "name") if not getattr(args, f)]
+        if missing:
+            ap.error(f"--stack requires --{', --'.join(missing)}")
+        targets = [StackTarget(args.stack, args.context, args.namespace, args.kind, args.name, "ad hoc")]
+    else:
+        ap.error("provide either --manifest <file> or an ad-hoc --stack (with --context/--namespace/--kind/--name)")
+
+    mode = "APPLY (will trigger retries)" if args.apply else "DRY-RUN (no retries will be triggered)"
+    print(f"# Spacelift pod-health-gated retry -- mode: {mode}")
+    print(f"# {len(targets)} target stack(s)\n")
+
+    results = []
+    for t in targets:
+        print(f"== {t.stack_id} ==")
+        print(f"   workload: {t.kind}/{t.name} -n {t.namespace} (context: {t.context})")
+        if t.note:
+            print(f"   note: {t.note}")
+
+        health = check_workload_health(t)
+        print(f"   health: {health.verdict.upper()} -- {health.detail}")
+
+        if health.verdict == "healthy":
+            run_id = latest_failed_run_id(t.stack_id)
+            if not run_id:
+                action = "skipped-no-failed-run"
+                print(f"   action: SKIP -- healthy, but could not find a FAILED run to retry (already retried or run history changed)")
+            elif args.apply:
+                ok, out = retry_stack(t.stack_id, run_id)
+                if ok:
+                    action = "retried"
+                    print(f"   action: RETRIED run {run_id} -- {out}")
+                else:
+                    action = "retry-failed"
+                    print(f"   action: RETRY FAILED for run {run_id} -- {out}")
+            else:
+                action = "would-retry"
+                print(f"   action: WOULD RETRY run {run_id} (dry-run; use --apply to actually retry)")
+        else:
+            action = "skipped-unhealthy" if health.verdict == "unhealthy" else "skipped-unknown"
+            print(f"   action: SKIP ({health.verdict}) -- not retrying")
+
+        print()
+        results.append((t.stack_id, health.verdict, action))
+
+    print("# Summary")
+    for stack_id, verdict, action in results:
+        print(f"  {stack_id}: health={verdict} action={action}")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
