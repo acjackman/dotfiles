@@ -96,6 +96,33 @@ via `clank state`, and tears down via `clank close`; `spawn-tmux` is now a thin
 shim over `clank spawn --backend tmux`; `~/.claude/skills/revdiff/launch-revdiff.sh`
 adds a herdr-pane path beside its tmux-window path.
 
+## Other herdr integrations
+
+`dot_config/worktrunk/hooks/wt-mux-hook.sh` (worktrunk's `[pre-remove]` /
+`[pre-merge]` hook) scans herdr panes as well as tmux ones, so a busy herdr pane
+blocks a `wt remove` that would delete the worktree under it. It talks to herdr
+directly rather than through `clank` — `clank list` only enumerates *tagged*
+surfaces, whereas the hook has to see every pane, whichever multiplexer it sits
+in. Deliberately **not** subject to the coexistence rule above: that rule is about
+choosing one substrate to *open* on, while a safety check wants to see everything.
+It shares `$CLANK_HERDR_PROTOCOLS` for the version gate.
+
+## `herdr pane current` vs `$HERDR_PANE_ID`
+
+herdr exports `HERDR_PANE_ID` / `HERDR_TAB_ID` / `HERDR_WORKSPACE_ID` / `HERDR_ENV`
+into every pane's environment — `HERDR_PANE_ID` is the direct analogue of
+`$TMUX_PANE` and is the right way to ask "which pane am I?".
+
+`herdr pane current` resolves by **controlling TTY**, and when the caller isn't a
+herdr pane it does not fail — it falls back to returning the **focused** pane
+(verified against herdr 0.7.1). So it can't answer "am I herdr-hosted?" on its
+own: from tmux, or from any process without a herdr ctty, it returns a pane
+regardless. Prefer `$HERDR_PANE_ID` for identity, and treat a non-empty `herdr
+pane current` as "a herdr server is up and something is focused", not as "I am
+that pane". (`clank`'s `herdr_hosted` relies on `herdr pane current` failing when
+unhosted, and the docs above describe it as dispatching on `$HERDR_ENV` —
+worth reconciling.)
+
 ## Apply notes
 
 `chezmoi apply` deploys these files and the `run_onchange` script reloads a

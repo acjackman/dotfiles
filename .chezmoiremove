@@ -69,6 +69,11 @@ finicky.js
 .local/bin/wtm
 .local/lib/wt-tmux-cleanup.sh
 .local/bin/spawn-launch
+# wt-tmux-hook.sh -> wt-mux-hook.sh rename (2026-07-14): the worktrunk pre-remove
+# /pre-merge hook now scans herdr panes as well as tmux ones, so the name and its
+# `tmux =` config key no longer fit. The run_onchange script rewrites config.toml
+# wholesale, so the old hook key drops itself; only the script needs removing.
+.config/worktrunk/hooks/wt-tmux-hook.sh
 # ovim removal — no longer used
 .config/ovim
 Library/Application Support/ovim

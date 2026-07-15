@@ -92,10 +92,10 @@ tmux = "[ -n \\"$TMUX_PANE\\" ] && [ $(tmux list-panes 2>/dev/null | wc -l) -eq 
 claude-trust = "~/.config/worktrunk/hooks/ensure-claude-trust.sh"
 
 [pre-remove]
-tmux = "~/.config/worktrunk/hooks/wt-tmux-hook.sh"
+mux = "~/.config/worktrunk/hooks/wt-mux-hook.sh"
 
 [pre-merge]
-tmux = "~/.config/worktrunk/hooks/wt-tmux-hook.sh"
+mux = "~/.config/worktrunk/hooks/wt-mux-hook.sh"
 
 [projects."github.com/acjackman/dotfiles"]
 worktree-path = "~/dev/jackman/dotfiles/{{ "{{" }} branch | sanitize {{ "}}" }}"
