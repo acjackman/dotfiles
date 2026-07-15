@@ -1,12 +1,22 @@
 # herdr configuration — trialling herdr side-by-side with tmux (see CLAUDE.md).
 #
-# herdr ships built-in defaults and writes no default config.toml; this file is
-# purely additive. Overriding a [keys] action *replaces* its binding; actions
-# left unset keep herdr's defaults (press prefix+? in-app for the live list).
-# herdr validates keybindings and warns on bad ones in herdr-server.log.
+# herdr ships built-in defaults and writes no default config.toml, but it DOES
+# write settings back into this file (`onboarding`, `[ui]` below) when you change
+# them in-app. Anything herdr owns must be mirrored here or `chezmoi apply` will
+# strip it — if a setting reappears in `chezmoi diff`, herdr wrote it; adopt it
+# rather than reverting.
+#
+# Otherwise this file is additive: overriding a [keys] action *replaces* its
+# binding; actions left unset keep herdr's defaults (press prefix+? in-app for
+# the live list). herdr warns on bad keybindings in herdr-server.log — but only
+# for unparseable names; a binding can parse and still never fire (see
+# split_vertical below), so verify new keys in-app rather than trusting the log.
 #
 # Keybindings below close the gaps between herdr's (already tmux-like) defaults
 # and the muscle memory in dot_config/tmux/tmux.reset.conf. Verified vs herdr 0.7.1.
+
+# Set by herdr once onboarding is dismissed; mirrored so apply doesn't replay it.
+onboarding = false
 
 [keys]
 # tmux: `set -g prefix C-Space` — the single biggest "feel at home" change.
@@ -19,23 +29,24 @@ detach = "prefix+d"
 
 # Splits, tmux-style: `|` side-by-side, `-` stacked.
 # tmux: `bind | split-window -h` / `bind - split-window -v`.
-# (If the orientation feels swapped, flip these two — herdr's "vertical" =
-# vertical divider = side-by-side.)
-split_vertical = "prefix+backslash" # prefix then \  (Shift-\ = | )
-split_horizontal = "prefix+minus"   # matches herdr's default; kept explicit
+# Bind the literal shifted character. herdr matches on the character produced,
+# so `backslash`/`shift+backslash` parse without warning but never fire on `|`.
+split_vertical = "prefix+|"       # herdr "vertical" = vertical divider = side-by-side
+split_horizontal = "prefix+minus" # matches herdr's default; kept explicit
 
 # tmux-faithful tab (≈ window) ops. Each RECLAIMS a key from a herdr default;
 # that default is relocated below so nothing is lost (one action per key).
 new_tab = "prefix+n"    # tmux: bind n new-window   (herdr default was prefix+c)
 close_tab = "prefix+w"  # tmux: bind w kill-window   (herdr default was prefix+shift+x)
 rename_tab = "prefix+r" # tmux: bind r rename-window (herdr default was prefix+shift+t)
+next_tab = "prefix+>"
+previous_tab = "prefix+<"
 
-# tmux `bind o` sesh picker. herdr workspaces ≈ tmux sessions, so the workspace
-# picker is the closest analogue (herdr default was prefix+w, reclaimed above).
-workspace_picker = "prefix+o"
+# # tmux `bind o` seSh picker. herdr workspaces ≈ tmux sessions, so the workspace
+# # picker is the closest analogue (herdr default was prefix+w, reclaimed above).
+# workspace_picker = "prefix+o"
 
 # Relocated herdr defaults displaced by the reclaims above:
-next_tab = "prefix+shift+p"   # was prefix+n; previous_tab stays prefix+p
 resize_mode = "prefix+shift+r" # was prefix+r (herdr's interactive resize mode)
 
 # ── Plugin actions ───────────────────────────────────────────────────────────
@@ -78,3 +89,7 @@ key = "prefix+shift+d"
 type = "plugin_action"
 command = "worktrunk.remove"
 description = "Worktree: remove (worktrunk)"
+
+# Set by herdr in-app (agent panel sort order); mirrored so apply preserves it.
+[ui]
+agent_panel_sort = "grouped"
