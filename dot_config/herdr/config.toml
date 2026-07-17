@@ -90,6 +90,24 @@ type = "plugin_action"
 command = "worktrunk.remove"
 description = "Worktree: remove (worktrunk)"
 
+# muster: agent-aware project switcher — fuzzy list of projects, running ones
+# first, tagged with what their agent is doing (blocked floats to the top).
+# It's explicitly modelled on sesh, so it's the closest thing herdr has to the
+# tmux `bind o` sesh picker; the `workspace_picker = "prefix+o"` block above is
+# still commented out, so prefix+o is left alone rather than quietly reassigned.
+#
+# `prefix+space` is upstream's own documented binding (README "Bind it to a key").
+# Kept as a `shell` command — also upstream's documented form — rather than the
+# `plugin_action` form the other plugins use: herdr-plugin.toml does declare an
+# `open` action, but its action id could not be confirmed against a running
+# server here, and this shell form is what the README guarantees. If you'd rather
+# have it match the plugins above, `herdr plugin action list` will show the real id.
+[[keys.command]]
+key = "prefix+space"
+type = "shell"
+command = "herdr plugin pane open --plugin kichel.muster --entrypoint picker"
+description = "Muster: pick project"
+
 # Set by herdr in-app (agent panel sort order); mirrored so apply preserves it.
 [ui]
 agent_panel_sort = "grouped"

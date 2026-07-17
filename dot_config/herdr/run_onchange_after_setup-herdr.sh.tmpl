@@ -16,10 +16,16 @@ command -v herdr >/dev/null 2>&1 || exit 0
 #                            provided by the global mise `bun` tool)
 #   worktrunk              — worktree switch/create/remove via worktrunk (`wt`);
 #                            needs wt >= 0.60, fzf, jq (already in the toolchain)
+#   kichel.muster          — agent-aware project switcher (the sesh analogue);
+#                            `herdr plugin install` COMPILES it from source, so it
+#                            needs a Rust toolchain — provided by `brew "rust"` in
+#                            Brewfile-base. Projects it offers are configured in
+#                            plugins/config/kichel.muster/config.toml.
 plugins=(
   "vim-herdr-navigation paulbkim-dev/vim-herdr-navigation"
   "rjyo.window-title-sync rjyo/herdr-window-title-sync"
   "worktrunk devashish2203/herdr-worktrunk"
+  "kichel.muster marcoskichel/herdr-muster"
 )
 
 installed="$(herdr plugin list 2>/dev/null || true)"

@@ -12,6 +12,7 @@ as a side-by-side alternative to tmux (it does **not** replace the tmux setup in
 | `executable_ghostty-herdr` | Opens a new Ghostty window running herdr (the herdr analogue of `ghostty-sesh`). Run it, or bind it, to launch the trial. |
 | `executable_ghostty-herdr-cmd` | Helper run inside the new Ghostty window; execs `herdr`. |
 | `run_onchange_after_setup-herdr.sh.tmpl` | Installs the herdr plugins (below) if missing and reloads a running server after `config.toml` changes. Guarded on herdr being installed. |
+| `plugins/config/kichel.muster/config.toml` | muster's own config (the projects it offers). herdr's plugin config dir lives under `~/.config/herdr/`, so chezmoi manages it here instead of hand-copying upstream's `config.toml.example`. |
 
 ## Plugins
 
@@ -26,6 +27,8 @@ as a side-by-side alternative to tmux (it does **not** replace the tmux setup in
   `fzf`, `jq`. `open_mode` (nested `workspace` vs new `tab`) is set in the
   plugin's own config dir (`herdr plugin config-dir worktrunk`); default is
   `workspace`.
+- **kichel.muster** (`marcoskichel/herdr-muster`) — agent-aware project switcher
+  bound to `prefix+space`; see below.
 
 ## Keybindings
 
@@ -50,6 +53,37 @@ vim-tmux-navigator). Two sides:
 - **Neovim side** — `dot_config/nvim/lua/exact_plugins/windows.lua` embeds the
   plugin's nav logic. It falls back to `:TmuxNavigate*` when `$TMUX` is set, so
   the same mappings work in both herdr and tmux.
+
+## muster (project switcher)
+
+[muster](https://github.com/marcoskichel/herdr-muster) (`kichel.muster`) is a
+fuzzy project switcher inspired by [sesh](https://github.com/joshmedeski/sesh):
+one keypress gives a list of projects, the already-running ones first and tagged
+with their agent's state (blocked / working / done / idle), blocked at the top.
+Each project maps to exactly one workspace, and muster remembers that pairing, so
+it never opens a second workspace for the same repo. Bound to `prefix+space`
+(upstream's own suggested key; `prefix+o` is deliberately left alone — see the
+commented-out `workspace_picker` in `config.toml`).
+
+**Install needs Rust.** `herdr plugin install` compiles muster from source, so it
+depends on `brew "rust"` in `Brewfile-base` (already there for nvim's mason).
+
+**The bare-repo gotcha.** muster's `roots` scan only counts a directory as a
+project when its `.git` is a **directory**; it deliberately skips linked worktrees
+and submodules (`.git` is a *file*). The worktrunk bare repos here (`,gr-bare`:
+a `.bare/` dir plus a `.git` file, every checkout a linked worktree) therefore
+never show up from a `roots` scan — including `infra` and `bumper`. The same
+filter is applied to zoxide results, so zoxide can't rescue them either. Only
+`paths` bypasses the filter, so those repos are listed explicitly in
+`plugins/config/kichel.muster/config.toml`.
+
+**So: a new `,gr-bare` / `,gr-clone` repo must be added to that `paths` list** or
+it won't appear in the switcher. A plain `git clone` under an existing root needs
+no change.
+
+muster and worktrunk (`prefix+shift+g`) are complementary, and the split follows
+that same distinction: muster picks a *project*, worktrunk switches *worktrees*
+within one.
 
 ## `clank` substrate adapter (`~/.local/bin/clank`)
 

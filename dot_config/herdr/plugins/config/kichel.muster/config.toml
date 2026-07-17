@@ -1,0 +1,71 @@
+# muster (kichel.muster) — agent-aware project switcher for herdr.
+# Upstream: https://github.com/marcoskichel/herdr-muster
+#
+# muster reads this file from the dir printed by:
+#   herdr plugin config-dir kichel.muster
+# which is ~/.config/herdr/plugins/config/kichel.muster — inside the tree chezmoi
+# already owns, so this file is managed here rather than hand-copied from the
+# upstream config.toml.example.
+#
+# ── Why `paths` is a long explicit list ──────────────────────────────────────
+# `roots` is scanned one level deep, but muster only counts a directory as a
+# project when its `.git` is a *directory* (`is_project_root` in src/sources.rs).
+# It deliberately skips linked worktrees and submodules, whose `.git` is a *file*.
+#
+# That rule makes a roots scan blind to the worktrunk bare repos this machine
+# leans on (`,gr-bare` layout: a `.bare/` dir plus a `.git` *file*, with each
+# checkout a linked worktree — see .docs/git-workflows.md). ~/dev/moov/infra and
+# ~/dev/moov/bumper are exactly the repos with agents running in them, so losing
+# them would gut the switcher.
+#
+# `paths` bypasses the repo-root filter ("user opted in by naming them"), so the
+# bare repos are listed explicitly below. The same filter applies to zoxide
+# results, so zoxide cannot rescue them either.
+#
+# Upshot: when a new bare repo is created (`,gr-bare` / `,gr-clone`), add it here
+# or it will not appear in the switcher. Plain `git clone`d repos under a root
+# need no change. `,doctor-worktrunk` scans this same bare-repo set.
+paths = [
+  # ~/dev/jackman — bare (worktrunk) repos
+  "~/dev/jackman/cadence-trail",
+  "~/dev/jackman/changes",
+  "~/dev/jackman/claude-productivity",
+
+  # ~/dev/moov — bare (worktrunk) repos
+  "~/dev/moov/agent-pipeline",
+  "~/dev/moov/break-glass-bot",
+  "~/dev/moov/bumper",
+  "~/dev/moov/devops-hiring",
+  "~/dev/moov/events",
+  "~/dev/moov/go-benchy",
+  "~/dev/moov/go-zero-trust",
+  "~/dev/moov/homebrew-moovbrew",
+  "~/dev/moov/infra",
+  "~/dev/moov/infra-actions-sandbox",
+  "~/dev/moov/infra-templater",
+  "~/dev/moov/infra-utilities",
+  "~/dev/moov/lookat",
+  "~/dev/moov/traefik-config-validator",
+
+  # This dotfiles repo — a normal repo, but it lives outside every root above.
+  "~/.local/share/chezmoi",
+
+  # Notes vaults. These are ordinary repos, but ~/notes is NOT used as a root:
+  # a root scan there also picks up the `moov.bak` and `moov2` copies, and a
+  # stale backup vault in the switcher is exactly the noise this list avoids.
+  # Named individually so only the live vaults show up.
+  "~/notes/moov",
+  "~/notes/moov-git",
+  "~/notes/system",
+]
+
+# Scanned one level deep for git repos.
+roots = [
+  "~/dev/moov",
+  "~/dev/jackman",
+  "~/dev/github",
+]
+
+# Fold in `zoxide query -l`, so frequently-visited repos outside the roots above
+# surface without being named. Still subject to the `.git`-is-a-dir filter.
+use_zoxide = true
