@@ -218,8 +218,13 @@ cmd_spawn() {
   [ -n "$prompt" ] || die "spawn: --prompt is required"
   [ -f "$prompt" ] || die "spawn: prompt file '$prompt' does not exist"
   cwd=$(cd "$cwd" && pwd)
-  # Claude session name mirrors the worktree (tmux parity); herdr tracks by label.
-  local sname; sname=$(tmux-window-name "$cwd" 2>/dev/null || basename "$cwd")
+  # Claude session name is the --label: it's the unique, meaningful handle a
+  # human uses to find/resume this agent. The worktree basename (branch) is not
+  # — most XO doers spawn in .../infra/main, so branch-naming collapsed every
+  # session to "main" and made them indistinguishable when resuming. herdr and
+  # tmux already track by --label; naming the Claude session by it too keeps all
+  # three identifiers aligned.
+  local sname; sname="$label"
   local launch; launch="cat $(sq "$prompt") | claude --permission-mode=auto --name $(sq "$sname")"
   # Autonomous work-agents must not stall at the "N new MCP servers found —
   # enable?" prompt for an unapproved project .mcp.json (bit us spawning the
@@ -239,7 +244,9 @@ cmd_spawn() {
   if [ "$b" = herdr ]; then
     _herdr_open "$cwd" "$label" "$focus" "$launch"
   else
-    _tmux_open "$cwd" "$label" "$session" "$focus" "" "$xo" "$launch"
+    # tmux window name is the label too (parity with the Claude --name and the
+    # herdr workspace label), so branch-named worktrees don't collapse to "main".
+    _tmux_open "$cwd" "$label" "$session" "$focus" "$label" "$xo" "$launch"
   fi
 }
 
