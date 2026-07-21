@@ -50,7 +50,7 @@
 
 set -euo pipefail
 
-CLANK_HERDR_PROTOCOLS="${CLANK_HERDR_PROTOCOLS:-14}"
+CLANK_HERDR_PROTOCOLS="${CLANK_HERDR_PROTOCOLS:-14 15 16}"
 
 warn() { printf 'clank: %s\n' "$*" >&2; }
 die()  { warn "$*"; exit 1; }
