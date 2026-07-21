@@ -42,6 +42,12 @@ key relocates the herdr default it displaced (`next_tab → prefix+shift+p`,
 keybindings and logs `invalid keybinding` warnings to `herdr-server.log`; press
 `prefix+?` in-app for the live list.
 
+Two `[[keys.command]]` shell bindings break the focused pane out (herdr has no
+built-in action for it, so they drive the `herdr pane move` CLI on
+`$HERDR_ACTIVE_PANE_ID` — the keybinding-context var, not the pane-shell's
+`HERDR_PANE_ID`; the herdr analogue of tmux `break-pane`): `prefix+t` →
+`--new-tab`, `prefix+shift+t` → `--new-workspace`.
+
 ## vim-herdr-navigation
 
 `<C-h/j/k/l>` moves between herdr panes and Neovim splits (port of

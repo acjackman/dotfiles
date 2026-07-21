@@ -90,6 +90,26 @@ type = "plugin_action"
 command = "worktrunk.remove"
 description = "Worktree: remove (worktrunk)"
 
+# Break the focused pane out into its own tab / workspace — herdr's analogue of
+# tmux `break-pane` (`prefix+!`). herdr has no built-in action for this, so these
+# drive the `herdr pane move` CLI. Shell keybindings run with the active
+# workspace/tab/pane/cwd context injected (CHANGELOG #621) under the HERDR_ACTIVE_*
+# namespace — NOT the HERDR_PANE_ID a pane's own shell sees (that one is unset
+# here, and an empty pane arg fails with `pane_not_found`). prefix+t is unbound by
+# default; prefix+shift+t is free because rename_tab (herdr's default there) was
+# reclaimed to prefix+r above.
+[[keys.command]]
+key = "prefix+t"
+type = "shell"
+command = '"$HERDR_BIN_PATH" pane move "$HERDR_ACTIVE_PANE_ID" --new-tab --focus'
+description = "Break pane into a new tab"
+
+[[keys.command]]
+key = "prefix+shift+t"
+type = "shell"
+command = '"$HERDR_BIN_PATH" pane move "$HERDR_ACTIVE_PANE_ID" --new-workspace --focus'
+description = "Break pane into a new workspace"
+
 # muster: agent-aware project switcher — fuzzy list of projects, running ones
 # first, tagged with what their agent is doing (blocked floats to the top).
 # It's explicitly modelled on sesh, so it's the closest thing herdr has to the
