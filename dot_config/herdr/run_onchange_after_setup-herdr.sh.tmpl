@@ -21,11 +21,17 @@ command -v herdr >/dev/null 2>&1 || exit 0
 #                            needs a Rust toolchain — provided by `brew "rust"` in
 #                            Brewfile-base. Projects it offers are configured in
 #                            plugins/config/kichel.muster/config.toml.
+#   rmarganti.herdr-pluck  — tmux-fingers-style hint picker: copy a visible token
+#                            with a keyboard hint (prefix+space). Ships prebuilt
+#                            binaries for macOS Apple Silicon / Linux x86_64, else
+#                            builds via Cargo (Rust already present). Copies with
+#                            macOS `pbcopy` (built in).
 plugins=(
   "vim-herdr-navigation paulbkim-dev/vim-herdr-navigation"
   "rjyo.window-title-sync rjyo/herdr-window-title-sync"
   "worktrunk devashish2203/herdr-worktrunk"
   "kichel.muster marcoskichel/herdr-muster"
+  "rmarganti.herdr-pluck rmarganti/herdr-pluck"
 )
 
 installed="$(herdr plugin list 2>/dev/null || true)"

@@ -133,6 +133,17 @@ type = "shell"
 command = "herdr plugin pane open --plugin kichel.muster --entrypoint picker"
 description = "Muster: pick project"
 
+# herdr-pluck: tmux-fingers-style hint picker. Overlays keyboard hints on the
+# visible copyable tokens; the chosen one is copied to the clipboard (pbcopy).
+# Bound to `prefix+space`, freed up when muster moved to prefix+enter above —
+# it was muster's own key, never a herdr default, so this displaces nothing.
+# Upstream documents `prefix+q`; we prefer space here for the free key.
+[[keys.command]]
+key = "prefix+space"
+type = "plugin_action"
+command = "rmarganti.herdr-pluck.pluck"
+description = "Pluck: copy a visible token"
+
 # Set by herdr in-app (agent panel sort order); mirrored so apply preserves it.
 # herdr renamed the variants (`grouped` is gone); valid values are now
 # `spaces`, `workspaces`, `priority` — `priority` floats blocked/attention-needing

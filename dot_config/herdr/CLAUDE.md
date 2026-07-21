@@ -28,7 +28,14 @@ as a side-by-side alternative to tmux (it does **not** replace the tmux setup in
   plugin's own config dir (`herdr plugin config-dir worktrunk`); default is
   `workspace`.
 - **kichel.muster** (`marcoskichel/herdr-muster`) — agent-aware project switcher
-  bound to `prefix+space`; see below.
+  bound to `prefix+enter`; see below.
+- **rmarganti.herdr-pluck** (`rmarganti/herdr-pluck`) — tmux-fingers-style hint
+  picker bound to `prefix+space`: overlays keyboard hints on the visible copyable
+  tokens and copies the chosen one (via `pbcopy`). Needs herdr ≥ 0.7.0; ships
+  prebuilt binaries for macOS Apple Silicon / Linux x86_64, else builds via Cargo
+  (Rust already present for muster). No `config.toml` of its own required —
+  patterns can be tuned via its plugin config dir or a project-local
+  `.herdr-pluck.toml` if ever needed.
 
 ## Keybindings
 
@@ -67,9 +74,10 @@ fuzzy project switcher inspired by [sesh](https://github.com/joshmedeski/sesh):
 one keypress gives a list of projects, the already-running ones first and tagged
 with their agent's state (blocked / working / done / idle), blocked at the top.
 Each project maps to exactly one workspace, and muster remembers that pairing, so
-it never opens a second workspace for the same repo. Bound to `prefix+space`
-(upstream's own suggested key; `prefix+o` is deliberately left alone — see the
-commented-out `workspace_picker` in `config.toml`).
+it never opens a second workspace for the same repo. Bound to `prefix+enter`
+(upstream suggests `prefix+space`, but that now drives herdr-pluck; `prefix+o` is
+deliberately left alone — see the commented-out `workspace_picker` in
+`config.toml`).
 
 **Install needs Rust.** `herdr plugin install` compiles muster from source, so it
 depends on `brew "rust"` in `Brewfile-base` (already there for nvim's mason).
