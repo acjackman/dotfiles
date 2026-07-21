@@ -96,18 +96,26 @@ description = "Worktree: remove (worktrunk)"
 # tmux `bind o` sesh picker; the `workspace_picker = "prefix+o"` block above is
 # still commented out, so prefix+o is left alone rather than quietly reassigned.
 #
-# `prefix+space` is upstream's own documented binding (README "Bind it to a key").
+# Bound to `prefix+enter`. herdr has no default on Enter/Return (verified against
+# the binary's embedded default keymap — pane cycling uses prefix+tab, and
+# prefix+space was muster's own, never a herdr default), so this displaces
+# nothing. Upstream documents `prefix+space`; we prefer Enter for the muscle
+# memory of "confirm → pick a project".
+#
 # Kept as a `shell` command — also upstream's documented form — rather than the
-# `plugin_action` form the other plugins use: herdr-plugin.toml does declare an
-# `open` action, but its action id could not be confirmed against a running
-# server here, and this shell form is what the README guarantees. If you'd rather
-# have it match the plugins above, `herdr plugin action list` will show the real id.
+# `plugin_action` form the other plugins use. muster does declare an `open`
+# action (confirmed via `herdr plugin action list`: action_id "open"), so this
+# could be switched to `type = "plugin_action"` / `command = "kichel.muster.open"`
+# if you'd rather match the plugins above.
 [[keys.command]]
-key = "prefix+space"
+key = "prefix+enter"
 type = "shell"
 command = "herdr plugin pane open --plugin kichel.muster --entrypoint picker"
 description = "Muster: pick project"
 
 # Set by herdr in-app (agent panel sort order); mirrored so apply preserves it.
+# herdr renamed the variants (`grouped` is gone); valid values are now
+# `spaces`, `workspaces`, `priority` — `priority` floats blocked/attention-needing
+# agents to the top, the closest match to the old grouped behaviour.
 [ui]
-agent_panel_sort = "grouped"
+agent_panel_sort = "priority"
