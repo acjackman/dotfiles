@@ -14,10 +14,30 @@ function show-header() {
   fi
 }
 
-# Tuna doesn't watch its config file or expose a reload CLI, so the only way
-# to apply binding/hotkey/theme edits is to quit and relaunch.
+config="${HOME}/.config/tuna/config.toml"
+
+# Tuna doesn't watch its config file or expose a reload CLI, so the only way to
+# apply binding/hotkey/theme edits is to quit and relaunch. The catch: Tuna
+# rewrites config.toml from its *in-memory* state when it quits, so quitting a
+# still-running (stale) instance clobbers the fresh config chezmoi just wrote.
+#
+# chezmoi has already written the new config by the time this run_onchange_after
+# script executes, so we snapshot that write, let Tuna's quit clobber the file,
+# then restore the snapshot before relaunching. This is deliberately
+# self-contained rather than split across a run_onchange_before stop-script:
+# run_onchange scripts only fire when their watched hash changes, and chezmoi's
+# before/after ordering is only well-defined relative to a file-write phase —
+# editing just the scripts (no config.toml change) can run them out of order.
+# Snapshot-and-restore is correct regardless of order or of whether Tuna
+# actually clobbers on any given quit.
 show-header "Tuna"
 echo "Restarting Tuna to apply config changes"
+
+snapshot=""
+if [ -f "$config" ]; then
+  snapshot="$(mktemp -t tuna-config)"
+  cp "$config" "$snapshot"
+fi
 
 if [ "$(osascript -e 'application "Tuna" is running' 2>/dev/null)" = "true" ]; then
   osascript -e 'tell application "Tuna" to quit' || true
@@ -25,6 +45,12 @@ if [ "$(osascript -e 'application "Tuna" is running' 2>/dev/null)" = "true" ]; t
     [ "$(osascript -e 'application "Tuna" is running' 2>/dev/null)" != "true" ] && break
     sleep 0.25
   done
+fi
+
+# Undo any on-quit clobber: restore the config chezmoi wrote for this apply.
+if [ -n "$snapshot" ]; then
+  cp "$snapshot" "$config"
+  rm -f "$snapshot"
 fi
 
 # Point Tuna at the chezmoi-managed config dir. These prefs live in Tuna's

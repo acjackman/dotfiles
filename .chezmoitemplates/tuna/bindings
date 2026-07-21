@@ -98,6 +98,15 @@ label = 'UI Tweaks'
         label = 'Decrease Opacity'
         url = "tuna://run/text.osascript%2520-e%2520'tell%2520app%2520%2522HazeOver%2522%2520to%2520set%2520intensity%2520to%2520(intensity%2520-%252010)'/Run%20Text%20as%20Shell%20Command"
 
+    [[comboMode.bindings.children]]
+    key = 's'
+    label = 'Sketchybar'
+
+        [[comboMode.bindings.children.children]]
+        key = 's'
+        label = 'Toggle'
+        url = 'tuna://run/text.%252Fopt%252Fhomebrew%252Fbin%252Fsketchybar%2520--bar%2520hidden=toggle/Run%20Text%20as%20Shell%20Command'
+
 [[comboMode.bindings]]
 key = 'a'
 label = 'SuperWhisper'
