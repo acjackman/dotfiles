@@ -4,6 +4,16 @@
 # It's not necessary to copy all keys to your config.
 # If the key is missing in your config, "default-config.toml" will serve as a fallback
 
+# See: https://nikitabobko.github.io/AeroSpace/guide#config-version
+config-version = 2
+
+# In config-version 2, persistent-workspaces defaults to an empty array (in v1 it
+# was inferred from the right-hand side of the workspace keybindings). Keep the
+# lettered app-home workspaces alive even when empty (apps get moved here, and
+# S/T/P/X have forced monitor assignments). The numbered workspaces are ad-hoc
+# scratch spaces and are created on demand, so they don't need to persist.
+persistent-workspaces = ['E', 'F', 'G', 'M', 'N', 'P', 'R', 'S', 'T', 'X']
+
 # You can use it to add commands that run after login to macOS user session.
 # 'start-at-login' needs to be 'true' for 'after-login-command' to work
 # Available commands: https://nikitabobko.github.io/AeroSpace/commands
