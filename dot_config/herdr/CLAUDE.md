@@ -101,7 +101,7 @@ within one.
 
 ## `clank` substrate adapter (`~/.local/bin/clank`)
 
-`spawn`, `revdiff`, and XO's clanker tracking all need the same primitive — "open
+`spawn` and XO's clanker tracking both need the same primitive — "open
 a new interactive surface running a command, then ask what state it's in." The
 `clank` script is that adapter: it detects herdr and uses it when it's the active
 multiplexer, falling back to tmux otherwise, so herdr stays **additive**
@@ -141,8 +141,7 @@ new herdr release. herdr is pinned via `brew "herdr"` in `Brewfile-personal.tmpl
 
 **Callers:** `~/.claude/commands/spawn.md` launches via `clank spawn`, verifies
 via `clank state`, and tears down via `clank close`; `spawn-tmux` is now a thin
-shim over `clank spawn --backend tmux`; `~/.claude/skills/revdiff/launch-revdiff.sh`
-adds a herdr-pane path beside its tmux-window path.
+shim over `clank spawn --backend tmux`.
 
 ## Apply notes
 
