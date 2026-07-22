@@ -4,6 +4,10 @@
 as a side-by-side alternative to tmux (it does **not** replace the tmux setup in
 `dot_config/tmux/`). Installed via `brew "herdr"` in `Brewfile-personal.tmpl`.
 
+**Agent reference:** for concepts, commands, and troubleshooting beyond this
+repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
+(canonical docs: <https://herdr.dev/docs/>).
+
 ## Files
 
 | File | Purpose |
