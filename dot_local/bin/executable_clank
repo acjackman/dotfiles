@@ -101,6 +101,12 @@ choose_backend() {
   esac
   # Dispatch on the caller's multiplexer context first.
   if herdr_hosted; then echo herdr; return 0; fi
+  # herdr_hosted is a TTY probe that can't see through an intermediate process
+  # layer (e.g. Claude's non-interactive Bash tool), so a genuinely
+  # herdr-hosted caller can still fail it; when the caller's env advertises
+  # herdr AND herdr is usable, prefer herdr ahead of a possibly-stale inherited
+  # $TMUX.
+  if [ "${HERDR_ENV:-}" = 1 ] && herdr_active; then echo herdr; return 0; fi
   if [ -n "${TMUX:-}" ]; then echo tmux; return 0; fi
   # No host context — prefer herdr when it's up, else tmux.
   if herdr_active; then echo herdr; return 0; fi
@@ -124,7 +130,12 @@ _herdr_open() {
   [ -n "$pane" ] || die "herdr: could not resolve pane id from workspace create"
   # pane run types the command into the workspace's shell and presses Enter,
   # so the pipe in the claude launch line is evaluated by that shell.
-  herdr pane run "$pane" "$cmd" >/dev/null || die "herdr pane run failed"
+  # The herdr server can carry a stale $TMUX (it was started from a
+  # tmux-hosted shell) that every pane inherits; a herdr surface is not a tmux
+  # client, so a leftover $TMUX makes the agent's tmux calls resolve to a
+  # client-less session and breaks `tmux display-popup` (revdiff). Unset so the
+  # surface reflects its real multiplexer.
+  herdr pane run "$pane" "unset TMUX TMUX_PANE; $cmd" >/dev/null || die "herdr pane run failed"
   printf 'substrate: herdr\nlabel: %s\nhandle: %s\nworkspace_id: %s\npane_id: %s\n' \
     "$label" "$label" "$ws" "$pane"
 }

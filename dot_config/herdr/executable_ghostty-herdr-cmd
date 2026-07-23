@@ -22,4 +22,4 @@ if ! command -v herdr &>/dev/null; then
   exec "$SHELL"
 fi
 
-exec herdr
+exec env -u TMUX -u TMUX_PANE herdr
