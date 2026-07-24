@@ -34,6 +34,7 @@ homebrew:
       - yakitrak/yakitrak
       - yqrashawn/goku
     moov:
+      - acjackman/lab
       - confluentinc/tap
       - homeport/tap
       - moovfinancial/moovbrew
