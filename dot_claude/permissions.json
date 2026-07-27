@@ -1,4 +1,5 @@
 {
+  "defaultMode": "auto",
   "allow": [
     "Bash(ls:*)",
     "Bash(which:*)",
@@ -54,6 +55,8 @@
     "Skill(create-pr)",
     "Skill(safe-fd)",
     "Skill(safe-rg)",
-    "mcp__productivity"
+    "mcp__productivity",
+    "mcp__incident_io__*",
+    "Skill(incident)"
   ]
 }
