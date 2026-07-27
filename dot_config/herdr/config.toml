@@ -42,12 +42,18 @@ rename_tab = "prefix+r" # tmux: bind r rename-window (herdr default was prefix+s
 next_tab = "prefix+>"
 previous_tab = "prefix+<"
 
+# Workspaces ≈ tmux sessions, so rename-workspace sits on the shifted rename key
+# (herdr default was prefix+shift+w).
+rename_workspace = "prefix+shift+r"
+
 # # tmux `bind o` seSh picker. herdr workspaces ≈ tmux sessions, so the workspace
 # # picker is the closest analogue (herdr default was prefix+w, reclaimed above).
 # workspace_picker = "prefix+o"
 
 # Relocated herdr defaults displaced by the reclaims above:
-resize_mode = "prefix+shift+r" # was prefix+r (herdr's interactive resize mode)
+resize_mode = "prefix+ctrl+r"   # was prefix+r (herdr's interactive resize mode)
+reload_config = "prefix+shift+c" # was prefix+shift+r, taken by rename_workspace (prefix+c is
+                                 # free — new_tab's herdr default, reclaimed to prefix+n above)
 
 # ── Plugin actions ───────────────────────────────────────────────────────────
 

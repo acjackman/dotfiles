@@ -47,9 +47,11 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
 `dot_config/tmux/tmux.reset.conf`: `prefix = ctrl+space`, `detach = prefix+d`,
 `|`/`-` splits, plus tmux-faithful tab ops — `new_tab = prefix+n`,
 `close_tab = prefix+w`, `rename_tab = prefix+r`, and `workspace_picker = prefix+o`
-(the sesh-picker analogue, since herdr workspaces ≈ tmux sessions). Each reclaimed
-key relocates the herdr default it displaced (`next_tab → prefix+shift+p`,
-`resize_mode → prefix+shift+r`) so one action owns each key. herdr validates
+(the sesh-picker analogue, since herdr workspaces ≈ tmux sessions). Workspaces
+being the session analogue, `rename_workspace = prefix+shift+r` sits on the
+shifted rename key next to `rename_tab`. Each reclaimed key relocates the herdr
+default it displaced (`next_tab → prefix+shift+p`, `resize_mode → prefix+ctrl+r`,
+`reload_config → prefix+shift+c`) so one action owns each key. herdr validates
 keybindings and logs `invalid keybinding` warnings to `herdr-server.log`; press
 `prefix+?` in-app for the live list.
 
@@ -151,5 +153,5 @@ shim over `clank spawn --backend tmux`.
 
 `chezmoi apply` deploys these files and the `run_onchange` script reloads a
 running herdr server via `herdr server reload-config`. To pick up keybinding
-changes in an already-open herdr, reload from inside it (`prefix shift+r`) or run
+changes in an already-open herdr, reload from inside it (`prefix shift+c`) or run
 `herdr server reload-config`.
