@@ -150,6 +150,17 @@ type = "plugin_action"
 command = "rmarganti.herdr-pluck.pluck"
 description = "Pluck: copy a visible token"
 
+# command-palette: fzf popup listing every action of every installed plugin —
+# the discovery net for the plugin actions that aren't worth their own key.
+# Bound to `prefix+p`, free here because previous_tab (herdr's default on p) was
+# reclaimed to prefix+< above. herdr 0.7 ignores keys declared in a plugin
+# manifest, so the binding has to live here.
+[[keys.command]]
+key = "prefix+p"
+type = "plugin_action"
+command = "jt.command-palette.open"
+description = "Command palette (all plugin actions)"
+
 # Set by herdr in-app (agent panel sort order); mirrored so apply preserves it.
 # herdr renamed the variants (`grouped` is gone); valid values are now
 # `spaces`, `workspaces`, `priority` — `priority` floats blocked/attention-needing

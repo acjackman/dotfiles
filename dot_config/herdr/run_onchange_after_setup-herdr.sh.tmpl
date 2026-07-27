@@ -26,12 +26,18 @@ command -v herdr >/dev/null 2>&1 || exit 0
 #                            binaries for macOS Apple Silicon / Linux x86_64, else
 #                            builds via Cargo (Rust already present). Copies with
 #                            macOS `pbcopy` (built in).
+#   jt.command-palette     — fzf command palette (prefix+p): fuzzy-pick any action
+#                            exposed by any installed plugin. Pure bash + fzf + jq
+#                            (already in the toolchain), so no build toolchain
+#                            needed; runs the picker in an overlay pane so fzf
+#                            gets a TTY.
 plugins=(
   "vim-herdr-navigation paulbkim-dev/vim-herdr-navigation"
   "rjyo.window-title-sync rjyo/herdr-window-title-sync"
   "worktrunk devashish2203/herdr-worktrunk"
   "kichel.muster marcoskichel/herdr-muster"
   "rmarganti.herdr-pluck rmarganti/herdr-pluck"
+  "jt.command-palette JanTvrdik/herdr-command-palette"
 )
 
 installed="$(herdr plugin list 2>/dev/null || true)"

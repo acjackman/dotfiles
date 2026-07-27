@@ -40,6 +40,15 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
   (Rust already present for muster). No `config.toml` of its own required —
   patterns can be tuned via its plugin config dir or a project-local
   `.herdr-pluck.toml` if ever needed.
+- **jt.command-palette** (`JanTvrdik/herdr-command-palette`) — fzf command
+  palette bound to `prefix+p`: fuzzy-pick and run any action exposed by any
+  installed plugin (`herdr plugin action list`), so plugin actions that don't
+  warrant their own key are still reachable. Pure bash; needs `fzf` + `jq` (both
+  already required by worktrunk). herdr actions run server-side without a TTY, so
+  the plugin opens an **overlay pane** to host fzf and forwards the origin
+  workspace's cwd, keeping context-aware actions pointed at the right repo.
+  herdr 0.7 ignores keys declared in a plugin manifest — hence the explicit
+  `[[keys.command]]` entry in `config.toml`.
 
 ## Keybindings
 
