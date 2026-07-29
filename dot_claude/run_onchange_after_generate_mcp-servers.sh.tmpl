@@ -1,9 +1,17 @@
 #!/bin/bash
-# mcp-servers hash: {{ include "dot_claude/mcp-servers.json" | sha256sum }}
+# mcp-servers hash: {{ includeTemplate "mcp-servers.json" . | sha256sum }}
 # claude.json hash: {{ output "sh" "-c" (print "sha256sum " (joinPath .chezmoi.homeDir ".claude/.claude.json") " 2>/dev/null || echo none") | trim | splitList " " | first }}
 
 CLAUDE_JSON="$HOME/.claude/.claude.json"
-MCP_SERVERS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/mcp-servers.json"
+
+# The server list is embedded here (rather than read from ~/.claude/mcp-servers.json)
+# so it is always the *rendered* content of .chezmoitemplates/mcp-servers.json, with
+# no dependency on whether that file has been written yet in this apply. Some entries
+# are host-conditional, so a stale read would silently drop them.
+MCP_SERVERS=$(cat <<'MCP_SERVERS_EOF'
+{{ includeTemplate "mcp-servers.json" . -}}
+MCP_SERVERS_EOF
+)
 
 # Create .claude.json if it doesn't exist
 if [ ! -f "$CLAUDE_JSON" ]; then
@@ -12,7 +20,6 @@ fi
 
 # Use jq to merge MCP servers into .claude.json
 if command -v jq &> /dev/null; then
-    MCP_SERVERS=$(cat "$MCP_SERVERS_FILE")
     jq --argjson servers "$MCP_SERVERS" '.mcpServers = $servers' "$CLAUDE_JSON" > "$CLAUDE_JSON.tmp" && \
         mv "$CLAUDE_JSON.tmp" "$CLAUDE_JSON"
 else
