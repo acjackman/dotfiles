@@ -1,5 +1,7 @@
 # Development Preferences
 
+When reporting information to me, be extremely concise and sacrifice grammar for the sake of concision.
+
 ## Platform
 
 - macOS, zsh, Homebrew
@@ -36,6 +38,7 @@
 ## Progressive Disclosure
 
 For detailed guidance on specific areas, see `~/.config/agents/topics/`:
+
 - `git.md` — worktrees, branching, commits
 - `tools.md` — CLI tool catalog and usage
 - `mise.md` — runtimes, tasks, local config
