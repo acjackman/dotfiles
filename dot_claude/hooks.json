@@ -11,18 +11,6 @@
       "match_key": "claude-worktree-create"
     }
   ],
-  "SessionStart": [
-    {
-      "matcher": "",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash ~/.local/share/tmux/plugins/tmux-assistant-resurrect/hooks/claude-session-track.sh"
-        }
-      ],
-      "match_key": "claude-session-track"
-    }
-  ],
   "PreToolUse": [
     {
       "matcher": "Bash",
@@ -33,18 +21,6 @@
         }
       ],
       "match_key": "rtk hook claude"
-    }
-  ],
-  "SessionEnd": [
-    {
-      "matcher": "",
-      "hooks": [
-        {
-          "type": "command",
-          "command": "bash ~/.local/share/tmux/plugins/tmux-assistant-resurrect/hooks/claude-session-cleanup.sh"
-        }
-      ],
-      "match_key": "claude-session-cleanup"
     }
   ]
 }
