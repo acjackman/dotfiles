@@ -156,7 +156,10 @@
     updateRefs = true
 
 [commit]
-    gpgsign = true
+    # Signing goes through 1Password's op-ssh-sign, which needs an interactive
+    # approval per signature — that breaks commits from background/headless
+    # agent sessions. Re-enable once the key is set to auto-authorize.
+    gpgsign = false
     verbose = true
 
 [color]
