@@ -150,13 +150,31 @@ equivalent — XO tracks its herdr agents by the labels it recorded.)
 
 **Version gate:** herdr's wire protocol churns pre-1.0 and needs a server restart
 on upgrade, so `clank` only uses herdr when `herdr status server` reports a
-protocol in `$CLANK_HERDR_PROTOCOLS` (default `14`); an unrecognised protocol
+protocol in `$CLANK_HERDR_PROTOCOLS` (default `14 15 16 17`); an unrecognised protocol
 degrades to tmux with a warning. Bump that env (or the default) after vetting a
 new herdr release. herdr is pinned via `brew "herdr"` in `Brewfile-personal.tmpl`.
 
 **Callers:** `~/.claude/commands/spawn.md` launches via `clank spawn`, verifies
 via `clank state`, and tears down via `clank close`; `spawn-tmux` is now a thin
 shim over `clank spawn --backend tmux`.
+
+## Upgrades break the running server (`,doctor-herdr`)
+
+The wire protocol churns pre-1.0 and `brew upgrade herdr` replaces the binary
+**in place**, leaving the running server on the old protocol. Every CLI call
+from the new binary is then rejected with `protocol_mismatch` — and since every
+plugin drives the `herdr` CLI, **all the plugins stop working at once** while
+herdr itself keeps running fine. `clank` degrades to tmux for the same reason.
+
+`,doctor-herdr` diagnoses this (`herdr status server` reports `compatible: no`).
+It does **not** self-heal: the fix is a server restart, which kills every pane
+process including running agents, so it reports by default and restarts only
+under `,doctor-herdr --restart`. Session layout is persisted and restores; pane
+processes do not. Relaunch afterwards with `~/.config/herdr/ghostty-herdr`.
+
+After vetting the new release, add its protocol to `CLANK_HERDR_PROTOCOLS` in
+`dot_local/bin/executable_clank` — otherwise `clank` keeps falling back to tmux
+even once the server is restarted.
 
 ## Apply notes
 

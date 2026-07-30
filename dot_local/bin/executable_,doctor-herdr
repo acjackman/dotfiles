@@ -1,0 +1,107 @@
+#!/usr/bin/env bash
+#
+# ,doctor-herdr — detect a herdr client/server protocol mismatch.
+#
+# herdr's wire protocol churns pre-1.0. `brew upgrade` replaces the binary in
+# place but leaves the already-running server on the OLD protocol, so every CLI
+# call from the new binary is rejected:
+#
+#     client protocol 17 is newer than server protocol 16; restart the Herdr
+#     server before using this command.
+#
+# The visible symptom is that *the plugins all stop working at once* — every
+# herdr plugin (command-palette, worktrunk, muster, pluck, window-title-sync,
+# vim-herdr-navigation) drives the `herdr` CLI, so they fail together while
+# herdr itself keeps running normally. `clank` degrades to tmux for the same
+# reason. Nothing is corrupt; the server just needs a restart.
+#
+# UNLIKE the other ,doctor-* scripts, this one does NOT apply its fix by
+# default. The only remedy is restarting the server, which kills every pane
+# process — including long-running agents. Losing those unprompted is worse
+# than the mismatch, so the restart is opt-in behind --restart.
+#
+# Usage:
+#   ,doctor-herdr             report health; exit 1 if a mismatch needs fixing
+#   ,doctor-herdr --restart   stop the stale server (kills all pane processes)
+#
+# Exit codes: 0 healthy (or fixed), 1 mismatch found and not fixed.
+
+set -euo pipefail
+
+restart=0
+for arg in "$@"; do
+  case "$arg" in
+    --restart) restart=1 ;;
+    -h|--help) sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    *) printf ',doctor-herdr: unknown argument: %s\n' "$arg" >&2; exit 2 ;;
+  esac
+done
+
+if ! command -v herdr >/dev/null 2>&1; then
+  echo "herdr not installed — nothing to check."
+  exit 0
+fi
+
+status="$(herdr status server 2>/dev/null || true)"
+field() { sed -n "s/^$1: *//p" <<<"$status" | head -1; }
+
+state="$(field status)"
+if [[ "$state" != "running" ]]; then
+  echo "herdr server not running — nothing to check."
+  exit 0
+fi
+
+server_version="$(field version)"
+server_proto="$(field protocol)"
+compatible="$(field compatible)"
+socket="$(field socket)"
+client_version="$(herdr --version 2>/dev/null | awk '{print $2}')"
+
+if [[ "$compatible" == "yes" ]]; then
+  echo "herdr healthy — client ${client_version:-?} and server ${server_version:-?} both speak protocol ${server_proto:-?}."
+  exit 0
+fi
+
+cat <<EOF
+herdr PROTOCOL MISMATCH — plugins and clank will not work.
+
+  installed binary: ${client_version:-?}
+  running server:   ${server_version:-?} (protocol ${server_proto:-?})
+
+The binary was upgraded while this server kept running. Restarting the server
+clears it. Session layout is persisted and restores; pane PROCESSES do not.
+EOF
+
+# macOS `pgrep -f` is unreliable here (it misses the server but matches unrelated
+# processes whose long argv merely mentions herdr), so match on ps output.
+# (No early `exit` in awk: closing the pipe early SIGPIPEs ps, which pipefail
+# then turns into a spurious failure.)
+server_pid="$(ps -eo pid=,args= | awk '$0 ~ /herdr server$/ {print $1}' || true)"
+server_pid="${server_pid%%$'\n'*}"
+if [[ -n "$server_pid" ]]; then
+  children="$(pgrep -P "$server_pid" 2>/dev/null || true)"
+  if [[ -n "$children" ]]; then
+    echo
+    echo "Pane processes that a restart would kill (plus anything nested under them):"
+    # shellcheck disable=SC2086 # word splitting is the point: pid list -> ps
+    ps -o pid=,command= -p $(tr '\n' ' ' <<<"$children") 2>/dev/null | cut -c1-100 | sed 's/^/  /'
+  fi
+fi
+
+if (( ! restart )); then
+  cat <<EOF
+
+Not restarting (this doctor never restarts unprompted). When the panes above
+are safe to lose, re-run with:
+
+  ,doctor-herdr --restart
+
+then relaunch herdr (~/.config/herdr/ghostty-herdr).
+EOF
+  exit 1
+fi
+
+echo
+echo "Stopping the stale server…"
+HERDR_SOCKET_PATH="${socket:-$HOME/.config/herdr/herdr.sock}" herdr server stop
+echo "Stopped. Relaunch herdr with ~/.config/herdr/ghostty-herdr"

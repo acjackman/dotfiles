@@ -40,13 +40,27 @@ plugins=(
   "jt.command-palette JanTvrdik/herdr-command-palette"
 )
 
-installed="$(herdr plugin list 2>/dev/null || true)"
+# A stale server (binary upgraded without a restart) rejects every CLI call with
+# a protocol_mismatch. Bail out loudly rather than reading that as "no plugins
+# installed" and trying to reinstall all of them — see `,doctor-herdr`.
+if ! installed="$(herdr plugin list 2>&1)"; then
+  if grep -q 'protocol_mismatch' <<<"$installed"; then
+    echo "herdr server protocol is stale — skipping plugin setup." >&2
+    echo "Run \`,doctor-herdr\` to fix, then re-apply." >&2
+    exit 0
+  fi
+  # Any other failure (e.g. no server yet on a fresh machine): fall through with
+  # an empty list so the plugins below still get installed.
+  installed=""
+fi
+
 for entry in "${plugins[@]}"; do
   id="${entry%% *}"
   repo="${entry##* }"
   if ! grep -q "$id" <<<"$installed"; then
     echo "Installing $id plugin…"
-    herdr plugin install "$repo" --yes
+    # Non-fatal: one plugin failing to build shouldn't abort the rest (set -e).
+    herdr plugin install "$repo" --yes || echo "warning: failed to install $id" >&2
   fi
 done
 

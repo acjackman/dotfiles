@@ -62,6 +62,7 @@ Skills (slash commands like `/spawn`, `/commit`, `/apply`) are defined in `dot_c
 **Current scripts:**
 
 - **`,doctor-mise`** — re-runs each mise tool's inline `postinstall` via the `mise-post-install` helper. Workaround for [mise #6933](https://github.com/jdx/mise/discussions/6933), where `mise upgrade` skips per-tool postinstall hooks for asdf-backed tools (most visible with gcloud losing `gke-gcloud-auth-plugin` after upgrade).
+- **`,doctor-herdr`** — detects a herdr client/server protocol mismatch (a `brew upgrade` replaced the binary but the old server kept running, so every plugin and `clank` silently breaks at once). **Exception to the "applies fixes by default" rule:** the only fix is restarting the server, which kills every pane process including running agents, so it reports by default and restarts only under `--restart`. Exits 1 when a mismatch needs fixing.
 - **`,doctor-worktrunk`** — scans bare worktree repos under `~/dev/*/*` and ensures each carries the worktrunk `.config/mise.local.toml` (`WORKTRUNK_WORKTREE_PATH = "../{{ branch | sanitize }}"`, `{% raw %}`-guarded) that the `,gr-*` helpers install, then `mise trust`s it. Applies fixes by default; `--dry-run` to preview, `--base DIR` to scan elsewhere.
 
 ## Key Conventions
