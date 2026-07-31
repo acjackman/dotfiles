@@ -166,7 +166,20 @@ from the new binary is then rejected with `protocol_mismatch` — and since ever
 plugin drives the `herdr` CLI, **all the plugins stop working at once** while
 herdr itself keeps running fine. `clank` degrades to tmux for the same reason.
 
-`,doctor-herdr` diagnoses this (`herdr status server` reports `compatible: no`).
+A **second, quieter** failure shares the same cause. Even when the protocol still
+matches, the surviving server can keep serving its **old keybinding table** and
+silently drop the `[[keys.command]]` custom commands — the keys just do nothing,
+with no log line, while every built-in and `plugin_action` binding keeps working.
+(Seen 2026-07-30: the 0.7.5 upgrade killed the `prefix+t` / `prefix+shift+t`
+break-pane bindings while `herdr config check`, `herdr status server`, and
+`herdr pane move` on the CLI were all healthy.) The fix is
+`herdr server reload-config`. Nothing triggers it on its own —
+`run_onchange_after_setup-herdr.sh.tmpl` only reloads when `config.toml`
+*changes*, and an upgrade changes the binary, not the config — so `,doctor-herdr`
+now runs it unconditionally.
+
+`,doctor-herdr` diagnoses the protocol mismatch (`herdr status server` reports
+`compatible: no`).
 It does **not** self-heal: the fix is a server restart, which kills every pane
 process including running agents, so it reports by default and restarts only
 under `,doctor-herdr --restart`. Session layout is persisted and restores; pane

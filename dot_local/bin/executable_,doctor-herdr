@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 #
-# ,doctor-herdr — detect a herdr client/server protocol mismatch.
+# ,doctor-herdr — reload a stale herdr keybinding table; detect a herdr
+# client/server protocol mismatch.
+#
+# Two distinct upgrade-in-place failures, one cause: `brew upgrade` swaps the
+# binary while the old server keeps running.
+#
+# 1. STALE KEYBINDINGS (fixed by default). The running server keeps serving its
+#    old keybinding table, which can silently drop `[[keys.command]]` custom
+#    commands — the keys just do nothing, with no log line, while every other
+#    binding works. `herdr server reload-config` re-registers them. It costs
+#    nothing and kills no panes, so this doctor runs it unconditionally.
+#    Nothing triggers it otherwise: the `run_onchange` script in
+#    dot_config/herdr/ only reloads when config.toml *changes*, and an upgrade
+#    changes the binary, not the config.
+#
+# 2. PROTOCOL MISMATCH (reported, never fixed unprompted — see below).
 #
 # herdr's wire protocol churns pre-1.0. `brew upgrade` replaces the binary in
 # place but leaves the already-running server on the OLD protocol, so every CLI
@@ -15,13 +30,18 @@
 # herdr itself keeps running normally. `clank` degrades to tmux for the same
 # reason. Nothing is corrupt; the server just needs a restart.
 #
-# UNLIKE the other ,doctor-* scripts, this one does NOT apply its fix by
-# default. The only remedy is restarting the server, which kills every pane
+# UNLIKE the other ,doctor-* scripts, this one does NOT apply the mismatch fix
+# by default. The only remedy is restarting the server, which kills every pane
 # process — including long-running agents. Losing those unprompted is worse
-# than the mismatch, so the restart is opt-in behind --restart.
+# than the mismatch, so the restart is opt-in behind --restart. (The keybinding
+# reload above is unaffected: it is non-destructive and always runs.)
+#
+# A mismatch also blocks the reload — the reload is itself a CLI call, so it is
+# rejected too. Fix the mismatch first (--restart); a fresh server reads the
+# current config anyway.
 #
 # Usage:
-#   ,doctor-herdr             report health; exit 1 if a mismatch needs fixing
+#   ,doctor-herdr             reload config; report health; exit 1 on mismatch
 #   ,doctor-herdr --restart   stop the stale server (kills all pane processes)
 #
 # Exit codes: 0 healthy (or fixed), 1 mismatch found and not fixed.
@@ -32,7 +52,8 @@ restart=0
 for arg in "$@"; do
   case "$arg" in
     --restart) restart=1 ;;
-    -h|--help) sed -n '2,26p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    # Print the header block (line 2 through the last comment line before code).
+    -h|--help) sed -n '2,/^# Exit codes/p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) printf ',doctor-herdr: unknown argument: %s\n' "$arg" >&2; exit 2 ;;
   esac
 done
@@ -59,6 +80,25 @@ client_version="$(herdr --version 2>/dev/null | awk '{print $2}')"
 
 if [[ "$compatible" == "yes" ]]; then
   echo "herdr healthy — client ${client_version:-?} and server ${server_version:-?} both speak protocol ${server_proto:-?}."
+
+  # Re-register keybindings in case the running server is serving a stale table
+  # (see the header). Non-destructive and idempotent, so it runs every time —
+  # there is no way to ask the server whether its table is current.
+  echo "Reloading config (re-registers custom keybindings)…"
+  if reload="$(herdr server reload-config 2>&1)"; then
+    # herdr reports config problems as `diagnostics` in the reload response
+    # rather than a non-zero exit, so surface a non-empty list.
+    if [[ "$reload" == *'"diagnostics":[]'* ]]; then
+      echo "  config reloaded — keybindings re-registered."
+    else
+      echo "  config reloaded WITH DIAGNOSTICS:"
+      sed 's/^/    /' <<<"$reload"
+    fi
+  else
+    echo "  reload failed:" >&2
+    sed 's/^/    /' <<<"$reload" >&2
+    exit 1
+  fi
   exit 0
 fi
 
