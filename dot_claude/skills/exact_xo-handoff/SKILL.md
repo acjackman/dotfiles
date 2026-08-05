@@ -1,6 +1,6 @@
 ---
 name: xo-handoff
-description: Hand off an ask to XO asynchronously from a surface that isn't the live XO chat — a doer, a cross-repo clanker, a side Claude session, Adam's phone. Use when you need XO to know something or pick something up but can't reach the XO chat directly.
+description: Hand off an ask to XO asynchronously from a surface that isn't the live XO chat — a doer, a cross-repo agent, a side Claude session, Adam's phone. Use when you need XO to know something or pick something up but can't reach the XO chat directly.
 ---
 
 # Handing off to XO asynchronously
@@ -9,7 +9,7 @@ XO tracks a fleet and a daily log, but it can only react to what reaches it. If 
 
 ## When to use this
 
-- You're a subagent/clanker spawned by XO (or someone else) and you hit something XO needs to know or decide, but you're not the surface Adam is watching.
+- You're a subagent/doer spawned by XO (or someone else) and you hit something XO needs to know or decide, but you're not the surface Adam is watching.
 - You're a side Claude session (e.g. on Adam's phone) and want to queue a task for XO to pick up later.
 - Contrast with **`decide`**: `decide add` is for a *multi-option decision* awaiting Adam's verdict. `xo-handoff add` is for handing XO a *task/ask* to track or act on — no decision loop, no verdict channel back.
 
@@ -47,7 +47,10 @@ priority: normal
 target: INFRA-4592        # optional
 files: []                 # optional
 working-dir: /Users/...   # optional
-close-surface: my-label   # optional — tells XO to `clank close` this surface after ingest
+close-surface: w1S        # optional — tells XO to close this surface after ingest.
+                          # Prefer the herdr workspace id (unambiguous); a label
+                          # is accepted but XO must re-resolve and refuse to act
+                          # if it matches more than one live workspace.
 ---
 ## Ask
 <the task/instruction>

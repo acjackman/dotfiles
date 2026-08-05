@@ -183,49 +183,117 @@ muster and worktrunk (`prefix+shift+g`) are complementary, and the split follows
 that same distinction: muster picks a *project*, worktrunk switches *worktrees*
 within one.
 
-## `clank` substrate adapter (`~/.local/bin/clank`)
+## Surfaces: drive herdr (or tmux) directly
 
-`spawn` and XO's clanker tracking both need the same primitive — "open
-a new interactive surface running a command, then ask what state it's in." The
-`clank` script is that adapter: it detects herdr and uses it when it's the active
-multiplexer, falling back to tmux otherwise, so herdr stays **additive**
-(tmux-only machines are unchanged).
+`/spawn` and XO's fleet tracking both need the same primitive — "open a new
+interactive surface running a command, then ask what state it's in." **Agents
+call `herdr` (or `tmux`) directly for this.** There is no adapter in between.
 
-**Verbs:** `clank open` (core primitive), `clank spawn` (a Claude work-agent),
-`clank list` (JSONL of tracked agents), `clank state <label>` (semantic state),
-`clank watch` (poll-based state-change stream), `clank close <label>` (tear down
-the surface tagged `label` — herdr workspace close or tmux window kill), `clank
-backend` (which backend the current context resolves to).
+`clank` used to be that adapter. It is **deprecated** (2026-08-04) — see the
+section below. Do not write new call sites against it.
 
-**Backend dispatch (coexistence rule):** a surface opened inside a herdr context
-(`$HERDR_ENV`/`$HERDR_SESSION`) opens in herdr; one opened inside `$TMUX` opens in
-tmux — never crossed, so a session stays inside one multiplexer. With no host
-context, herdr wins when its server is up, else tmux. Override with `--backend` /
-`$CLANK_BACKEND`.
+### Pick the substrate
 
-**Identity:** herdr IDs are ephemeral (compacted on close), so the durable key is
-the **workspace `--label`** (an effort/ticket id), re-queried every call — never
-cached. On tmux the key is the `@clank_label` pane option (set with `-p`, so it
-doesn't leak across the session). herdr's own `agent` targets are keyed by agent
-*name* (`claude`) not our label, so operate on the `pane_id`/`workspace_id` that
-`clank` reports (e.g. `herdr pane read <pane_id>`, `herdr workspace focus <ws>`).
+Detect, don't assume. In order:
 
-**XO vs general:** every `clank` surface is tracked (`@clank_label` / workspace
-label), but only surfaces opened with `--xo` are marked as part of XO's *managed
-fleet of clankers* (tmux `@xo_agent`; surfaced as `xo:true` in `clank
-list`/`state`). XO's launcher passes `--xo`; a general `clank open` / `/spawn`
-does not, so plain spawns never count as XO agents. (herdr has no tag
-equivalent — XO tracks its herdr agents by the labels it recorded.)
+1. `herdr pane current` exits 0 → you are inside a herdr pane → **herdr**.
+   (Probe with the command, not `$HERDR_ENV`/`$HERDR_SESSION` — those are plain
+   env vars a child process can inherit from a *different* live pane.)
+2. `$TMUX` is set → you are inside tmux → **tmux**.
+3. Neither → `herdr status server` succeeds → **herdr**; else **tmux**.
 
-**Version gate:** herdr's wire protocol churns pre-1.0 and needs a server restart
-on upgrade, so `clank` only uses herdr when `herdr status server` reports a
-protocol in `$CLANK_HERDR_PROTOCOLS` (default `14 15 16 17`); an unrecognised protocol
-degrades to tmux with a warning. Bump that env (or the default) after vetting a
-new herdr release. herdr is pinned via `brew "herdr"` in `Brewfile-personal.tmpl`.
+Never cross: a surface opened from inside tmux stays in tmux, and vice versa.
 
-**Callers:** `~/.claude/commands/spawn.md` launches via `clank spawn`, verifies
-via `clank state`, and tears down via `clank close`; `spawn-tmux` is now a thin
-shim over `clank spawn --backend tmux`.
+### herdr: open, inspect, close
+
+```bash
+# open — an isolated workspace per agent, in the background
+ws_json=$(herdr workspace create --cwd "$WORKTREE" --label "$LABEL" --no-focus)
+ws=$(jq -r '.result.workspace.workspace_id' <<<"$ws_json")    # e.g. w6S
+pane=$(jq -r '.result.root_pane.pane_id'    <<<"$ws_json")    # e.g. w6S:p1
+
+# launch — `pane run` types the line into that workspace's shell and hits Enter,
+# so the shell evaluates the pipe. Unset $TMUX first: the herdr server can carry
+# a stale one that every pane inherits, which breaks `tmux display-popup`
+# (revdiff) inside a surface that is not actually a tmux client.
+herdr pane run "$pane" "unset TMUX TMUX_PANE; cat $PROMPT_FILE | claude \
+  --permission-mode=auto --name $LABEL \
+  --settings '{\"enableAllProjectMcpServers\":true}' --model $MODEL"
+
+herdr agent list                      # whole fleet + semantic state
+herdr agent get "$pane"               # one agent
+herdr pane read "$pane" --lines 30    # raw buffer, for diagnosing a failed launch
+herdr workspace focus "$ws"
+herdr workspace close "$ws"
+```
+
+`--settings '{"enableAllProjectMcpServers":true}'` keeps an autonomous agent from
+stalling on the "N new MCP servers found — enable?" prompt for an unapproved
+project `.mcp.json`. It auto-approves *project*-scoped servers only, leaving
+global/user MCP untouched (unlike `--strict-mcp-config`, which would drop them).
+
+**Identity — the rule that matters.** Operate on the **`workspace_id`**, resolved
+fresh from `herdr workspace list` at the moment you act. Labels are **not
+unique**, so closing by label can tear down the wrong surface. The label is for
+*human/ticket association*; the workspace ID is the *operational handle*. IDs are
+compacted on close, so re-resolve every call rather than caching one across turns.
+
+`herdr agent` targets are keyed by agent *name* or *pane id* — not by workspace
+label — so join through `workspace_id`:
+
+```bash
+# label -> workspace_id -> agent state
+herdr workspace list | jq -r --arg l "$LABEL" \
+  '.result.workspaces[] | select(.label==$l) | .workspace_id'
+herdr agent list | jq -c --arg ws "$ws" \
+  '.result.agents[] | select(.workspace_id==$ws) | {agent, agent_status, pane_id}'
+```
+
+Agent states are semantic and authoritative: `working` / `idle` / `blocked`
+(an approval or question UI) / `done` (idle after unseen background work) /
+`unknown` (an agent is present but unclassifiable — **not** proof of completion).
+
+### tmux: same three operations
+
+tmux has no semantic agent state; classifying a Claude pane means scraping its
+buffer. Treat that as a heuristic, and say so when you report it.
+
+```bash
+pane=$(tmux new-window -n "$LABEL" -c "$WORKTREE" -d -P -F '#{pane_id}')
+tmux set-option -t "$pane" automatic-rename off
+tmux set-option -p -t "$pane" @agent_label "$LABEL"   # -p, or it leaks session-wide
+tmux send-keys -t "$pane" "cat $PROMPT_FILE | claude --permission-mode=auto ..." Enter
+
+tmux list-panes -a -f '#{@agent_label}' -F '#{@agent_label}	#{pane_id}	#{pane_current_path}'
+tmux capture-pane -p -t "$pane" | tail -30
+tmux kill-window -t "$pane"
+```
+
+Use `tmux new-session -d -s "$LABEL" -c "$WORKTREE"` instead when a *session*
+(not a window) is wanted. On herdr that distinction collapses — every surface is
+its own workspace.
+
+### Deprecated: the `clank` adapter (`~/.local/bin/clank`)
+
+Kept on disk so old transcripts and muscle memory don't hard-fail; it prints a
+deprecation warning to stderr on every call. **Nothing should call it.**
+
+It wrapped herdr and tmux behind `open|spawn|list|state|watch|close`, dispatching
+on context. The portability argument for that wrapper evaporated once herdr was
+fully adopted, and what remained was strictly lossier than what it wrapped: it
+discarded unique workspace IDs in favour of collision-prone labels, exposed only
+polling where herdr has `events.subscribe`, and flattened "closed" to `unknown`.
+
+Two things went away with it rather than being ported:
+
+- **`--xo` fleet tagging.** It only ever worked on tmux (`@xo_agent`); herdr had
+  no equivalent. It was also redundant — the XO contract is to enumerate the
+  *whole* fleet and adopt surfaces it didn't launch. XO's fleet is now "every
+  live surface except XO's own workspace."
+- **The `CLANK_HERDR_PROTOCOLS` version gate.** A protocol mismatch now surfaces
+  as a plain herdr CLI error instead of a silent downgrade to tmux. That is the
+  better failure: `,doctor-herdr` diagnoses it, and a silent substrate switch was
+  never something a caller could reason about.
 
 ## Upgrades break the running server (`,doctor-herdr`)
 
@@ -233,7 +301,8 @@ The wire protocol churns pre-1.0 and `brew upgrade herdr` replaces the binary
 **in place**, leaving the running server on the old protocol. Every CLI call
 from the new binary is then rejected with `protocol_mismatch` — and since every
 plugin drives the `herdr` CLI, **all the plugins stop working at once** while
-herdr itself keeps running fine. `clank` degrades to tmux for the same reason.
+herdr itself keeps running fine. Agent surface control fails the same way, for
+the same reason.
 
 A **second, quieter** failure shares the same cause. Even when the protocol still
 matches, the surviving server can keep serving its **old keybinding table** and
@@ -254,9 +323,9 @@ process including running agents, so it reports by default and restarts only
 under `,doctor-herdr --restart`. Session layout is persisted and restores; pane
 processes do not. Relaunch afterwards with `~/.config/herdr/ghostty-herdr`.
 
-After vetting the new release, add its protocol to `CLANK_HERDR_PROTOCOLS` in
-`dot_local/bin/executable_clank` — otherwise `clank` keeps falling back to tmux
-even once the server is restarted.
+Since agents drive the `herdr` CLI directly, a mismatch is loud: calls fail with
+`protocol_mismatch` rather than silently degrading to another substrate. Restart
+the server and retry; there is no protocol allow-list to bump any more.
 
 ## Apply notes
 

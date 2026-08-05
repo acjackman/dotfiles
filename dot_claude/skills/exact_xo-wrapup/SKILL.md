@@ -6,7 +6,7 @@ user-invocable: true
 
 # Wrapping up a surface for XO
 
-You are inside a **work surface** — a clank doer, a cross-repo clanker, or a side Claude session — not the live XO chat. This skill hands your surface's *full context* back to XO so it can update its ledger, track the open threads, and (when safe) tear this surface down. It's the natural bookend to `xo-handoff`: same channel (`xo-handoff add` → the XO inbox), but the payload is a **wrap-up of everything this session did and left open**, plus an explicit safe-to-close signal.
+You are inside a **work surface** — a spawned doer, a cross-repo agent, or a side Claude session — not the live XO chat. This skill hands your surface's *full context* back to XO so it can update its ledger, track the open threads, and (when safe) tear this surface down. It's the natural bookend to `xo-handoff`: same channel (`xo-handoff add` → the XO inbox), but the payload is a **wrap-up of everything this session did and left open**, plus an explicit safe-to-close signal.
 
 **This is fire-and-forget.** You write the handoff and report to Adam; XO ingests it on its own schedule (cold-start or mid-session reconcile). Do **not** wait for XO in this session, and do **not** close your own surface (see step 5).
 
@@ -27,10 +27,11 @@ Gather everything XO needs to reconstruct this thread. Pull from the conversatio
 - **PR / CI** — if a PR exists: `gh pr view` and `gh pr checks` (PR number, red/green).
 - **Location** — cwd / worktree (`pwd`).
 - **The effort / ticket** — from the branch name, the spawn brief, or the conversation. This becomes `-t <effort-or-ticket>`.
-- **The surface label** — discover it agent-agnostically:
-  1. `herdr pane current` → read `.result.pane.workspace_id` (e.g. `w1S`).
-  2. Match that `workspace_id` in `clank list` → the entry's `label` is your surface label. (Equivalently `herdr workspace get <workspace_id>` → `.result.workspace.label`.)
-  3. If `herdr`/`clank` isn't available or returns nothing, **ask Adam** for the label — do not guess, and do not pass `--safe-to-close` without a verified label (a wrong label would close the wrong surface).
+- **Your surface's identity** — discover it agent-agnostically, and report **both** the workspace id and the label:
+  1. `herdr pane current` → read `.result.pane.workspace_id` (e.g. `w1S`). This is the unambiguous handle.
+  2. `herdr workspace get <workspace_id>` → `.result.workspace.label` — the human-readable label. Labels are **not unique**, which is exactly why the id goes in the handoff alongside it.
+  3. On tmux instead: `tmux display-message -p '#{pane_id} #{@agent_label}'`.
+  4. If neither resolves, **ask Adam** — do not guess, and do not pass `--safe-to-close` without a verified identity (a wrong one would close the wrong surface).
 
 ### 2. Synthesize the XO-ready handoff
 
@@ -72,7 +73,7 @@ It prints the path of the file it wrote and exits 0. **Echo that path** in your 
 
 ### 5. No self-close — report to Adam
 
-**Never call `clank close` on your own surface.** Closing the surface you're running in mid-turn kills you before you can report; teardown is XO's job on its next reconcile (it verifies the `close-surface:` label is live and not `XO`, then closes it). Your job ends at the handoff.
+**Never close your own surface** (`herdr workspace close` / `tmux kill-window` on yourself). Closing the surface you're running in mid-turn kills you before you can report; teardown is XO's job on its next reconcile (it re-resolves the `close-surface:` identity, confirms it's live and not XO's own workspace, then closes it). Your job ends at the handoff.
 
 Report to Adam:
 

@@ -27,8 +27,8 @@
 # The visible symptom is that *the plugins all stop working at once* — every
 # herdr plugin (command-palette, worktrunk, muster, pluck, window-title-sync,
 # vim-herdr-navigation) drives the `herdr` CLI, so they fail together while
-# herdr itself keeps running normally. `clank` degrades to tmux for the same
-# reason. Nothing is corrupt; the server just needs a restart.
+# herdr itself keeps running normally. Agent surface control fails the same way,
+# for the same reason. Nothing is corrupt; the server just needs a restart.
 #
 # UNLIKE the other ,doctor-* scripts, this one does NOT apply the mismatch fix
 # by default. The only remedy is restarting the server, which kills every pane
@@ -103,7 +103,7 @@ if [[ "$compatible" == "yes" ]]; then
 fi
 
 cat <<EOF
-herdr PROTOCOL MISMATCH — plugins and clank will not work.
+herdr PROTOCOL MISMATCH — plugins and agent surface control will not work.
 
   installed binary: ${client_version:-?}
   running server:   ${server_version:-?} (protocol ${server_proto:-?})

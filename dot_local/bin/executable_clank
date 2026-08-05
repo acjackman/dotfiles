@@ -1,4 +1,18 @@
 #!/usr/bin/env bash
+# clank — DEPRECATED (2026-08-04). Drive `herdr` (or `tmux`) directly instead.
+#
+# Once herdr was fully adopted, the portability argument for this wrapper
+# evaporated and what was left was strictly lossier than what it wraps: it
+# discards unique workspace IDs in favour of collision-prone labels, offers only
+# polling where herdr has `events.subscribe`, and flattens "closed" to "unknown".
+# Recipes for the herdr/tmux equivalents live in ~/.config/herdr/CLAUDE.md
+# ("Surfaces: drive herdr (or tmux) directly").
+#
+# It still works, and warns on every call. No instruction file points at it any
+# more; do not add new call sites. Removal once nothing has invoked it for a
+# while.
+#
+# ---- what it does (historical) ---------------------------------------------
 # clank — substrate adapter for opening interactive surfaces and tracking agent
 # state on either herdr or tmux, chosen by the caller's multiplexer context.
 #
@@ -440,6 +454,12 @@ usage() {
 # ---- dispatch --------------------------------------------------------------
 
 [ $# -gt 0 ] || { usage; exit 1; }
+
+# Deprecated: warn once per invocation, on stderr so JSON on stdout stays clean.
+# Set CLANK_SILENCE_DEPRECATION=1 to suppress.
+[ -n "${CLANK_SILENCE_DEPRECATION:-}" ] || warn \
+  "DEPRECATED — drive herdr/tmux directly (see ~/.config/herdr/CLAUDE.md). This wrapper will be removed."
+
 verb="$1"; shift
 case "$verb" in
   open)    cmd_open "$@" ;;
