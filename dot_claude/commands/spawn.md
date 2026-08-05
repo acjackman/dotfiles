@@ -39,7 +39,7 @@ These are on PATH:
 - **`herdr`** — The multiplexer. `herdr workspace create` opens an isolated workspace, `herdr pane run` launches a command in it, `herdr agent list` reports semantic agent state, `herdr workspace close` tears it down. Most commands return JSON — read IDs out of the response with `jq` rather than predicting them.
 - **`tmux`** — The fallback, used only when you're actually running inside tmux (or herdr's server is down).
 
-> `clank` is **deprecated** — do not use it. Drive `herdr`/`tmux` directly as described below.
+> The `clank` adapter was **removed** on 2026-08-04. Drive `herdr`/`tmux` directly as described below.
 
 ## Pre-flight Checks
 

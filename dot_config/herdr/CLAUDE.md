@@ -189,8 +189,8 @@ within one.
 interactive surface running a command, then ask what state it's in." **Agents
 call `herdr` (or `tmux`) directly for this.** There is no adapter in between.
 
-`clank` used to be that adapter. It is **deprecated** (2026-08-04) — see the
-section below. Do not write new call sites against it.
+`clank` used to be that adapter. It was **removed** on 2026-08-04 — see the
+section below.
 
 ### Pick the substrate
 
@@ -273,16 +273,22 @@ Use `tmux new-session -d -s "$LABEL" -c "$WORKTREE"` instead when a *session*
 (not a window) is wanted. On herdr that distinction collapses — every surface is
 its own workspace.
 
-### Deprecated: the `clank` adapter (`~/.local/bin/clank`)
+### Removed: the `clank` adapter (2026-08-04)
 
-Kept on disk so old transcripts and muscle memory don't hard-fail; it prints a
-deprecation warning to stderr on every call. **Nothing should call it.**
+**`clank` is gone** — deleted, not shimmed. A `clank: command not found` is the
+intended outcome: it surfaces a stale call site immediately, where a warning
+would have let one linger. If you hit one, port it to the recipes above.
 
 It wrapped herdr and tmux behind `open|spawn|list|state|watch|close`, dispatching
 on context. The portability argument for that wrapper evaporated once herdr was
 fully adopted, and what remained was strictly lossier than what it wrapped: it
 discarded unique workspace IDs in favour of collision-prone labels, exposed only
 polling where herdr has `events.subscribe`, and flattened "closed" to `unknown`.
+Its `CLANK_HERDR_PROTOCOLS` allow-list had also gone stale (capped at 17 against
+herdr's live protocol 19), so it had been silently degrading every spawn to tmux.
+
+`spawn-tmux` used to be a shim over `clank spawn --backend tmux`; it is now
+self-contained (direct `tmux` calls) and stays as the hand-typed tmux CLI.
 
 Two things went away with it rather than being ported:
 

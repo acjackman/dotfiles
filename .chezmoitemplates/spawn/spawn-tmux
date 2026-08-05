@@ -1,11 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# spawn-tmux — thin compatibility shim. The tmux window/session spawn logic now
-# lives in the `clank` substrate adapter (~/.local/bin/clank), which dispatches
-# herdr-or-tmux by context. This wrapper preserves the old CLI (used by muscle
-# memory and older callers) by delegating to `clank spawn` with the tmux backend
-# forced, so its behaviour is unchanged. New code should call `clank spawn`.
+# spawn-tmux — open a Claude work-agent in a tmux window or session.
+#
+# Self-contained as of 2026-08-04: this used to delegate to the `clank`
+# substrate adapter, which has been removed. Agents drive herdr or tmux
+# directly now (see ~/.config/herdr/CLAUDE.md, "Surfaces: drive herdr (or tmux)
+# directly"); this script stays as the hand-typed tmux CLI.
 #
 # Usage: spawn-tmux --window|--session --name <name> --dir <path> --prompt <file> [--model <model>]
 
@@ -28,11 +29,36 @@ while [[ $# -gt 0 ]]; do
 done
 
 [[ -z "$mode" || -z "$name" || -z "$dir" || -z "$prompt" ]] && usage
+[[ -f "$prompt" ]] || { echo "spawn-tmux: prompt file '$prompt' does not exist" >&2; exit 1; }
+command -v tmux >/dev/null 2>&1 || { echo "spawn-tmux: tmux is not installed" >&2; exit 1; }
+dir=$(cd "$dir" && pwd)
 
-# --name is the clank tracking label (old spawn-tmux only echoed it; the tmux
-# window/session name is still derived from the worktree by clank).
-args=(spawn --backend tmux --cwd "$dir" --label "$name" --prompt "$prompt")
-[[ "$mode" == "session" ]] && args+=(--session)
-[[ -n "$model" ]] && args+=(--model "$model")
+sq() { printf "'%s'" "${1//\'/\'\\\'\'}"; }
 
-exec clank "${args[@]}"
+# --name is the tracking label: the tmux window/session name, the @agent_label
+# pane option, and `claude --name` all use it, so the three identifiers line up
+# and a human can find or resume the agent by one name.
+#
+# enableAllProjectMcpServers stops an autonomous agent stalling on the "N new
+# MCP servers found — enable?" prompt for an unapproved project .mcp.json. It
+# auto-approves project-scoped servers only, leaving global/user MCP intact.
+# Override with SPAWN_MCP_SETTINGS='' to restore the interactive prompt.
+launch="cat $(sq "$prompt") | claude --permission-mode=auto --name $(sq "$name")"
+mcp_settings=${SPAWN_MCP_SETTINGS-'{"enableAllProjectMcpServers":true}'}
+[[ -n "$mcp_settings" ]] && launch+=" --settings $(sq "$mcp_settings")"
+[[ -n "$model" ]] && launch+=" --model $(sq "$model")"
+
+if [[ "$mode" == "session" ]]; then
+    pane_id=$(tmux new-session -d -s "$name" -c "$dir" -P -F '#{pane_id}')
+else
+    # Background window, matching spawn's historical behaviour.
+    pane_id=$(tmux new-window -n "$name" -c "$dir" -d -P -F '#{pane_id}')
+fi
+
+tmux set-option -t "$pane_id" automatic-rename off >/dev/null 2>&1 || true
+# -p scopes this to the pane; without it it becomes a session option that leaks
+# onto every other pane in the session.
+tmux set-option -p -t "$pane_id" @agent_label "$name" >/dev/null 2>&1 || true
+tmux send-keys -t "$pane_id" "$launch" Enter
+
+printf 'substrate: tmux\nlabel: %s\nhandle: %s\npane_id: %s\n' "$name" "$name" "$pane_id"
