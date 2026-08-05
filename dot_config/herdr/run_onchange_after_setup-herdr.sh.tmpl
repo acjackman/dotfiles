@@ -11,9 +11,10 @@ command -v herdr >/dev/null 2>&1 || exit 0
 
 # Plugins to keep installed: "<plugin_id> <owner/repo>".
 #   vim-herdr-navigation   — <C-h/j/k/l> between herdr panes and Neovim splits
-#   rjyo.window-title-sync — sync the terminal/Ghostty title with the focused
-#                            workspace/tab/agent (event-driven; needs bun on PATH,
-#                            provided by the global mise `bun` tool)
+#   acjackman.title-rename — tmux-style window title (`workspace | tab | ~/path`)
+#                            plus automatic tab/workspace renaming. Own repo;
+#                            `herdr plugin install` builds it with Cargo, so it
+#                            needs the same Rust toolchain as muster below.
 #   worktrunk              — worktree switch/create/remove via worktrunk (`wt`);
 #                            needs wt >= 0.60, fzf, jq (already in the toolchain)
 #   kichel.muster          — agent-aware project switcher (the sesh analogue);
@@ -33,7 +34,7 @@ command -v herdr >/dev/null 2>&1 || exit 0
 #                            gets a TTY.
 plugins=(
   "vim-herdr-navigation paulbkim-dev/vim-herdr-navigation"
-  "rjyo.window-title-sync rjyo/herdr-window-title-sync"
+  "acjackman.title-rename acjackman/herdr-title-rename"
   "worktrunk devashish2203/herdr-worktrunk"
   "kichel.muster marcoskichel/herdr-muster"
   "rmarganti.herdr-pluck rmarganti/herdr-pluck"
@@ -52,6 +53,16 @@ if ! installed="$(herdr plugin list 2>&1)"; then
   # Any other failure (e.g. no server yet on a fresh machine): fall through with
   # an empty list so the plugins below still get installed.
   installed=""
+fi
+
+# Superseded plugins. Only one plugin can own the outer window title — two of
+# them fight over `client.window_title.set`, each with its own dedupe state, and
+# the title flaps. acjackman.title-rename replaced rjyo.window-title-sync, so
+# remove the old one rather than leaving it installed-but-conflicting.
+if grep -q 'rjyo.window-title-sync' <<<"$installed"; then
+  echo "Removing rjyo.window-title-sync (superseded by acjackman.title-rename)…"
+  herdr plugin uninstall rjyo.window-title-sync || \
+    echo "warning: failed to uninstall rjyo.window-title-sync" >&2
 fi
 
 for entry in "${plugins[@]}"; do

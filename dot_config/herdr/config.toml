@@ -116,6 +116,40 @@ type = "shell"
 command = '"$HERDR_BIN_PATH" pane move "$HERDR_ACTIVE_PANE_ID" --new-workspace --focus'
 description = "Break pane into a new workspace"
 
+# The inverse of the two break-pane bindings above: move the focused pane INTO
+# another workspace/tab — the herdr analogue of tmux `join-pane`/`move-pane`
+# (`prefix+m` is unbound in herdr's defaults). From herdr discussion #1793.
+#
+# `type = "pane"` rather than "shell" because the command hosts two fzf pickers
+# and so needs a TTY; herdr runs it in a pane instead of headless. One snapshot
+# (`herdr api snapshot`) feeds both pickers: workspace first, then tabs within it
+# plus a literal `new` entry for "create a new tab there". Needs `fzf` + `jq`
+# (already required by worktrunk).
+#
+# The `pane zoom --off` calls unzoom both source and destination — moving a pane
+# in or out of a zoomed tab otherwise leaves it hidden behind the zoom.
+# Same `$HERDR_ACTIVE_PANE_ID` context var as the break-pane bindings.
+[[keys.command]]
+key = "prefix+m"
+type = "pane"
+command = '''
+h="${HERDR_BIN_PATH:-herdr}"
+snap=$("$h" api snapshot)
+target_ws=$(echo "$snap" | jq -r '.result.snapshot.workspaces[] | (.workspace_id) + " " + (.label)' | fzf --prompt="workspace> " | awk '{print $1}')
+[ -z "$target_ws" ] && exit 0
+target_tab=$( { echo "new [+ create new tab]"; echo "$snap" | jq -r --arg ws "$target_ws" '.result.snapshot.tabs[] | select(.workspace_id == $ws) | (.tab_id) + " " + (.label)'; } | fzf --prompt="tab> " | awk '{print $1}')
+[ -z "$target_tab" ] && exit 0
+"$h" pane zoom --off >/dev/null 2>&1
+if [ "$target_tab" = "new" ]; then
+  "$h" pane move "$HERDR_ACTIVE_PANE_ID" --new-tab --workspace "$target_ws"
+else
+  target_pane=$(echo "$snap" | jq -r --arg tab "$target_tab" '.result.snapshot.layouts[] | select(.tab_id == $tab) | .focused_pane_id')
+  [ -n "$target_pane" ] && "$h" pane zoom "$target_pane" --off >/dev/null 2>&1
+  "$h" pane move "$HERDR_ACTIVE_PANE_ID" --tab "$target_tab" --split right
+fi
+'''
+description = "Move pane to another workspace/tab"
+
 # muster: agent-aware project switcher — fuzzy list of projects, running ones
 # first, tagged with what their agent is doing (blocked floats to the top).
 # It's explicitly modelled on sesh, so it's the closest thing herdr has to the

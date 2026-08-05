@@ -21,10 +21,9 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
 ## Plugins
 
 - **vim-herdr-navigation** (`paulbkim-dev/vim-herdr-navigation`) — see below.
-- **rjyo.window-title-sync** (`rjyo/herdr-window-title-sync`) — syncs the
-  terminal/Ghostty window title with the focused workspace/tab/agent. Purely
-  event-driven (no keybindings or `config.toml` entries). Requires **bun** on
-  `PATH`, provided by the global `bun` tool in `data/mise/config.toml`.
+- **acjackman.title-rename** (`acjackman/herdr-title-rename`) — our own plugin;
+  see below. Replaced `rjyo.window-title-sync`, which the `run_onchange` script
+  uninstalls on sight (only one plugin can own the window title).
 - **worktrunk** (`devashish2203/herdr-worktrunk`) — worktree switch/create
   (`prefix+shift+g`) and remove (`prefix+shift+d`) via worktrunk (`wt`) + fzf,
   the herdr analogue of the tmux `wt-sesh-select` bindings. Needs `wt` ≥ 0.60,
@@ -50,6 +49,67 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
   herdr 0.7 ignores keys declared in a plugin manifest — hence the explicit
   `[[keys.command]]` entry in `config.toml`.
 
+## acjackman.title-rename (window title + auto-naming)
+
+[acjackman/herdr-title-rename](https://github.com/acjackman/herdr-title-rename)
+is ours, written for this setup. It reproduces the tmux titling in
+`dot_config/tmux/tmux.conf` on herdr:
+
+```
+workspace | tab | ~/path      # tmux: set-titles-string '#S | #W | ~/path'
+```
+
+**Why it exists.** The [Timing](https://timingapp.com) time tracker attributes
+terminal work by parsing the window title, and its rules were built against the
+tmux format. herdr has no built-in window-title setting at all — the only lever
+is the `client.window_title.set` API — and no published plugin puts the focused
+pane's directory in the title, so moving work into herdr made that time
+invisible. Hence: keep the title byte-compatible with tmux and Timing keeps
+working.
+
+**Two halves.** The title half sets the outer Ghostty title from the focused
+workspace label, tab label, and pane cwd. The rename half auto-names tabs and
+workspaces from the active pane's git worktree — ports of `tmux-window-name`
+(worktree basename) and `tmux-session-name` (`repo`, or `repo/branch` off the
+default branch; `wt config state default-branch` supplies the default). The
+sesh lookup in `tmux-session-name` is dropped — herdr has no sesh.
+
+**Manual renames win permanently**, the way tmux stops managing a window you
+`rename-window`. The plugin records every label it writes; a label that reads
+back different was changed by hand, and that tab or workspace is released.
+Labels it has never owned are adopted only while still at herdr's default (the
+tab/workspace number) — so the workspaces that existed before install keep
+their names for good, and only new ones get auto-named.
+
+**Known limitation: a bare `cd` does not refresh the title.** herdr's *plugin
+manifest* honours a narrower event set than its socket API. `pane.updated` — the
+event carrying a pane's cwd and terminal-title changes — is valid for
+`events.subscribe` over the socket but rejected in a manifest (`unknown event`
+at install, then silently never delivered). Verified on 0.7.5 by linking a probe
+manifest; `layout.updated`, `pane.cwd_changed`, `pane.output_changed`,
+`pane.renamed`, `pane.scroll_changed`, `pane.title_changed`, and
+`workspace.metadata_updated` are rejected too. So the title tracks focus and
+structure changes, not `cd` inside the pane you are already in — switch panes to
+catch up, or `herdr plugin action invoke acjackman.title-rename.refresh`. The
+fix is a startup watcher holding a socket subscription; not built yet.
+
+**Config** (all optional, defaults reproduce the tmux format) lives in
+`herdr plugin config-dir acjackman.title-rename`: `separator`, `path_style`
+(`tilde|full|basename|none`), `rename_tabs`, `rename_workspaces`. Not managed by
+chezmoi yet — add it under `plugins/config/` like muster's if it ever needs
+pinning.
+
+**Install builds from source** (`cargo build --release`), so it shares muster's
+dependency on `brew "rust"`. Unlike the bun-based plugin it replaced, it needs
+no runtime.
+
+**Local development:** the source lives at `~/dev/jackman/herdr-title-rename`
+(worktrunk bare layout). To test a working copy against the running server,
+`herdr plugin link "$PWD"` from the worktree — but uninstall the GitHub-installed
+copy first, or two builds race for the title. `--dry-run` prints the renames and
+title it *would* apply and touches nothing, which is the safe way to check naming
+rules against a live session.
+
 ## Keybindings
 
 `config.toml` overrides `[keys]` actions toward the tmux muscle memory in
@@ -69,6 +129,15 @@ built-in action for it, so they drive the `herdr pane move` CLI on
 `$HERDR_ACTIVE_PANE_ID` — the keybinding-context var, not the pane-shell's
 `HERDR_PANE_ID`; the herdr analogue of tmux `break-pane`): `prefix+t` →
 `--new-tab`, `prefix+shift+t` → `--new-workspace`.
+
+The inverse — move the focused pane *into* another workspace/tab, herdr's
+`join-pane`/`move-pane` — is `prefix+m` (from [herdr discussion
+#1793](https://github.com/herdrdev/herdr/discussions/1793)). It's a
+`type = "pane"` command, not `shell`: it drives two fzf pickers (workspace, then
+tab within it, with a `new` entry to create one) off a single `herdr api
+snapshot`, so it needs a TTY and herdr runs it in a pane. Needs `fzf` + `jq`.
+The `pane zoom --off` calls on both ends stop the moved pane landing hidden
+behind a zoom.
 
 ## vim-herdr-navigation
 
