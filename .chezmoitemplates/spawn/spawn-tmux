@@ -5,8 +5,22 @@ set -euo pipefail
 #
 # Self-contained as of 2026-08-04: this used to delegate to the `clank`
 # substrate adapter, which has been removed. Agents drive herdr or tmux
-# directly now (see ~/.config/herdr/CLAUDE.md, "Surfaces: drive herdr (or tmux)
-# directly"); this script stays as the hand-typed tmux CLI.
+# directly now; this script stays as the hand-typed tmux CLI.
+#
+# The herdr side of that, inline (agents carry this, they don't look it up):
+#   enumerate  herdr agent list        # join workspace_id -> `herdr workspace list` for labels
+#   inspect    herdr agent get <pane_id>
+#   spawn      herdr workspace create --cwd <worktree> --label <l> --no-focus
+#              herdr pane run <pane> "unset TMUX TMUX_PANE; cat <brief> | claude \
+#                --permission-mode=auto --name <l> \
+#                --settings '{\"enableAllProjectMcpServers\":true}' --model <m>"
+#   teardown   herdr workspace close <workspace_id>
+# Identity is the workspace_id, re-resolved at use — never the label (labels are
+# not unique; an ambiguous label is a stop-and-ask, not a guess). tmux is the
+# direct fallback, with buffer-scraping instead of semantic agent state.
+# If herdr misbehaves, or a command doesn't match the above, `herdr --skill`
+# prints the binary's own agent guide — versioned with the binary, and the
+# place to start debugging.
 #
 # Usage: spawn-tmux --window|--session --name <name> --dir <path> --prompt <file> [--model <model>]
 
