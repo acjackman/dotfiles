@@ -1,178 +1,518 @@
 [[comboMode.bindings]]
+id = 'B657D699-0037-4BC4-975A-27EA41B2E10F'
 key = 't'
 
-    [[comboMode.bindings.children]]
-    key = 't'
-    url = 'tuna://run/path.%252FApplications%252FGhostty.app/Open'
+    [comboMode.bindings.destination]
+    type = 'group'
 
-    [[comboMode.bindings.children]]
-    key = 'c'
-    url = 'tuna://run/path.%252FApplications%252Fcmux.app/Open'
+        [[comboMode.bindings.destination.bindings]]
+        id = '82538A9F-FEFF-549C-A518-DAC3EF28A800'
+        key = 't'
 
-    [[comboMode.bindings.children]]
-    key = 'n'
-    label = 'New Window + Sesh'
-    url = 'tuna://run/text.~%252F.config%252Fghostty%252Fghostty-sesh/Run%20Text%20as%20Shell%20Command'
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
 
-    [[comboMode.bindings.children]]
-    key = 'd'
-    label = 'Dotfiles Session'
-    url = 'tuna://run/text.~%252F.config%252Ftmux%252Factivate-or-open-ghostty.sh%2520dotfiles%2520~%252F.local%252Fshare%252Fchezmoi/Run%20Text%20as%20Shell%20Command'
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/open'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'tuna.applications//Applications/Ghostty.app' ]
+                type = 'savedCommand'
 
-    [[comboMode.bindings.children]]
-    key = 'i'
-    label = 'Infra Session'
-    url = 'tuna://run/text.~%252F.config%252Ftmux%252Factivate-or-open-ghostty.sh%2520infra%2520~%252Fdev%252Fmoov%252Finfra/Run%20Text%20as%20Shell%20Command'
+        [[comboMode.bindings.destination.bindings]]
+        id = 'FC325DBE-EE99-5812-B13F-B45E31D262D3'
+        key = 'c'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/open'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'tuna.applications//Applications/cmux.app' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = '3ADB57E3-400C-5A22-8340-389DCAB2A85C'
+        key = 'n'
+        label = 'New Window + Sesh'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'text:~/.config/ghostty/ghostty-sesh' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = '51093A33-486C-565B-98A4-773FA211AE0E'
+        key = 'd'
+        label = 'Dotfiles Session'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'text:~/.config/tmux/activate-or-open-ghostty.sh dotfiles ~/.local/share/chezmoi' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = 'B7AD4EB0-C579-518A-92A0-FCEFC72E3220'
+        key = 'i'
+        label = 'Infra Session'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'text:~/.config/tmux/activate-or-open-ghostty.sh infra ~/dev/moov/infra' ]
+                type = 'savedCommand'
 
 [[comboMode.bindings]]
+id = 'E8E06AA1-CBA7-5AF0-BE15-703774CCFB3B'
 key = 'e'
-url = 'tuna://run/path.%252FApplications%252Fcmux.app/Open'
+
+    [comboMode.bindings.destination]
+    type = 'command'
+
+        [comboMode.bindings.destination.command]
+        actionIdentifier = 'tuna.common-actions/open'
+        behavior = 'run'
+        presentation = 'automatic'
+        subjectIdentifiers = [ 'tuna.applications//Applications/cmux.app' ]
+        type = 'savedCommand'
 
 [[comboMode.bindings]]
+id = '40D5DDCF-7272-4550-8BA7-826C02C72B6E'
 key = 'r'
 
-    [[comboMode.bindings.children]]
-    key = 's'
-    url = 'tuna://run/path.%252FApplications%252FSafari.app/Open'
+    [comboMode.bindings.destination]
+    type = 'group'
 
-    [[comboMode.bindings.children]]
-    key = 'c'
-    url = 'tuna://run/path.%252FApplications%252FGoogle%2520Chrome.app/Open'
+        [[comboMode.bindings.destination.bindings]]
+        id = '8651BF76-4139-5BED-9728-43C528E79F1A'
+        key = 's'
 
-    [[comboMode.bindings.children]]
-    key = 'a'
-    url = 'tuna://run/path.%252FApplications%252FArc.app/Open'
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
 
-    [[comboMode.bindings.children]]
-    key = 'b'
-    url = 'tuna://run/path.%252FApplications%252FBrave%2520Browser.app/Open'
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/open'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'tuna.applications//Applications/Safari.app' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = '42833F94-7369-56F8-B92C-E57316D7DCCF'
+        key = 'c'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/open'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'tuna.applications//Applications/Google Chrome.app' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = '0ED92CB7-277E-541F-A8F1-87C22C996C22'
+        key = 'a'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/open'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'tuna.applications//Applications/Arc.app' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = 'E93BC771-6737-541D-A8BC-A7C555FD652A'
+        key = 'b'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/open'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'tuna.applications//Applications/Brave Browser.app' ]
+                type = 'savedCommand'
 
 [[comboMode.bindings]]
+id = 'B03B62C5-CE24-4356-B44A-32DF8D17C3A0'
 key = 'p'
 label = 'DeskPad'
 
-    [[comboMode.bindings.children]]
-    key = 'p'
-    url = 'tuna://run/path.%252FApplications%252FDeskPad.app/Open'
+    [comboMode.bindings.destination]
+    type = 'group'
 
-    [[comboMode.bindings.children]]
-    key = 'q'
-    label = 'Quit DeskPad'
-    url = "tuna://run/text.osascript%2520-e%2520'quit%2520app%2520%2522DeskPad%2522'/Run%20Text%20as%20Shell%20Command"
+        [[comboMode.bindings.destination.bindings]]
+        id = '789F0704-4260-598C-B612-A4001EC7FFA9'
+        key = 'p'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/open'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'tuna.applications//Applications/DeskPad.app' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = '76FEDEBF-43AB-5A16-9CBF-AA74B47A7F86'
+        key = 'q'
+        label = 'Quit DeskPad'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ "text:osascript -e 'quit app \"DeskPad\"'" ]
+                type = 'savedCommand'
 
 [[comboMode.bindings]]
+id = '9E45F92F-9702-4975-8EBD-F8E02389CFBB'
 key = 'u'
 label = 'UI Tweaks'
 
-    [[comboMode.bindings.children]]
-    key = 'p'
-    label = 'Toggle DeskPad'
-    url = "tuna://run/text.osascript%2520-e%2520'if%2520application%2520%2522DeskPad%2522%2520is%2520running%2520then'%2520-e%2520'quit%2520app%2520%2522DeskPad%2522'%2520-e%2520'else'%2520-e%2520'tell%2520application%2520%2522DeskPad%2522%2520to%2520activate'%2520-e%2520'end%2520if'/Run%20Text%20as%20Shell%20Command"
+    [comboMode.bindings.destination]
+    type = 'group'
 
-    [[comboMode.bindings.children]]
-    key = 'w'
-    label = 'Rotate Wallpapers'
-    url = 'tuna://run/url.hammerspoon:%252F%252Frotate-wallpapers/Open%20URL'
+        [[comboMode.bindings.destination.bindings]]
+        id = 'A99A448D-16C2-5DFA-ACA7-9B9A88104147'
+        key = 'p'
+        label = 'Toggle DeskPad'
 
-    [[comboMode.bindings.children]]
-    key = 'd'
-    label = 'Toggle Dark Mode'
-    url = "tuna://run/text.osascript%2520-e%2520'tell%2520app%2520%2522System%2520Events%2522%2520to%2520tell%2520appearance%2520preferences%2520to%2520set%2520dark%2520mode%2520to%2520not%2520dark%2520mode'/Run%20Text%20as%20Shell%20Command"
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
 
-    [[comboMode.bindings.children]]
-    key = 'h'
-    label = 'HazeOver'
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [
+                    "text:osascript -e 'if application \"DeskPad\" is running then' -e 'quit app \"DeskPad\"' -e 'else' -e 'tell application \"DeskPad\" to activate' -e 'end if'"
+                ]
+                type = 'savedCommand'
 
-        [[comboMode.bindings.children.children]]
+        [[comboMode.bindings.destination.bindings]]
+        id = 'D9465823-F443-5127-91A0-7FD36205DA07'
+        key = 'w'
+        label = 'Rotate Wallpapers'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'url'
+
+                [comboMode.bindings.destination.bindings.destination.url]
+                relative = 'hammerspoon://rotate-wallpapers'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = 'B2681334-D954-5E60-860D-A5131D2A31E5'
+        key = 'd'
+        label = 'Toggle Dark Mode'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [
+                    "text:osascript -e 'tell app \"System Events\" to tell appearance preferences to set dark mode to not dark mode'"
+                ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = 'AE625D1E-D768-475F-A59A-F770F16C790D'
         key = 'h'
-        label = 'Toggle'
-        url = "tuna://run/text.osascript%2520-e%2520'tell%2520app%2520%2522HazeOver%2522%2520to%2520set%2520enabled%2520to%2520not%2520enabled'/Run%20Text%20as%20Shell%20Command"
+        label = 'HazeOver'
 
-        [[comboMode.bindings.children.children]]
-        key = '='
-        label = 'Increase Opacity'
-        url = "tuna://run/text.osascript%2520-e%2520'tell%2520app%2520%2522HazeOver%2522%2520to%2520set%2520intensity%2520to%2520(intensity%2520+%252010)'/Run%20Text%20as%20Shell%20Command"
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'group'
 
-        [[comboMode.bindings.children.children]]
-        key = '-'
-        label = 'Decrease Opacity'
-        url = "tuna://run/text.osascript%2520-e%2520'tell%2520app%2520%2522HazeOver%2522%2520to%2520set%2520intensity%2520to%2520(intensity%2520-%252010)'/Run%20Text%20as%20Shell%20Command"
+                [[comboMode.bindings.destination.bindings.destination.bindings]]
+                id = '4595D00B-5981-5B1C-8D7E-9A464C64C305'
+                key = 'h'
+                label = 'Toggle'
 
-    [[comboMode.bindings.children]]
-    key = 's'
-    label = 'Sketchybar'
+                    [comboMode.bindings.destination.bindings.destination.bindings.destination]
+                    type = 'command'
 
-        [[comboMode.bindings.children.children]]
+                        [comboMode.bindings.destination.bindings.destination.bindings.destination.command]
+                        actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                        behavior = 'run'
+                        presentation = 'automatic'
+                        subjectIdentifiers = [ "text:osascript -e 'tell app \"HazeOver\" to set enabled to not enabled'" ]
+                        type = 'savedCommand'
+
+                [[comboMode.bindings.destination.bindings.destination.bindings]]
+                id = '7CA74BCF-8495-560A-8947-FDF9F4C6E278'
+                key = '='
+                label = 'Increase Opacity'
+
+                    [comboMode.bindings.destination.bindings.destination.bindings.destination]
+                    type = 'command'
+
+                        [comboMode.bindings.destination.bindings.destination.bindings.destination.command]
+                        actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                        behavior = 'run'
+                        presentation = 'automatic'
+                        subjectIdentifiers = [ "text:osascript -e 'tell app \"HazeOver\" to set intensity to (intensity + 10)'" ]
+                        type = 'savedCommand'
+
+                [[comboMode.bindings.destination.bindings.destination.bindings]]
+                id = '45C5E754-3DA8-51C3-9C5A-D9E6BAC8E7CE'
+                key = '-'
+                label = 'Decrease Opacity'
+
+                    [comboMode.bindings.destination.bindings.destination.bindings.destination]
+                    type = 'command'
+
+                        [comboMode.bindings.destination.bindings.destination.bindings.destination.command]
+                        actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                        behavior = 'run'
+                        presentation = 'automatic'
+                        subjectIdentifiers = [ "text:osascript -e 'tell app \"HazeOver\" to set intensity to (intensity - 10)'" ]
+                        type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = 'FB5BC6F8-4E89-5079-83BC-0F0D072DB156'
         key = 's'
-        label = 'Toggle'
-        url = 'tuna://run/text.%252Fopt%252Fhomebrew%252Fbin%252Fsketchybar%2520--bar%2520hidden=toggle/Run%20Text%20as%20Shell%20Command'
+        label = 'Sketchybar'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'group'
+
+                [[comboMode.bindings.destination.bindings.destination.bindings]]
+                id = 'B1F09617-A7A0-57C0-A450-08EA97B33157'
+                key = 's'
+                label = 'Toggle'
+
+                    [comboMode.bindings.destination.bindings.destination.bindings.destination]
+                    type = 'command'
+
+                        [comboMode.bindings.destination.bindings.destination.bindings.destination.command]
+                        actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                        behavior = 'run'
+                        presentation = 'automatic'
+                        subjectIdentifiers = [ 'text:/opt/homebrew/bin/sketchybar --bar hidden=toggle' ]
+                        type = 'savedCommand'
 
 [[comboMode.bindings]]
+id = '6CD9D130-0179-4EB4-9CAE-59669D0FB875'
 key = 'a'
 label = 'SuperWhisper'
 
-    [[comboMode.bindings.children]]
-    key = 'r'
-    label = 'Toggle Recording'
-    url = "tuna://run/text.osascript%2520-e%2520'tell%2520application%2520%2522System%2520Events%2522%2520to%2520key%2520code%252064%2520using%2520%257Bcommand%2520down,%2520option%2520down,%2520control%2520down,%2520shift%2520down%257D'/Run%20Text%20as%20Shell%20Command"
+    [comboMode.bindings.destination]
+    type = 'group'
 
-    [[comboMode.bindings.children]]
-    key = 'm'
-    label = 'Change Mode'
-    url = "tuna://run/text.osascript%2520-e%2520'tell%2520application%2520%2522System%2520Events%2522%2520to%2520key%2520code%252064%2520using%2520%257Bcommand%2520down,%2520option%2520down,%2520control%2520down%257D'/Run%20Text%20as%20Shell%20Command"
+        [[comboMode.bindings.destination.bindings]]
+        id = 'F94A79AA-3041-5FC5-BC20-8684295E7ECC'
+        key = 'r'
+        label = 'Toggle Recording'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [
+                    "text:osascript -e 'tell application \"System Events\" to key code 64 using {command down, option down, control down, shift down}'"
+                ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = '19401185-5173-5C5C-8E1E-5FF302F6CDE4'
+        key = 'm'
+        label = 'Change Mode'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [
+                    "text:osascript -e 'tell application \"System Events\" to key code 64 using {command down, option down, control down}'"
+                ]
+                type = 'savedCommand'
 
 [[comboMode.bindings]]
+id = '98EFDE5E-CBE3-4393-85D2-34055F16B607'
 key = 'o'
 label = 'Open'
 
-    [[comboMode.bindings.children]]
-    key = 'e'
-    url = 'tuna://run/path.%252FApplications%252FMail.app/Open'
+    [comboMode.bindings.destination]
+    type = 'group'
 
-    [[comboMode.bindings.children]]
-    key = 'i'
-    url = 'tuna://run/path.%252FSystem%252FApplications%252FMusic.app/Open'
+        [[comboMode.bindings.destination.bindings]]
+        id = '5494F123-91DF-5371-9CE0-07B5863CB768'
+        key = 'e'
 
-    [[comboMode.bindings.children]]
-    key = 'm'
-    url = 'tuna://run/path.%252FApplications%252FMessages.app/Open'
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/open'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'tuna.applications//Applications/Mail.app' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = '5611A78A-3222-5FF6-8784-BC6F96B805C7'
+        key = 'i'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/open'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'tuna.applications//System/Applications/Music.app' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        id = 'E80D3037-8565-5627-A153-5E883242CE01'
+        key = 'm'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/open'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'tuna.applications//Applications/Messages.app' ]
+                type = 'savedCommand'
 
 [[comboMode.bindings]]
+id = '5F311ABF-A939-4241-9B8E-AE1E3F5C5E93'
 key = 'enter'
 label = 'Brain'
 
-    [[comboMode.bindings.children]]
-    iconPath = '/Applications/Obsidian.app'
-    key = 'enter'
-    label = 'Log Entry'
-    url = 'tuna://run/text.brain-log/Run%20Text%20as%20Shell%20Command'
+    [comboMode.bindings.destination]
+    type = 'group'
 
-    [[comboMode.bindings.children]]
-    iconPath = '/Applications/Obsidian.app'
-    key = 'b'
-    label = 'Today'
-    url = 'tuna://run/text.brain-today/Run%20Text%20as%20Shell%20Command'
+        [[comboMode.bindings.destination.bindings]]
+        iconPath = '/Applications/Obsidian.app'
+        id = 'A6A4D46A-DEDC-50A1-8B36-AEDE5465A85B'
+        key = 'enter'
+        label = 'Log Entry'
 
-    [[comboMode.bindings.children]]
-    iconPath = '/Applications/Obsidian.app'
-    key = 'space'
-    label = 'Capture'
-    url = 'tuna://run/text.brain-capture/Run%20Text%20as%20Shell%20Command'
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
 
-    [[comboMode.bindings.children]]
-    iconPath = '/Applications/Obsidian.app'
-    key = 'h'
-    label = 'Launchpad'
-    url = 'tuna://run/text.brain-launchpad/Run%20Text%20as%20Shell%20Command'
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'text:brain-log' ]
+                type = 'savedCommand'
 
-    [[comboMode.bindings.children]]
-    iconPath = '/Applications/Obsidian.app'
-    key = 'a'
-    label = 'Atlas'
-    url = 'tuna://run/text.brain-atlas/Run%20Text%20as%20Shell%20Command'
+        [[comboMode.bindings.destination.bindings]]
+        iconPath = '/Applications/Obsidian.app'
+        id = '90CB633C-573B-5608-8124-79AA2194AF1E'
+        key = 'b'
+        label = 'Today'
 
-    [[comboMode.bindings.children]]
-    iconPath = '/Applications/Alacritty.app'
-    key = 't'
-    label = 'Terminal'
-    url = 'tuna://run/text.brain-terminal/Run%20Text%20as%20Shell%20Command'
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'text:brain-today' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        iconPath = '/Applications/Obsidian.app'
+        id = '4D0C1F2B-2036-5F67-9D63-F04A8F9982D0'
+        key = 'space'
+        label = 'Capture'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'text:brain-capture' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        iconPath = '/Applications/Obsidian.app'
+        id = 'A3FD9B81-ED6D-546D-A795-1EFC16AB895A'
+        key = 'h'
+        label = 'Launchpad'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'text:brain-launchpad' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        iconPath = '/Applications/Obsidian.app'
+        id = '616AB9C6-7BD5-5954-8F77-6A6BCB0FB970'
+        key = 'a'
+        label = 'Atlas'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'text:brain-atlas' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        iconPath = '/Applications/Alacritty.app'
+        id = '6E08B7AD-6972-5414-94D4-9E11C31C1A6C'
+        key = 't'
+        label = 'Terminal'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'text:brain-terminal' ]
+                type = 'savedCommand'

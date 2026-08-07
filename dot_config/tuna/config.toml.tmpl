@@ -10,8 +10,6 @@
   Backport via `chezmoi merge ~/.config/tuna/config.toml` (or copy the
   changed lines into the relevant fragment by hand).
 */ -}}
-schemaVersion = 1
-
 {{ template "tuna/catalogs" . }}
 {{ template "tuna/bindings" . }}
 {{ template "tuna/settings" . -}}

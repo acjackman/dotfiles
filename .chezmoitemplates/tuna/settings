@@ -8,11 +8,13 @@ carbonModifiers = 256
 
 [[hotkeys.custom]]
 id = 'F73C9531-A7CB-4B84-9D47-3ACE0DD97201'
-presentation = 'auto'
 
     [hotkeys.custom.command]
-    actionIdentifier = 'Tuna.BasicActionsCatalog.Browse'
-    subjectIdentifier = 'Tuna.Internal.ClipboardProxyCatalog.Clipboard History'
+    actionIdentifier = 'tuna.common-actions/browse'
+    behavior = 'run'
+    presentation = 'automatic'
+    subjectIdentifiers = [ 'tuna.clipboard/clipboard.history.root' ]
+    type = 'savedCommand'
 
     [hotkeys.custom.shortcut]
     carbonKeyCode = 6
@@ -22,3 +24,52 @@ presentation = 'auto'
 comboModeThemeStyle = 'cheatsheet'
 screenPreference = 'activeWindow'
 themeIdentifier = 'com.brnbw.tuna.themes.NormieBar'
+
+[[smartLinks.entries]]
+enabled = true
+id = '51C8C7D2-A869-4BD5-B95D-3D07626AF4B2'
+name = 'Bing'
+requiresInput = true
+template = 'https://www.bing.com/search?q={{ "{{input}}" }}'
+
+[[smartLinks.entries]]
+enabled = true
+id = 'F10BC459-505B-4AA2-8EED-DBF62AE03D3C'
+name = 'DuckDuckGo'
+requiresInput = true
+template = 'https://duckduckgo.com/?q={{ "{{input}}" }}'
+
+[[smartLinks.entries]]
+enabled = true
+id = '771E65F7-AF74-4A6E-916E-138ADD66553E'
+name = 'GitHub'
+requiresInput = true
+template = 'https://github.com/search?q={{ "{{input}}" }}'
+
+[[smartLinks.entries]]
+enabled = true
+id = '4F08FD14-6FA2-486F-9B05-6617BADD8D06'
+name = 'Google'
+requiresInput = true
+template = 'https://www.google.com/search?q={{ "{{input}}" }}'
+
+[[smartLinks.entries]]
+enabled = true
+id = 'CC3D3FBA-248D-49FE-8A16-AD0BA35DCEA0'
+name = 'Stack Overflow'
+requiresInput = true
+template = 'https://stackoverflow.com/search?q={{ "{{input}}" }}'
+
+[[smartLinks.entries]]
+enabled = true
+id = 'D654E7EA-B02D-40B1-9278-D4A7F98F14E4'
+name = 'Wikipedia'
+requiresInput = true
+template = 'https://en.wikipedia.org/wiki/Special:Search?search={{ "{{input}}" }}'
+
+[[smartLinks.entries]]
+enabled = true
+id = 'C9E9BE28-B774-462C-B3D2-1468D63EC744'
+name = 'YouTube'
+requiresInput = true
+template = 'https://www.youtube.com/results?search_query={{ "{{input}}" }}'

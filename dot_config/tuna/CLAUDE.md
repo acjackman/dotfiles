@@ -50,22 +50,108 @@ chezmoi merge ~/.config/tuna/config.toml # interactive 3-way merge
 
 Or just inspect the diff and hand-edit the right fragment.
 
-## URL encoding
+## Binding format
 
-Combo-mode action URLs use Tuna's native format:
+Every binding is `id` + optional `key`/`label`/`iconPath` + a `destination`
+table. Ids must be unique across the whole tree, including inside groups.
 
-    tuna://run/<type>.<DOUBLE-URL-encoded-value>/<URL-encoded-action-label>
+**Group** — nests further bindings:
 
-| Action kind   | type   | action label                  |
-|---------------|--------|-------------------------------|
-| Open an app   | `path` | `Open`                        |
-| Shell command | `text` | `Run%20Text%20as%20Shell%20Command` |
-| Open a URL    | `url`  | `Open%20URL`                  |
+```toml
+[[comboMode.bindings]]
+id = 'UUID'
+key = 'u'
+label = 'UI Tweaks'
 
-The value is URL-encoded **twice**. Characters that stay literal:
-`A-Za-z0-9-_.~` plus `!$&'()*+,:;=@` (Swift's `urlPathAllowed` minus `/`).
-Easiest way to author a new binding: add it through Tuna's UI, then copy
-the line out of `~/.config/tuna/config.toml` into the fragment.
+    [comboMode.bindings.destination]
+    type = 'group'
+
+    [[comboMode.bindings.destination.bindings]]
+    # …children, each nesting one level deeper
+```
+
+**Open an app / run a shell command** — a `command` destination wrapping a
+saved command:
+
+```toml
+    [comboMode.bindings.destination]
+    type = 'command'
+
+        [comboMode.bindings.destination.command]
+        actionIdentifier = 'tuna.common-actions/open'
+        behavior = 'run'
+        presentation = 'automatic'
+        subjectIdentifiers = [ 'tuna.applications//Applications/Ghostty.app' ]
+        type = 'savedCommand'
+```
+
+| Action kind   | `subjectIdentifiers` entry                    | `actionIdentifier`                             |
+|---------------|-----------------------------------------------|------------------------------------------------|
+| Open an app   | `tuna.applications/<absolute path>`           | `tuna.common-actions/open`                     |
+| Shell command | `text:<command line>`                         | `tuna.common-actions/run-text-as-shell-command` |
+
+App subjects are catalog-scoped, so the identifier contains a double slash:
+`tuna.applications/` + `/Applications/Ghostty.app`.
+
+**Open a URL** — *not* a command; its own destination type:
+
+```toml
+    [comboMode.bindings.destination]
+    type = 'url'
+
+        [comboMode.bindings.destination.url]
+        relative = 'hammerspoon://rotate-wallpapers'
+```
+
+There is also a `route` type for Tuna's internal screens; let the UI generate
+those. In general the easiest way to author a new binding is still to add it
+through Tuna's Combo Mode editor, then copy the stanza out of
+`~/.config/tuna/config.toml` into the fragment.
+
+## Catalogs
+
+`[catalogs]` carries three arrays — `globalScopes`, `searchPriorities`,
+`sortOrders` — all currently empty. Older configs wrote `globalScopes` entries
+shaped `catalogIdentifier` + `mode` + `selectedItemKeys` to keep catalogs out
+of global search. That shape is dead: `selectedItemKeys` no longer exists in
+the app at all, `mode` is rejected, and leaving them in place fails the whole
+migration with `UnknownLegacyConfigurationFieldError`.
+
+Previously excluded (`mode = 'none'`), with their modern catalog ids:
+
+| Legacy identifier              | Modern id      |
+|--------------------------------|----------------|
+| `Tuna.EffectsCatalog`          | `tuna.effects` |
+| `TunaEmoji.EmojiCatalog`       | `tuna.emoji`   |
+| `TunaSystem.AllWindowsCatalog` | `tuna.windows` |
+
+To restore those exclusions, set the global-search scope for the three
+catalogs in Tuna's settings, then copy the `[catalogs]` block Tuna writes back
+into `.chezmoitemplates/tuna/catalogs`.
+
+## Keeping the fragments drift-free
+
+Tuna rewrites `config.toml` from its in-memory state (on quit, on UI edits,
+after a migration), which **normalises indentation and strips comments**. So
+the fragments must hold Tuna's exact output and stay comment-free — put
+explanation in this file instead. Anything else shows up forever in
+`chezmoi diff`. Note there is no `schemaVersion` key: Tuna removes it once a
+config is on the current schema.
+
+To re-sync the fragments after a UI change, split the deployed file back into
+the three fragments at the `[[comboMode.bindings]]` and `[hotkeys.` boundaries,
+re-escaping `{{input}}` in the smart-link templates as `{{ "{{input}}" }}` so
+chezmoi doesn't eat it.
+
+### Schema history
+
+Tuna ≤ schemaVersion 1 used a flat `[[comboMode.bindings.children]]` tree with
+a single `url = 'tuna://run/<type>.<double-encoded>/<action label>'` per leaf.
+schemaVersion 4 replaced `children` with `destination`. Tuna's migrator cannot
+read the old shape — it fails with `Unknown keys: children` and **silently
+drops every leaf binding**, leaving the group shells behind. If that happens
+again, Tuna writes a timestamped `config.toml.backup-*` next to the config
+before rewriting it.
 
 ## Restart behavior
 
