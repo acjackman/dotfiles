@@ -56,12 +56,10 @@ def write_projects_section(projects: dict[str, Any]) -> str:
     return "\n".join(lines) + "\n"
 
 def main() -> int:
-    header_text = "\n".join(
-        [
-            "╔═══════════════════════════════════════════════════════════════════════════╗",
-            "║  Worktrunk                                                                ║",
-            "╚═══════════════════════════════════════════════════════════════════════════╝",
-        ]
+    header_text = (
+        "╔═══════════════════════════════════════════════════════════════════════════╗\n"
+        "║  Worktrunk                                                                ║\n"
+        "╚═══════════════════════════════════════════════════════════════════════════╝"
     )
     print(header_text)
 
@@ -73,7 +71,7 @@ def main() -> int:
         try:
             existing = load_toml(config_path)
             projects = existing.get("projects", {})
-        except Exception as e:
+        except Exception as e:  # noqa: BLE001 - best-effort merge; warn and keep going
             print(f"Warning: could not parse existing config: {e}")
 
     # Chezmoi-managed settings (worktrunk template syntax preserved with raw strings)

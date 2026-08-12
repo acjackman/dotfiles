@@ -167,6 +167,13 @@ def main() -> int:
             except FileNotFoundError:
                 continue
 
+            # chezmoi invokes run scripts itself, so the exec bit in the source
+            # tree is irrelevant — and `execute-template` writes the rendered copy
+            # non-executable regardless of the source mode. Restore the exec bit so
+            # ruff's EXE001 (shebang present but file not executable) doesn't fire
+            # on an artifact of how we render, which no edit to the script can fix.
+            rendered.chmod(rendered.stat().st_mode | 0o111)
+
             if is_python_file(rendered):
                 files.append((rendered, str(rel)))
 

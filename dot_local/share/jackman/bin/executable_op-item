@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
-import docopt
-import os
 import json
-import sys
+import os
 import subprocess
+import sys
+
+import docopt
 
 usage = '''Usage:
 op-item [options] <item>
@@ -23,7 +24,7 @@ args = docopt.docopt(usage)
 
 item = args["<item>"]
 
-result = subprocess.run(["op", "get", "item", item], capture_output=True)
+result = subprocess.run(["op", "get", "item", item], capture_output=True, check=False)
 
 if result.returncode != 0:
     with os.fdopen(sys.stdout.fileno(), 'wb') as out:

@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 import re
 import sys
-from urllib.parse import urlparse, urlunparse
 from dataclasses import dataclass
+from typing import ClassVar
+from urllib.parse import urlparse, urlunparse
 
 import click
 
@@ -64,7 +65,7 @@ class LinkCheck:
 
 
 class Link:
-    __check_cases__: dict[str, dict]
+    __check_cases__: ClassVar[dict[str, dict]]
 
     def __init__(self, url, domain, path_regex, parsed=None):
         self.url = self.orginal_url = url.strip()
@@ -121,7 +122,7 @@ class GithubUserLink(Link):
     def description(self):
         return self.user
 
-    __check_cases__ = {
+    __check_cases__: ClassVar[dict[str, dict]] = {
         "https://github.com/foo/thing/pull/4242": {
             "match": False,
         },
@@ -148,7 +149,7 @@ class GithubRepoLink(Link):
     def description(self):
         return f"{self.user}/{self.repo}"
 
-    __check_cases__ = {
+    __check_cases__: ClassVar[dict[str, dict]] = {
         "https://github.com/foo/thing/pull/4242": {
             "match": False,
         },
@@ -174,7 +175,7 @@ class GithubPRLink(Link):
     def description(self):
         return f"{self.repo}#{self.num}"
 
-    __check_cases__ = {
+    __check_cases__: ClassVar[dict[str, dict]] = {
         "https://github.com/foo/thing/pull/4242": {
             "description": "thing#4242",
         },
@@ -200,7 +201,7 @@ class GithubCommitLink(Link):
     def description(self):
         return f"{self.sha[:7]}"
 
-    __check_cases__ = {
+    __check_cases__: ClassVar[dict[str, dict]] = {
         "https://github.com/foo/thing/commit/7743bda08d0ac36ec17bfc1992aa3376546e5772": {
             "description": "7743bda",
         },
@@ -260,7 +261,7 @@ class LinearProjectLink(Link):
         project_name = " ".join(core_slug.split("-"))
         return project_name
 
-    __check_cases__ = {
+    __check_cases__: ClassVar[dict[str, dict]] = {
         "https://linear.app/acme/project/bobs-your-uncle-[internal]-123abc789": {
             "url": "https://linear.app/acme/project/123abc789",
             "description": "bobs your uncle",
@@ -277,7 +278,6 @@ class SlackMessageLink(Link):
             parsed=parsed,
         )
 
-        self.url
         self.url = urlunparse(
           self.parsed._replace(scheme="slack")
         )
@@ -288,7 +288,7 @@ class SlackMessageLink(Link):
     def description(self):
         return "Slack Thread"
 
-    __check_cases__ = {
+    __check_cases__: ClassVar[dict[str, dict]] = {
         "https://moovfinancial.slack.com/archives/C037430LC69/p1689019060333369": {
             "url": "slack://moovfinancial.slack.com/archives/C037430LC69/p1689019060333369",
             "description": "Slack Thread",
@@ -310,7 +310,7 @@ class SpaceliftStackLink(Link):
     def description(self):
         return f"{self.stack}"
 
-    __check_cases__ = {
+    __check_cases__: ClassVar[dict[str, dict]] = {
         "https://foo.app.spacelift.io/stack/big-project-name": {
             "description": "big-project-name",
         }
@@ -332,7 +332,7 @@ class SpaceliftRunLink(Link):
     def description(self):
         return f"{self.run}"
 
-    __check_cases__ = {
+    __check_cases__: ClassVar[dict[str, dict]] = {
         "https://foo.app.spacelift.io/stack/big-project/run/01H50Y2KC5GJM6XRWSGWV00EZM": {
             "description": "01H50Y2KC5GJM6XRWSGWV00EZM",
         }
@@ -356,7 +356,7 @@ class NotionPageLink(Link):
         title = self.slug.replace("-", " ")
         return title
 
-    __check_cases__ = {
+    __check_cases__: ClassVar[dict[str, dict]] = {
         "https://www.notion.so/moovfinancial/HTTP-Routing-8242d7f44f574c4d8e9ad80b61e56554?pvs=4": {
             "description": "HTTP Routing",
         }
@@ -377,7 +377,7 @@ class IncidentIoLink(Link):
     def description(self):
         return f"INC-{self.incident_id}"
 
-    __check_cases__ = {
+    __check_cases__: ClassVar[dict[str, dict]] = {
         "https://app.incident.io/company/incidents/44": {
             "description": "INC-44",
         },
@@ -435,7 +435,7 @@ def main(style, test):
 
     try:
         result = urlparse(pasteboard)
-    except Exception:
+    except Exception:  # noqa: BLE001 - any parse failure means "not a link", exit quietly
         # click.echo(pasteboard)
         sys.exit(2)
 
@@ -449,7 +449,9 @@ def main(style, test):
                     click.echo(format_org(link))
 
             sys.exit(0)
-        except Exception:
+        # Link classes signal "not my URL" by raising; the broad catch keeps an
+        # unmatched (or buggy) handler from aborting the whole dispatch loop.
+        except Exception:  # noqa: BLE001, S110
             pass
 
     # click.echo(pasteboard)

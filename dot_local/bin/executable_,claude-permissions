@@ -59,7 +59,7 @@ def is_permitted(tool_name: str, tool_input: dict, rules: list[str]) -> bool:
             # Match Bash(prefix:*) pattern
             if rule.startswith("Bash(") and rule.endswith(":*)"):
                 prefix = rule[5:-3]
-                if command == prefix or command.startswith(prefix + " ") or command.startswith(prefix + "\n"):
+                if command == prefix or command.startswith((prefix + " ", prefix + "\n")):
                     return True
             elif rule.startswith("Bash(") and rule.endswith(")"):
                 # Exact match without wildcard
@@ -84,11 +84,8 @@ def is_permitted(tool_name: str, tool_input: dict, rules: list[str]) -> bool:
         return False
 
     # Read, Write, Edit, Glob, Grep, Task, etc. — typically auto-allowed
-    if tool_name in ("Read", "Write", "Edit", "Glob", "Grep", "Task",
-                      "TodoRead", "TodoWrite", "NotebookEdit"):
-        return True
-
-    return False
+    return tool_name in ("Read", "Write", "Edit", "Glob", "Grep", "Task",
+                         "TodoRead", "TodoWrite", "NotebookEdit")
 
 
 def extract_command_prefix(command: str) -> str:
@@ -101,19 +98,12 @@ def extract_command_prefix(command: str) -> str:
     tokens = first_line.split()
     prefix_parts = []
     for token in tokens:
-        if (token.startswith("-")
+        if (token.startswith(("-", "$", '"', "'", "`", "(", "{", ">"))
                 or "=" in token
                 or "|" in token
                 or ";" in token
                 or "&&" in token
-                or token.startswith("$")
-                or token.startswith('"')
-                or token.startswith("'")
-                or token.startswith("`")
-                or token.startswith("(")
-                or token.startswith("{")
-                or "/" in token
-                or token.startswith(">")):
+                or "/" in token):
             break
         prefix_parts.append(token)
     return " ".join(prefix_parts) if prefix_parts else tokens[0] if tokens else command.strip()
@@ -230,15 +220,9 @@ def main() -> int:
                     first_line = first_line[:117] + "..."
                 if "\n" in detail:
                     first_line += " [multiline]"
-            elif name == "Read":
+            elif name in ("Read", "Write", "Edit"):
                 detail = inp.get("file_path", "")
-            elif name == "Write":
-                detail = inp.get("file_path", "")
-            elif name == "Edit":
-                detail = inp.get("file_path", "")
-            elif name == "Glob":
-                detail = inp.get("pattern", "")
-            elif name == "Grep":
+            elif name in ("Glob", "Grep"):
                 detail = inp.get("pattern", "")
             elif name == "WebFetch":
                 detail = inp.get("url", "")
