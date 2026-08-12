@@ -57,7 +57,7 @@ def run(args: list[str]) -> str:
         return subprocess.run(
             args, capture_output=True, text=True, check=False
         ).stdout
-    except Exception:
+    except Exception:  # noqa: BLE001 - soft-fail: never break repo creation over this
         return ""
 
 
@@ -66,7 +66,7 @@ def is_bare_repo(repo: Path) -> bool:
     dotgit = repo / ".git"
     if not dotgit.is_file():
         return False
-    m = re.search(r"^gitdir:\s*(.+)$", dotgit.read_text(errors="ignore"), re.M)
+    m = re.search(r"^gitdir:\s*(.+)$", dotgit.read_text(errors="ignore"), re.MULTILINE)
     if not m:
         return False
     gd = m.group(1).strip()

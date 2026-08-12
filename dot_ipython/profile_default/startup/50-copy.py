@@ -33,6 +33,7 @@ import subprocess
 
 from IPython.core.magic import register_line_cell_magic
 
+
 def _copy_to_clipboard(output):
     output = str(globals().get(output) or output)
     process = subprocess.Popen(
@@ -44,7 +45,7 @@ def _copy_to_clipboard(output):
 @register_line_cell_magic
 def copy(line, cell=None):
     if line and cell:
-        cell = '\n'.join((line, cell))
+        cell = f'{line}\n{cell}'
 
     _copy_to_clipboard(cell or line)
 

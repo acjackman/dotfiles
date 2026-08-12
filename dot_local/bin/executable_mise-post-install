@@ -19,8 +19,9 @@ import os
 import shutil
 import subprocess
 import sys
-import tomllib
 from pathlib import Path
+
+import tomllib
 
 
 def mise_config_files() -> list[Path]:
@@ -38,6 +39,7 @@ def active_install(tool: str) -> tuple[str, str] | None:
         ["mise", "ls", "--current", "--json", tool],
         capture_output=True,
         text=True,
+        check=False,
     )
     if result.returncode != 0:
         return None
@@ -78,7 +80,7 @@ def run_postinstall(tool: str, cmd: str, dry_run: bool) -> bool:
     print(f"       $ {cmd}", file=sys.stderr)
     if dry_run:
         return True
-    result = subprocess.run(cmd, shell=True, env=env)
+    result = subprocess.run(cmd, shell=True, env=env, check=False)
     if result.returncode != 0:
         print(f"  fail {tool}@{version}: exit {result.returncode}", file=sys.stderr)
         return False
