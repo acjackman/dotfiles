@@ -1,0 +1,302 @@
+#!/usr/bin/env zsh
+
+# Wait for a new commit to land on a PR's head branch, with a spinner and timer
+#
+# Usage:
+#   ,pr-commit                       # Wait for a new commit on current branch's PR
+#   ,pr-commit <PR_URL|PR_NUMBER>    # Wait for a new commit on a specific PR
+#   ,pr-commit 123                   # Wait on PR #123 in current repo
+#   ,pr-commit https://github.com/owner/repo/pull/123
+#   ,pr-commit 123 --from abc1234    # Baseline on a SHA you already reviewed
+#
+# Exit codes:
+#   0  a new commit landed on the PR head branch
+#   1  error (bad input, gh failure)
+#   2  PR merged (already, or while waiting) — no new commit can arrive
+#   3  PR closed unmerged (already, or while waiting)
+
+
+# Check dependencies
+for cmd in gum gh jq; do
+    if ! command -v $cmd &> /dev/null; then
+        >&2 echo "Error: $cmd is not installed."
+        exit 1
+    fi
+done
+
+# Parse arguments
+input=""
+baseline_override=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --from)
+            shift
+            if [[ -z "$1" ]]; then
+                >&2 echo "Error: --from requires a SHA"
+                exit 1
+            fi
+            baseline_override="$1"
+            ;;
+        --from=*)
+            baseline_override="${1#--from=}"
+            if [[ -z "$baseline_override" ]]; then
+                >&2 echo "Error: --from requires a SHA"
+                exit 1
+            fi
+            ;;
+        *)
+            if [[ -z "$input" ]]; then
+                input="$1"
+            else
+                >&2 echo "Error: Unexpected argument '$1'"
+                exit 1
+            fi
+            ;;
+    esac
+    shift
+done
+
+# Check if input is provided, otherwise try to get current branch's PR
+if [[ -z "$input" ]]; then
+    # Try to get PR URL for current branch (URL works better than number in worktrees)
+    input=$(gh pr view --json=url -t "{{.url}}" 2>/dev/null)
+    if [[ $? -ne 0 || -z "$input" ]]; then
+        >&2 echo "Usage: ,pr-commit [PR_URL|PR_NUMBER] [--from SHA]"
+        >&2 echo ""
+        >&2 echo "If no argument is provided, uses the current branch's PR."
+        >&2 echo "--from overrides the baseline commit (default: the PR's current head)."
+        >&2 echo ""
+        >&2 echo "Examples:"
+        >&2 echo "  ,pr-commit                    # Use current branch's PR"
+        >&2 echo "  ,pr-commit https://github.com/owner/repo/pull/123"
+        >&2 echo "  ,pr-commit 123"
+        >&2 echo "  ,pr-commit 123 --from abc1234 # Anything newer than abc1234"
+        exit 1
+    fi
+fi
+pr_url=""
+
+# Detect if input is a URL or PR number
+if [[ "$input" =~ ^https?:// ]]; then
+    pr_url="$input"
+elif [[ "$input" =~ ^[0-9]+$ ]]; then
+    # Just a PR number, need to construct URL from current repo
+    if ! git rev-parse --git-dir >/dev/null 2>&1; then
+        >&2 echo "Error: Not in a git repository. Please provide a full PR URL."
+        exit 1
+    fi
+    pr_url="$input"
+else
+    >&2 echo "Error: Invalid input. Provide a PR URL or PR number."
+    exit 1
+fi
+
+# Fetch initial PR information
+echo "Fetching PR information..."
+pr_data=$(gh pr view "$pr_url" --json=number,title,state,mergedAt,url,headRefName,headRefOid 2>/dev/null)
+
+if [[ $? -ne 0 || -z "$pr_data" ]]; then
+    >&2 echo "Failed to fetch PR data. Make sure the URL is valid and you have access to the repository."
+    exit 1
+fi
+
+pr_number=$(echo "$pr_data" | jq -r '.number')
+pr_title=$(echo "$pr_data" | jq -r '.title')
+pr_state=$(echo "$pr_data" | jq -r '.state')
+pr_merged_at=$(echo "$pr_data" | jq -r '.mergedAt')
+pr_url_full=$(echo "$pr_data" | jq -r '.url')
+pr_head_branch=$(echo "$pr_data" | jq -r '.headRefName')
+pr_head_sha=$(echo "$pr_data" | jq -r '.headRefOid')
+
+# Determine if merged (mergedAt is non-null)
+if [[ "$pr_merged_at" != "null" && -n "$pr_merged_at" ]]; then
+    pr_merged="true"
+else
+    pr_merged="false"
+fi
+
+# Resolve the repo so we can look commits up by SHA
+pr_repo=$(echo "$pr_url_full" | sed -E 's#^https?://[^/]+/([^/]+/[^/]+)/pull/.*$#\1#')
+
+# Look up a commit's subject/author via the API. Prints "subject<TAB>author".
+# Prints nothing if the commit can't be read (gh dumps the error body on stdout,
+# so the exit status is the only trustworthy signal).
+commit_info() {
+    local sha="$1"
+    local out
+    out=$(gh api "repos/${pr_repo}/commits/${sha}" \
+        --jq '[(.commit.message | split("\n")[0]), (.commit.author.name // "unknown")] | @tsv' 2>/dev/null) || return 1
+    echo "$out"
+}
+
+# Establish the baseline
+baseline_sha="$pr_head_sha"
+if [[ -n "$baseline_override" ]]; then
+    baseline_sha=$(gh api "repos/${pr_repo}/commits/${baseline_override}" --jq '.sha' 2>/dev/null)
+    if [[ $? -ne 0 || ! "$baseline_sha" =~ '^[0-9a-f]{40}$' ]]; then
+        >&2 echo "Error: could not resolve --from SHA '${baseline_override}' in ${pr_repo}"
+        exit 1
+    fi
+fi
+
+baseline_info=$(commit_info "$baseline_sha")
+baseline_subject=$(echo "$baseline_info" | cut -f1)
+[[ -z "$baseline_subject" ]] && baseline_subject="(subject unavailable)"
+
+echo ""
+gum style --border rounded --padding "0 1" --margin "1" \
+    "PR #${pr_number}: ${pr_title}" \
+    "URL: ${pr_url_full}" \
+    "Branch: ${pr_head_branch}" \
+    "Current state: ${pr_state}" \
+    "Baseline: ${baseline_sha[1,7]} ${baseline_subject}"
+echo ""
+
+# Check if already merged
+if [[ "$pr_merged" == "true" ]]; then
+    gum style --foreground 3 "⚠ PR is already merged — no new commits will land on it"
+    exit 2
+fi
+
+# Check if PR is closed but not merged
+if [[ "$pr_state" == "CLOSED" && "$pr_merged" == "false" ]]; then
+    gum style --foreground 3 "⚠ PR is closed without merging — no new commits will land on it"
+    exit 3
+fi
+
+# If the head already differs from the baseline, we're done before we start
+if [[ "$pr_head_sha" != "$baseline_sha" ]]; then
+    new_info=$(commit_info "$pr_head_sha")
+    new_subject=$(echo "$new_info" | cut -f1)
+    new_author=$(echo "$new_info" | cut -f2)
+    [[ -z "$new_subject" ]] && new_subject="(subject unavailable)"
+    [[ -z "$new_author" ]] && new_author="unknown"
+    gum style --foreground 2 "✓ Head already ahead of baseline: ${pr_head_sha[1,7]}"
+    gum style --foreground 2 "  ${new_subject}"
+    gum style --foreground 2 "  by ${new_author}"
+    exit 0
+fi
+
+# Wait for a new commit with spinner and timer
+start_time=$(date +%s)
+check_interval=10  # Check every 10 seconds
+
+# Function to format elapsed time
+format_time() {
+    local total_seconds=$1
+    local hours=$((total_seconds / 3600))
+    local minutes=$(((total_seconds % 3600) / 60))
+    local seconds=$((total_seconds % 60))
+
+    if [ $hours -gt 0 ]; then
+        printf "%02d:%02d:%02d" $hours $minutes $seconds
+    else
+        printf "%02d:%02d" $minutes $seconds
+    fi
+}
+
+# Create a temporary script for the spinner
+spinner_script=$(mktemp)
+cat > "$spinner_script" << 'SPINNER_EOF'
+#!/usr/bin/env zsh
+
+pr_url="$1"
+check_interval="$2"
+start_time="$3"
+baseline_sha="$4"
+
+format_time() {
+    local total_seconds=$1
+    local hours=$((total_seconds / 3600))
+    local minutes=$(((total_seconds % 3600) / 60))
+    local seconds=$((total_seconds % 60))
+
+    if [ $hours -gt 0 ]; then
+        printf "%02d:%02d:%02d" $hours $minutes $seconds
+    else
+        printf "%02d:%02d" $minutes $seconds
+    fi
+}
+
+while true; do
+    current_time=$(date +%s)
+    elapsed=$((current_time - start_time))
+    elapsed_str=$(format_time $elapsed)
+
+    # Check PR head and status
+    pr_data=$(gh pr view "$pr_url" --json=headRefOid,mergedAt,state 2>/dev/null)
+
+    if [[ $? -ne 0 ]]; then
+        echo "error"
+        exit 1
+    fi
+
+    pr_head_sha=$(echo "$pr_data" | jq -r '.headRefOid')
+    pr_merged_at=$(echo "$pr_data" | jq -r '.mergedAt')
+    pr_state=$(echo "$pr_data" | jq -r '.state')
+
+    if [[ -n "$pr_head_sha" && "$pr_head_sha" != "null" && "$pr_head_sha" != "$baseline_sha" ]]; then
+        echo "commit:$elapsed_str:$pr_head_sha"
+        exit 0
+    fi
+
+    if [[ "$pr_merged_at" != "null" && -n "$pr_merged_at" ]]; then
+        echo "merged:$elapsed_str"
+        exit 0
+    fi
+
+    if [[ "$pr_state" == "CLOSED" ]]; then
+        echo "closed:$elapsed_str"
+        exit 0
+    fi
+
+    echo "waiting:$elapsed_str"
+    sleep "$check_interval"
+done
+SPINNER_EOF
+
+chmod +x "$spinner_script"
+
+# Run with gum spinner
+full_output=$(gum spin --spinner dot --title "Waiting for a new commit on ${pr_head_branch}..." --show-output -- "$spinner_script" "$pr_url_full" "$check_interval" "$start_time" "$baseline_sha")
+
+# Clean up
+rm -f "$spinner_script"
+
+# Get the last line of output (the final status)
+result=$(echo "$full_output" | tail -n 1)
+
+# Parse result
+if [[ "$result" =~ '^commit:([^:]+):(.+)$' ]]; then
+    elapsed_str="${match[1]}"
+    new_sha="${match[2]}"
+    new_info=$(commit_info "$new_sha")
+    new_subject=$(echo "$new_info" | cut -f1)
+    new_author=$(echo "$new_info" | cut -f2)
+    [[ -z "$new_subject" ]] && new_subject="(subject unavailable)"
+    [[ -z "$new_author" ]] && new_author="unknown"
+    echo ""
+    gum style --foreground 2 "✓ New commit after ${elapsed_str}: ${new_sha[1,7]}"
+    gum style --foreground 2 "  ${new_subject}"
+    gum style --foreground 2 "  by ${new_author}"
+    exit 0
+elif [[ "$result" =~ '^merged:(.+)$' ]]; then
+    elapsed_str="${match[1]}"
+    echo ""
+    gum style --foreground 3 "⚠ PR merged after ${elapsed_str} — no new commit will land"
+    exit 2
+elif [[ "$result" =~ '^closed:(.+)$' ]]; then
+    elapsed_str="${match[1]}"
+    echo ""
+    gum style --foreground 3 "⚠ PR closed without merging after ${elapsed_str} — no new commit will land"
+    exit 3
+elif [[ "$result" == "error" ]]; then
+    echo ""
+    >&2 echo "Error checking PR status"
+    exit 1
+else
+    echo ""
+    >&2 echo "Unknown error occurred"
+    exit 1
+fi
