@@ -237,7 +237,8 @@ while true; do
     pr_state=$(echo "$pr_data" | jq -r '.state')
 
     if [[ -n "$pr_head_sha" && "$pr_head_sha" != "null" && "$pr_head_sha" != "$baseline_sha" ]]; then
-        echo "commit:$elapsed_str:$pr_head_sha"
+        # SHA first: elapsed_str contains colons, so it has to be the tail field
+        echo "commit:$pr_head_sha:$elapsed_str"
         exit 0
     fi
 
@@ -268,9 +269,9 @@ rm -f "$spinner_script"
 result=$(echo "$full_output" | tail -n 1)
 
 # Parse result
-if [[ "$result" =~ '^commit:([^:]+):(.+)$' ]]; then
-    elapsed_str="${match[1]}"
-    new_sha="${match[2]}"
+if [[ "$result" =~ '^commit:([0-9a-f]{40}):(.+)$' ]]; then
+    new_sha="${match[1]}"
+    elapsed_str="${match[2]}"
     new_info=$(commit_info "$new_sha")
     new_subject=$(echo "$new_info" | cut -f1)
     new_author=$(echo "$new_info" | cut -f2)
