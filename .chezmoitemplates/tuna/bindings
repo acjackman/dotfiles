@@ -1,12 +1,10 @@
 [[comboMode.bindings]]
-id = 'B657D699-0037-4BC4-975A-27EA41B2E10F'
 key = 't'
 
     [comboMode.bindings.destination]
     type = 'group'
 
         [[comboMode.bindings.destination.bindings]]
-        id = '82538A9F-FEFF-549C-A518-DAC3EF28A800'
         key = 't'
 
             [comboMode.bindings.destination.bindings.destination]
@@ -20,7 +18,6 @@ key = 't'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = 'FC325DBE-EE99-5812-B13F-B45E31D262D3'
         key = 'c'
 
             [comboMode.bindings.destination.bindings.destination]
@@ -34,7 +31,6 @@ key = 't'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = '3ADB57E3-400C-5A22-8340-389DCAB2A85C'
         key = 'n'
         label = 'New Window + Sesh'
 
@@ -49,7 +45,6 @@ key = 't'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = '51093A33-486C-565B-98A4-773FA211AE0E'
         key = 'd'
         label = 'Dotfiles Session'
 
@@ -64,7 +59,6 @@ key = 't'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = 'B7AD4EB0-C579-518A-92A0-FCEFC72E3220'
         key = 'i'
         label = 'Infra Session'
 
@@ -79,7 +73,6 @@ key = 't'
                 type = 'savedCommand'
 
 [[comboMode.bindings]]
-id = 'E8E06AA1-CBA7-5AF0-BE15-703774CCFB3B'
 key = 'e'
 
     [comboMode.bindings.destination]
@@ -93,14 +86,12 @@ key = 'e'
         type = 'savedCommand'
 
 [[comboMode.bindings]]
-id = '40D5DDCF-7272-4550-8BA7-826C02C72B6E'
 key = 'r'
 
     [comboMode.bindings.destination]
     type = 'group'
 
         [[comboMode.bindings.destination.bindings]]
-        id = '8651BF76-4139-5BED-9728-43C528E79F1A'
         key = 's'
 
             [comboMode.bindings.destination.bindings.destination]
@@ -114,7 +105,6 @@ key = 'r'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = '42833F94-7369-56F8-B92C-E57316D7DCCF'
         key = 'c'
 
             [comboMode.bindings.destination.bindings.destination]
@@ -128,7 +118,6 @@ key = 'r'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = '0ED92CB7-277E-541F-A8F1-87C22C996C22'
         key = 'a'
 
             [comboMode.bindings.destination.bindings.destination]
@@ -142,7 +131,6 @@ key = 'r'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = 'E93BC771-6737-541D-A8BC-A7C555FD652A'
         key = 'b'
 
             [comboMode.bindings.destination.bindings.destination]
@@ -156,7 +144,6 @@ key = 'r'
                 type = 'savedCommand'
 
 [[comboMode.bindings]]
-id = 'B03B62C5-CE24-4356-B44A-32DF8D17C3A0'
 key = 'p'
 label = 'DeskPad'
 
@@ -164,7 +151,6 @@ label = 'DeskPad'
     type = 'group'
 
         [[comboMode.bindings.destination.bindings]]
-        id = '789F0704-4260-598C-B612-A4001EC7FFA9'
         key = 'p'
 
             [comboMode.bindings.destination.bindings.destination]
@@ -178,7 +164,6 @@ label = 'DeskPad'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = '76FEDEBF-43AB-5A16-9CBF-AA74B47A7F86'
         key = 'q'
         label = 'Quit DeskPad'
 
@@ -193,7 +178,6 @@ label = 'DeskPad'
                 type = 'savedCommand'
 
 [[comboMode.bindings]]
-id = '9E45F92F-9702-4975-8EBD-F8E02389CFBB'
 key = 'u'
 label = 'UI Tweaks'
 
@@ -201,7 +185,6 @@ label = 'UI Tweaks'
     type = 'group'
 
         [[comboMode.bindings.destination.bindings]]
-        id = 'A99A448D-16C2-5DFA-ACA7-9B9A88104147'
         key = 'p'
         label = 'Toggle DeskPad'
 
@@ -218,7 +201,6 @@ label = 'UI Tweaks'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = 'D9465823-F443-5127-91A0-7FD36205DA07'
         key = 'w'
         label = 'Rotate Wallpapers'
 
@@ -229,7 +211,6 @@ label = 'UI Tweaks'
                 relative = 'hammerspoon://rotate-wallpapers'
 
         [[comboMode.bindings.destination.bindings]]
-        id = 'B2681334-D954-5E60-860D-A5131D2A31E5'
         key = 'd'
         label = 'Toggle Dark Mode'
 
@@ -246,7 +227,6 @@ label = 'UI Tweaks'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = 'AE625D1E-D768-475F-A59A-F770F16C790D'
         key = 'h'
         label = 'HazeOver'
 
@@ -254,7 +234,6 @@ label = 'UI Tweaks'
             type = 'group'
 
                 [[comboMode.bindings.destination.bindings.destination.bindings]]
-                id = '4595D00B-5981-5B1C-8D7E-9A464C64C305'
                 key = 'h'
                 label = 'Toggle'
 
@@ -269,7 +248,6 @@ label = 'UI Tweaks'
                         type = 'savedCommand'
 
                 [[comboMode.bindings.destination.bindings.destination.bindings]]
-                id = '7CA74BCF-8495-560A-8947-FDF9F4C6E278'
                 key = '='
                 label = 'Increase Opacity'
 
@@ -284,7 +262,6 @@ label = 'UI Tweaks'
                         type = 'savedCommand'
 
                 [[comboMode.bindings.destination.bindings.destination.bindings]]
-                id = '45C5E754-3DA8-51C3-9C5A-D9E6BAC8E7CE'
                 key = '-'
                 label = 'Decrease Opacity'
 
@@ -299,7 +276,6 @@ label = 'UI Tweaks'
                         type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = 'FB5BC6F8-4E89-5079-83BC-0F0D072DB156'
         key = 's'
         label = 'Sketchybar'
 
@@ -307,7 +283,6 @@ label = 'UI Tweaks'
             type = 'group'
 
                 [[comboMode.bindings.destination.bindings.destination.bindings]]
-                id = 'B1F09617-A7A0-57C0-A450-08EA97B33157'
                 key = 's'
                 label = 'Toggle'
 
@@ -322,7 +297,6 @@ label = 'UI Tweaks'
                         type = 'savedCommand'
 
 [[comboMode.bindings]]
-id = '6CD9D130-0179-4EB4-9CAE-59669D0FB875'
 key = 'a'
 label = 'SuperWhisper'
 
@@ -330,7 +304,6 @@ label = 'SuperWhisper'
     type = 'group'
 
         [[comboMode.bindings.destination.bindings]]
-        id = 'F94A79AA-3041-5FC5-BC20-8684295E7ECC'
         key = 'r'
         label = 'Toggle Recording'
 
@@ -347,7 +320,6 @@ label = 'SuperWhisper'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = '19401185-5173-5C5C-8E1E-5FF302F6CDE4'
         key = 'm'
         label = 'Change Mode'
 
@@ -364,7 +336,6 @@ label = 'SuperWhisper'
                 type = 'savedCommand'
 
 [[comboMode.bindings]]
-id = '98EFDE5E-CBE3-4393-85D2-34055F16B607'
 key = 'o'
 label = 'Open'
 
@@ -372,7 +343,6 @@ label = 'Open'
     type = 'group'
 
         [[comboMode.bindings.destination.bindings]]
-        id = '5494F123-91DF-5371-9CE0-07B5863CB768'
         key = 'e'
 
             [comboMode.bindings.destination.bindings.destination]
@@ -386,7 +356,6 @@ label = 'Open'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = '5611A78A-3222-5FF6-8784-BC6F96B805C7'
         key = 'i'
 
             [comboMode.bindings.destination.bindings.destination]
@@ -400,7 +369,6 @@ label = 'Open'
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
-        id = 'E80D3037-8565-5627-A153-5E883242CE01'
         key = 'm'
 
             [comboMode.bindings.destination.bindings.destination]
@@ -414,7 +382,6 @@ label = 'Open'
                 type = 'savedCommand'
 
 [[comboMode.bindings]]
-id = '5F311ABF-A939-4241-9B8E-AE1E3F5C5E93'
 key = 'enter'
 label = 'Brain'
 
@@ -423,7 +390,6 @@ label = 'Brain'
 
         [[comboMode.bindings.destination.bindings]]
         iconPath = '/Applications/Obsidian.app'
-        id = 'A6A4D46A-DEDC-50A1-8B36-AEDE5465A85B'
         key = 'enter'
         label = 'Log Entry'
 
@@ -439,7 +405,6 @@ label = 'Brain'
 
         [[comboMode.bindings.destination.bindings]]
         iconPath = '/Applications/Obsidian.app'
-        id = '90CB633C-573B-5608-8124-79AA2194AF1E'
         key = 'b'
         label = 'Today'
 
@@ -455,7 +420,6 @@ label = 'Brain'
 
         [[comboMode.bindings.destination.bindings]]
         iconPath = '/Applications/Obsidian.app'
-        id = '4D0C1F2B-2036-5F67-9D63-F04A8F9982D0'
         key = 'space'
         label = 'Capture'
 
@@ -471,7 +435,6 @@ label = 'Brain'
 
         [[comboMode.bindings.destination.bindings]]
         iconPath = '/Applications/Obsidian.app'
-        id = 'A3FD9B81-ED6D-546D-A795-1EFC16AB895A'
         key = 'h'
         label = 'Launchpad'
 
@@ -487,7 +450,6 @@ label = 'Brain'
 
         [[comboMode.bindings.destination.bindings]]
         iconPath = '/Applications/Obsidian.app'
-        id = '616AB9C6-7BD5-5954-8F77-6A6BCB0FB970'
         key = 'a'
         label = 'Atlas'
 
@@ -503,7 +465,6 @@ label = 'Brain'
 
         [[comboMode.bindings.destination.bindings]]
         iconPath = '/Applications/Alacritty.app'
-        id = '6E08B7AD-6972-5414-94D4-9E11C31C1A6C'
         key = 't'
         label = 'Terminal'
 

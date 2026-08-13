@@ -143,6 +143,16 @@ the three fragments at the `[[comboMode.bindings]]` and `[hotkeys.` boundaries,
 re-escaping `{{input}}` in the smart-link templates as `{{ "{{input}}" }}` so
 chezmoi doesn't eat it.
 
+**Strip `id` keys when re-syncing.** Tuna persists exactly one id — the
+`[[hotkeys.custom]]` one. Combo-binding and `[[smartLinks.entries]]` ids are
+regenerated on load and dropped when Tuna rewrites the file, so any that
+survive in the fragments show up as permanent `chezmoi diff` noise. Leaf
+binding ids are UUIDv5 (content-derived), which is why Tuna can recompute
+them. The uniqueness rule under "Binding format" is an *authoring* constraint
+— hand-written duplicates fail the schema-4 migration — not a claim that Tuna
+stores them. (Fixed 2026-08-13: 46 such ids had been carried in since the
+schemaVersion 4 migration and never matched Tuna's output.)
+
 ### Schema history
 
 Tuna ≤ schemaVersion 1 used a flat `[[comboMode.bindings.children]]` tree with
