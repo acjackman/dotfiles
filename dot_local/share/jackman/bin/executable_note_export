@@ -21,7 +21,7 @@ def convert(path: Path):
     post = frontmatter.load(path)
 
     content = post.content
-    content = re.sub("\[(?:\[|\[[^\]]*\|)([^\]\|]+)\]\]", r"\1", content)
+    content = re.sub(r"\[(?:\[|\[[^\]]*\|)([^\]\|]+)\]\]", r"\1", content)
     content = re.sub("## Notes", "", content)
     content = re.sub("^# ", "## ", content)
     # content = re.sub("^[]# ", "", content)

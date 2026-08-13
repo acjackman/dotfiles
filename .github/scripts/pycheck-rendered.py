@@ -9,7 +9,9 @@ as files) so we can lint them too. Each Python file is checked with:
     2. ruff check (when --ruff is passed and ruff is on PATH)
 
 A file is considered Python if its name ends in ``.py`` or its first
-line is a shebang containing ``python``. Templates that render to empty
+line is a shebang naming a Python interpreter — either directly
+(``#!/usr/bin/env python3``) or via uv's PEP 723 script runner
+(``#!/usr/bin/env -S uv run --script``). Templates that render to empty
 content (e.g. a darwin-only block on a linux runner) are skipped.
 
 Usage:
@@ -51,7 +53,11 @@ def first_line(path: Path) -> str:
 def is_python_file(path: Path) -> bool:
     if path.suffix == ".py":
         return True
-    return "python" in first_line(path)
+    shebang = first_line(path)
+    # `uv run` executes a PEP 723 script with an ephemeral interpreter, so the
+    # shebang never mentions "python" — match it explicitly or every PEP 723
+    # script silently falls out of the gate.
+    return "python" in shebang or "uv run" in shebang
 
 
 def find_run_scripts(source: Path) -> list[Path]:
