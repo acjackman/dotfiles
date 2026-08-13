@@ -101,3 +101,7 @@ Library/Application Support/ovim
 # umputun/revdiff plugin (re-enabled in dot_claude/plugins.json). Reverts to the
 # blocking display-popup review; the plugin is invoked as /revdiff:revdiff.
 .claude/skills/revdiff
+
+# run.bak: orphaned pre-chezmoi script (unused, imports uninstalled docopt);
+# source removed in #14, stale copy deleted manually 2026-08-12.
+.local/share/jackman/bin/run.bak
