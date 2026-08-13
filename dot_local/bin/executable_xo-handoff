@@ -89,7 +89,11 @@ def render_handoff(
 
 def do_add(args, inbox_dir: Path) -> int:
     """`xo-handoff add` — write one handoff file into inbox_dir."""
-    timestamp = datetime.now().strftime("%Y%m%d%H%M%S")
+    # `.astimezone()` only attaches the local zone to an otherwise-naive local
+    # now(), so the rendered id is byte-identical to `datetime.now()` — the point
+    # is to be explicit that this timestamp is deliberately local wall-clock,
+    # matching the local-time ids used elsewhere (efforts, daily notes).
+    timestamp = datetime.now().astimezone().strftime("%Y%m%d%H%M%S")
     id_ = f"{timestamp}-{args.slug}" if args.slug else timestamp
     dest = inbox_dir / f"{id_}.md"
     if dest.exists():
@@ -145,7 +149,12 @@ def do_list(inbox_dir: Path) -> int:
         try:
             raw = f.read_text()
             meta, _, body = parse_handoff(raw)
-        except Exception as e:
+        # Everything reachable in the block above: OSError from read_text,
+        # UnicodeDecodeError (a ValueError) on non-UTF-8 bytes, the ValueError
+        # parse_handoff raises for a missing frontmatter block, and YAMLError
+        # from yaml.safe_load. Anything else is a real bug and should not be
+        # swallowed as "malformed handoff".
+        except (OSError, ValueError, yaml.YAMLError) as e:
             print(f"! skipping malformed handoff {f.name}: {e}", file=sys.stderr)
             continue
         ask_line = ""
