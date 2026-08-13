@@ -75,6 +75,11 @@ class Link:
         except Exception as e:
             raise NotAUrl from e
 
+        # urlparse() happily accepts non-URL text (and schemes like mailto:),
+        # leaving hostname as None — that's a "not my URL" signal, not a bug.
+        if self.parsed.hostname is None:
+            raise NotAUrl(f"No hostname in {self.url!r}")
+
         if not self.parsed.hostname.endswith(domain):
             raise MismatchedDomain(f"Not {domain}, {self.parsed.hostname}")
 
@@ -409,7 +414,7 @@ def test_links():
 
         for result in results:
             check_state, messages = result()
-            passing |= check_state
+            passing &= check_state
             result_code = "PASSED" if check_state else "FAILED"
             result_code_color = "green" if check_state else "red"
 
@@ -429,7 +434,9 @@ def test_links():
 def main(style, test):
     if test:
         passing = test_links()
-        sys.exit(passing)
+        # sys.exit() treats a truthy int/bool as a failing status, so map
+        # "everything passed" to 0 explicitly.
+        sys.exit(0 if passing else 1)
 
     pasteboard = click.get_text_stream("stdin").read().strip()
 
@@ -449,9 +456,10 @@ def main(style, test):
                     click.echo(format_org(link))
 
             sys.exit(0)
-        # Link classes signal "not my URL" by raising; the broad catch keeps an
-        # unmatched (or buggy) handler from aborting the whole dispatch loop.
-        except Exception:  # noqa: BLE001, S110
+        # Link classes signal "not my URL" by raising a Mismatch subclass. Only
+        # those are skipped — a genuine error inside a matching handler should
+        # surface rather than masquerade as "nothing matched".
+        except Mismatch:
             pass
 
     # click.echo(pasteboard)
