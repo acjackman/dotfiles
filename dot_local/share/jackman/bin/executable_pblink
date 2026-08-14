@@ -236,12 +236,37 @@ class LinearIssueLink(Link):
         self.num = self.match.group(4)
 
         self.url = urlunparse(
-            parsed._replace(path=f"/{self.workspace}/issue/{self.ticket}/")
+            self.parsed._replace(path=f"/{self.workspace}/issue/{self.ticket}/")
         )
 
     @property
     def description(self):
         return f"{self.ticket}"
+
+    __check_cases__: ClassVar[dict[str, dict]] = {
+        # A title slug after the ticket is stripped from the canonical URL.
+        "https://linear.app/acme/issue/INFRA-4398/migrate-effort-id-format": {
+            "url": "https://linear.app/acme/issue/INFRA-4398/",
+            "description": "INFRA-4398",
+        },
+        # Already canonical (trailing slash, no slug) — passes through unchanged.
+        "https://linear.app/acme/issue/INFRA-4398/": {
+            "description": "INFRA-4398",
+        },
+        # The path regex requires the slash after the ticket, so a bare issue
+        # URL without it is not recognised.
+        "https://linear.app/acme/issue/INFRA-4398": {
+            "match": False,
+        },
+        # Team keys are upper-case in the regex; a lower-cased URL is not ours.
+        "https://linear.app/acme/issue/infra-4398/": {
+            "match": False,
+        },
+        # Project URLs belong to LinearProjectLink.
+        "https://linear.app/acme/project/bobs-your-uncle-123abc789": {
+            "match": False,
+        },
+    }
 
 
 class LinearProjectLink(Link):
