@@ -105,3 +105,10 @@ Library/Application Support/ovim
 # run.bak: orphaned pre-chezmoi script (unused, imports uninstalled docopt);
 # source removed in #14, stale copy deleted manually 2026-08-12.
 .local/share/jackman/bin/run.bak
+
+# op-item: unreferenced 1Password field-lister, broken since the op CLI v1->v2
+# cutover (it called `op get item`; v2 rejects it as an unknown command). Its job
+# is covered natively now: `op item get [--format json]` lists fields, and
+# `op read op://vault/item/field` fetches one. Last functional change 2021-03-18;
+# source removed 2026-08-13.
+.local/share/jackman/bin/op-item
