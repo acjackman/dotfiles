@@ -66,3 +66,9 @@ enabled = true
 name = 'YouTube'
 requiresInput = true
 template = 'https://www.youtube.com/results?search_query={{ "{{input}}" }}'
+
+[[catalogSettings]]
+catalogIdentifier = 'tuna.prompts'
+
+    [catalogSettings.values]
+    Provider = 'apple'
