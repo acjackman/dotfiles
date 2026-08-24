@@ -16,7 +16,7 @@ gcloud = { version = "latest", postinstall = "python3 -m venv ~/.config/gcloud/v
 "pipx:pre-commit" = "latest"
 "pipx:llm" = { version = "latest", uvx_args = "--with llm-mlx --with llm-gpt4all --with llm-anthropic --with llm-tools-simpleeval --with llm-cmd --with llm-jq --with llm-python" }
 sops = "latest"
-watchexec = "latest"
+"github:watchexec/watchexec" = "latest"
 "pipx:justpath" = "latest"
 "pipx:claude-code-transcripts" = "latest"
 "npm:opencode-ai" = "latest"
