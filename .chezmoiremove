@@ -112,3 +112,8 @@ Library/Application Support/ovim
 # `op read op://vault/item/field` fetches one. Last functional change 2021-03-18;
 # source removed 2026-08-13.
 .local/share/jackman/bin/op-item
+
+# wt-cleanup: renamed to ,g-cleanup-wt (2026-08-25) to match the ,-prefix
+# convention for global personal commands. Same script, no behaviour change
+# beyond the artifacts check now ignoring empty tmp//.tmp/ scratch dirs.
+.local/bin/wt-cleanup

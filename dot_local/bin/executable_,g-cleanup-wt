@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# wt-cleanup — Safely remove merged worktrees and their branches
+# ,g-cleanup-wt — Safely remove merged worktrees and their branches
 #
 # For each non-main worktree, checks for:
 #   1. Unmerged changes — local ancestry first, then GitHub PR state via `gh`
 #      so squash/rebase merges (which break local ancestry) count as merged
-#   2. Untracked/ignored artifacts (.tmp files, tmp/ dirs)
+#   2. Uncommitted work — staged or unstaged changes to tracked files
+#   3. Untracked/ignored artifacts (*.tmp files, non-empty tmp/ and .tmp/ dirs)
 #
 # Removal is delegated to `wt remove`, whose [pre-remove] tmux hook does the
 # live-session safety checks: it aborts if a busy pane (e.g. a running claude)
@@ -15,7 +16,7 @@ set -euo pipefail
 # Safe worktrees are removed automatically. Unsafe ones are skipped with
 # a warning, unless --interactive is passed to prompt for confirmation.
 #
-# Usage: wt-cleanup [--interactive] [--dry-run]
+# Usage: ,g-cleanup-wt [--interactive] [--dry-run]
 
 interactive=false
 dry_run=false
@@ -109,17 +110,33 @@ for entry in "${worktrees[@]}"; do
     fi
   fi
 
-  # 2. Untracked/ignored artifacts
+  # 2. Uncommitted work — staged or unstaged changes to tracked files. Untracked
+  # files are deliberately not counted here; the artifacts check below covers the
+  # scratch paths, and everything else untracked is noise (build output, caches).
+  dirty="$(git -C "$wt_path" status --porcelain --untracked-files=no 2>/dev/null || true)"
+  if [[ -n "$dirty" ]]; then
+    dirty_count="$(printf '%s\n' "$dirty" | wc -l | tr -d ' ')"
+    warnings+=("uncommitted: $dirty_count tracked file(s) modified")
+  fi
+
+  # 3. Untracked/ignored artifacts
+  # Scratch dirs (tmp/, .tmp/) are conventional and gitignored in many repos —
+  # an *empty* one carries nothing worth saving, so only a populated one counts.
+  # -type f on the find keeps those same dirs from being double-reported as
+  # "*.tmp" matches, and -prune keeps their contents out of the file list.
   artifacts=()
-  if [[ -d "$wt_path/tmp" ]]; then
-    artifacts+=("tmp/")
-  fi
-  if [[ -d "$wt_path/.tmp" ]]; then
-    artifacts+=(".tmp/")
-  fi
+  for scratch in tmp .tmp; do
+    d="$wt_path/$scratch"
+    [[ -d "$d" ]] || continue
+    if [[ -n "$(ls -A "$d" 2>/dev/null)" ]]; then
+      artifacts+=("$scratch/")
+    fi
+  done
   while IFS= read -r f; do
     artifacts+=("$f")
-  done < <(find "$wt_path" -maxdepth 2 -name "*.tmp" -not -path "$wt_path/.git/*" 2>/dev/null || true)
+  done < <(find "$wt_path" -maxdepth 2 \
+    \( -path "$wt_path/.git" -o -path "$wt_path/tmp" -o -path "$wt_path/.tmp" \) -prune -o \
+    -type f -name "*.tmp" -print 2>/dev/null || true)
   if [[ ${#artifacts[@]} -gt 0 ]]; then
     warnings+=("artifacts found: ${artifacts[*]}")
   fi
