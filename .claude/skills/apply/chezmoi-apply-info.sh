@@ -32,38 +32,49 @@ fi
 echo ""
 
 # --- Status ---
+# Scripts are excluded throughout (-x scripts). chezmoi runs run_ scripts on apply
+# by design: an R entry can never be file drift, and plain run_ scripts are pending
+# permanently, so they carry no information. chezmoi diff also renders scripts as
+# "new file mode 100755" against /dev/null, which reads exactly like a genuinely
+# new managed file and has caused agents to try to execute the target path.
+# See .docs/chezmoi.md for how run_ scripts work.
 echo "=== STATUS ==="
-status_output="$(chezmoi status "${source_flag[@]}" "${target_paths[@]}" 2>&1)" || true
-if [[ -z "$status_output" ]]; then
+status_output="$(chezmoi status -x scripts "${source_flag[@]}" "${target_paths[@]}" 2>&1)" || true
+# Scripts that would actually do something: run_onchange_/run_once_ that are
+# pending. -x always drops the plain run_ scripts, which are always pending.
+pending_scripts="$(chezmoi status -i scripts -x always "${source_flag[@]}" "${target_paths[@]}" 2>&1)" || true
+
+if [[ -z "$status_output" && -z "$pending_scripts" ]]; then
   echo "(no pending changes)"
   echo ""
   echo "=== DONE ==="
   echo "Nothing to apply."
   exit 0
 fi
-echo "$status_output"
+
+if [[ -n "$status_output" ]]; then
+  echo "$status_output"
+else
+  # Only a script is pending — e.g. you edited a run_onchange_ script body, or a
+  # file it hashes. Still worth applying; there is just nothing to diff.
+  echo "(no file changes; chezmoi will run its scripts as usual)"
+fi
 echo ""
 
 # --- Diff ---
 echo "=== DIFF ==="
 # -r because chezmoi diff (unlike status) does NOT recurse into a directory
 # argument by default, so a directory-scoped preview silently showed nothing.
-chezmoi diff -r "${source_flag[@]}" "${target_paths[@]}" 2>&1 || true
+chezmoi diff -r -x scripts "${source_flag[@]}" "${target_paths[@]}" 2>&1 || true
 echo ""
 
-# --- Warnings ---
-script_lines="$(echo "$status_output" | grep '^.R ' || true)"
-if [[ -n "$script_lines" ]]; then
-  echo "=== WARNINGS ==="
-  echo "The following scripts will EXECUTE (not create files):"
-  echo "$script_lines"
-  if [[ "$in_worktree" == true ]]; then
-    echo ""
-    echo "WARNING: run_onchange_ scripts affect GLOBAL persistent state"
-    echo "(~/.config/chezmoi/chezmoistate.boltdb). Running them from a worktree"
-    echo "may cause them to re-trigger when applying from the default source later."
-    echo "See .docs/chezmoi-worktrees.md for details."
-  fi
+# --- Worktree caution ---
+if [[ "$in_worktree" == true ]]; then
+  echo "=== WORKTREE CAUTION ==="
+  echo "run_onchange_ scripts record their state globally"
+  echo "(~/.config/chezmoi/chezmoistate.boltdb), not per-worktree. Applying broadly"
+  echo "from a worktree can leave that state inconsistent with the default source."
+  echo "Prefer targeted applies. See .docs/chezmoi-worktrees.md."
   echo ""
 fi
 
