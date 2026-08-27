@@ -34,10 +34,12 @@ Apply chezmoi dotfile changes from the source repository to their target locatio
 
 ## Important
 
-- **Never use `chezmoi apply --force`** — it silently overwrites locally-diverged files
-- If chezmoi errors due to a conflict, **stop and notify the user** — they may have local changes to merge
+- **Never reach for `chezmoi apply --force` to get past a problem** — it silently overwrites locally-diverged files
+- On a conflict, or on `could not open a new TTY: /dev/tty`: chezmoi wants an interactive answer it cannot get. Do **not** force. Diff the divergence (`chezmoi diff <path>`), copy the destination file aside if it holds real local edits, and show the user both sides. `--force` is theirs to authorize, per path, never a default
 - **From worktrees: always use targeted applies** (specific target paths). Broad applies pollute global persistent state. See `.docs/chezmoi-worktrees.md`
 - **Unexpected diffs** may mean another agent applied from a different worktree — alert the user
+- **Target paths must be absolute.** A relative path resolves against the source dir and chezmoi reports "not managed".
+- **Scope to the directory, not the file**, when the directory holds a `run_onchange_` script — a path-scoped apply skips scripts outside that path (`chezmoi apply ~/.config/herdr`, not `.../herdr/config.toml`).
 - Never modify deployed files directly — always edit the chezmoi source
 - **Some configs have special apply instructions** (especially for worktrees). Check the directory's `CLAUDE.md` before applying. Known configs with `data/`-sourced `run_onchange_` scripts that pollute state from worktrees:
   - `data/karabiner/` — run `goku` directly
