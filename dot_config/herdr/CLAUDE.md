@@ -139,6 +139,36 @@ snapshot`, so it needs a TTY and herdr runs it in a pane. Needs `fzf` + `jq`.
 The `pane zoom --off` calls on both ends stop the moved pane landing hidden
 behind a zoom.
 
+`prefix+.` opens [navi](https://github.com/denisidoro/navi) as a 90%x90% popup
+and types the chosen snippet into the pane you came from, without Enter. It
+ports tmux's `l-lin/tmux-navi` popup (`dot_config/tmux/tmux.conf`) onto tmux's
+own navi key, `prefix .` (`dot_config/tmux/tmux.reset.conf`) — the popup
+presentation of the one, the muscle memory of the other. Both surfaces keep
+their own binding; nothing was removed from tmux.
+
+herdr has no navi plugin, so the popup body is a script:
+`dot_local/bin/,herdr-navi`. Three things it exists to handle:
+
+- **`type = "popup"`, not `shell`.** navi drives fzf and needs a TTY; a `shell`
+  command runs headless. A popup is session-modal and leaves the tab layout
+  alone — herdr's `display-popup`. (`width`/`height` are only legal on `popup`.)
+- **Target pane.** Popups get `HERDR_ACTIVE_PANE_ID` and explicitly *not*
+  `HERDR_PANE_ID` — it points at the underlying tiled pane. Same trap as the
+  break-pane bindings above. The script's `pane list`/`focused` fallback only
+  matters when you run it by hand.
+- **Bracketed paste.** `herdr pane send-text` is low-level and non-submitting:
+  unlike `pane run` and `agent prompt` it does **not** honour the pane's
+  bracketed-paste mode, and `pane.send_text` takes only `{pane_id, text}` (no
+  paste flag — see `herdr api schema --json`). A multi-line snippet would arrive
+  as literal Enters and execute its intermediate lines, so the script wraps the
+  payload in `ESC[200~`/`ESC[201~` itself, reproducing tmux's `paste-buffer -p`.
+  If that ever stops passing through, `HERDR_NAVI_NO_BRACKET=1` sends raw and
+  limits you to single-line snippets.
+
+The shell-level navi widget (`navi widget zsh`, `Ctrl+G`, in
+`dot_config/zsh/zshrc.zsh.tmpl`) is independent of all this and already works
+inside herdr panes. Cheatsheets live in `dot_local/share/navi/cheats/`.
+
 ## vim-herdr-navigation
 
 `<C-h/j/k/l>` moves between herdr panes and Neovim splits (port of

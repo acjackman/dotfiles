@@ -1,0 +1,59 @@
+#!/usr/bin/env bash
+# ,herdr-navi — herdr port of the tmux navi popup binding.
+#
+# tmux side: the `l-lin/tmux-navi` plugin (dot_config/tmux/tmux.conf) binds a
+# 90%x90% popup running `navi --print` and pastes the chosen snippet into the
+# pane you came from — bracketed, no Enter. herdr has no navi plugin, so this
+# script IS the popup body: it runs from the `type = "popup"` keybinding on
+# prefix+. in dot_config/herdr/config.toml (tmux's key for navi, from the
+# `prefix .` binding in tmux.reset.conf) and hands the snippet back over the CLI.
+#
+# Target pane: $HERDR_ACTIVE_PANE_ID, the keybinding-context var. herdr injects
+# it into every custom command type, and popups explicitly get it *instead of*
+# the pane-shell's HERDR_PANE_ID, pointing at the underlying tiled pane. The
+# fallbacks below only matter when running this script by hand inside a pane.
+#
+# Bracketed paste: `herdr pane send-text` is documented as low-level and
+# non-submitting — unlike `pane run` and `agent prompt` it does NOT honour the
+# pane's bracketed-paste mode, and pane.send_text takes only {pane_id, text}
+# (`herdr api schema --json`). A multi-line snippet would land as literal Enters
+# and execute its intermediate lines, so we wrap the payload in ESC[200~/ESC[201~
+# ourselves — what tmux `paste-buffer -p` does. Escape hatch:
+# HERDR_NAVI_NO_BRACKET=1 sends raw (single-line snippets only).
+
+set -uo pipefail
+
+herdr_bin="${HERDR_BIN_PATH:-/opt/homebrew/bin/herdr}"
+[[ -x "$herdr_bin" ]] || herdr_bin="$(command -v herdr)" || {
+  echo ",herdr-navi: herdr not found" >&2
+  exit 1
+}
+
+navi_bin="/opt/homebrew/bin/navi"
+[[ -x "$navi_bin" ]] || navi_bin="$(command -v navi)" || {
+  echo ",herdr-navi: navi not found — it's brew \"navi\" in Brewfile-base" >&2
+  exit 1
+}
+
+# Resolve the pane the popup was opened over.
+target="${HERDR_ACTIVE_PANE_ID:-${HERDR_PANE_ID:-}}"
+if [[ -z "$target" ]]; then
+  target="$("$herdr_bin" pane list 2>/dev/null |
+    jq -r 'first(.result.panes[] | select(.focused == true) | .pane_id) // empty')"
+fi
+[[ -n "$target" ]] || {
+  echo ",herdr-navi: could not resolve a target pane" >&2
+  exit 1
+}
+
+# `navi --print` prints the chosen snippet; Esc/cancel yields nothing. Command
+# substitution already strips the trailing newline (the tmux plugin's `head -c -1`),
+# so the snippet cannot self-execute.
+snippet="$("$navi_bin" --print)" || exit 0
+[[ -n "$snippet" ]] || exit 0
+
+if [[ -n "${HERDR_NAVI_NO_BRACKET:-}" ]]; then
+  "$herdr_bin" pane send-text -- "$target" "$snippet"
+else
+  "$herdr_bin" pane send-text "$target" $'\e[200~'"$snippet"$'\e[201~'
+fi

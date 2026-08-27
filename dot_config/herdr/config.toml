@@ -13,7 +13,7 @@
 # split_vertical below), so verify new keys in-app rather than trusting the log.
 #
 # Keybindings below close the gaps between herdr's (already tmux-like) defaults
-# and the muscle memory in dot_config/tmux/tmux.reset.conf. Verified vs herdr 0.7.1.
+# and the muscle memory in dot_config/tmux/tmux.reset.conf. Verified vs herdr 0.8.2.
 
 # Set by herdr once onboarding is dismissed; mirrored so apply doesn't replay it.
 onboarding = false
@@ -194,6 +194,30 @@ key = "prefix+p"
 type = "plugin_action"
 command = "jt.command-palette.open"
 description = "Command palette (all plugin actions)"
+
+# navi cheatsheets: 90%x90% popup, chosen snippet pasted into the pane you came
+# from without Enter. Ports the tmux `l-lin/tmux-navi` popup (tmux.conf) onto
+# tmux's own navi key, `prefix .` (tmux.reset.conf) — the popup presentation of
+# the one, the muscle memory of the other. herdr has no navi plugin, so the popup
+# body is a script: dot_local/bin/,herdr-navi (it also handles bracketed paste,
+# which `pane send-text` does not do — see the header there).
+#
+# `type = "popup"` rather than "pane": navi is a modal picker that shouldn't
+# disturb the layout, and a popup supplies the TTY fzf needs (a headless `shell`
+# command does not). Popups DO get the HERDR_ACTIVE_* context — herdr's docs call
+# popups out specifically: they receive HERDR_ACTIVE_PANE_ID for the underlying
+# tiled pane and never HERDR_PANE_ID. Absolute path because a popup's PATH is only
+# as good as the PATH the server was launched with.
+#
+# `.` is unbound in herdr's defaults, and bound here as the literal character —
+# the same way prefix+| / prefix+> / prefix+< are above.
+[[keys.command]]
+key = "prefix+."
+type = "popup"
+command = '"$HOME/.local/bin/,herdr-navi"'
+width = "90%"
+height = "90%"
+description = "navi: cheatsheet → paste into pane"
 
 # Set by herdr in-app (agent panel sort order); mirrored so apply preserves it.
 # herdr renamed the variants (`grouped` is gone); valid values are now
