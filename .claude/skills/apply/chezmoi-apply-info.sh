@@ -46,7 +46,9 @@ echo ""
 
 # --- Diff ---
 echo "=== DIFF ==="
-chezmoi diff "${source_flag[@]}" "${target_paths[@]}" 2>&1 || true
+# -r because chezmoi diff (unlike status) does NOT recurse into a directory
+# argument by default, so a directory-scoped preview silently showed nothing.
+chezmoi diff -r "${source_flag[@]}" "${target_paths[@]}" 2>&1 || true
 echo ""
 
 # --- Warnings ---
