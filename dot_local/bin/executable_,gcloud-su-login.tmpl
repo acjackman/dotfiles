@@ -1,0 +1,15 @@
+{{- if has "moov" .extras -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ,gcloud-su-login - Re-auth gcloud (user + ADC) through the moov SU Chrome profile.
+#
+# gcloud opens $BROWSER for the OAuth consent screen; chrome-moov-su forces the
+# superuser Chrome profile so the flow lands on the right Google account instead
+# of whichever profile Chrome happens to have open.
+
+export BROWSER="$HOME/.local/bin/chrome-moov-su"
+
+gcloud auth login
+gcloud auth application-default login
+{{ end -}}

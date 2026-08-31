@@ -1,0 +1,57 @@
+{{- if has "moov" .extras -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# chrome-moov-su - Open URLs in the moov superuser Chrome profile.
+#
+# Used as $BROWSER by `,gcloud-su-login` so the gcloud OAuth consent screen
+# lands on the SU account instead of whichever Chrome profile is frontmost.
+#
+# The Chrome profile itself can't be created by chezmoi (it needs an interactive
+# Google sign-in), so this resolves the profile directory at runtime by looking
+# up the account in Chrome's "Local State" and explains the setup if it's absent.
+
+ACCOUNT="${CHROME_MOOV_SU_ACCOUNT:-adam.jackman.su@moov.io}"
+CHROME_APP="/Applications/Google Chrome.app"
+CHROME_BIN="$CHROME_APP/Contents/MacOS/Google Chrome"
+LOCAL_STATE="$HOME/Library/Application Support/Google/Chrome/Local State"
+
+die() {
+    printf '%s: %s\n' "${0##*/}" "$1" >&2
+    exit 1
+}
+
+[[ -x "$CHROME_BIN" ]] || die "Google Chrome is not installed at $CHROME_APP.
+Install it with:  brew install --cask google-chrome"
+
+[[ -r "$LOCAL_STATE" ]] || die "Chrome has never been run on this machine (no $LOCAL_STATE).
+Launch Google Chrome once, then re-run."
+
+# Chrome's profile directory names ("Default", "Profile 1", ...) depend on the
+# order profiles were created, so map the account back to its directory.
+profile_dir=$(
+    jq -r --arg account "$ACCOUNT" '
+        .profile.info_cache
+        | to_entries
+        | map(select(.value.user_name == $account))
+        | first
+        | if . == null then empty else .key end
+    ' "$LOCAL_STATE"
+)
+
+if [[ -z "$profile_dir" ]]; then
+    die "No Chrome profile is signed in as $ACCOUNT.
+
+To set one up:
+  1. Open Google Chrome.
+  2. Click the profile avatar (top right) -> Add -> Sign in.
+  3. Sign in as $ACCOUNT and finish the Google onboarding.
+  4. Re-run this command.
+
+Signed-in profiles Chrome currently knows about:
+$(jq -r '.profile.info_cache | to_entries[] | "  \(.value.name // .key): \(.value.user_name // "(not signed in)")"' "$LOCAL_STATE")"
+fi
+
+# Background it: gcloud waits on $BROWSER, and Chrome does not exit until quit.
+"$CHROME_BIN" --profile-directory="$profile_dir" "$@" &
+{{ end -}}
