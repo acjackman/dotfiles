@@ -91,9 +91,11 @@ claude-trust = "~/.config/worktrunk/hooks/ensure-claude-trust.sh"
 
 [pre-remove]
 tmux = "~/.config/worktrunk/hooks/wt-tmux-hook.sh"
+herdr = "~/.config/worktrunk/hooks/wt-herdr-hook.sh"
 
 [pre-merge]
 tmux = "~/.config/worktrunk/hooks/wt-tmux-hook.sh"
+herdr = "~/.config/worktrunk/hooks/wt-herdr-hook.sh"
 
 [projects."github.com/acjackman/dotfiles"]
 worktree-path = "~/dev/jackman/dotfiles/{{ "{{" }} branch | sanitize {{ "}}" }}"
