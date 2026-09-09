@@ -117,3 +117,10 @@ Library/Application Support/ovim
 # convention for global personal commands. Same script, no behaviour change
 # beyond the artifacts check now ignoring empty tmp//.tmp/ scratch dirs.
 .local/bin/wt-cleanup
+
+# k9s legacy views.yml: pre-0.40 `k9s:`-wrapped custom-view format, last touched
+# Oct 2024 and dead ever since — `k9s info` reads only views.yaml. Never managed
+# by chezmoi, so it survived every apply as an unmanaged leftover and was a trap
+# for editing the wrong file. Dropped 2026-09-08 alongside the views.yaml
+# column-name fix (MEM/R:L -> MEM/RL, see derailed/k9s#3139).
+.config/k9s/views.yml

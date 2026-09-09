@@ -11,9 +11,9 @@ views:
       - RESTARTS
       - STATUS
       - MEM
-      - MEM/R:L
+      - MEM/RL|S
       - CPU
-      - CPU/R:L
+      - CPU/RL|S
       - NODE
       # - IP
 
