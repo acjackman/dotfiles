@@ -1,0 +1,271 @@
+#!/usr/bin/env bash
+#
+# prune-caches — reclaim disk space from developer tool caches, oversized logs,
+# and container images. The fix logic behind `,doctor-prune`.
+#
+# Reports by default and only prunes when asked. This inverts the usual doctor
+# "apply by default" rule for the same reason `,doctor-herdr` does: the fix
+# throws away state. Nothing here is irrecoverable, but re-downloading tens of
+# GB of Homebrew bottles and Go modules is a slow, bandwidth-hungry mistake to
+# make by reflex, so the destructive path is opt-in.
+#
+# Tiers, cheapest-to-rebuild first:
+#
+#   1  caches that regenerate for free on next use — Homebrew downloads, uv,
+#      Go build/module cache, unused mise tool versions, pip/poetry/node-gyp
+#   2  oversized logs — truncated in place, never unlinked (see below)
+#   3  expensive to rebuild — container images, HuggingFace models, Puppeteer
+#      browsers, Claude VM bundles. Real re-download cost; needs --all
+#   4  report only, always — worktrees, Downloads, browser caches. These hold
+#      your work or rebuild within a day, so this script never touches them
+#
+# Logs are truncated with `: >` rather than `rm`. A running process holds an
+# open fd; unlinking the file leaves it writing to a ghost inode that never
+# frees space until the process exits, and an `O_APPEND` fd recomputes its
+# offset to EOF on every write so truncation cannot leave a sparse hole.
+#
+# Usage:
+#   prune-caches [options]
+#
+# Options:
+#   --apply              Prune tier 1 and 2.
+#   --all                Prune tier 1, 2 and 3. Implies --apply.
+#   --log-threshold MB   Truncate logs larger than this (default: 512).
+#   -h, --help           Show this help.
+
+set -uo pipefail
+
+MODE=report
+LOG_THRESHOLD_MB=512
+
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --apply)          [ "$MODE" = all ] || MODE=apply ;;
+    --all)            MODE=all ;;
+    --log-threshold)  LOG_THRESHOLD_MB="$2"; shift ;;
+    -h|--help)        sed -n '2,36p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
+    -*)               echo "unknown option: $1" >&2; exit 2 ;;
+    *)                echo "unexpected argument: $1" >&2; exit 2 ;;
+  esac
+  shift
+done
+
+if [ -t 1 ]; then
+  B=$'\e[1m'; R=$'\e[31m'; G=$'\e[32m'; Y=$'\e[33m'; C=$'\e[36m'; D=$'\e[2m'; X=$'\e[0m'
+else
+  B=; R=; G=; Y=; C=; D=; X=
+fi
+
+freed_kb=0
+would_kb=0
+n_err=0
+
+# --- helpers ---------------------------------------------------------------
+
+# Size of a path in KB, 0 when absent. `du -sk` so arithmetic stays integral.
+size_kb() { [ -e "$1" ] || { echo 0; return; }; du -sk "$1" 2>/dev/null | awk '{print $1}'; }
+
+human() {
+  awk -v kb="$1" 'BEGIN{
+    split("KB MB GB TB", u)
+    i = 1
+    while (kb >= 1024 && i < 4) { kb /= 1024; i++ }
+    printf (kb >= 10 || i == 1) ? "%.0f%s" : "%.1f%s", kb, u[i]
+  }'
+}
+
+avail_kb() { df -k / | awk 'NR==2{print $4}'; }
+
+section() { printf '\n%s%s%s\n' "$B" "$1" "$X"; }
+
+# Report or run one prune step. Prints the size at stake either way so the
+# report and apply paths can never disagree about what a step covers.
+#   step <tier> <label> <path-to-measure> <command...>
+step() {
+  local tier="$1" label="$2" path="$3"; shift 3
+  local kb; kb=$(size_kb "$path")
+
+  if [ "$kb" -eq 0 ]; then
+    printf '  %sskip%s  %-28s %s(nothing cached)%s\n' "$D" "$X" "$label" "$D" "$X"
+    return
+  fi
+
+  local want=0
+  case "$tier" in
+    1|2) [ "$MODE" = apply ] || [ "$MODE" = all ] && want=1 ;;
+    3)   [ "$MODE" = all ] && want=1 ;;
+  esac
+
+  if [ "$want" = 0 ]; then
+    printf '  %s%6s%s  %-28s %s\n' "$Y" "$(human "$kb")" "$X" "$label" "${D}would free${X}"
+    would_kb=$((would_kb + kb))
+    return
+  fi
+
+  printf '  %s%6s%s  %-28s ' "$C" "$(human "$kb")" "$X" "$label"
+  if "$@" >/dev/null 2>&1; then
+    local after; after=$(size_kb "$path")
+    local delta=$((kb - after))
+    [ "$delta" -lt 0 ] && delta=0
+    freed_kb=$((freed_kb + delta))
+    printf '%sfreed %s%s\n' "$G" "$(human "$delta")" "$X"
+  else
+    printf '%sFAILED%s\n' "$R" "$X"
+    n_err=$((n_err + 1))
+  fi
+}
+
+have() { command -v "$1" >/dev/null 2>&1; }
+
+# --- banner ----------------------------------------------------------------
+
+case "$MODE" in
+  report) mode="${Y}REPORT${X} (no changes) — pass --apply to prune tier 1+2, --all for tier 3" ;;
+  apply)  mode="${R}APPLY${X} tier 1+2" ;;
+  all)    mode="${R}APPLY${X} tier 1+2+3" ;;
+esac
+before_avail=$(avail_kb)
+printf '%sprune-caches%s  mode: %s\n' "$B" "$X" "$mode"
+printf 'disk: %s free\n' "$(human "$before_avail")"
+
+# --- tier 1: free to rebuild ----------------------------------------------
+
+section "tier 1 — regenerates for free"
+
+have brew && step 1 "Homebrew downloads" "$(brew --cache)" \
+  brew cleanup --prune=all
+have uv && step 1 "uv cache" "${HOME}/.cache/uv" \
+  uv cache prune
+have go && step 1 "Go build cache" "$(go env GOCACHE)" \
+  go clean -cache
+have go && step 1 "Go module cache" "$(go env GOMODCACHE)" \
+  go clean -modcache
+have mise && step 1 "mise unused tools" "${HOME}/.local/share/mise" \
+  mise prune --yes
+
+# Plain cache dirs with no purge subcommand worth trusting. rm -rf is the
+# documented reset for all three; each recreates itself on next use.
+for d in pip pypoetry node-gyp; do
+  step 1 "${d} cache" "${HOME}/Library/Caches/${d}" rm -rf "${HOME}/Library/Caches/${d}"
+done
+
+# --- tier 2: oversized logs ------------------------------------------------
+
+section "tier 2 — logs over ${LOG_THRESHOLD_MB}MB"
+
+# Bounded depth: app logs live shallow, and an unbounded walk of Application
+# Support means minutes of I/O on a large disk for no extra coverage.
+log_hits=0
+while IFS= read -r logf; do
+  [ -n "$logf" ] || continue
+  log_hits=$((log_hits + 1))
+  kb=$(size_kb "$logf")
+  name="${logf#"$HOME"/}"
+  if [ "$MODE" = apply ] || [ "$MODE" = all ]; then
+    printf '  %s%6s%s  %-28s ' "$C" "$(human "$kb")" "$X" "$(basename "$logf")"
+    if : > "$logf" 2>/dev/null; then
+      freed_kb=$((freed_kb + kb))
+      printf '%struncated%s %s(%s)%s\n' "$G" "$X" "$D" "$name" "$X"
+    else
+      printf '%sFAILED%s\n' "$R" "$X"; n_err=$((n_err + 1))
+    fi
+  else
+    printf '  %s%6s%s  %-28s %s%s%s\n' "$Y" "$(human "$kb")" "$X" \
+      "$(basename "$logf")" "$D" "$name" "$X"
+    would_kb=$((would_kb + kb))
+  fi
+done < <(
+  find "${HOME}/Library/Application Support" "${HOME}/Library/Logs" \
+       "${HOME}/.local/state" \
+       -maxdepth 3 -type f -name '*.log' \
+       -size "+${LOG_THRESHOLD_MB}M" 2>/dev/null
+)
+[ "$log_hits" -eq 0 ] && printf '  %sok%s    no log over %sMB\n' "$G" "$X" "$LOG_THRESHOLD_MB"
+
+# --- tier 3: expensive to rebuild -----------------------------------------
+
+section "tier 3 — real re-download cost"
+
+# Images only. Anonymous volumes are excluded deliberately: --volumes discards
+# database contents, which is data loss, not a cache prune.
+have docker && step 3 "container images" \
+  "${HOME}/Library/Group Containers/HUAQ24HBR6.dev.orbstack/data" \
+  docker system prune -af
+
+step 3 "HuggingFace models" "${HOME}/.cache/huggingface" \
+  rm -rf "${HOME}/.cache/huggingface"
+step 3 "Puppeteer browsers" "${HOME}/.cache/puppeteer" \
+  rm -rf "${HOME}/.cache/puppeteer"
+step 3 "Claude VM bundles" \
+  "${HOME}/Library/Application Support/Claude/vm_bundles" \
+  rm -rf "${HOME}/Library/Application Support/Claude/vm_bundles"
+
+# --- tier 4: report only ---------------------------------------------------
+
+section "tier 4 — report only (never pruned here)"
+
+# Worktrees hold uncommitted work and `wt remove` refuses a dirty tree, so the
+# decision to drop one belongs to ,g-cleanup-wt, not a size threshold.
+wt_total=0
+wt_lines=()
+
+note_worktree() {
+  local repo="$1" kb
+  kb=$(size_kb "$repo")
+  wt_total=$((wt_total + kb))
+  wt_lines+=("$(printf '%s|%s' "$kb" "${repo#"$HOME"/dev/}")")
+}
+
+for path in "${HOME}"/dev/*/*/ ; do
+  repo="${path%/}"
+  if [ -d "$repo/.bare" ]; then
+    # Bare-repo layout (the ,gr-* / worktrunk one): the interesting unit is
+    # each worktree inside, not the parent. Reporting the parent's total hides
+    # which branch is actually holding the space.
+    for sub in "$repo"/*/ ; do
+      subrepo="${sub%/}"
+      [ -f "$subrepo/.git" ] && note_worktree "$subrepo"
+    done
+  elif [ -f "$repo/.git" ]; then
+    note_worktree "$repo"
+  fi
+done
+if [ "${#wt_lines[@]}" -gt 0 ]; then
+  printf '  %s%6s%s  %-28s %sacross %d worktrees%s\n' \
+    "$D" "$(human "$wt_total")" "$X" "git worktrees" "$D" "${#wt_lines[@]}" "$X"
+  printf '%s' "$(IFS=$'\n'; echo "${wt_lines[*]}")" | sort -t'|' -k1 -rn | head -5 |
+    while IFS='|' read -r kb name; do
+      printf '          %s%6s  %s%s\n' "$D" "$(human "$kb")" "$name" "$X"
+    done
+  printf '          %s-> review with ,g-cleanup-wt%s\n' "$D" "$X"
+fi
+
+for entry in \
+  "Downloads|${HOME}/Downloads" \
+  "Chrome cache|${HOME}/Library/Caches/Google" \
+  "Arc cache|${HOME}/Library/Caches/Arc"
+do
+  label="${entry%%|*}"; p="${entry#*|}"
+  kb=$(size_kb "$p")
+  [ "$kb" -gt 0 ] && printf '  %s%6s  %-28s %s%s\n' \
+    "$D" "$(human "$kb")" "$label" "${p#"$HOME"/}" "$X"
+done
+
+# --- summary ---------------------------------------------------------------
+
+section "summary"
+if [ "$MODE" = report ]; then
+  printf '  %s reclaimable in the tiers shown\n' "$(human "$would_kb")"
+  printf '  %srun with --apply (tier 1+2) or --all (adds tier 3)%s\n' "$D" "$X"
+else
+  # df, not the sum of per-step deltas: APFS releases purgeable space and
+  # snapshots lazily, so the real number is usually larger than the parts.
+  printf '  %s freed by the steps above\n' "$(human "$freed_kb")"
+  printf '  disk: %s free (was %s)\n' "$(human "$(avail_kb)")" "$(human "$before_avail")"
+fi
+
+if [ "$n_err" -gt 0 ]; then
+  printf '  %s%d step(s) failed%s\n' "$R" "$n_err" "$X"
+  exit 1
+fi
+exit 0

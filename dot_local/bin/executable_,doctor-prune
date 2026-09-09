@@ -1,0 +1,9 @@
+#!/bin/bash
+# ,doctor-prune — Reclaim disk space from tool caches, logs and images.
+#
+# Reports by default; prunes only with --apply (tier 1+2) or --all (adds
+# tier 3). See `prune-caches --help` for the tier breakdown and why the
+# destructive path is opt-in rather than the doctor default.
+
+set -euo pipefail
+exec prune-caches "$@"
