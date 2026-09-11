@@ -10,6 +10,7 @@ git_toplevel="$(git rev-parse --show-toplevel 2>/dev/null)" || {
   exit 1
 }
 
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 chezmoi_default_source="$(chezmoi source-path)"
 target_paths=("$@")
 
@@ -65,7 +66,31 @@ echo ""
 echo "=== DIFF ==="
 # -r because chezmoi diff (unlike status) does NOT recurse into a directory
 # argument by default, so a directory-scoped preview silently showed nothing.
-chezmoi diff -r -x scripts "${source_flag[@]}" "${target_paths[@]}" 2>&1 || true
+diff_output="$(chezmoi diff -r -x scripts "${source_flag[@]}" "${target_paths[@]}" 2>&1 || true)"
+
+# Identify targets whose source reads a secret store. For those the diff body is
+# the secret in plaintext, so redact-diff.sh withholds it entirely rather than
+# printing it into an agent's context. A source file can also opt in by carrying
+# the literal marker "secret-bearing" in a comment.
+declared=()
+while IFS= read -r rel; do
+  [[ -n "$rel" ]] || continue
+  # Path shapes that are secrets by definition, whatever the source looks like.
+  # Checked before resolving the source so an unresolvable target still counts.
+  if [[ "$rel" == *.pem || "$rel" == *.key || "$rel" == *.p12 || "$rel" == *.pfx || \
+        "$rel" == *.jks || "$rel" == *netrc* || "$rel" == .ssh/id_* || \
+        "$rel" == *.gnupg/* || "$rel" == *credentials ]]; then
+    declared+=("$rel")
+    continue
+  fi
+  src="$(chezmoi source-path "${source_flag[@]}" "$HOME/$rel" 2>/dev/null)" || continue
+  [[ -f "$src" ]] || continue
+  if grep -qE 'security find-generic-password|op read|onepassword|bitwarden|keepassxc|lastpass|vault (read|kv)|pass show|secret-bearing' "$src" 2>/dev/null; then
+    declared+=("$rel")
+  fi
+done < <(printf '%s\n' "$diff_output" | sed -n 's|^diff --git a/\([^ ]*\).*|\1|p' | sort -u)
+
+printf '%s\n' "$diff_output" | "$script_dir/redact-diff.sh" ${declared[@]+"${declared[@]}"}
 echo ""
 
 # --- Worktree caution ---

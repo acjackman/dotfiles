@@ -47,6 +47,27 @@ Apply chezmoi dotfile changes from the source repository to their target locatio
   - `private_Library/.../Cursor/User/` — run `cursor --install-extension` directly
   - `data/mise/` — run `mise upgrade` directly
 
+## Secret Redaction
+
+The helper pipes `chezmoi diff` through `redact-diff.sh` before printing it, because
+a diff of a secret-bearing target *is* the secret in plaintext. Two layers:
+
+1. **Withheld files** — targets whose source template reads a secret store
+   (`security find-generic-password`, `op read`, `onepassword`, `vault read`, `pass show`, …),
+   or whose path is a secret by shape (`*.pem`, `*.key`, `.ssh/id_*`, `*netrc*`, `.gnupg/*`, …).
+   Their content lines are replaced with a withheld count. Force this for any other
+   source file by putting the literal marker `secret-bearing` in a comment in it.
+2. **Pattern redaction** — every other line has known credential shapes replaced
+   (Slack/Discord webhooks, GitHub/GitLab/Slack tokens, AWS key IDs, Google API keys,
+   Honeycomb keys, `Bearer` values, private key blocks). Unrecognised formats are
+   caught by a fallback that blanks the value of any `key: value` line naming a
+   credential. This layer matters for files whose source looks innocent but whose
+   *deployed* copy holds a secret injected afterwards by a separate script.
+
+If a preview shows `<<<REDACTED>>>` or a withheld count where you needed to review real
+content, read the **source** file directly instead — never re-run the diff unredacted
+to work around it. A leaked value in an agent's context means rotating the credential.
+
 ## Scripts
 
 The helper excludes `run_` scripts from STATUS and DIFF, so you will not see them.
