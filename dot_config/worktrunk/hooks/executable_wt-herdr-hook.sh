@@ -2,10 +2,11 @@
 # wt-herdr-hook.sh - Pre-remove/merge hook: clean up herdr panes in the worktree
 #
 # Herdr counterpart to wt-tmux-hook.sh.
-# Reads worktree_path and primary_worktree_path from stdin JSON (worktrunk hook context).
+# Reads worktree_path from stdin JSON (worktrunk hook context).
 # Idle shell panes are closed; busy panes (an attached agent, or any non-shell
 # foreground process) cause an error that aborts the operation.
-# If this pane lives in the worktree, focus the primary worktree's workspace afterwards.
+# The pane that ran `wt remove` is left alone: worktrunk's shell integration cds it
+# to the primary worktree itself, so this hook must not focus or create a workspace.
 
 set -euo pipefail
 
@@ -13,7 +14,6 @@ IDLE_SHELLS="^-?(zsh|bash|fish|sh)$"
 
 ctx=$(cat)
 worktree_path=$(printf '%s' "$ctx" | jq -r '.worktree_path')
-primary_worktree_path=$(printf '%s' "$ctx" | jq -r '.primary_worktree_path')
 
 command -v herdr >/dev/null 2>&1 || exit 0
 [[ -S "${HERDR_SOCKET_PATH:-$HOME/.config/herdr/herdr.sock}" ]] || exit 0
@@ -21,6 +21,18 @@ command -v herdr >/dev/null 2>&1 || exit 0
 panes_json=$(herdr pane list 2>/dev/null) || exit 0
 
 wt_path_real="$(cd "$worktree_path" && pwd -P)"
+
+# $HERDR_PANE_ID can be stale: pane ids are reassigned (server restart,
+# workspace re-create) and a long-lived process keeps the old value in its
+# environment. The server still resolves the old id, but `pane list` reports
+# the new one, so compare canonical ids. Resolve only when the env var is set:
+# `pane current` with no --pane returns the *focused* pane, which is not us.
+self_pane_id="${HERDR_PANE_ID:-}"
+if [[ -n "$self_pane_id" ]]; then
+  resolved_pane_id=$(herdr pane current --pane "$self_pane_id" 2>/dev/null \
+    | jq -r '.result.pane.pane_id // empty') || resolved_pane_id=""
+  [[ -n "$resolved_pane_id" ]] && self_pane_id="$resolved_pane_id"
+fi
 
 # pane_id \t cwd \t agent \t workspace_id \t tab_id
 pane_rows=$(printf '%s' "$panes_json" | jq -r '
@@ -38,7 +50,6 @@ lookup() { # lookup <table> <key>
 
 busy_panes=()
 idle_panes=()
-current_in_worktree=0
 
 while IFS=$'\t' read -r pane_id pane_path agent ws_id tab_id; do
   [[ -z "$pane_id" ]] && continue
@@ -48,8 +59,9 @@ while IFS=$'\t' read -r pane_id pane_path agent ws_id tab_id; do
     *) continue ;;
   esac
 
-  if [[ "$pane_id" == "${HERDR_PANE_ID:-}" ]]; then
-    current_in_worktree=1
+  # Skip our own pane: worktrunk emits a `cd <primary>` shell directive for it
+  # (src/output/handlers.rs, `if changed_directory`), so it relocates itself.
+  if [[ -n "$self_pane_id" && "$pane_id" == "$self_pane_id" ]]; then
     continue
   fi
 
@@ -96,22 +108,3 @@ fi
 for pane_id in ${idle_panes[@]+"${idle_panes[@]}"}; do
   herdr pane close "$pane_id" >/dev/null 2>&1 || true
 done
-
-if [[ "$current_in_worktree" == "1" ]]; then
-  primary_real="$(cd "$primary_worktree_path" && pwd -P)"
-  landing_ws=""
-  while IFS=$'\t' read -r pane_id pane_path _agent ws_id _tab_id; do
-    [[ -z "$pane_id" ]] && continue
-    pane_path_real="$(cd "$pane_path" 2>/dev/null && pwd -P)" || continue
-    if [[ "$pane_path_real" == "$primary_real" ]]; then
-      landing_ws="$ws_id"
-      break
-    fi
-  done <<< "$pane_rows"
-
-  if [[ -n "$landing_ws" ]]; then
-    herdr workspace focus "$landing_ws" >/dev/null 2>&1 || true
-  else
-    herdr workspace create --cwd "$primary_real" --focus >/dev/null 2>&1 || true
-  fi
-fi
