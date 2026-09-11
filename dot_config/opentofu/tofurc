@@ -1,0 +1,8 @@
+# OpenTofu CLI configuration.
+# Read natively from $XDG_CONFIG_HOME/opentofu/tofurc — no TF_CLI_CONFIG_FILE
+# export required (verified on OpenTofu 1.12.6).
+
+# Share one provider download across every working directory.
+# The directory must already exist; OpenTofu errors on init if it is missing,
+# so dot_cache/opentofu/plugin-cache/.keep exists to make chezmoi create it.
+plugin_cache_dir = "$HOME/.cache/opentofu/plugin-cache"
