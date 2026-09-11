@@ -7,7 +7,11 @@ set -euo pipefail
 #   1. Unmerged changes — local ancestry first, then GitHub PR state via `gh`
 #      so squash/rebase merges (which break local ancestry) count as merged
 #   2. Uncommitted work — staged or unstaged changes to tracked files
-#   3. Untracked/ignored artifacts (*.tmp files, non-empty tmp/ and .tmp/ dirs)
+#   3. Untracked files — anything not in git and not known-disposable
+#   4. Scratch artifacts (*.tmp files, non-empty tmp/ and .tmp/ dirs)
+#
+# Merged local branches that no longer have a worktree are cleaned up too,
+# reported with a BRANCH prefix.
 #
 # Removal is delegated to `wt remove`, whose [pre-remove] tmux hook does the
 # live-session safety checks: it aborts if a busy pane (e.g. a running claude)
@@ -26,7 +30,10 @@ while [[ $# -gt 0 ]]; do
     -i|--interactive) interactive=true; shift ;;
     -n|--dry-run) dry_run=true; shift ;;
     -h|--help)
-      sed -n '3,/^$/s/^# \?//p' "$0" >&2
+      # Start at line 4: line 3 is blank, and a `3,/^$/` range would end on it
+      # before printing anything. `\{0,1\}` rather than `\?`, which BSD sed
+      # (macOS) reads as a literal '?' — that matched nothing either.
+      sed -n '4,/^$/{/^#/{s/^# \{0,1\}//;p;};}' "$0" >&2
       exit 0
       ;;
     *)
@@ -52,12 +59,58 @@ fi
 # Refresh remote state so PR/branch lookups are accurate; best-effort.
 git fetch origin --prune --quiet 2>/dev/null || true
 
-# Returns a branch's PR state: MERGED, CLOSED, OPEN, or NOT_FOUND.
+# Returns a branch's PR state and head commit as "STATE<TAB>OID".
+# STATE is MERGED, CLOSED, OPEN, NOT_FOUND, or empty when no PR exists.
+# The head OID matters for the ahead-of-PR guard in check_merged below.
 check_pr_state() {
   local branch="$1"
-  [[ -z "$gh_repo" ]] && { echo "NOT_FOUND"; return; }
+  [[ -z "$gh_repo" ]] && { printf 'NOT_FOUND\t\n'; return; }
   gh pr list --repo "$gh_repo" --head "$branch" --state all \
-    --json state --jq '.[0].state' 2>/dev/null || echo "NOT_FOUND"
+    --json state,headRefOid \
+    --jq '.[0] // {} | "\(.state // "")\t\(.headRefOid // "")"' 2>/dev/null \
+    || printf 'NOT_FOUND\t\n'
+}
+
+# Classifies a branch against the default branch. Echoes one of:
+#   merged                — local ancestry proves everything on it has landed
+#   squashed              — squash/rebase-merged PR; branch delete needs --force
+#   ahead<TAB>OID         — PR is MERGED but the local tip is past the PR head,
+#                           i.e. there are commits that were never pushed
+#   unmerged<TAB>STATE    — not merged; STATE is the PR state (may be empty)
+check_merged() {
+  local branch="$1" pr state oid tip
+  if git merge-base --is-ancestor "$branch" "$default_branch" 2>/dev/null; then
+    echo "merged"
+    return
+  fi
+  pr="$(check_pr_state "$branch")"
+  state="${pr%%$'\t'*}"
+  oid="${pr#*$'\t'}"
+  if [[ "$state" != "MERGED" ]]; then
+    printf 'unmerged\t%s\n' "$state"
+    return
+  fi
+  # A MERGED PR only proves the *PR head* landed. If the local tip moved past
+  # it, those commits exist nowhere else and a force-delete would drop them —
+  # so this is deliberately not treated as merged. (Ancestry already failed
+  # above, which is the other half of the "unpushed commits" test.)
+  tip="$(git rev-parse "$branch" 2>/dev/null || echo "")"
+  if [[ -n "$oid" && "$tip" == "$oid" ]]; then
+    echo "squashed"
+    return
+  fi
+  printf 'ahead\t%s\n' "$oid"
+}
+
+# Warning text for the "ahead" case, shared by the worktree and branch passes.
+# Hedged on purpose: a branch can differ from its merged PR head and still hold
+# nothing unique (its changes landed, then the default branch moved on). Telling
+# the two apart needs a human, and skipping is the conservative answer either way.
+ahead_warning() {
+  local branch="$1" pr_head="$2" tip_short
+  # Abbreviate the PR head to git's own width so the hashes compare at a glance.
+  tip_short="$(git rev-parse --short "$branch")"
+  echo "ahead of merged PR: tip $tip_short != PR head ${pr_head:0:${#tip_short}} — may hold unpushed commits; check 'git log --oneline $default_branch..$branch'"
 }
 
 # --- Collect candidate worktrees (indexed array of "branch<TAB>path"; bash 3.2 safe) ---
@@ -65,12 +118,16 @@ check_pr_state() {
 # default-branch worktree is recorded as primary_wt and excluded from removal.
 worktrees=()
 primary_wt=""
+# Every branch that still has a checkout, default branch included — the orphan
+# branch pass at the end subtracts this from the full branch list.
+checked_out=""
 while IFS= read -r line; do
   case "$line" in
     worktree\ *) current_path="${line#worktree }" ;;
     branch\ *)
       current_branch="${line#branch refs/heads/}"
       path_real="$(cd "$current_path" && pwd -P)"
+      checked_out="$checked_out$current_branch"$'\n'
       if [[ "$current_branch" == "$default_branch" ]]; then
         primary_wt="$path_real"
         continue
@@ -81,8 +138,8 @@ while IFS= read -r line; do
 done < <(git worktree list --porcelain)
 
 if [[ ${#worktrees[@]} -eq 0 ]]; then
+  # Not an exit: merged branches with no worktree are still worth cleaning up.
   echo "No non-default-branch worktrees found."
-  exit 0
 fi
 
 # Run `wt remove` from the primary worktree; fall back to the first worktree.
@@ -93,33 +150,69 @@ fi
 # --- Check each worktree ---
 removed=0
 skipped=0
+deleted_branches=0
 
-for entry in "${worktrees[@]}"; do
+# `${arr[@]+...}` guard: bash 3.2 treats "${arr[@]}" on an empty array as an
+# unbound variable under `set -u`.
+for entry in ${worktrees[@]+"${worktrees[@]}"}; do
   IFS=$'\t' read -r branch wt_path <<< "$entry"
   warnings=()
   force_delete=false
 
   # 1. Unmerged changes — local ancestry, then GitHub PR state (squash merges)
-  if ! git merge-base --is-ancestor "$branch" "$default_branch" 2>/dev/null; then
-    pr_state="$(check_pr_state "$branch")"
-    if [[ "$pr_state" == "MERGED" ]]; then
-      # Squash/rebase-merged: wt won't see local ancestry, so force branch delete
+  merged_state="$(check_merged "$branch")"
+  case "${merged_state%%$'\t'*}" in
+    merged) ;;
+    squashed)
+      # wt won't see local ancestry for a squash merge, so force branch delete
       force_delete=true
-    else
+      ;;
+    ahead)
+      pr_head="${merged_state#*$'\t'}"
+      warnings+=("$(ahead_warning "$branch" "$pr_head")")
+      ;;
+    *)
+      pr_state="${merged_state#*$'\t'}"
       warnings+=("unmerged: branch '$branch' not merged into '$default_branch' (PR: ${pr_state:-none})")
-    fi
-  fi
+      ;;
+  esac
 
-  # 2. Uncommitted work — staged or unstaged changes to tracked files. Untracked
-  # files are deliberately not counted here; the artifacts check below covers the
-  # scratch paths, and everything else untracked is noise (build output, caches).
+  # 2. Uncommitted work — staged or unstaged changes to tracked files
   dirty="$(git -C "$wt_path" status --porcelain --untracked-files=no 2>/dev/null || true)"
   if [[ -n "$dirty" ]]; then
     dirty_count="$(printf '%s\n' "$dirty" | wc -l | tr -d ' ')"
     warnings+=("uncommitted: $dirty_count tracked file(s) modified")
   fi
 
-  # 3. Untracked/ignored artifacts
+  # 3. Untracked files — flag everything, minus a denylist of disposables.
+  # This is inverted from the old "only worry about scratch paths" rule, which
+  # assumed untracked == build output and would have destroyed a runbook and a
+  # set of hand-written Claude skills that existed nowhere else. The inversion
+  # is only safe because `status` honours .gitignore: build output, caches and
+  # tool state are ignored here and so never appear, leaving only files a human
+  # deliberately created. .xo-brief.md is *not* gitignored, hence the explicit
+  # denylist entry.
+  untracked=()
+  while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    case "$f" in
+      .xo-brief.md|*.tmp|tmp/*|.tmp/*) continue ;;
+    esac
+    untracked+=("$f")
+  done < <(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null |
+    sed -n 's/^?? //p' || true)
+  if [[ ${#untracked[@]} -gt 0 ]]; then
+    n_untracked=${#untracked[@]}
+    # Preview only the first few: a worktree can hold a dozen untracked files
+    # and the point is to show what's at stake, not to dump a file listing.
+    preview="${untracked[0]}"
+    [[ $n_untracked -gt 1 ]] && preview="$preview, ${untracked[1]}"
+    [[ $n_untracked -gt 2 ]] && preview="$preview, ${untracked[2]}"
+    [[ $n_untracked -gt 3 ]] && preview="$preview, +$((n_untracked - 3)) more"
+    warnings+=("untracked: $n_untracked file(s) not in git — $preview")
+  fi
+
+  # 4. Scratch artifacts
   # Scratch dirs (tmp/, .tmp/) are conventional and gitignored in many repos —
   # an *empty* one carries nothing worth saving, so only a populated one counts.
   # -type f on the find keeps those same dirs from being double-reported as
@@ -188,4 +281,63 @@ for entry in "${worktrees[@]}"; do
   echo ""
 done
 
-echo "Done: $removed removed, $skipped skipped."
+# --- Orphaned merged branches (no worktree) ---
+# `git worktree list` only shows branches that still have a checkout, so a
+# merged branch whose worktree was already removed is invisible to the loop
+# above and lingers forever. Same safety bar as a worktree: merged by local
+# ancestry, or a MERGED PR whose head matches the local tip. There is no
+# working tree, so the uncommitted/untracked checks don't apply.
+while IFS= read -r branch; do
+  [[ -z "$branch" ]] && continue
+  [[ "$branch" == "$default_branch" ]] && continue
+  if printf '%s' "$checked_out" | grep -Fxq -- "$branch"; then
+    continue
+  fi
+
+  merged_state="$(check_merged "$branch")"
+  case "${merged_state%%$'\t'*}" in
+    merged) branch_force=false ;;
+    squashed) branch_force=true ;;
+    ahead)
+      pr_head="${merged_state#*$'\t'}"
+      echo "SKIP BRANCH  $branch"
+      echo "  ⚠ $(ahead_warning "$branch" "$pr_head")"
+      skipped=$((skipped + 1))
+      echo ""
+      continue
+      ;;
+    *) continue ;;  # unmerged branches with no worktree are left alone, silently
+  esac
+
+  if $interactive; then
+    echo "BRANCH  $branch (merged, no worktree)"
+    read -rp "  Delete branch? [y/N] " answer
+    if [[ "$answer" != [yY] ]]; then
+      skipped=$((skipped + 1))
+      echo ""
+      continue
+    fi
+  fi
+
+  if $dry_run; then
+    echo "WOULD DELETE BRANCH  $branch (merged, no worktree)"
+    deleted_branches=$((deleted_branches + 1))
+    echo ""
+    continue
+  fi
+
+  echo "DELETE BRANCH  $branch (merged, no worktree)"
+  # -D only for a squash/rebase merge, where git can't see the ancestry itself.
+  del_flag=-d
+  $branch_force && del_flag=-D
+  if ! git -C "$primary_wt" branch "$del_flag" "$branch"; then
+    echo "  error: git branch $del_flag failed" >&2
+    skipped=$((skipped + 1))
+    echo ""
+    continue
+  fi
+  deleted_branches=$((deleted_branches + 1))
+  echo ""
+done < <(git for-each-ref --format='%(refname:short)' refs/heads)
+
+echo "Done: $removed removed, $deleted_branches branch(es) deleted, $skipped skipped."
