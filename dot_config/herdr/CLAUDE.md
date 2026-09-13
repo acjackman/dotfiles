@@ -13,8 +13,6 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
 | File | Purpose |
 |------|---------|
 | `config.toml` | Additive config — only the `vim-herdr-navigation` keybindings. herdr ships built-in defaults and writes no default config.toml, so keep this minimal. |
-| `executable_ghostty-herdr` | Opens a new Ghostty window running herdr (the herdr analogue of `ghostty-sesh`). Run it, or bind it, to launch the trial. |
-| `executable_ghostty-herdr-cmd` | Helper run inside the new Ghostty window; execs `herdr`. |
 | `run_onchange_after_setup-herdr.sh.tmpl` | Installs the herdr plugins (below) if missing and reloads a running server after `config.toml` changes. Guarded on herdr being installed. |
 | `plugins/config/kichel.muster/config.toml` | muster's own config (the projects it offers). herdr's plugin config dir lives under `~/.config/herdr/`, so chezmoi manages it here instead of hand-copying upstream's `config.toml.example`. |
 
@@ -357,7 +355,7 @@ now runs it unconditionally.
 It does **not** self-heal: the fix is a server restart, which kills every pane
 process including running agents, so it reports by default and restarts only
 under `,doctor-herdr --restart`. Session layout is persisted and restores; pane
-processes do not. Relaunch afterwards with `~/.config/herdr/ghostty-herdr`.
+processes do not. Relaunch afterwards with `~/.config/ghostty/ghostty-herdr`.
 
 Since agents drive the `herdr` CLI directly, a mismatch is loud: calls fail with
 `protocol_mismatch` rather than silently degrading to another substrate. Restart

@@ -237,14 +237,14 @@ for _, app in ipairs(singleapps) do
   end)
 end
 
--- Hyper+T: focus Ghostty if it has windows, otherwise open with sesh picker
+-- Hyper+T: focus Ghostty if it has windows, otherwise open a window attached to herdr
 k:bind({}, "t", function()
   k.triggered = true
   local app = hs.application.get(terminal)
   if app and #app:allWindows() > 0 then
     hs.application.launchOrFocus(terminal)
   else
-    os.execute(HOME .. "/.config/ghostty/ghostty-sesh &")
+    os.execute(HOME .. "/.config/ghostty/ghostty-herdr &")
   end
 end)
 
@@ -342,15 +342,21 @@ hs.hotkey.bind("cmd", "`", function()
   hs.eventtap.keyStroke(shift_hyper, "`")
 end)
 
--- Ghostty Cmd+N: open new window with sesh session picker
+-- Ghostty Cmd+N: open a new window attached to the shared herdr session
+-- (herdr supports multiple clients on one session, so each window is another
+-- view of the same workspaces). Cmd+Shift+N falls back to the sesh/tmux picker.
 -- Uses an event tap to reliably intercept Cmd+N only when Ghostty is focused
 ghosttyCmdN = hs.eventtap.new({hs.eventtap.event.types.keyDown}, function(event)
   local flags = event:getFlags()
   local keyCode = event:getKeyCode()
-  -- keyCode 45 = N, check only cmd is held
-  if keyCode == 45 and flags.cmd and not flags.alt and not flags.ctrl and not flags.shift then
+  -- keyCode 45 = N, check only cmd (and optionally shift) is held
+  if keyCode == 45 and flags.cmd and not flags.alt and not flags.ctrl then
     if hs.application.frontmostApplication():name() == "Ghostty" then
-      os.execute(HOME .. "/.config/ghostty/ghostty-sesh &")
+      if flags.shift then
+        os.execute(HOME .. "/.config/ghostty/ghostty-sesh &")
+      else
+        os.execute(HOME .. "/.config/ghostty/ghostty-herdr &")
+      end
       return true -- consume the event
     end
   end

@@ -1,10 +1,11 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # Runs inside a new Ghostty window — launches herdr.
-# Called via: exec ~/.config/herdr/ghostty-herdr-cmd (see ghostty-herdr).
+# Called via: exec ~/.config/ghostty/ghostty-herdr-cmd (see ghostty-herdr).
 #
 # `herdr` with no args launches or attaches to the persistent session, spinning
 # up the background server on demand — the herdr analogue of the tmux launcher's
-# `tmux new-session -A`.
+# `tmux new-session -A`. Any arguments are passed through to herdr
+# (e.g. `--remote odin`).
 
 printf '\033c'
 
@@ -22,4 +23,4 @@ if ! command -v herdr &>/dev/null; then
   exec "$SHELL"
 fi
 
-exec env -u TMUX -u TMUX_PANE herdr
+exec env -u TMUX -u TMUX_PANE herdr "$@"

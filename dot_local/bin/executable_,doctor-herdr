@@ -136,7 +136,7 @@ are safe to lose, re-run with:
 
   ,doctor-herdr --restart
 
-then relaunch herdr (~/.config/herdr/ghostty-herdr).
+then relaunch herdr (~/.config/ghostty/ghostty-herdr).
 EOF
   exit 1
 fi
@@ -144,4 +144,4 @@ fi
 echo
 echo "Stopping the stale server…"
 HERDR_SOCKET_PATH="${socket:-$HOME/.config/herdr/herdr.sock}" herdr server stop
-echo "Stopped. Relaunch herdr with ~/.config/herdr/ghostty-herdr"
+echo "Stopped. Relaunch herdr with ~/.config/ghostty/ghostty-herdr"

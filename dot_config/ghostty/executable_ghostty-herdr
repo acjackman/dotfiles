@@ -1,0 +1,29 @@
+#!/usr/bin/env bash
+# Open a new Ghostty window running herdr — the default new-window launcher
+# (Hammerspoon Cmd+N / Hyper+T, Tuna). Mirrors ghostty-sesh: instead of the
+# sesh/tmux picker it launches herdr, which attaches to (or starts) its own
+# persistent server-backed session. herdr allows several clients on one session,
+# so every window opened this way is another view onto the same workspaces.
+#
+# NOTE: Do not use `open -na Ghostty.app --args -e ...` here — it spawns a
+# separate Ghostty process which adds extra Dock icons. Instead we use Ghostty's
+# AppleScript API (added in 1.3.0) to create a window in the existing instance.
+#
+# Any arguments are forwarded to herdr, e.g. `ghostty-herdr --remote odin`.
+# Each arg is shell-quoted and the command is passed to AppleScript via argv, so
+# no shell/AppleScript quote splicing is needed.
+
+cmd="exec $(printf '%q' "$HOME/.config/ghostty/ghostty-herdr-cmd")"
+for arg in "$@"; do
+  cmd+=" $(printf '%q' "$arg")"
+done
+
+osascript - "$cmd" <<'APPLESCRIPT'
+on run argv
+  tell application "Ghostty"
+    set cfg to new surface configuration
+    set initial input of cfg to (item 1 of argv) & linefeed
+    new window with configuration cfg
+  end tell
+end run
+APPLESCRIPT

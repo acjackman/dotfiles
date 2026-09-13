@@ -32,6 +32,20 @@ key = 't'
 
         [[comboMode.bindings.destination.bindings]]
         key = 'n'
+        label = 'New Window + Herdr'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'text:~/.config/ghostty/ghostty-herdr' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        key = 's'
         label = 'New Window + Sesh'
 
             [comboMode.bindings.destination.bindings.destination]

@@ -124,3 +124,5 @@ Library/Application Support/ovim
 # for editing the wrong file. Dropped 2026-09-08 alongside the views.yaml
 # column-name fix (MEM/R:L -> MEM/RL, see derailed/k9s#3139).
 .config/k9s/views.yml
+.config/herdr/ghostty-herdr
+.config/herdr/ghostty-herdr-cmd
