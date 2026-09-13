@@ -2,6 +2,9 @@
 python.uv_venv_auto = false
 idiomatic_version_file_enable_tools = ["python"]
 experimental = true
+# Avoid network in shell hooks (resolving `latest` for missing tools hung new
+# terminals); explicit `mise install`/`mise upgrade` still fetch.
+prefer_offline = true
 
 [env]
 CLOUDSDK_PYTHON = "{{env.HOME}}/.config/gcloud/virtenv/bin/python"
