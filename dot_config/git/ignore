@@ -114,3 +114,6 @@ mise.local.toml
 .effort
 .efforts
 .pitch
+
+# humanlayer
+.humanlayer/tasks/
