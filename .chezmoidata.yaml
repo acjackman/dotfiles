@@ -1,5 +1,6 @@
 gh_extensions:
   - dlvhdr/gh-dash
+  - github/gh-stack
 
 sketchybar:
   # Compact mode shifts items to the left half of the bar (avoiding the MBP
