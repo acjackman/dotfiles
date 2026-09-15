@@ -6,9 +6,15 @@
   - Edit `.chezmoitemplates/tuna/settings`  to change hotkeys, theme, or the
     clipboard-history shortcut.
 
-  Drift caught by `chezmoi diff` after Tuna's UI rewrites the deployed file.
-  Backport via `chezmoi merge ~/.config/tuna/config.toml` (or copy the
-  changed lines into the relevant fragment by hand).
+  Drift caught by `,doctor-tuna` (and `chezmoi diff`) after Tuna rewrites the
+  deployed file. Backport via `chezmoi merge ~/.config/tuna/config.toml` (or
+  copy the changed lines into the relevant fragment by hand).
+
+  COUPLED: run_before_backup-tuna-config.sh.tmpl re-derives this file's content
+  by concatenating the same three fragments with a newline between each, to
+  hash it without a re-entrant chezmoi call. Change how this template
+  assembles them and that hash stops matching, which makes the guard warn on
+  every apply. Update both together.
 */ -}}
 {{ template "tuna/catalogs" . }}
 {{ template "tuna/bindings" . }}

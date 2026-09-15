@@ -1,0 +1,53 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Snapshot ~/.config/tuna/config.toml before chezmoi overwrites it with
+# something different.
+#
+# Tuna rewrites its own config from in-memory state — on quit, on any UI edit,
+# and after a version migration. chezmoi owns that file, so every such rewrite
+# makes the source stale, and the next `chezmoi apply` silently reverts it.
+# That is usually just a lost UI tweak, but it has been worse: replaying a
+# stale source across a schema bump fails the migration and SILENTLY DROPS
+# EVERY LEAF BINDING (see CLAUDE.md, "Schema history").
+#
+# So: never let an apply be the only copy of Tuna's rewrite. This is a
+# `run_before_` script (not `run_onchange_`) because it must check the target
+# on every apply — drift originates in the app, not in the source, so there is
+# no source-side change to hang a hash off.
+#
+# The desired content is hashed at chezmoi-template time from the same three
+# fragments config.toml.tmpl assembles, so this makes no re-entrant chezmoi
+# call while chezmoi holds its lock.
+set -euo pipefail
+
+target="$HOME/.config/tuna/config.toml"
+[[ -f "$target" ]] || exit 0
+
+want_sha={{ print (includeTemplate "tuna/catalogs" .) "\n" (includeTemplate "tuna/bindings" .) "\n" (includeTemplate "tuna/settings" .) | sha256sum }}
+have_sha="$(shasum -a 256 "$target" | cut -d' ' -f1)"
+
+[[ "$want_sha" == "$have_sha" ]] && exit 0
+
+# Diverged. Keep one backup per distinct deployed content: re-applying the same
+# stale source repeatedly should not litter, but each genuinely new rewrite
+# Tuna makes is worth its own copy.
+backup_dir="$HOME/.local/state/tuna-config-backups"
+mkdir -p "$backup_dir"
+short="${have_sha:0:12}"
+backup="$backup_dir/config.toml.$(date +%Y%m%d-%H%M%S).$short"
+
+# Suffix the content hash so "already saved?" is a glob, not a scan. compgen
+# rather than a bare glob so this does not depend on the unmatched-glob-stays-
+# literal default (nullglob/failglob would each break it differently).
+if compgen -G "$backup_dir/config.toml.*.$short" >/dev/null; then
+  exit 0
+fi
+
+cp -p "$target" "$backup"
+cat >&2 <<EOF
+,tuna: the deployed Tuna config differs from the chezmoi source; saved a copy to
+  ${backup/#$HOME/~}
+chezmoi is about to overwrite it. If Tuna wrote those changes, re-sync the
+fragments instead of discarding them: ,doctor-tuna
+EOF
+{{ end -}}

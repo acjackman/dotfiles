@@ -1,0 +1,103 @@
+#!/usr/bin/env bash
+#
+# ,doctor-tuna — warn when the Tuna config fragments have gone stale.
+#
+# Tuna rewrites ~/.config/tuna/config.toml from its in-memory state: on quit,
+# on any UI edit, and — the case this exists for — after a version migration.
+# chezmoi owns that file, assembling it from three fragments in
+# .chezmoitemplates/tuna/. So every rewrite Tuna makes puts the source behind
+# the app, and the next `chezmoi apply` silently reverts it.
+#
+# Usually that just costs a UI tweak. It has cost more: replaying a stale
+# source across a schema bump fails Tuna's migration and SILENTLY DROPS EVERY
+# LEAF BINDING, leaving the group shells behind (dot_config/tuna/CLAUDE.md,
+# "Schema history"). Tuna's own defaults churn too — 0.98 moved smart links
+# out of config.toml into the preferences plist entirely.
+#
+# UNLIKE most ,doctor-* scripts this one applies NOTHING. Re-syncing means
+# deciding, per hunk, whether Tuna's rewrite or the source is authoritative,
+# and splitting the result back across three fragments — a judgement call, not
+# a fix. So it reports and exits 1, and the safety net lives elsewhere:
+# dot_config/tuna/run_before_backup-tuna-config.sh.tmpl snapshots the deployed
+# file before any apply can overwrite it, so a stale source is never lossy.
+#
+# Two independent signals, because either can fire without the other:
+#   1. VERSION DRIFT — the installed app differs from the version recorded in
+#      .chezmoidata.yaml as `tuna_synced_version`. The file can still match
+#      byte-for-byte right after an upgrade, because Tuna does not rewrite it
+#      until something makes it save. This is the early warning.
+#   2. CONTENT DRIFT — the deployed file differs from what chezmoi would
+#      write. This is the thing that actually gets reverted.
+#
+# Usage:
+#   ,doctor-tuna    report staleness; exit 1 if either signal fires
+#
+# Exit codes: 0 in sync (or Tuna not installed), 1 fragments look stale.
+
+set -uo pipefail
+
+app="/Applications/Tuna.app"
+target="$HOME/.config/tuna/config.toml"
+synced_version='{{ .tuna_synced_version }}'
+backup_dir="$HOME/.local/state/tuna-config-backups"
+
+# Not every machine runs Tuna; `brew "tuna"` is personal-only.
+if [[ ! -d "$app" ]]; then
+  echo ",doctor-tuna: Tuna is not installed — nothing to check."
+  exit 0
+fi
+
+installed_version="$(defaults read "$app/Contents/Info.plist" CFBundleShortVersionString 2>/dev/null || echo unknown)"
+
+stale=0
+
+# --- Signal 1: version drift ----------------------------------------------
+if [[ "$installed_version" != "$synced_version" ]]; then
+  stale=1
+  echo "VERSION DRIFT: Tuna $installed_version installed, fragments synced against $synced_version."
+  echo "  Tuna rewrites config.toml after a migration, so the fragments may be stale"
+  echo "  even while the file still matches."
+else
+  echo "Version: Tuna $installed_version matches the synced fragments."
+fi
+
+# --- Signal 2: content drift ----------------------------------------------
+# `chezmoi status` rather than a hash baked in at template time: this script
+# runs outside chezmoi, so asking chezmoi directly is both cheaper to keep
+# correct and immune to config.toml.tmpl changing how it assembles fragments.
+if ! command -v chezmoi >/dev/null 2>&1; then
+  echo "Content: skipped — chezmoi not on PATH."
+elif [[ ! -f "$target" ]]; then
+  echo "Content: ${target/#$HOME/~} does not exist yet; run chezmoi apply."
+elif [[ -n "$(chezmoi status "$target" 2>/dev/null)" ]]; then
+  stale=1
+  echo "CONTENT DRIFT: the deployed config differs from what chezmoi would write."
+  echo "  chezmoi apply would DISCARD the deployed side. Review it first:"
+  echo "    chezmoi diff $target"
+else
+  echo "Content: deployed config matches the source."
+fi
+
+# --- Backups the pre-apply guard has taken --------------------------------
+if [[ -d "$backup_dir" ]]; then
+  count=$(find "$backup_dir" -name 'config.toml.*' -type f 2>/dev/null | wc -l | tr -d ' ')
+  if (( count > 0 )); then
+    newest="$(find "$backup_dir" -name 'config.toml.*' -type f -exec stat -f '%m %N' {} + 2>/dev/null | sort -rn | head -1 | cut -d' ' -f2-)"
+    echo "Backups: $count saved in ${backup_dir/#$HOME/~} (newest ${newest##*/})"
+  fi
+fi
+
+if (( stale )); then
+  cat <<EOF
+
+To re-sync: split the deployed file back into the three fragments at the
+\`[[comboMode.bindings]]\` and \`[hotkeys.\` boundaries, strip regenerated \`id\`
+keys, then bump tuna_synced_version in .chezmoidata.yaml to $installed_version.
+Full procedure — including which ids Tuna persists — in
+dot_config/tuna/CLAUDE.md, "Keeping the fragments drift-free".
+EOF
+  exit 1
+fi
+
+echo "Tuna config in sync."
+exit 0

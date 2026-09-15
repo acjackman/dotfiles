@@ -38,9 +38,25 @@ The Spotlight `cmd+space` conflict is handled automatically by
 
 ## Drift detection (UI-driven changes)
 
-Because chezmoi owns the deployed file, anything Tuna's UI writes that
-diverges from the templates shows up as `chezmoi diff`. To backport a
-UI change into source:
+Because chezmoi owns the deployed file, anything Tuna writes that diverges
+from the templates shows up as `chezmoi diff` — and would be silently
+discarded by the next `chezmoi apply`. Two guards cover that:
+
+- **`,doctor-tuna`** reports staleness on two independent signals: the
+  installed Tuna version vs `tuna_synced_version` in `.chezmoidata.yaml`
+  (the early warning — Tuna does not rewrite the file until something makes
+  it save, so the version moves first), and the deployed file vs what chezmoi
+  would write (the drift that actually gets reverted). It reports only, never
+  fixes: re-syncing is a per-hunk judgement call about which side is
+  authoritative. **Bump `tuna_synced_version` whenever you re-sync.**
+- **`run_before_backup-tuna-config.sh.tmpl`** snapshots the deployed file into
+  `~/.local/state/tuna-config-backups/` before any apply can overwrite it, so
+  a stale source is never lossy. It keeps one backup per distinct deployed
+  content, so repeated applies don't litter. It is `run_before_` rather than
+  `run_onchange_` because the drift originates in the app, not in the source
+  — there is no source-side change to hang a hash off.
+
+To backport a UI change into source:
 
 ```sh
 chezmoi diff dot_config/tuna             # see what differs

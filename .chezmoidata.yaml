@@ -1,3 +1,9 @@
+# Tuna version the .chezmoitemplates/tuna/ fragments were last re-synced
+# against. Tuna rewrites config.toml on upgrade, so a mismatch with the
+# installed app means the fragments are probably stale — `,doctor-tuna`
+# compares the two and says so. Bump this when you re-sync the fragments.
+tuna_synced_version: "0.98"
+
 gh_extensions:
   - dlvhdr/gh-dash
   - github/gh-stack
