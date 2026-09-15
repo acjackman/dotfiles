@@ -1,0 +1,27 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Load (or reload) the herdr-freshen LaunchAgent. Re-runs when the plist
+# changes: {{ include "private_Library/LaunchAgents/com.acjackman.herdr-freshen.plist.tmpl" | sha256sum }}
+#
+# The agent adopts an upgraded herdr binary via live handoff; see the rationale
+# in the plist itself for why this is a timer and not a shell hook.
+set -euo pipefail
+
+label="com.acjackman.herdr-freshen"
+plist="$HOME/Library/LaunchAgents/$label.plist"
+domain="gui/$(id -u)"
+
+# Clean no-op on machines without the herdr trial (`brew "herdr"` is personal).
+command -v herdr >/dev/null 2>&1 || exit 0
+[[ -f "$plist" ]] || exit 0
+
+# launchd will not create these, and a missing directory makes the job fail to
+# spawn with no visible reason.
+mkdir -p "$HOME/.local/share/herdr-freshen"
+
+# bootout first so an edited plist is actually re-read; ignore "not loaded".
+launchctl bootout "$domain/$label" 2>/dev/null || true
+launchctl bootstrap "$domain" "$plist"
+
+echo "Loaded $label (herdr live-handoff freshness check, every 30m)"
+{{ end -}}

@@ -1,10 +1,14 @@
 #!/usr/bin/env bash
 #
-# ,doctor-herdr — reload a stale herdr keybinding table; detect a herdr
-# client/server protocol mismatch.
+# ,doctor-herdr — keep the running herdr server in step with the installed
+# binary: adopt a freshly upgraded binary via live handoff, reload a stale
+# keybinding table, and report (or fix) a protocol mismatch.
 #
-# Two distinct upgrade-in-place failures, one cause: `brew upgrade` swaps the
-# binary while the old server keeps running.
+# ONE ROOT CAUSE, THREE SYMPTOMS. `brew upgrade herdr` swaps the binary on disk
+# while the old server keeps running. Nothing in brew tells the server to pick
+# the new one up, and herdr's own `herdr update --handoff` — which would do it
+# atomically — refuses on Homebrew installs ("self-update is disabled for
+# Homebrew installs"). So the server drifts from the binary, and:
 #
 # 1. STALE KEYBINDINGS (fixed by default). The running server keeps serving its
 #    old keybinding table, which can silently drop `[[keys.command]]` custom
@@ -15,121 +19,211 @@
 #    dot_config/herdr/ only reloads when config.toml *changes*, and an upgrade
 #    changes the binary, not the config.
 #
-# 2. PROTOCOL MISMATCH (reported, never fixed unprompted — see below).
+# 2. STALE BINARY (fixed by default, non-destructively — see live handoff).
+#    The server is still protocol-compatible but is executing the old binary.
+#    This is the window in which the drift is cheap to fix; case 3 is what it
+#    decays into.
 #
-# herdr's wire protocol churns pre-1.0. `brew upgrade` replaces the binary in
-# place but leaves the already-running server on the OLD protocol, so every CLI
-# call from the new binary is rejected:
+# 3. PROTOCOL MISMATCH (handoff attempted; destructive restart stays opt-in).
+#    herdr's wire protocol churns pre-1.0, so once the versions separate far
+#    enough every CLI call from the new binary is rejected:
 #
-#     client protocol 17 is newer than server protocol 16; restart the Herdr
-#     server before using this command.
+#        client protocol 22 is newer than server protocol 20; restart the Herdr
+#        server before using this command.
 #
-# The visible symptom is that *the plugins all stop working at once* — every
-# herdr plugin (command-palette, worktrunk, muster, pluck, window-title-sync,
-# vim-herdr-navigation) drives the `herdr` CLI, so they fail together while
-# herdr itself keeps running normally. Agent surface control fails the same way,
-# for the same reason. Nothing is corrupt; the server just needs a restart.
+#    The visible symptom is that *the plugins all stop working at once* — every
+#    herdr plugin (command-palette, worktrunk, muster, pluck, title-rename,
+#    vim-herdr-navigation) drives the `herdr` CLI, so they fail together while
+#    herdr itself keeps running normally. Agent surface control fails the same
+#    way, for the same reason. Nothing is corrupt; the server is just stale.
 #
-# UNLIKE the other ,doctor-* scripts, this one does NOT apply the mismatch fix
-# by default. The only remedy is restarting the server, which kills every pane
-# process — including long-running agents. Losing those unprompted is worse
-# than the mismatch, so the restart is opt-in behind --restart. (The keybinding
-# reload above is unaffected: it is non-destructive and always runs.)
+# LIVE HANDOFF is the mechanism that makes 2 and 3 survivable.
+# `herdr server live-handoff --import-exe <path>` starts a replacement server
+# from the new binary and passes the live pane PTY file descriptors across the
+# socket to it. Pane processes keep running. It is undocumented (absent from
+# `herdr --help`) but is a first-class API method (`server.live_handoff`) with
+# a rollback path on failure, and the server advertises support in
+# `herdr status --json` at `.server.capabilities.live_handoff` — which is what
+# this script gates on, so it degrades to "report only" rather than breaking if
+# a future release drops or renames it.
 #
-# A mismatch also blocks the reload — the reload is itself a CLI call, so it is
-# rejected too. Fix the mismatch first (--restart); a fresh server reads the
-# current config anyway.
+# WHY THIS GATES ON STALENESS, NOT ON THE MISMATCH. Handoff is negotiated
+# *through* the socket, so it needs a running server new enough to answer the
+# request. Once the protocol has drifted the request itself can be refused:
+#
+#     live handoff was requested, but no compatible server responded on ...
+#
+# That is the trap this script exists to avoid: the gap you need to cross is
+# the gap that blocks crossing it. The real fix is therefore TIMING — adopt the
+# new binary while `compatible` is still true and only `server_binary_stale`
+# has flipped. Handoff is still attempted on an existing mismatch (case 3),
+# because the capability flag stays readable and it costs nothing to try, but
+# do not rely on it: let the zsh hook run `--freshen` soon after an upgrade
+# rather than discovering this days later.
+#
+# `herdr status` keeps working during a mismatch — it is the one call that is
+# not rejected — so every field read below stays available in the broken state.
+#
+# UNLIKE the other ,doctor-* scripts, this one does NOT restart the server by
+# default. A restart kills every pane process, including long-running agents.
+# Losing those unprompted is worse than the mismatch, so `herdr server stop`
+# stays behind --restart. Every other action here preserves panes.
 #
 # Usage:
-#   ,doctor-herdr             reload config; report health; exit 1 on mismatch
-#   ,doctor-herdr --restart   stop the stale server (kills all pane processes)
+#   ,doctor-herdr             adopt a stale binary, reload config, report
+#   ,doctor-herdr --freshen   quiet: adopt a stale binary if safe, else no-op
+#   ,doctor-herdr --restart   stop a mismatched server (KILLS pane processes)
+#
+# --freshen is the automatic path, driven every 30 minutes by the launchd agent
+# com.acjackman.herdr-freshen (see its plist for why this is a timer and NOT a
+# shell hook — briefly: every shell here starts inside a herdr pane, and asking
+# a server to transfer its PTYs from inside a pane it is mid-way through
+# creating is the one moment handoff should not be attempted). It never
+# restarts, never reloads config, and prints nothing unless it acts or fails.
 #
 # Exit codes: 0 healthy (or fixed), 1 mismatch found and not fixed.
 
 set -euo pipefail
 
+freshen=0
 restart=0
 for arg in "$@"; do
   case "$arg" in
     --restart) restart=1 ;;
+    --freshen) freshen=1 ;;
     # Print the header block (line 2 through the last comment line before code).
     -h|--help) sed -n '2,/^# Exit codes/p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) printf ',doctor-herdr: unknown argument: %s\n' "$arg" >&2; exit 2 ;;
   esac
 done
 
+# Quiet in --freshen mode; chatty otherwise.
+say() { (( freshen )) && return 0; printf '%s\n' "$*"; }
+# Always shown, even in --freshen mode: we only speak up when we act or fail.
+loud() { printf '%s\n' "$*"; }
+
+DEBOUNCE_SECONDS=60
+stamp="${XDG_CACHE_HOME:-$HOME/.cache}/doctor-herdr.freshen-stamp"
+lockdir="${TMPDIR:-/tmp}/doctor-herdr-handoff.lock"
+
+# mtime in epoch seconds, 0 if absent. BSD stat (macOS); this repo is darwin-only.
+mtime() { stat -f %m "$1" 2>/dev/null || echo 0; }
+age_of() { echo $(( $(date +%s) - $(mtime "$1") )); }
+
+# Debounce. The launchd timer is well clear of this at 30 minutes, so in normal
+# operation it never bites; it is here to keep a burst of manual runs (or a
+# hand-triggered `launchctl kickstart`) from stacking socket calls.
+if (( freshen )); then
+  if [[ -e "$stamp" ]] && (( $(age_of "$stamp") < DEBOUNCE_SECONDS )); then
+    exit 0
+  fi
+  mkdir -p "$(dirname "$stamp")" 2>/dev/null || true
+  touch "$stamp" 2>/dev/null || true
+fi
+
 if ! command -v herdr >/dev/null 2>&1; then
-  echo "herdr not installed — nothing to check."
+  say "herdr not installed — nothing to check."
+  exit 0
+fi
+if ! command -v jq >/dev/null 2>&1; then
+  echo ",doctor-herdr: jq is required (brew install jq)" >&2
+  exit 2
+fi
+
+status_json="$(herdr status --json 2>/dev/null || true)"
+if [[ -z "$status_json" ]] || ! jq -e . >/dev/null 2>&1 <<<"$status_json"; then
+  say "herdr status unavailable — nothing to check."
   exit 0
 fi
 
-status="$(herdr status server 2>/dev/null || true)"
-field() { sed -n "s/^$1: *//p" <<<"$status" | head -1; }
+# No `// empty` here: it would swallow legitimate `false` booleans.
+j() { jq -r "$1" <<<"$status_json"; }
 
-state="$(field status)"
-if [[ "$state" != "running" ]]; then
-  echo "herdr server not running — nothing to check."
-  exit 0
-fi
+[[ "$(j '.server.running')" == "true" ]] || { say "herdr server not running — nothing to check."; exit 0; }
 
-server_version="$(field version)"
-server_proto="$(field protocol)"
-compatible="$(field compatible)"
-socket="$(field socket)"
-client_version="$(herdr --version 2>/dev/null | awk '{print $2}')"
+client_version="$(j '.client.version')"
+client_bin="$(j '.client.binary')"
+server_version="$(j '.server.version')"
+server_proto="$(j '.server.protocol')"
+compatible="$(j '.server.compatible')"
+socket="$(j '.server.socket')"
+can_handoff="$(j '.server.capabilities.live_handoff')"
+stale="$(j '.update.server_binary_stale')"
 
-if [[ "$compatible" == "yes" ]]; then
-  echo "herdr healthy — client ${client_version:-?} and server ${server_version:-?} both speak protocol ${server_proto:-?}."
+# Fall back to PATH lookup if the server did not report the client binary.
+[[ "$client_bin" == "null" || -z "$client_bin" ]] && client_bin="$(command -v herdr)"
 
-  # Re-register keybindings in case the running server is serving a stale table
-  # (see the header). Non-destructive and idempotent, so it runs every time —
-  # there is no way to ask the server whether its table is current.
-  echo "Reloading config (re-registers custom keybindings)…"
-  if reload="$(herdr server reload-config 2>&1)"; then
-    # herdr reports config problems as `diagnostics` in the reload response
-    # rather than a non-zero exit, so surface a non-empty list.
-    if [[ "$reload" == *'"diagnostics":[]'* ]]; then
-      echo "  config reloaded — keybindings re-registered."
-    else
-      echo "  config reloaded WITH DIAGNOSTICS:"
-      sed 's/^/    /' <<<"$reload"
-    fi
+# Run the handoff under a lock: the launchd timer and a manual run can overlap,
+# and two concurrent handoffs would fight over the same socket.
+#   0 = handed off, 1 = attempt failed, 2 = skipped (another run holds the lock)
+do_handoff() {
+  # Clear a lock left by a crashed run; a handoff takes seconds, not minutes.
+  if [[ -d "$lockdir" ]] && (( $(age_of "$lockdir") > 300 )); then
+    rmdir "$lockdir" 2>/dev/null || true
+  fi
+  mkdir "$lockdir" 2>/dev/null || return 2
+
+  local out rc=0
+  out="$("$client_bin" server live-handoff \
+           --import-exe "$client_bin" \
+           --expected-version "$client_version" 2>&1)" || rc=$?
+  rmdir "$lockdir" 2>/dev/null || true
+
+  if (( rc == 0 )); then
+    return 0
+  fi
+  handoff_error="$out"
+  return 1
+}
+
+# --- Case 3: protocol mismatch --------------------------------------------
+if [[ "$compatible" != "true" ]]; then
+  loud "herdr PROTOCOL MISMATCH — plugins and agent surface control will not work."
+  loud ""
+  loud "  installed binary: ${client_version:-?}"
+  loud "  running server:   ${server_version:-?} (protocol ${server_proto:-?})"
+  loud ""
+
+  if [[ "$can_handoff" == "true" ]]; then
+    loud "Server advertises live handoff — attempting it (pane processes survive)…"
+    rc=0; do_handoff || rc=$?
+    case "$rc" in
+      0) loud "Live handoff complete — server is now ${client_version:-?}, panes intact."
+         exit 0 ;;
+      2) loud "Another handoff is already in progress — skipping."
+         exit 1 ;;
+      *) loud "Live handoff failed:"
+         sed 's/^/  /' <<<"${handoff_error:-unknown error}"
+         loud ""
+         loud "Falling back to the destructive path below." ;;
+    esac
   else
-    echo "  reload failed:" >&2
-    sed 's/^/    /' <<<"$reload" >&2
-    exit 1
+    loud "Server does not advertise live handoff — the protocol has drifted too"
+    loud "far to cross. Only a full restart will clear this."
   fi
-  exit 0
-fi
 
-cat <<EOF
-herdr PROTOCOL MISMATCH — plugins and agent surface control will not work.
+  loud ""
+  loud "Restarting the server clears it. Session layout is persisted and restores;"
+  loud "pane PROCESSES do not."
 
-  installed binary: ${client_version:-?}
-  running server:   ${server_version:-?} (protocol ${server_proto:-?})
-
-The binary was upgraded while this server kept running. Restarting the server
-clears it. Session layout is persisted and restores; pane PROCESSES do not.
-EOF
-
-# macOS `pgrep -f` is unreliable here (it misses the server but matches unrelated
-# processes whose long argv merely mentions herdr), so match on ps output.
-# (No early `exit` in awk: closing the pipe early SIGPIPEs ps, which pipefail
-# then turns into a spurious failure.)
-server_pid="$(ps -eo pid=,args= | awk '$0 ~ /herdr server$/ {print $1}' || true)"
-server_pid="${server_pid%%$'\n'*}"
-if [[ -n "$server_pid" ]]; then
-  children="$(pgrep -P "$server_pid" 2>/dev/null || true)"
-  if [[ -n "$children" ]]; then
-    echo
-    echo "Pane processes that a restart would kill (plus anything nested under them):"
-    # shellcheck disable=SC2086 # word splitting is the point: pid list -> ps
-    ps -o pid=,command= -p $(tr '\n' ' ' <<<"$children") 2>/dev/null | cut -c1-100 | sed 's/^/  /'
+  # macOS `pgrep -f` is unreliable here (it misses the server but matches unrelated
+  # processes whose long argv merely mentions herdr), so match on ps output.
+  # (No early `exit` in awk: closing the pipe early SIGPIPEs ps, which pipefail
+  # then turns into a spurious failure.)
+  server_pid="$(ps -eo pid=,args= | awk '$0 ~ /herdr server$/ {print $1}' || true)"
+  server_pid="${server_pid%%$'\n'*}"
+  if [[ -n "$server_pid" ]]; then
+    children="$(pgrep -P "$server_pid" 2>/dev/null || true)"
+    if [[ -n "$children" ]]; then
+      loud ""
+      loud "Pane processes that a restart would kill (plus anything nested under them):"
+      # shellcheck disable=SC2086 # word splitting is the point: pid list -> ps
+      ps -o pid=,command= -p $(tr '\n' ' ' <<<"$children") 2>/dev/null | cut -c1-100 | sed 's/^/  /'
+    fi
   fi
-fi
 
-if (( ! restart )); then
-  cat <<EOF
+  if (( ! restart )); then
+    cat <<EOF
 
 Not restarting (this doctor never restarts unprompted). When the panes above
 are safe to lose, re-run with:
@@ -138,10 +232,67 @@ are safe to lose, re-run with:
 
 then relaunch herdr (~/.config/ghostty/ghostty-herdr).
 EOF
-  exit 1
+    exit 1
+  fi
+
+  loud ""
+  loud "Stopping the stale server…"
+  HERDR_SOCKET_PATH="${socket:-$HOME/.config/herdr/herdr.sock}" herdr server stop
+  loud "Stopped. Relaunch herdr with ~/.config/ghostty/ghostty-herdr"
+  exit 0
 fi
 
-echo
-echo "Stopping the stale server…"
-HERDR_SOCKET_PATH="${socket:-$HOME/.config/herdr/herdr.sock}" herdr server stop
-echo "Stopped. Relaunch herdr with ~/.config/ghostty/ghostty-herdr"
+# --- Case 2: binary upgraded, server still compatible ----------------------
+# The cheap window. Adopt the new binary now, before the protocol drifts into
+# case 3 and takes the panes with it.
+if [[ "$stale" == "true" ]]; then
+  if [[ "$can_handoff" == "true" ]]; then
+    loud "herdr binary upgraded to ${client_version:-?}; server still running ${server_version:-?}."
+    loud "Adopting it via live handoff (pane processes survive)…"
+    rc=0; do_handoff || rc=$?
+    case "$rc" in
+      0) loud "Live handoff complete — server is now ${client_version:-?}, panes intact."
+         # Re-read: the cached status_json describes the server we just replaced,
+         # and the healthy report below would otherwise quote the old version.
+         status_json="$(herdr status --json 2>/dev/null || echo "$status_json")" ;;
+      2) loud "Another handoff is already in progress — skipping." ; exit 0 ;;
+      *) loud "Live handoff failed:"
+         sed 's/^/  /' <<<"${handoff_error:-unknown error}"
+         loud ""
+         loud "Server still runs ${server_version:-?}. It is compatible for now, so nothing"
+         loud "is broken yet — but it will break once the protocol drifts. Fix with:"
+         loud "  ,doctor-herdr --restart   (kills pane processes)"
+         exit 1 ;;
+    esac
+  else
+    say "herdr binary is newer than the running server, which does not support live"
+    say "handoff. Nothing is broken yet; restart when convenient (,doctor-herdr --restart)."
+  fi
+fi
+
+# --- Case 1: healthy -------------------------------------------------------
+# --freshen stops here: reload-config is a health measure, not a drift fix, and
+# the automatic path should stay silent and side-effect-light.
+(( freshen )) && exit 0
+
+say "herdr healthy — client ${client_version:-?} and server $(j '.server.version') both speak protocol $(j '.server.protocol')."
+
+# Re-register keybindings in case the running server is serving a stale table
+# (see the header). Non-destructive and idempotent, so it runs every time —
+# there is no way to ask the server whether its table is current.
+say "Reloading config (re-registers custom keybindings)…"
+if reload="$(herdr server reload-config 2>&1)"; then
+  # herdr reports config problems as `diagnostics` in the reload response
+  # rather than a non-zero exit, so surface a non-empty list.
+  if [[ "$reload" == *'"diagnostics":[]'* ]]; then
+    say "  config reloaded — keybindings re-registered."
+  else
+    say "  config reloaded WITH DIAGNOSTICS:"
+    sed 's/^/    /' <<<"$reload"
+  fi
+else
+  echo "  reload failed:" >&2
+  sed 's/^/    /' <<<"$reload" >&2
+  exit 1
+fi
+exit 0

@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Adopt a freshly upgraded herdr binary into the running server, via live
+  handoff, without killing pane processes. See `,doctor-herdr --help`.
+
+  WHY LAUNCHD AND NOT A SHELL HOOK. The obvious trigger is zsh startup, but
+  every shell here starts INSIDE a herdr pane, which makes that the wrong
+  place three times over:
+
+    1. It fires during pane creation — the exact moment the server is
+       registering a new pane — and asks that server to snapshot every pane
+       and hand the PTYs to a replacement. Racing a pane-create against a
+       pane-transfer is the one moment handoff should not be attempted.
+    2. The shell issuing the request is a child of a PTY being transferred.
+       Handoff is built to survive that, but it is designed for a deliberate
+       one-off `herdr update --handoff`, not for shell init of the very pane
+       being handed over.
+    3. Gating on $HERDR_PANE_ID to dodge 1 and 2 would mean the hook never
+       fires at all, because there is no shell here that isn't in a pane.
+
+  launchd has none of those problems: it runs outside every pane, parented by
+  launchd rather than by a PTY the server owns. It also fires whether or not a
+  terminal is open, which covers the case that actually caused trouble — a
+  server left running for days after an upgrade until the protocol drifted
+  past the point where handoff could still rescue the panes.
+
+  StartInterval is 30 minutes: the risk window is "upgraded but not yet
+  drifted", which is bounded by how often a new herdr release is installed,
+  so there is nothing to gain from checking harder. ,doctor-herdr --freshen is
+  a silent no-op unless it acts, so the logs below stay empty in steady state.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.acjackman.herdr-freshen</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{ .chezmoi.homeDir }}/.local/bin/,doctor-herdr</string>
+        <string>--freshen</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>StartInterval</key>
+    <integer>1800</integer>
+    <key>ProcessType</key>
+    <string>Background</string>
+    <!-- launchd starts with a minimal PATH; the script needs herdr and jq. -->
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>{{ .chezmoi.homeDir }}</string>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>{{ .chezmoi.homeDir }}/.local/share/herdr-freshen/stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{ .chezmoi.homeDir }}/.local/share/herdr-freshen/stderr.log</string>
+</dict>
+</plist>
