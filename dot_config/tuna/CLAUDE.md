@@ -111,7 +111,9 @@ through Tuna's Combo Mode editor, then copy the stanza out of
 ## Catalogs
 
 `[catalogs]` carries three arrays — `globalScopes`, `searchPriorities`,
-`sortOrders` — all currently empty. Older configs wrote `globalScopes` entries
+`sortOrders`. `globalScopes` holds one `catalogIdentifier` + `scope.kind`
+entry per catalog kept out of global search (`tuna.commands`, `tuna.effects`,
+`tuna.emoji`); `searchPriorities` and `sortOrders` are empty. Older configs wrote `globalScopes` entries
 shaped `catalogIdentifier` + `mode` + `selectedItemKeys` to keep catalogs out
 of global search. That shape is dead: `selectedItemKeys` no longer exists in
 the app at all, `mode` is rejected, and leaving them in place fails the whole
@@ -128,6 +130,25 @@ Previously excluded (`mode = 'none'`), with their modern catalog ids:
 To restore those exclusions, set the global-search scope for the three
 catalogs in Tuna's settings, then copy the `[catalogs]` block Tuna writes back
 into `.chezmoitemplates/tuna/catalogs`.
+
+## Smart links live in the plist, not config.toml
+
+As of Tuna 0.98 `[[smartLinks.entries]]` is **not** config.toml state. Tuna
+migrated the entries into its preferences plist as a single JSON blob under
+`SmartLinks.entries`, and now strips the TOML table when it rewrites the file.
+The fragments carried seven stale entries until 2026-09-15; all seven survived
+the migration intact, so nothing was lost by dropping them.
+
+Do not manage them from here. Each entry carries `id`, `createdAt` and
+`updatedAt`, so the blob churns on every UI edit, and the seven defaults match
+what a fresh install writes anyway. To read the current set:
+
+```sh
+python3 -c "import plistlib,json,os,pathlib;\
+d=plistlib.loads(pathlib.Path(os.path.expanduser(
+  '~/Library/Preferences/com.brnbw.Tuna.plist')).read_bytes());\
+print(json.dumps(json.loads(d['SmartLinks.entries']),indent=2))"
+```
 
 ## Keeping the fragments drift-free
 

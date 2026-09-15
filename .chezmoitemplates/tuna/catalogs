@@ -3,6 +3,12 @@ searchPriorities = []
 sortOrders = []
 
     [[catalogs.globalScopes]]
+    catalogIdentifier = 'tuna.commands'
+
+        [catalogs.globalScopes.scope]
+        kind = 'none'
+
+    [[catalogs.globalScopes]]
     catalogIdentifier = 'tuna.effects'
 
         [catalogs.globalScopes.scope]
