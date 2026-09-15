@@ -21,6 +21,17 @@
         }
       ],
       "match_key": "rtk hook claude"
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "~/.local/bin/claude-trunk-guard",
+          "timeout": 10
+        }
+      ],
+      "match_key": "claude-trunk-guard"
     }
   ]
 }

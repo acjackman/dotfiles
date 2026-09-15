@@ -1,0 +1,61 @@
+#!/usr/bin/env bash
+# PreToolUse(Bash) guard — in a worktree-style repo, never move the trunk
+# checkout off its trunk branch. Branch work belongs in a new worktree.
+set -uo pipefail
+
+PAYLOAD=$(cat)
+CMD=$(jq -r '.tool_input.command // ""' <<<"$PAYLOAD")
+CWD=$(jq -r '.cwd // ""' <<<"$PAYLOAD")
+[[ -z "$CMD" ]] && exit 0
+
+# Honour `git -C <path>` if present, else the session cwd.
+DIR=$(awk '{for(i=1;i<NF;i++){if($i=="git"&&$(i+1)=="-C"){print $(i+2); exit}}}' <<<"$CMD")
+DIR=${DIR:-$CWD}
+DIR=${DIR/#\~/$HOME}
+[[ -d "$DIR" ]] || exit 0
+
+# Only care about multi-worktree ("worktree style") repos.
+git -C "$DIR" rev-parse --is-inside-work-tree >/dev/null 2>&1 || exit 0
+(( $(git -C "$DIR" worktree list 2>/dev/null | wc -l) > 1 )) || exit 0
+
+# Escape hatch. Some repos legitimately commit on trunk from a fixed path --
+# chezmoi pins its source dir to ~/.local/share/chezmoi, so branch work there
+# cannot move to a worktree. Opt out with a marker file at the worktree root.
+TOP=$(git -C "$DIR" rev-parse --show-toplevel 2>/dev/null)
+[[ -n "$TOP" && -e "$TOP/.claude-trunk-guard-allow" ]] && exit 0
+[[ "$TOP" == "$(chezmoi source-path 2>/dev/null)" ]] && exit 0
+
+# Only care while this checkout is sitting on the trunk branch.
+BRANCH=$(git -C "$DIR" rev-parse --abbrev-ref HEAD 2>/dev/null)
+[[ "$BRANCH" == "main" || "$BRANCH" == "master" ]] || exit 0
+
+deny() {
+  jq -n --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'
+  exit 0
+}
+
+TRUNK_MSG="This is the trunk checkout of a worktree-style repo ($DIR, on $BRANCH). Do not move it off $BRANCH. Create a worktree instead: \`wt start <branch-name>\` (or the /worktree skill), then run the work from that path. Leave this checkout clean on $BRANCH so other sessions can pull into it."
+
+# Strip quoted strings so commit messages / greps don't false-positive.
+SCAN=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$CMD")
+
+# 1. Explicit branch creation
+if grep -qE '\bgit( +-C +[^ ]+)?( +switch| +checkout) +(-c|-C|-b|-B|--create)\b' <<<"$SCAN"; then
+  deny "$TRUNK_MSG"
+fi
+
+# 2. Switching to another existing branch
+TARGET=$(awk '{for(i=1;i<=NF;i++){if($i=="git"){j=i+1; if($j=="-C"){j+=2}; if($j=="switch"||$j=="checkout"){for(k=j+1;k<=NF;k++){if($k ~ /^-/){if($k=="--")break; continue}; print $k; exit}}}}}' <<<"$SCAN")
+if [[ -n "$TARGET" && "$TARGET" != "main" && "$TARGET" != "master" && "$TARGET" != "-" ]]; then
+  # A path argument (git checkout <file>) is fine; a ref is not.
+  if [[ ! -e "$DIR/$TARGET" && ! -e "$TARGET" ]]; then
+    deny "$TRUNK_MSG"
+  fi
+fi
+
+# 3. Committing directly onto trunk
+if grep -qE '\bgit( +-C +[^ ]+)? +commit\b' <<<"$SCAN"; then
+  deny "Refusing to commit onto $BRANCH in the trunk checkout ($DIR). Create a worktree first: \`wt start <branch-name>\` (or the /worktree skill), and commit there."
+fi
+
+exit 0
