@@ -1,0 +1,43 @@
+#!/bin/bash
+# managed hash: {{ include "dot_claude/claude-md-managed.md" | sha256sum }}
+# claude.md hash: {{ output "sh" "-c" (print "cat " (joinPath .chezmoi.homeDir ".claude/CLAUDE.md") " " (joinPath .chezmoi.homeDir ".config/claude/profiles/*/CLAUDE.md") " 2>/dev/null | sha256sum || echo none") | trim | splitList " " | first }}
+# profiles hash: {{ output "sh" "-c" (print "ls -d " (joinPath .chezmoi.homeDir ".config/claude/profiles/*/") " 2>/dev/null | sort | sha256sum || echo none") | trim | splitList " " | first }}
+
+# ~/.claude/CLAUDE.md cannot be managed directly: `**/CLAUDE.md` is in
+# .chezmoiignore, and third-party installers (rtk) append their own @imports to
+# it. So own a marker-delimited region instead and leave everything outside it
+# alone. Same merge-don't-clobber shape as generate_settings.sh's ensure_hooks.
+
+MANAGED_FILE="{{ .chezmoi.sourceDir }}/dot_claude/claude-md-managed.md"
+
+apply_claude_md() {
+    python3 - "$1" "$MANAGED_FILE" <<'PY'
+import pathlib, sys
+
+target, managed_file = pathlib.Path(sys.argv[1]), pathlib.Path(sys.argv[2])
+BEGIN, END = "<!-- BEGIN chezmoi-managed -->", "<!-- END chezmoi-managed -->"
+block = f"{BEGIN}\n{managed_file.read_text().strip()}\n{END}"
+
+existing = target.read_text() if target.exists() else ""
+
+if BEGIN in existing and END in existing:
+    head, rest = existing.split(BEGIN, 1)
+    _, tail = rest.split(END, 1)
+    new = f"{head}{block}{tail}"
+else:
+    # Prepend; anything already there (e.g. rtk's @RTK.md) is preserved below.
+    new = block + ("\n" + existing.lstrip("\n") if existing.strip() else "\n")
+
+if new != existing:
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(new)
+    print(f"Updated: {target}")
+PY
+}
+
+apply_claude_md "$HOME/.claude/CLAUDE.md"
+
+for profile_dir in "$HOME/.config/claude/profiles"/*/; do
+    [ -d "$profile_dir" ] || continue
+    apply_claude_md "${profile_dir}CLAUDE.md"
+done
