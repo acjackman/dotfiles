@@ -23,6 +23,23 @@ wt remove                         # Remove worktree; delete branch if merged
 wt merge                          # Merge current branch into target
 ```
 
+## The Trunk Checkout Is Read-Only For Branch Work
+
+The `main/` worktree exists so it can always be fast-forwarded and diffed against.
+Other sessions share the clone and rely on it being clean and on trunk.
+
+- **Never** run `git switch -c`, `git checkout -b`, `git switch <branch>`, or `git commit`
+  while in the trunk checkout. Create a worktree instead: `wt switch --create <branch-name>`
+  (or the `/worktree` skill), then do all the work from that path.
+- A `PreToolUse` hook (`~/.local/bin/claude-trunk-guard`) denies these. Treat the denial as
+  the signal to make a worktree, not as something to route around.
+- Already on a feature branch inside the trunk checkout? Move the work out: create the
+  worktree, `git switch main` in the trunk checkout, continue in the worktree.
+- Read-only git and `git worktree add` are always fine.
+- Escape hatch: a repo that must commit on trunk from a fixed path (chezmoi's source
+  dir, `~/.local/share/chezmoi`) is exempt. Any other repo can opt out with a
+  `.claude-trunk-guard-allow` file at its worktree root.
+
 ## Branch Naming
 
 - Default: kebab-case descriptive names (e.g., `add-user-auth`, `fix-login-bug`)

@@ -22,6 +22,7 @@ When reporting information to me, be extremely concise and sacrifice grammar for
 - Bare repo + worktree layout, managed by `worktrunk` (`wt`)
 - Default branch naming: kebab-case (e.g., `add-user-auth`, `fix-login-bug`)
 - Project-level config can override — check the project's CLAUDE.md or AGENTS.md first
+- **Never branch or commit in the trunk (`main/`) checkout** — `wt switch --create <branch>` and work there. A `PreToolUse` hook denies it; treat the denial as the signal, not an obstacle
 - **Worktree-aware searching**: Always scope searches to the worktree, not the full repo
   - Worktree root: `git rev-parse --show-toplevel`
   - Repo (bare) root: `git rev-parse --git-common-dir` (resolves to `.bare/`)
