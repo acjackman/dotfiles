@@ -1,9 +1,26 @@
 #!/usr/bin/env bash
+# ,zsh-cleanup-completions — rebuild the zsh completion dump.
+#
+# compinit runs with -C (trust the dump) and only rebuilds on its own when the
+# dump is missing or older than a day, so a tool installed today would not get
+# Tab completion until then. This forces it: prune dangling zinit completion
+# symlinks, drop the dump (and the legacy ~/.zcompdump), then start one
+# interactive zsh so the dump is regenerated now rather than in the next pane.
+#
+# Called from: topgrade ("Rebuild Zsh Completions"), ,doctor-zsh, and the
+# chezmoi run_onchange hooks for the zsh config and mise tool list.
+# Idempotent; safe to run any time.
 
-# Clean up zinit completions - removes broken symlinks and zcompdump cache
-# Same action as topgrade's "Cleanup Zinit Completions" command
+set -uo pipefail
+
+dump="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
 
 find ~/.local/share/zinit/completions/ -type l ! -exec test -e {} \; -delete 2>/dev/null
-rm -f ~/.zcompdump* 2>/dev/null
+rm -f "$dump" "$dump.zwc" ~/.zcompdump* 2>/dev/null
 
-echo "Cleaned up zinit completions and zcompdump cache"
+# Regenerate. -c exit is enough: compinit runs synchronously in .zshrc.
+if zsh -i -c exit </dev/null >/dev/null 2>&1 && [[ -s "$dump" ]]; then
+  echo "Rebuilt zsh completion dump: $dump ($(head -1 "$dump"))"
+else
+  echo "Removed stale dump; next interactive zsh will rebuild $dump" >&2
+fi

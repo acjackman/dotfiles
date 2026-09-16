@@ -1,5 +1,16 @@
 # Based on https://github.com/iloveitaly/dotfiles/tree/master
 
+# =============
+# Powerlevel10k instant prompt
+# =============
+# Renders a prompt from cache before the rest of this file runs. Must stay at
+# the top; anything that prints to the console before p10k loads would break it
+# ("quiet" suppresses those warnings rather than the prompt).
+typeset -g POWERLEVEL9K_INSTANT_PROMPT=quiet
+if [[ -r "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh" ]]; then
+  source "${XDG_CACHE_HOME:-$HOME/.cache}/p10k-instant-prompt-${(%):-%n}.zsh"
+fi
+
 {{ if eq .chezmoi.os "darwin" -}}
 # Ensure login-shell PATH is available in interactive non-login shells (e.g. Tuna)
 [[ -o login ]] || source ~/.zprofile
@@ -18,10 +29,77 @@ export HOMEBREW_BUNDLE_FILE_GLOBAL="${XDG_CONFIG_HOME:-${HOME}/.config}/homebrew
 ZINIT_HOME="${XDG_DATA_HOME:-${HOME}/.local/share}/zinit/zinit.git"
 [ ! -d $ZINIT_HOME ] && mkdir -p "$(dirname $ZINIT_HOME)"
 [ ! -d $ZINIT_HOME/.git ] && git clone https://github.com/zdharma-continuum/zinit.git "$ZINIT_HOME"
+
+# Single shared compdump; -C keeps any zicompinit call cheap (see Completion below)
+typeset -gA ZINIT
+ZINIT[ZCOMPDUMP_PATH]="${XDG_CACHE_HOME:-$HOME/.cache}/zsh/zcompdump"
+ZINIT[COMPINIT_OPTS]="-C"
+
 source "${ZINIT_HOME}/zinit.zsh"
 
 # unalias zi for zoxide later
 unalias zi
+
+# =============
+# Functions & completion paths
+# =============
+# fpath must be complete before compinit runs
+
+# Autoload personal functions
+function load_funcs() {
+    # via https://stackoverflow.com/a/63661686
+    local funcs="$1"
+
+    if [[ -d $funcs ]]; then
+        # add our local functions dir to the fpath
+        # FPATH is already tied to fpath, but this adds
+        # a uniqueness constraint to prevent duplicate entries
+        typeset -TUg +x FPATH=$funcs:$FPATH fpath
+
+        local names=(${=$(ls -1 "$funcs" | sed -E "/^_/d")})
+
+        # Now autoload them
+        if [ "${#names[@]}" -gt 0 ]; then
+            autoload $names
+        fi
+    fi
+}
+load_funcs "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions"
+load_funcs "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions_local"
+unset -f load_funcs
+
+# Place any completions here
+COMPLETIONS_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/completions"
+fpath+="${COMPLETIONS_DIR}"
+
+# =============
+# Completion init
+# =============
+# compinit runs exactly once, here, before anything that might call compdef.
+# mise >= 2026.9.2 injects its own full `compinit -i` from `mise activate`
+# when compdef is undefined, and zinit's zicompinit atinits used to run two
+# more -- three full rebuilds (~300ms each) rewriting the dump every shell.
+# Plugin completions are symlinked into zinit's completions dir (already in
+# fpath) and compdefs queued during zinit loads are replayed by zicdreplay.
+#
+# -C trusts the dump; it is rebuilt when missing or older than a day.
+# Force a rebuild any time with `,zsh-cleanup-completions` (also run by
+# topgrade, ,doctor-zsh, and the chezmoi run_onchange hooks for zsh and mise).
+autoload -Uz compinit
+() {
+  setopt local_options extended_glob
+  local dump="${ZINIT[ZCOMPDUMP_PATH]}"
+  [[ -d "${dump:h}" ]] || mkdir -p "${dump:h}"
+  if [[ -s "$dump" && -z "$dump"(#qN.mh+24) ]]; then
+    compinit -C -d "$dump"
+  else
+    compinit -i -d "$dump"
+  fi
+  # compiled dump loads faster than parsing the text form
+  if [[ ! -s "$dump.zwc" || "$dump" -nt "$dump.zwc" ]]; then
+    zcompile "$dump"
+  fi
+}
 
 
 # Mise for pinned binaries, env vars, and tasks
@@ -76,9 +154,6 @@ zstyle ':completion:*' rehash true
 zstyle ':completion:*' accept-exact '*(N)'
 zstyle ':completion:*' use-cache on
 zstyle ':completion:*' cache-path ~/.zsh/cache
-
-# force completion generation for more obscure commands
-zstyle :plugin:zsh-completion-generator   programs ncdu tre
 
 # =============
 # fzf-tab config
@@ -160,7 +235,7 @@ fi
 export EDITOR="$VISUAL"
 
 # =============
-# Functions
+# Aliases
 # =============
 
 # TODO https://github.com/zdharma/zinit/issues/173#issuecomment-537325714
@@ -170,37 +245,9 @@ for file in aliases zshrc_local aliases_local; do
   [ -e "$file" ] && source "$file"
 done
 
-# Autoload personal functions
-function load_funcs() {
-    # via https://stackoverflow.com/a/63661686
-    local funcs="$1"
-
-    if [[ -d $funcs ]]; then
-        # add our local functions dir to the fpath
-        # FPATH is already tied to fpath, but this adds
-        # a uniqueness constraint to prevent duplicate entries
-        typeset -TUg +x FPATH=$funcs:$FPATH fpath
-
-        local names=(${=$(ls -1 "$funcs" | sed -E "/^_/d")})
-
-        # Now autoload them
-        if [ "${#names[@]}" -gt 0 ]; then
-            autoload $names
-        fi
-    fi
-}
-load_funcs "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions"
-load_funcs "${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/functions_local"
-unset -f load_funcs
-
-# Place any completions here
-COMPLETIONS_DIR="${XDG_CONFIG_HOME:-${HOME}/.config}/zsh/completions"
-fpath+="${COMPLETIONS_DIR}"
-
 # =============
 # Plugins
 # =============
-# Note: forgit configuration is loaded via zinit atinit in zsh_plugins.zsh
 
 source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/zsh_plugins.zsh"
 
@@ -260,11 +307,6 @@ bindkey '^X^P' push-input
 # ===========
 # Misc Config
 # ===========
-
-# Alias Tips setup
-export ZSH_PLUGINS_ALIAS_TIPS_EXCLUDES="g e"
-export ZSH_PLUGINS_ALIAS_TIPS_REVEAL=0
-export ZSH_PLUGINS_ALIAS_TIPS_REVEAL_TEXT="Long version: "
 
 # zsh-autosuggestions via atuin
 ZSH_AUTOSUGGEST_STRATEGY=("atuin")

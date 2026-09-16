@@ -1,0 +1,20 @@
+#!/bin/bash
+# Rebuild the zsh completion dump when anything that feeds compinit changes.
+# compinit runs with -C and trusts the dump for a day; this hook keeps a
+# chezmoi apply from leaving stale or missing completions behind.
+#
+# plugins list: {{ include "dot_config/zsh/zsh_plugins.zsh" | sha256sum }}
+# zshrc: {{ include "dot_config/zsh/zshrc.zsh.tmpl" | sha256sum }}
+{{- /* glob needs an absolute pattern here; include wants a source-relative path */}}
+{{- range glob (joinPath .chezmoi.sourceDir "dot_config/zsh/completions/*") }}
+# {{ base . }}: {{ include (trimPrefix (printf "%s/" $.chezmoi.sourceDir) .) | sha256sum }}
+{{- end }}
+{{- range glob (joinPath .chezmoi.sourceDir "dot_config/zsh/plugins/*.plugin.zsh") }}
+# {{ base . }}: {{ include (trimPrefix (printf "%s/" $.chezmoi.sourceDir) .) | sha256sum }}
+{{- end }}
+
+if command -v ,zsh-cleanup-completions &>/dev/null; then
+  ,zsh-cleanup-completions
+else
+  "$HOME/.local/bin/,zsh-cleanup-completions"
+fi

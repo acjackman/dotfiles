@@ -1,0 +1,10 @@
+#!/bin/bash
+# ,doctor-zsh — Apply common zsh fixes.
+#
+# Currently:
+#   * Rebuilds the completion dump via `,zsh-cleanup-completions`, so newly
+#     installed tools get Tab completion without waiting for the dump's
+#     24-hour expiry (compinit runs with -C; see .zshrc "Completion init").
+
+set -euo pipefail
+exec ,zsh-cleanup-completions "$@"

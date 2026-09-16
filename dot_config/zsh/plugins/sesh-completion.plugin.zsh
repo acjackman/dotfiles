@@ -1,8 +1,15 @@
-# sesh completion setup
-# This is sourced after compinit is complete so compdef is available
+# sesh completion, generated lazily on first <Tab>.
+# `sesh completion zsh` costs ~30ms per shell, so the real _sesh is only built
+# when first requested. Registered via _comps directly because zinit shadows
+# compdef while this plugin loads.
 
 if command -v sesh &> /dev/null; then
-  source <(sesh completion zsh)
+  _sesh_lazy() {
+    unfunction _sesh_lazy
+    source <(sesh completion zsh)   # defines _sesh and compdefs it
+    _sesh "$@"
+  }
+  _comps[sesh]=_sesh_lazy
 fi
 
 # Complete ,t (sesh session launcher) with session names
@@ -19,6 +26,4 @@ _,t_complete() {
     _message 'no sessions found'
   fi
 }
-# Register directly in _comps, bypassing zinit's compdef wrapper
-# which queues calls that may never be replayed after zicdreplay.
 _comps[,t]=_,t_complete

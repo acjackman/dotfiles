@@ -16,6 +16,9 @@ if [ $? -eq 0 ]; then
   mise upgrade && echo "Mise tools updated" || echo "Mise failed update"
 fi
 
+# New/removed tools change what compinit sees; the dump is trusted (-C) so rebuild it
+command -v ,zsh-cleanup-completions &>/dev/null && ,zsh-cleanup-completions
+
 # Set llm key
 # {{ if "personal" .extras}}
 llm keys set anthropic --value $(op read --account jackman.1password.com "op://Private/Claude/api-keys/llm")

@@ -126,3 +126,5 @@ Library/Application Support/ovim
 .config/k9s/views.yml
 .config/herdr/ghostty-herdr
 .config/herdr/ghostty-herdr-cmd
+# forgit was dropped from the zinit plugin list on 2026-09-15 (unused).
+.config/zsh/forgit.zsh
