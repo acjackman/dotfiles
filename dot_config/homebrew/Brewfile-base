@@ -204,6 +204,7 @@ brew "duti"                                # Set macOS default apps
 cask "neovide-app"                         # Neovim GUI
 cask "xykong/tap/flux-markdown"            # Markdown Viewer
 cask "soulver"                             # Calculator
+cask "antinote"                            # Scratch notes (hammerspoon hyper+=)
 cask "cleanshot"                           # Screanshots
 cask "superwhisper"                        # Voice-to-text dictation with LLM
 cask "suspicious-package"                  # Inspect .pkg installers
