@@ -18,7 +18,7 @@ $ARGUMENTS contains the task description and optional flags for the new Claude a
 - `--base <ref>` — Pass through to `spawn-setup-worktree` to create the worktree from a specific git ref
 - `--repo <path>` — Target a different repository (see Cross-Repo Tasks below)
 - `--model <model>` — Override the automatic model selection
-- `--session` — On tmux, create a session instead of a window (default: window). Ignored on herdr, which always opens an isolated workspace per agent.
+- `--session` — On tmux, create a session instead of a window (default: window). Ignored on herdr, which always opens a tab in the current workspace.
 
 Everything remaining after extracting flags is the task description.
 
@@ -36,7 +36,7 @@ Pass `--repo <path>` to `spawn-setup-worktree` to target the other repo. If it's
 These are on PATH:
 
 - **`spawn-setup-worktree`** — Creates or reuses a worktrunk-managed worktree. Returns JSON `{branch, path}`.
-- **`herdr`** — The multiplexer. `herdr workspace create` opens an isolated workspace, `herdr pane run` launches a command in it, `herdr agent list` reports semantic agent state, `herdr workspace close` tears it down. Most commands return JSON — read IDs out of the response with `jq` rather than predicting them.
+- **`herdr`** — The multiplexer. `herdr tab create` opens a tab in the current workspace, `herdr pane run` launches a command in it, `herdr agent list` reports semantic agent state, `herdr tab close` tears it down. Most commands return JSON — read IDs out of the response with `jq` rather than predicting them.
 - **`tmux`** — The fallback, used only when you're actually running inside tmux (or herdr's server is down).
 
 > The `clank` adapter was **removed** on 2026-08-04. Drive `herdr`/`tmux` directly as described below.
@@ -116,11 +116,15 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
    spawn-setup-worktree <name> [--base <ref>] [--repo <path>]
    ```
 
-   The script prints a JSON object. Extract the path:
+   The script prints a JSON object and **fails closed** (non-zero exit, nothing on stdout) if it can't resolve an existing directory. Capture the path and **verify before opening any surface**:
 
    ```bash
-   jq -r '.path'
+   out=$(spawn-setup-worktree <name> [--base <ref>] [--repo <path>]) || { echo "setup failed"; exit 1; }
+   path=$(jq -r '.path // empty' <<<"$out")
+   [ -n "$path" ] && [ -d "$path" ] || { echo "bad worktree path: '$path'"; exit 1; }
    ```
+
+   If the exit code is non-zero or `[ -d "$path" ]` fails, **stop and report** the error to the user. Never run `herdr tab create` / `tmux new-window` with an empty path — it silently falls back to `~` and the agent opens in the wrong directory.
 
    If the worktree already exists it is reused (with `--base` compatibility check). When `--repo` targets a regular checkout, the script returns a synthetic JSON entry pointing to that directory.
 
@@ -140,7 +144,7 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
 
 4. Spawn a full interactive Claude session on a new surface. Never use `claude -p`/`--print`.
 
-   Use the **branch name** as the label throughout — the herdr workspace label, the tmux window name, and `claude --name` — so all three identifiers line up and a human can find the agent by one name. (Don't name it after the worktree basename: most doers spawn in `.../infra/main`, which collapses every session to `main`.)
+   Use the **branch name** as the label throughout — the herdr tab label, the tmux window name, and `claude --name` — so all three identifiers line up and a human can find the agent by one name. (Don't name it after the worktree basename: most doers spawn in `.../infra/main`, which collapses every session to `main`.)
 
    Build the launch line once:
 
@@ -150,38 +154,39 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
 
    `enableAllProjectMcpServers` stops the agent stalling on the "N new MCP servers found — enable?" prompt for an unapproved project `.mcp.json`. It auto-approves *project*-scoped servers only, leaving global/user MCP intact.
 
-   **On herdr** — one isolated workspace per agent, opened in the background:
+   **On herdr** — one tab per agent in the *current* workspace, opened in the background:
 
    ```bash
-   ws_json=$(herdr workspace create --cwd <worktree-path> --label <branch-name> --no-focus)
-   ws=$(jq -r '.result.workspace.workspace_id' <<<"$ws_json")
-   pane=$(jq -r '.result.root_pane.pane_id'    <<<"$ws_json")
+   ws=$(herdr pane current | jq -r .result.pane.workspace_id)
+   tab_json=$(herdr tab create --workspace "$ws" --cwd "$path" --label <branch-name> --no-focus)
+   tab=$(jq -r '.result.tab.tab_id' <<<"$tab_json")
+   pane=$(jq -r '.result.root_pane.pane_id' <<<"$tab_json")
    herdr pane run "$pane" "unset TMUX TMUX_PANE; $LAUNCH"
    ```
 
-   Unset `$TMUX` in the launch line: the herdr server can carry a stale one that every pane inherits, which breaks `tmux display-popup` (revdiff) inside a surface that isn't actually a tmux client. `pane run` types the line into the workspace's shell and presses Enter, so that shell evaluates the pipe.
+   Unset `$TMUX` in the launch line: the herdr server can carry a stale one that every pane inherits, which breaks `tmux display-popup` (revdiff) inside a surface that isn't actually a tmux client. `pane run` types the line into the tab's shell and presses Enter, so that shell evaluates the pipe.
 
    **On tmux** — a background window, or a session if the user passed `--session`:
 
    ```bash
-   pane=$(tmux new-window -n <branch-name> -c <worktree-path> -d -P -F '#{pane_id}')
+   pane=$(tmux new-window -n <branch-name> -c "$path" -d -P -F '#{pane_id}')
    # ...or, with --session:
-   pane=$(tmux new-session -d -s <branch-name> -c <worktree-path> -P -F '#{pane_id}')
+   pane=$(tmux new-session -d -s <branch-name> -c "$path" -P -F '#{pane_id}')
    tmux set-option -t "$pane" automatic-rename off
    tmux set-option -p -t "$pane" @agent_label <branch-name>   # -p, or it leaks session-wide
    tmux send-keys -t "$pane" "$LAUNCH" Enter
    ```
 
-   Record the substrate and the ids (`ws` / `pane`) for the next steps.
+   Record the substrate and the ids (`ws` / `tab` / `pane`) for the next steps.
 
 5. **Verify the agent actually started** (don't trust the spawn step blindly).
    Wait ~3 seconds for shell init + claude startup, then ask for the agent's state.
 
-   **On herdr** — semantic state, joined through the workspace id:
+   **On herdr** — semantic state, joined through the pane id:
 
    ```bash
    sleep 3
-   herdr agent list | jq -c --arg ws "$ws" '.result.agents[] | select(.workspace_id==$ws) | {agent, agent_status, pane_id}'
+   herdr agent list | jq -c --arg p "$pane" '.result.agents[] | select(.pane_id==$p) | {agent, agent_status, pane_id}'
    ```
 
    - `working`, `idle`, or `blocked` — the agent is up, proceed. (`blocked` this
@@ -210,31 +215,32 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
      - `mise ERROR` / `Config files ... are not trusted` — `.mise.toml` trust hook missed
      - `command not found` — `claude` or another tool is missing from PATH inside that surface
      - `No such file or directory` referencing the prompt file
+     - a trust prompt for an unexpected directory (e.g. `Accessing workspace: /Users/adam.jackman`) — the cwd was wrong (empty path fell back to `~`); close the surface and report
 
 6. Confirm to the user:
    - The branch/worktree that was created (or target repo for cross-repo tasks)
    - The **substrate** the agent was spawned on (herdr or tmux) and its label
    - The prompt file path
    - How to switch to it:
-     - **herdr**: `herdr workspace focus <workspace_id>` (or open the workspace
-       picker with `prefix o` and pick it by its `<branch-name>` label)
+     - **herdr**: `herdr tab focus <tab_id>` (or pick the tab by its
+       `<branch-name>` label)
      - **tmux window**: `tmux select-window -t '=<branch-name>'`
      - **tmux session**: `tmux switch-client -t '=<branch-name>'`
 
 7. When the agent's work has been merged/handled and the surface is no longer
    needed, tear it down.
 
-   **On herdr** — close by **workspace id**, re-resolved right now. Labels are
+   **On herdr** — close by **tab id**, re-resolved right now. Labels are
    not unique, so closing by label can tear down the wrong surface:
 
    ```bash
-   herdr workspace list | jq -r --arg l '<branch-name>' \
-     '.result.workspaces[] | select(.label==$l) | .workspace_id'
-   herdr workspace close <workspace_id>
+   herdr tab list --workspace "$ws" | jq -r --arg l '<branch-name>' \
+     '.result.tabs[] | select(.label==$l) | .tab_id'
+   herdr tab close <tab_id>
    ```
 
    If that lookup returns more than one id, **stop and ask** which surface to
-   close — don't guess. If it returns none, the workspace is already gone.
+   close — don't guess. If it returns none, the tab is already gone.
 
    **On tmux**:
 

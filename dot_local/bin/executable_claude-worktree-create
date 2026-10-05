@@ -13,13 +13,18 @@ CWD=$(jq -r '.cwd' <<< "$PAYLOAD")
 SHORT_ID=$(echo "$SESSION_ID" | tr -d '-' | cut -c1-12)
 BRANCH="claude-subagent/$SHORT_ID"
 
-existing=$("$WT" -C "$CWD" list --format=json | jq -r --arg b "$BRANCH" '.[] | select(.branch == $b) | .path')
+existing=$("$WT" -C "$CWD" list --format=json | jq -r --arg b "$BRANCH" '(.items // .)[] | select(.branch == $b) | (.worktree.path // .path)')
 
 if [[ -n "$existing" ]]; then
     WORKTREE_PATH="$existing"
 else
     TMUX_PANE= "$WT" -C "$CWD" switch --no-cd --create "$BRANCH" >&2
-    WORKTREE_PATH=$("$WT" -C "$CWD" list --format=json | jq -r --arg b "$BRANCH" '.[] | select(.branch == $b) | .path')
+    WORKTREE_PATH=$("$WT" -C "$CWD" list --format=json | jq -r --arg b "$BRANCH" '(.items // .)[] | select(.branch == $b) | (.worktree.path // .path)')
+fi
+
+if [[ -z "$WORKTREE_PATH" || ! -d "$WORKTREE_PATH" ]]; then
+    echo "claude-worktree-create: no worktree directory for $BRANCH (got: '$WORKTREE_PATH')" >&2
+    exit 1
 fi
 
 mkdir -p "$WORKTREE_PATH/.tmp"

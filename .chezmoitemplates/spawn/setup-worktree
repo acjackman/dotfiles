@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Create or reuse a worktree for a branch, printing its JSON entry from wt list.
+# Create or reuse a worktree for a branch, printing a JSON line {branch, path}.
+# Fails closed: exits non-zero (nothing on stdout) unless the path is an existing directory.
 # Creates a .tmp directory in the worktree for prompt files.
 # Usage: setup-worktree.sh <branch-name> [--base <ref>] [--repo <path>]
 #
@@ -51,26 +52,52 @@ done
 wt_cmd=("$WT")
 [[ -n "$repo" ]] && wt_cmd+=(-C "$repo")
 
-# When --repo is set, check if worktrunk manages it. If not, treat as a
-# regular checkout and skip worktree creation entirely.
-if [[ -n "$repo" ]] && ! "${wt_cmd[@]}" list --format=json &>/dev/null; then
+git_cmd=(git -C "${repo:-.}")
+
+die() {
+    echo "setup-worktree: $*" >&2
+    exit 1
+}
+
+# Look up a branch's worktree path from `git worktree list --porcelain`.
+# Instant and stable, unlike `wt list --format=json` (schema changed in
+# worktrunk v0.77, and it collects status for every worktree: minutes in big repos).
+worktree_path_for() {
+    "${git_cmd[@]}" worktree list --porcelain | awk -v ref="refs/heads/$1" '
+        /^worktree / { path = substr($0, 10) }
+        $0 == "branch " ref { print path; exit }
+    '
+}
+
+emit() {
+    local path="$1"
+    [[ -n "$path" ]] || die "no worktree path resolved for '$branch'"
+    [[ -d "$path" ]] || die "worktree path for '$branch' is not a directory: $path"
+    jq -cn --arg b "$branch" --arg p "$path" '{branch: $b, path: $p}'
+}
+
+# When --repo is set and it isn't a git repo, treat it as a plain directory and
+# skip worktree creation entirely.
+if [[ -n "$repo" ]] && ! "${git_cmd[@]}" rev-parse --git-dir &>/dev/null; then
+    [[ -d "$repo" ]] || die "repo is not a directory: $repo"
     mkdir -p "$repo/.tmp"
     ensure_trust "$repo"
     current_branch=$(git -C "$repo" branch --show-current 2>/dev/null || echo "HEAD")
-    printf '{"branch":"%s","path":"%s"}\n' "$current_branch" "$repo"
+    jq -cn --arg b "${current_branch:-HEAD}" --arg p "$repo" '{branch: $b, path: $p}'
     exit 0
 fi
 
-existing=$("${wt_cmd[@]}" list --format=json | jq -e --arg b "$branch" '.[] | select(.branch == $b)' 2>/dev/null) || existing=""
+existing_path=$(worktree_path_for "$branch")
 
-if [[ -n "$existing" ]]; then
-    worktree_path=$(echo "$existing" | jq -r '.path')
+if [[ -n "$existing_path" ]]; then
+    worktree_path="$existing_path"
+    [[ -d "$worktree_path" ]] || die "worktree for '$branch' is registered at $worktree_path but the directory is missing (try: git worktree prune)"
 
     if [[ -n "$base" ]]; then
         head_commit=$(git -C "$worktree_path" rev-parse HEAD)
-        base_commit=$(git rev-parse "$base")
+        base_commit=$(git -C "$worktree_path" rev-parse "$base")
 
-        if [[ "$head_commit" != "$base_commit" ]] && ! git merge-base --is-ancestor "$head_commit" "$base_commit"; then
+        if [[ "$head_commit" != "$base_commit" ]] && ! git -C "$worktree_path" merge-base --is-ancestor "$head_commit" "$base_commit"; then
             echo "Error: existing worktree for '$branch' at $worktree_path is not compatible with --base $base" >&2
             echo "  worktree HEAD: $head_commit" >&2
             echo "  base ref:      $base_commit ($base)" >&2
@@ -78,19 +105,16 @@ if [[ -n "$existing" ]]; then
             exit 1
         fi
     fi
-
-    mkdir -p "$worktree_path/.tmp"
-    ensure_trust "$worktree_path"
-    echo "$existing"
 else
     create_args=(switch --no-cd --create "$branch")
     [[ -n "$base" ]] && create_args+=(--base "$base")
 
     TMUX_PANE= "${wt_cmd[@]}" "${create_args[@]}" >&2
 
-    result=$("${wt_cmd[@]}" list --format=json | jq -e --arg b "$branch" '.[] | select(.branch == $b)')
-    worktree_path=$(echo "$result" | jq -r '.path')
-    mkdir -p "$worktree_path/.tmp"
-    ensure_trust "$worktree_path"
-    echo "$result"
+    worktree_path=$(worktree_path_for "$branch")
 fi
+
+[[ -n "$worktree_path" && -d "$worktree_path" ]] || die "could not resolve a worktree directory for '$branch' (got: '${worktree_path:-}')"
+mkdir -p "$worktree_path/.tmp"
+ensure_trust "$worktree_path"
+emit "$worktree_path"

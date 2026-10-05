@@ -38,7 +38,7 @@ wtc() {
   done
 
   local wt_path
-  wt_path=$(wt list --format=json | jq -r --arg b "$branch" '.[] | select(.branch == $b) | .path')
+  wt_path=$(wt list --format=json | jq -r --arg b "$branch" '(.items // .)[] | select(.branch == $b) | (.worktree.path // .path)')
   [[ -z "$wt_path" ]] && { echo "Could not find worktree for branch: $branch" >&2; return 1; }
 
   local name

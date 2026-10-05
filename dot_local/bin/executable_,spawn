@@ -235,7 +235,11 @@ setup_args=("$branch")
 [[ -n "$repo_arg" ]] && setup_args+=(--repo "$repo_arg")
 
 worktree_json=$(spawn-setup-worktree "${setup_args[@]}")
-worktree_path=$(echo "$worktree_json" | jq -r '.path')
+worktree_path=$(echo "$worktree_json" | jq -r '.path // empty')
+if [[ -z "$worktree_path" || ! -d "$worktree_path" ]]; then
+    echo "Error: spawn-setup-worktree did not return an existing directory (got: '$worktree_path')" >&2
+    exit 1
+fi
 
 echo "Worktree: $worktree_path"
 
