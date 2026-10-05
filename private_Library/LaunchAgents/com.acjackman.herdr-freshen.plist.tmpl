@@ -2,7 +2,7 @@
 <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
 <!--
   Adopt a freshly upgraded herdr binary into the running server, via live
-  handoff, without killing pane processes. See `,doctor-herdr --help`.
+  handoff, without killing pane processes. See `,doctor-herdr` help.
 
   WHY LAUNCHD AND NOT A SHELL HOOK. The obvious trigger is zsh startup, but
   every shell here starts INSIDE a herdr pane, which makes that the wrong
@@ -14,7 +14,7 @@
        pane-transfer is the one moment handoff should not be attempted.
     2. The shell issuing the request is a child of a PTY being transferred.
        Handoff is built to survive that, but it is designed for a deliberate
-       one-off `herdr update --handoff`, not for shell init of the very pane
+       one-off `herdr update` with handoff, not for shell init of the very pane
        being handed over.
     3. Gating on $HERDR_PANE_ID to dodge 1 and 2 would mean the hook never
        fires at all, because there is no shell here that isn't in a pane.
@@ -27,7 +27,7 @@
 
   StartInterval is 30 minutes: the risk window is "upgraded but not yet
   drifted", which is bounded by how often a new herdr release is installed,
-  so there is nothing to gain from checking harder. ,doctor-herdr --freshen is
+  so there is nothing to gain from checking harder. ,doctor-herdr in freshen mode is
   a silent no-op unless it acts, so the logs below stay empty in steady state.
 -->
 <plist version="1.0">
