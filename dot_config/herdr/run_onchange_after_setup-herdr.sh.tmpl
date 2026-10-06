@@ -32,6 +32,11 @@ command -v herdr >/dev/null 2>&1 || exit 0
 #                            (already in the toolchain), so no build toolchain
 #                            needed; runs the picker in an overlay pane so fzf
 #                            gets a TTY.
+#   drovr                  — move the focused pane into any tab, or the whole tab
+#                            to another workspace, from an fzf popup; relocates
+#                            live panes (`herdr pane move`), so agents survive.
+#                            Runs .ts directly via node type stripping (upstream
+#                            asks for node >= 23) + fzf; no build step.
 plugins=(
   "vim-herdr-navigation paulbkim-dev/vim-herdr-navigation"
   "acjackman.title-rename acjackman/herdr-title-rename"
@@ -39,6 +44,7 @@ plugins=(
   "kichel.muster marcoskichel/herdr-muster"
   "rmarganti.herdr-pluck rmarganti/herdr-pluck"
   "jt.command-palette JanTvrdik/herdr-command-palette"
+  "drovr AVGVSTVS96/herdr-drovr"
 )
 
 # A stale server (binary upgraded without a restart) rejects every CLI call with

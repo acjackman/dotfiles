@@ -46,6 +46,16 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
   workspace's cwd, keeping context-aware actions pointed at the right repo.
   herdr 0.7 ignores keys declared in a plugin manifest — hence the explicit
   `[[keys.command]]` entry in `config.toml`.
+- **drovr** (`AVGVSTVS96/herdr-drovr`) — move the focused pane into any tab
+  (`prefix+m`) or the whole tab to another workspace (`prefix+shift+m`) from an
+  fzf popup. Relocates live panes via `herdr pane move` rather than respawning,
+  so running agents survive; a tab move replays the split layout from the rects
+  herdr reports. A tab move is several `pane move` calls with **no rollback** —
+  a mid-way failure leaves the tab split across both places. Runs its `.ts`
+  sources directly with node type stripping (upstream asks for node ≥ 23; node
+  22.18+ also strips by default), so `node` must resolve on the **herdr
+  server's** PATH — if the keys silently do nothing, check
+  `herdr plugin log list --plugin drovr`. Also needs `fzf`.
 
 ## acjackman.title-rename (window title + auto-naming)
 
@@ -128,14 +138,18 @@ built-in action for it, so they drive the `herdr pane move` CLI on
 `HERDR_PANE_ID`; the herdr analogue of tmux `break-pane`): `prefix+t` →
 `--new-tab`, `prefix+shift+t` → `--new-workspace`.
 
-The inverse — move the focused pane *into* another workspace/tab, herdr's
-`join-pane`/`move-pane` — is `prefix+m` (from [herdr discussion
-#1793](https://github.com/herdrdev/herdr/discussions/1793)). It's a
-`type = "pane"` command, not `shell`: it drives two fzf pickers (workspace, then
-tab within it, with a `new` entry to create one) off a single `herdr api
-snapshot`, so it needs a TTY and herdr runs it in a pane. Needs `fzf` + `jq`.
-The `pane zoom --off` calls on both ends stop the moved pane landing hidden
-behind a zoom.
+The inverse — move the focused pane *into* another tab, herdr's
+`join-pane`/`move-pane` — is `prefix+m`, and `prefix+shift+m` moves the whole
+tab to another workspace. Both are **drovr** plugin actions (see Plugins):
+lowercase acts on the pane, shift on the tab, mirroring `t`/`shift+t`.
+
+`prefix+m` used to be an inline `type = "pane"` fzf script from [herdr
+discussion #1793](https://github.com/herdrdev/herdr/discussions/1793) (two
+pickers, workspace then tab; in git history). drovr replaced it for the single
+popup picker, cross-workspace toggle, down-splits, naming, and focus-follow. The
+one thing lost: the script ran `pane zoom --off` on both ends, so a pane moved
+into a **zoomed** tab can now land hidden behind the zoom — unzoom that tab if
+a move seems to vanish.
 
 `prefix+.` opens [navi](https://github.com/denisidoro/navi) as a 90%x90% popup
 and types the chosen snippet into the pane you came from, without Enter. It
