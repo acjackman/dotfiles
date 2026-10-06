@@ -1,0 +1,54 @@
+[tracking]
+enabled = true
+history_days = 90
+
+[display]
+colors = true
+emoji = true
+max_width = 120
+
+[filters]
+ignore_dirs = [
+    ".git",
+    "node_modules",
+    "target",
+    "__pycache__",
+    ".venv",
+    "vendor",
+]
+ignore_files = [
+    "*.lock",
+    "*.min.js",
+    "*.min.css",
+]
+
+[tee]
+enabled = true
+mode = "failures"
+max_files = 20
+max_file_size = 1048576
+
+[telemetry]
+enabled = true
+consent_given = true
+consent_date = "2026-04-21T15:33:54.158405+00:00"
+
+# Read-class commands pass through to native (un-rewritten). RTK's `rtk read`
+# filter yields ~10.8% avg compression (mostly 0% pass-through) and its only
+# real effect on large files is truncation — i.e. the "savings" ARE the dropped
+# content agents report missing. Native Read tool / raw cat is preferred here.
+# git excluded: `rtk git ...` trips Claude Code's worktree-isolation guard
+# (git as an operand of another binary), blocking isolated subagents. git
+# filtering saved only ~15% / ~35 tokens per call.
+[hooks]
+exclude_commands = ["^\\s*cat\\b", "^\\s*head\\b", "^\\s*tail\\b", "^\\s*git\\b"]
+
+[limits]
+# Raised from 200/25: grep filter (22.2% avg) strips ANSI/whitespace (keep that)
+# but was capping matches — the main grep data-loss vector agents hit. Higher
+# caps preserve the noise-stripping benefit while rarely dropping real matches.
+grep_max_results = 2000
+grep_max_per_file = 300
+status_max_files = 15
+status_max_untracked = 10
+passthrough_max_chars = 2000
