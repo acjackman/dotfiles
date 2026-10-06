@@ -120,9 +120,10 @@ description = "Break pane into a new workspace"
 # INTO another tab (herdr's analogue of tmux `join-pane`/`move-pane`), or move the
 # whole tab to another workspace. Both relocate live panes (`herdr pane move`), so
 # running agents survive. fzf picker in a floating popup: enter splits right,
-# alt-d splits down, ctrl-t widens the pane picker to every workspace's tabs, and
-# a typed query names a new tab/workspace. Lowercase acts on the pane, shift on
-# the tab, mirroring prefix+t / prefix+shift+t above.
+# alt-d splits down, ctrl-t widens the pane picker to every workspace's tabs, a
+# typed query names a new tab, and a new workspace gets its own name prompt.
+# Lowercase acts on the pane, shift on the tab, mirroring prefix+t /
+# prefix+shift+t above.
 #
 # Replaced an inline `type = "pane"` fzf script (herdr discussion #1793; see git
 # history). One thing it did that drovr doesn't: `pane zoom --off` on both ends,

@@ -46,7 +46,8 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
   workspace's cwd, keeping context-aware actions pointed at the right repo.
   herdr 0.7 ignores keys declared in a plugin manifest — hence the explicit
   `[[keys.command]]` entry in `config.toml`.
-- **drovr** (`AVGVSTVS96/herdr-drovr`) — move the focused pane into any tab
+- **drovr** (`applifaction/herdr-drovr`, a fork of `AVGVSTVS96/herdr-drovr`) —
+  move the focused pane into any tab
   (`prefix+m`) or the whole tab to another workspace (`prefix+shift+m`) from an
   fzf popup. Relocates live panes via `herdr pane move` rather than respawning,
   so running agents survive; a tab move replays the split layout from the rects
@@ -55,7 +56,14 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
   sources directly with node type stripping (upstream asks for node ≥ 23; node
   22.18+ also strips by default), so `node` must resolve on the **herdr
   server's** PATH — if the keys silently do nothing, check
-  `herdr plugin log list --plugin drovr`. Also needs `fzf`.
+  `herdr plugin log list --plugin drovr`. Also needs `fzf`. **Why the fork:**
+  upstream focused the destination with separate commands *after* the move,
+  but herdr closes the picker popup once the source tab empties (always, for a
+  tab move), killing the picker first, so focus stayed behind. The fork puts
+  `--focus` on the final `pane move`. Caveat: after a multi-pane tab move,
+  focus lands on the last pane placed, not the one that was focused. Upstream
+  has never merged an outside PR, so the setup script uninstalls any `drovr`
+  installed from a different repo and reinstalls from the fork.
 
 ## acjackman.title-rename (window title + auto-naming)
 

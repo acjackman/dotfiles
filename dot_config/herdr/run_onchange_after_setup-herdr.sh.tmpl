@@ -36,7 +36,13 @@ command -v herdr >/dev/null 2>&1 || exit 0
 #                            to another workspace, from an fzf popup; relocates
 #                            live panes (`herdr pane move`), so agents survive.
 #                            Runs .ts directly via node type stripping (upstream
-#                            asks for node >= 23) + fzf; no build step.
+#                            asks for node >= 23) + fzf; no build step. Installed
+#                            from the applifaction fork: upstream (AVGVSTVS96)
+#                            focuses the destination *after* the move, but herdr
+#                            closes the picker popup once the source tab empties,
+#                            so focus never followed tab moves. The fork folds
+#                            `--focus` into the final move. Upstream has merged
+#                            no outside PRs and went quiet in 2026-08.
 plugins=(
   "vim-herdr-navigation paulbkim-dev/vim-herdr-navigation"
   "acjackman.title-rename acjackman/herdr-title-rename"
@@ -44,7 +50,7 @@ plugins=(
   "kichel.muster marcoskichel/herdr-muster"
   "rmarganti.herdr-pluck rmarganti/herdr-pluck"
   "jt.command-palette JanTvrdik/herdr-command-palette"
-  "drovr AVGVSTVS96/herdr-drovr"
+  "drovr applifaction/herdr-drovr"
 )
 
 # A stale server (binary upgraded without a restart) rejects every CLI call with
@@ -74,7 +80,21 @@ fi
 for entry in "${plugins[@]}"; do
   id="${entry%% *}"
   repo="${entry##* }"
-  if ! grep -q "$id" <<<"$installed"; then
+  # Installed from a different repo (e.g. switched to a fork under the same
+  # plugin id): uninstall so the install below picks up the new source.
+  # `herdr plugin list` shows the source as `[github:<owner/repo>@<sha>]`.
+  # Match the `- <id> (` entry line, not a bare id: the id also appears in
+  # each entry's `config:` path line.
+  line="$(grep -F -- "- $id (" <<<"$installed" || true)"
+  if [[ -n "$line" ]] && ! grep -qiF "github:$repo@" <<<"$line"; then
+    echo "Switching ${id} plugin to ${repo}…"
+    if herdr plugin uninstall "$id"; then
+      line=""
+    else
+      echo "warning: failed to uninstall $id" >&2
+    fi
+  fi
+  if [[ -z "$line" ]]; then
     echo "Installing $id plugin…"
     # Non-fatal: one plugin failing to build shouldn't abort the rest (set -e).
     herdr plugin install "$repo" --yes || echo "warning: failed to install $id" >&2
