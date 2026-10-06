@@ -2,8 +2,9 @@
 
 # Checksums of all hammerspoon files (dynamically generated):
 # - init.lua.tmpl: {{ include "dot_config/hammerspoon/init.lua.tmpl" | sha256sum }}
-{{- range glob "dot_config/hammerspoon/Spoons/*/init.lua" }}
-# - {{ base (dir .) }}: {{ include . | sha256sum }}
+{{- /* glob needs an absolute pattern; include wants a source-relative path */}}
+{{- range glob (joinPath .chezmoi.sourceDir "dot_config/hammerspoon/Spoons/*/init.lua") }}
+# - {{ base (dir .) }}: {{ include (trimPrefix (printf "%s/" $.chezmoi.sourceDir) .) | sha256sum }}
 {{- end }}
 
 function show-header() {
@@ -15,20 +16,61 @@ function show-header() {
   fi
 }
 
-# Reload hammerspoon configuration after changes
+# Reload hammerspoon configuration after changes.
+#
+# Trigger: `open -g hammerspoon://reload` (bound in init.lua). Confirmation:
+# init.lua rewrites ~/.cache/hammerspoon-loaded as its last statement, so the
+# reload is done once that file's mtime advances. Neither step uses the hs CLI,
+# which hangs intermittently when it connects while Hammerspoon is tearing down
+# its IPC port (2026-09-15: several chezmoi applies sat 80-110s on it). The CLI
+# is only a fallback trigger for a running Hammerspoon whose init.lua predates
+# the URL binding. Every run leaves an xtrace at ~/.cache/hammerspoon-reload.log.
+RELOAD_LOG="${XDG_CACHE_HOME:-$HOME/.cache}/hammerspoon-reload.log"
+MARKER="$HOME/.cache/hammerspoon-loaded"
+exec 2>"$RELOAD_LOG"
+PS4='+ $(date "+%H:%M:%S") '
+set -x
 show-header "Hammerspoon"
 echo "Reloading hammerspoon configuration"
 
-# Reload hammerspoon if it's running
-if pgrep -q Hammerspoon; then
-  if command -v hs &>/dev/null && hs -c "hs.reload()" 2>/dev/null; then
-    echo "✓ Hammerspoon reloaded successfully via CLI"
-  elif osascript -e 'tell application "Hammerspoon" to reload end tell' 2>/dev/null; then
-    echo "✓ Hammerspoon reloaded successfully via AppleScript"
-  else
-    echo "✗ Failed to reload Hammerspoon using both CLI and AppleScript"
-    exit 1
-  fi
-else
+marker_mtime() { stat -f %m "$MARKER" 2>/dev/null || echo 0; }
+
+# Wait up to $1 seconds for the marker to advance past $2.
+wait_for_reload() {
+  local secs="$1" before="$2" i
+  for i in $(seq 1 "$secs"); do
+    sleep 1
+    [ "$(marker_mtime)" -gt "$before" ] && return 0
+  done
+  return 1
+}
+
+if ! pgrep -q Hammerspoon; then
   echo "⚠ Hammerspoon is not running (skipped reload)"
+  exit 0
 fi
+
+before=$(marker_mtime)
+open -g "hammerspoon://reload"
+if wait_for_reload 20 "$before"; then
+  echo "✓ Hammerspoon reloaded (marker advanced)"
+  exit 0
+fi
+
+# Fallback: the running config may predate the URL binding. Bounded CLI call;
+# its exit code is meaningless (the reload invalidates the port mid-call).
+if command -v hs &>/dev/null; then
+  echo "… URL trigger not answered; falling back to hs CLI"
+  if command -v timeout &>/dev/null; then
+    timeout 5 hs -c "hs.reload()" >/dev/null 2>&1 || true
+  else
+    hs -c "hs.reload()" >/dev/null 2>&1 & sleep 5; kill $! 2>/dev/null || true
+  fi
+  if wait_for_reload 20 "$before"; then
+    echo "✓ Hammerspoon reloaded (marker advanced, via CLI fallback)"
+    exit 0
+  fi
+fi
+
+echo "✗ Hammerspoon did not confirm a reload; see $RELOAD_LOG and its console"
+exit 1

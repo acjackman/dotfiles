@@ -378,3 +378,20 @@ end)
 -- Hot reload hammerspoon configuration not needed for chezmoi managed hammerspoon
 -- hs.loadSpoon("ReloadConfiguration")
 -- spoon.ReloadConfiguration:start()
+
+-- Reload on demand via `open -g hammerspoon://reload` (used by the chezmoi
+-- run_onchange hook). The hs CLI is not used for this because it hangs
+-- intermittently when it connects while Hammerspoon is reloading.
+hs.urlevent.bind("reload", function()
+  hs.reload()
+end)
+
+-- Loaded marker: written last so its mtime advances only once this whole file
+-- has run. The chezmoi hook waits on it to confirm a reload completed.
+do
+  local f = io.open(HOME .. "/.cache/hammerspoon-loaded", "w")
+  if f then
+    f:write(os.date("%Y-%m-%dT%H:%M:%S") .. "\n")
+    f:close()
+  end
+end
