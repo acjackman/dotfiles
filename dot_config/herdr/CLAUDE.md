@@ -5,7 +5,10 @@ as a side-by-side alternative to tmux (it does **not** replace the tmux setup in
 `dot_config/tmux/`). Installed on personal machines into `~/.local/bin` by
 `run_after_install-herdr.sh.tmpl`, from herdr's own releases (not Homebrew, which
 lags them and blocks self-update); topgrade keeps it current with
-`herdr update --handoff`. That script also migrates a machine off Homebrew's herdr
+`herdr update --handoff`, run by the on-demand `com.acjackman.herdr-update`
+LaunchAgent (topgrade `launchctl kickstart`s it; herdr refuses to update from
+inside a pane, and every shell here is in one). Log:
+`~/.local/share/herdr-update/update.log`. That script also migrates a machine off Homebrew's herdr
 without killing panes: it only swaps binaries when the running server is
 protocol-compatible with the new one, then live-hands the server over.
 

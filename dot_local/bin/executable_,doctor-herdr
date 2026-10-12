@@ -5,7 +5,7 @@
 # keybinding table, and report (or fix) a protocol mismatch.
 #
 # ONE ROOT CAUSE, THREE SYMPTOMS. Upgrading herdr swaps the binary on disk while
-# the old server keeps running. `herdr update --handoff` (what topgrade runs)
+# the old server keeps running. `herdr update --handoff` (topgrade starts it via launchd)
 # hands the server over in the same step, but a plain `herdr update`, a failed
 # handoff, or a Homebrew install (where self-update is refused) leaves the
 # server behind. So the server drifts from the binary, and:

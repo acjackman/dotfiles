@@ -70,9 +70,11 @@ no_retry = true
 # compinit trusts its dump (-C); rebuild it after upgrades so new tools complete
 "Rebuild Zsh Completions" = ",zsh-cleanup-completions"
 {{- if has "personal" .extras }}
-# herdr is installed from its own releases (not Homebrew); --handoff moves the
-# running server onto the new binary so pane processes survive. See ,doctor-herdr.
-"Herdr" = "herdr update --handoff"
+# herdr is installed from its own releases (not Homebrew). `herdr update`
+# refuses to run inside a herdr pane, so start the launchd agent that runs
+# `herdr update --handoff` outside it; output goes to
+# ~/.local/share/herdr-update/update.log.
+"Herdr" = "launchctl kickstart gui/{{ output "id" "-u" | trim }}/com.acjackman.herdr-update"
 {{- end }}
 
 [brew]

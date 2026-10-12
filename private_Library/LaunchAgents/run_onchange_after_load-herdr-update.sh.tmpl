@@ -1,0 +1,29 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Load (or reload) the on-demand herdr-update LaunchAgent. Re-runs when the
+# plist changes: {{ include "private_Library/LaunchAgents/com.acjackman.herdr-update.plist.tmpl" | sha256sum }}
+#
+# The agent has no schedule; topgrade starts it. See the plist for why the
+# update runs under launchd instead of in topgrade's own shell.
+set -euo pipefail
+
+label="com.acjackman.herdr-update"
+plist="$HOME/Library/LaunchAgents/$label.plist"
+domain="gui/$(id -u)"
+
+# Clean no-op on machines without the herdr trial (installed on personal
+# machines by dot_config/herdr/run_after_install-herdr.sh.tmpl).
+PATH="$HOME/.local/bin:$PATH"
+command -v herdr >/dev/null 2>&1 || exit 0
+[[ -f "$plist" ]] || exit 0
+
+# launchd will not create the log directory, and a missing one makes the job
+# fail to spawn with no visible reason.
+mkdir -p "$HOME/.local/share/herdr-update"
+
+# bootout first so an edited plist is actually re-read; ignore "not loaded".
+launchctl bootout "$domain/$label" 2>/dev/null || true
+launchctl bootstrap "$domain" "$plist"
+
+echo "Loaded $label (on-demand herdr update, started by topgrade)"
+{{ end -}}

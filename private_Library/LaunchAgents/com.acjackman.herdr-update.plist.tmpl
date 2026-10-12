@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Update herdr in place and live-hand the running server over to the new
+  binary, so pane processes survive. On demand only: topgrade starts it with
+  `launchctl kickstart` (dot_config/topgrade.toml.tmpl). There is no schedule,
+  so upgrades land when you run topgrade, never mid-session on their own.
+
+  WHY LAUNCHD AND NOT TOPGRADE DIRECTLY. `herdr update` refuses to run inside a
+  herdr pane ("run `herdr update` outside herdr after detaching from the
+  session"), and every shell here, topgrade's included, starts inside one.
+  launchd runs it outside every pane.
+
+  If the handoff fails, the binary is still updated and the server is left on
+  the old one; the herdr-freshen agent retries the handoff every 30 minutes.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.acjackman.herdr-update</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{ .chezmoi.homeDir }}/.local/bin/herdr</string>
+        <string>update</string>
+        <string>--handoff</string>
+    </array>
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>{{ .chezmoi.homeDir }}/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>{{ .chezmoi.homeDir }}</string>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>{{ .chezmoi.homeDir }}/.local/share/herdr-update/update.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{ .chezmoi.homeDir }}/.local/share/herdr-update/update.log</string>
+</dict>
+</plist>

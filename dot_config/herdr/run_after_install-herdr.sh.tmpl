@@ -8,7 +8,8 @@
 #
 # WHY NOT BREW. homebrew-core lags herdr's releases by weeks, and herdr's own
 # `herdr update --handoff` (install + live handoff in one step) refuses on
-# Homebrew installs. A direct install updates itself; topgrade runs it.
+# Homebrew installs. A direct install updates itself; topgrade starts that through the
+# com.acjackman.herdr-update LaunchAgent, since herdr won't update in a pane.
 #
 # WHY THIS IS SAFE IN A PLAIN APPLY. The running server must never be left on a
 # binary that the herdr first on PATH can't talk to: every plugin, agent hook
