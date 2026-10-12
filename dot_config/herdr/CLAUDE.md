@@ -40,7 +40,8 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
   settings. Node 18+. Installs an icon font (Herdr Agent Icons Max) and **writes
   into other config files** — see below.
 - **herdr-bar** (`jeffarese/herdr-bar`) — Cmd+K-style fuzzy switcher over agents,
-  tabs, named panes and workspaces, with live preview, on `prefix+k`. Its
+  tabs, named panes and workspaces, with live preview, on `prefix+g` (replacing
+  herdr's built-in goto picker). Its
   background watcher also auto-titles unnamed Claude/Codex tabs from the task
   title (`auto_titles`) and leads agent tabs with their logo + status glyph
   (`tab_status`: `◉` needs you, `◐` working, `●` done, `✓` idle) — both on in
@@ -192,12 +193,20 @@ rules against a live session.
 `config.toml` overrides `[keys]` actions toward the tmux muscle memory in
 `dot_config/tmux/tmux.reset.conf`: `prefix = ctrl+space`, `detach = prefix+d`,
 `|`/`-` splits, plus tmux-faithful tab ops — `new_tab = prefix+n`,
-`close_tab = prefix+w`, `rename_tab = prefix+r`, and `workspace_picker = prefix+o`
-(the sesh-picker analogue, since herdr workspaces ≈ tmux sessions). Workspaces
-being the session analogue, `rename_workspace = prefix+shift+r` sits on the
-shifted rename key next to `rename_tab`. Each reclaimed key relocates the herdr
-default it displaced (`next_tab → prefix+shift+p`, `resize_mode → prefix+ctrl+r`,
-`reload_config → prefix+shift+c`) so one action owns each key. herdr validates
+`close_tab = prefix+w`, `rename_tab = prefix+r`. `workspace_picker` (herdr's
+default `prefix+w`) is left without a key; the commented-out `prefix+o` line is a
+leftover, and `prefix+o` still holds herdr's `open_notification_target`.
+Workspaces being the session analogue, `rename_workspace = prefix+shift+r` sits
+on the shifted rename key next to `rename_tab`. Each reclaimed key relocates the
+herdr default it displaced (`resize_mode → prefix+ctrl+r`,
+`reload_config → prefix+shift+c`) so one action owns each key.
+
+Tab cycling is unused, so `prefix+>` / `prefix+<` step through **agents**
+(`next_agent` / `previous_agent`, the sidebar's agent list) and `next_tab` /
+`previous_tab` are unbound with `[]`. Omitting a key is not unbinding — herdr
+restores its default (`prefix+n` / `prefix+p`), which would silently collide
+with `new_tab` and the command palette. `focus_agent` (1–9) is deliberately
+unbound: the `alt`/`ctrl+alt` digit chords belong to AeroSpace. herdr validates
 keybindings and logs `invalid keybinding` warnings to `herdr-server.log`; press
 `prefix+?` in-app for the live list.
 
@@ -220,8 +229,10 @@ one thing lost: the script ran `pane zoom --off` on both ends, so a pane moved
 into a **zoomed** tab can now land hidden behind the zoom — unzoom that tab if
 a move seems to vanish.
 
-`prefix+k` opens herdr-bar (reclaims herdr's `focus_pane_up` — not relocated,
-since `ctrl+k` already moves up via vim-herdr-navigation). `prefix+a` /
+`prefix+g` opens herdr-bar, taking the key of herdr's built-in `goto` picker
+because it replaces it (same scope: running agents/terminals, plus live
+preview). `goto` is deliberately not relocated. Upstream suggests `prefix+k`;
+leaving that alone keeps herdr's `focus_pane_up` default. `prefix+a` /
 `prefix+comma` are herdr-radar's order flip and settings popup.
 
 `prefix+.` opens [navi](https://github.com/denisidoro/navi) as a 90%x90% popup

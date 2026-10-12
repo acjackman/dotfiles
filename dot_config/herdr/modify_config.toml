@@ -58,8 +58,14 @@ split_horizontal = "prefix+minus" # matches herdr's default; kept explicit
 new_tab = "prefix+n"    # tmux: bind n new-window   (herdr default was prefix+c)
 close_tab = "prefix+w"  # tmux: bind w kill-window   (herdr default was prefix+shift+x)
 rename_tab = "prefix+r" # tmux: bind r rename-window (herdr default was prefix+shift+t)
-next_tab = "prefix+>"
-previous_tab = "prefix+<"
+# Tab cycling is unused (prefix+1..9 and herdr-bar cover tabs), so </> step
+# through agents instead — the sidebar's agent list, in its display order.
+# `[]` unbinds: omitting the keys would restore herdr's defaults, which collide
+# with new_tab (prefix+n) and the command palette (prefix+p).
+next_tab = []
+previous_tab = []
+next_agent = "prefix+>"
+previous_agent = "prefix+<"
 
 # Workspaces ≈ tmux sessions, so rename-workspace sits on the shifted rename key
 # (herdr default was prefix+shift+w).
@@ -231,10 +237,12 @@ height = "90%"
 description = "navi: cheatsheet → paste into pane"
 
 # herdr-bar: Cmd+K-style fuzzy switcher over agents, tabs, panes and workspaces.
-# Upstream's key. RECLAIMS prefix+k from herdr's focus_pane_up — not relocated,
-# since ctrl+k (vim-herdr-navigation, above) already moves up a pane.
+# Takes over herdr's built-in goto picker key (prefix+g) because it replaces
+# that picker: same scope (running agents/terminals), plus live preview.
+# goto is deliberately not relocated. Upstream suggests prefix+k; leaving that
+# free hands it back to herdr's focus_pane_up default.
 [[keys.command]]
-key = "prefix+k"
+key = "prefix+g"
 type = "plugin_action"
 command = "herdr-bar.open"
 description = "Command bar: jump to agent/tab/pane"
