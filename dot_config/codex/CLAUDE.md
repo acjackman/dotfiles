@@ -16,6 +16,13 @@ The `run_onchange_after_generate_config-toml.sh.tmpl` script generates two files
 1. **config.toml** — concatenated from `config.d/*.toml` (numeric prefixes control order). Each file owns distinct TOML keys/tables — do not duplicate keys across files.
 2. **AGENTS.md** — concatenated from `~/.config/agents/core.md` + `agents-codex.md`. Codex doesn't support `@` imports, so we assemble at deploy time.
 
+## herdr integration
+
+`hooks.json` and `herdr-agent-state.sh` here are written by `herdr integration
+install codex` (driven by `dot_config/herdr/run_after_ensure-herdr-integrations.sh`)
+and are not tracked. Its required `[features] hooks = true` lives in
+`config.d/10-features.toml` — keep it there, since `config.toml` is regenerated.
+
 ## NOT Tracked (runtime/sensitive)
 
 - `auth.json` — credentials

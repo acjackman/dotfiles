@@ -3,3 +3,9 @@
 # web_search = "cached"
 # multi_agent_collaboration = true
 # undo_support = true
+# Lifecycle hooks — required by herdr's codex integration (hooks.json +
+# herdr-agent-state.sh in CODEX_HOME, installed by
+# dot_config/herdr/run_after_ensure-herdr-integrations.sh). `herdr integration
+# install codex` also writes this flag, but config.toml is regenerated from
+# these fragments, so it must live here or the next apply drops it.
+hooks = true
