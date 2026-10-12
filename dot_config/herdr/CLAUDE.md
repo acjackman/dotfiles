@@ -12,16 +12,38 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
 
 | File | Purpose |
 |------|---------|
-| `config.toml` | Additive config — only the `vim-herdr-navigation` keybindings. herdr ships built-in defaults and writes no default config.toml, so keep this minimal. |
-| `run_onchange_after_setup-herdr.sh.tmpl` | Installs the herdr plugins (below) if missing and reloads a running server after `config.toml` changes. Guarded on herdr being installed. |
+| `modify_config.toml` | Additive config (keybindings, a few in-app settings). A chezmoi **modify template**, not a plain file — herdr-radar co-owns `config.toml`; see [herdr-radar](#herdr-radar-co-owns-configtoml). |
+| `run_onchange_after_setup-herdr.sh.tmpl` | Installs the herdr plugins (below) if missing, re-enables `acjackman.title-rename` if an earlier run disabled it, and reloads a running server after `modify_config.toml` changes. Guarded on herdr being installed. |
+| `run_after_ensure-herdr-integrations.sh` | Every apply: installs/upgrades herdr's agent integrations for claude, codex, pi, omp (and each `~/.config/claude/profiles/*`). Silent when all are current. See [Agent integrations](#agent-integrations). |
+| `plugins/config/acjackman.title-rename/config.toml` | Turns off title-rename's tab/workspace renaming (`rename_tabs`/`rename_workspaces = false`), leaving only the window title. |
 | `plugins/config/kichel.muster/config.toml` | muster's own config (the projects it offers). herdr's plugin config dir lives under `~/.config/herdr/`, so chezmoi manages it here instead of hand-copying upstream's `config.toml.example`. |
 
 ## Plugins
 
 - **vim-herdr-navigation** (`paulbkim-dev/vim-herdr-navigation`) — see below.
 - **acjackman.title-rename** (`acjackman/herdr-title-rename`) — our own plugin;
-  see below. Replaced `rjyo.window-title-sync`, which the `run_onchange` script
-  uninstalls on sight (only one plugin can own the window title).
+  **title only** (2026-10-11): sets the outer window title for Timing; its
+  tab/workspace renaming is off in its config because the naming logic didn't
+  fit herdr. herdr-bar's auto titles name tabs instead. See below.
+- **hhdebb.herdr-radar** (`hhdebb/herdr-radar`) — readable Agents sidebar:
+  vendor logos, grouping by activity, stale rows dimmed, worktrees nested under
+  their repo. `prefix+a` flips active/recent order, `prefix+comma` opens its
+  settings. Node 18+. Installs an icon font (Herdr Agent Icons Max) and **writes
+  into other config files** — see below.
+- **herdr-bar** (`jeffarese/herdr-bar`) — Cmd+K-style fuzzy switcher over agents,
+  tabs, named panes and workspaces, with live preview, on `prefix+k`. Its
+  background watcher also auto-titles unnamed Claude/Codex tabs from the task
+  title (`auto_titles`, default on; config in `herdr plugin config-dir
+  herdr-bar`/`config.json`, not managed). Python 3 stdlib only. Shares radar's
+  icon font for agent logos.
+- **heeler** (`ZingerLittleBee/Heeler/plugin`, `--ref main`) — **Odin only**
+  (`eq .hostname "Odin"` in the `run_onchange` script). Server half of the
+  [Heeler](https://github.com/ZingerLittleBee/Heeler) iOS app: remote access to
+  this machine's agents over plain SSH, plus encrypted push notifications when
+  an agent blocks/finishes. Needs Node 20+ (`npm ci` build) and macOS **Remote
+  Login** on. Pair a phone with `herdr plugin action invoke heeler.pair` (QR in a
+  herdr popup); pairing appends the device key to `~/.ssh/authorized_keys`. A
+  non-22 SSH port goes in `pair.json` in its config dir.
 - **worktrunk** (`devashish2203/herdr-worktrunk`) — worktree switch/create
   (`prefix+shift+g`) and remove (`prefix+shift+d`) via worktrunk (`wt`) + fzf,
   the herdr analogue of the tmux `wt-sesh-select` bindings. Needs `wt` ≥ 0.60,
@@ -65,7 +87,34 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
   has never merged an outside PR, so the setup script uninstalls any `drovr`
   installed from a different repo and reinstalls from the fork.
 
-## acjackman.title-rename (window title + auto-naming)
+## herdr-radar co-owns config.toml
+
+radar writes three **marker-fenced blocks** (`# >>> herdr-radar <name> block` …
+`# <<< …`) into herdr's `config.toml`: `tab-bar` (inside `[ui]`), `theme`
+(`[theme.custom]`) and `sidebar` (`[ui.sidebar.*]`). They are big, carry
+absolute paths, and the theme block is **rewritten on every light/dark flip**.
+A plain chezmoi file would strip them on each apply and radar would put them
+back — permanent drift. So the source is `modify_config.toml`, a chezmoi
+`modify-template`: everything is ours except those three blocks, which it lifts
+verbatim from the live file (`.chezmoi.stdin`) and puts back in place. On a fresh
+machine they're absent until radar's daemon first starts. Don't add your own
+`[theme.custom]` or `[ui.sidebar.*]` table — TOML allows each once and radar
+will skip its block.
+
+radar also writes a `font` block (codepoint map for its icon font) into
+**ghostty** and **kitty** configs. Those are static, so they're simply mirrored
+verbatim at the end of `dot_config/ghostty/config.tmpl` and
+`dot_config/kitty/kitty.conf`. If a radar upgrade widens the ranges,
+`chezmoi diff` shows it — adopt the new lines.
+
+## acjackman.title-rename (window title + auto-naming) — title only
+
+**Renaming off since 2026-10-11** — the naming logic wasn't right for herdr, so
+`plugins/config/acjackman.title-rename/config.toml` sets `rename_tabs` and
+`rename_workspaces` to `false`. The title half still runs, so Timing keeps its
+attribution. Tab naming comes from herdr-bar's auto titles. To bring renaming
+back, fix the plugin and flip those flags. The rename notes below describe the
+disabled half.
 
 [acjackman/herdr-title-rename](https://github.com/acjackman/herdr-title-rename)
 is ours, written for this setup. It reproduces the tmux titling in
@@ -111,9 +160,8 @@ fix is a startup watcher holding a socket subscription; not built yet.
 
 **Config** (all optional, defaults reproduce the tmux format) lives in
 `herdr plugin config-dir acjackman.title-rename`: `separator`, `path_style`
-(`tilde|full|basename|none`), `rename_tabs`, `rename_workspaces`. Not managed by
-chezmoi yet — add it under `plugins/config/` like muster's if it ever needs
-pinning.
+(`tilde|full|basename|none`), `rename_tabs`, `rename_workspaces`. Managed by
+chezmoi at `plugins/config/acjackman.title-rename/config.toml`.
 
 **Install builds from source** (`cargo build --release`), so it shares muster's
 dependency on `brew "rust"`. Unlike the bun-based plugin it replaced, it needs
@@ -158,6 +206,10 @@ popup picker, cross-workspace toggle, down-splits, naming, and focus-follow. The
 one thing lost: the script ran `pane zoom --off` on both ends, so a pane moved
 into a **zoomed** tab can now land hidden behind the zoom — unzoom that tab if
 a move seems to vanish.
+
+`prefix+k` opens herdr-bar (reclaims herdr's `focus_pane_up` — not relocated,
+since `ctrl+k` already moves up via vim-herdr-navigation). `prefix+a` /
+`prefix+comma` are herdr-radar's order flip and settings popup.
 
 `prefix+.` opens [navi](https://github.com/denisidoro/navi) as a 90%x90% popup
 and types the chosen snippet into the pane you came from, without Enter. It
@@ -368,7 +420,7 @@ with no log line, while every built-in and `plugin_action` binding keeps working
 break-pane bindings while `herdr config check`, `herdr status server`, and
 `herdr pane move` on the CLI were all healthy.) The fix is
 `herdr server reload-config`. Nothing triggers it on its own —
-`run_onchange_after_setup-herdr.sh.tmpl` only reloads when `config.toml`
+`run_onchange_after_setup-herdr.sh.tmpl` only reloads when `modify_config.toml`
 *changes*, and an upgrade changes the binary, not the config — so `,doctor-herdr`
 now runs it unconditionally.
 
@@ -382,6 +434,55 @@ processes do not. Relaunch afterwards with `~/.config/ghostty/ghostty-herdr`.
 Since agents drive the `herdr` CLI directly, a mismatch is loud: calls fail with
 `protocol_mismatch` rather than silently degrading to another substrate. Restart
 the server and retry; there is no protocol allow-list to bump any more.
+
+## Agent integrations
+
+`herdr integration install <agent>` drops a hook/extension into each agent so it
+reports its session ID to herdr (resume agent panes after a server restart —
+what makes `,doctor-herdr --force-restart` survivable) and, for pi/omp, its
+state directly instead of herdr scraping the screen. herdr-bar's Claude
+transcript titles and herdr-radar's activity timing read the same session data.
+
+`run_after_ensure-herdr-integrations.sh` keeps them current on every apply
+(`run_after_`, because a herdr upgrade bumps integration versions without any
+source change here). It checks `herdr integration status` — local files only,
+no server — and reinstalls anything not `current`. Where each one writes:
+
+- **pi / omp** — an extension file under `~/.pi/agent/extensions/`,
+  `~/.omp/agent/extensions/`. omp's installer refuses until omp has created that
+  dir on first run, so the script skips omp until then.
+- **claude** — `hooks/herdr-agent-state.sh` + a `SessionStart` entry in
+  `settings.json`. `dot_claude/run_onchange_after_generate_settings.sh.tmpl`
+  preserves hooks it doesn't own (verified). Repeated per Claude profile via
+  `CLAUDE_CONFIG_DIR`, which herdr honours for both status and install.
+- **codex** — `herdr-agent-state.sh` + `hooks.json` in `$CODEX_HOME`
+  (`~/.config/codex`), plus `[features] hooks = true` in `config.toml`. That file
+  is **generated** from `config.d/`, and `integration status` only checks the
+  hook script — so the flag lives in
+  `dot_config/codex/exact_config.d/10-features.toml`, or a config rebuild would
+  silently disable the integration while status still says `current`.
+
+## Plugins need the server's PATH
+
+Plugin commands (startup hooks, actions, event hooks) run with the **herdr
+server's** environment, not the caller's. A server started from a GUI context
+(Tuna, launchd) gets launchd's bare PATH — `/usr/bin:/bin:/usr/sbin:/sbin` — so
+every node plugin (radar, heeler, drovr) fails with `No such file or directory
+(os error 2)` in `herdr plugin log list`, while herdr-bar keeps working on
+macOS's `/usr/bin/python3`. Check with
+`ps eww -o command= -p "$(pgrep -f 'herdr server')" | tr ' ' '\n' | grep ^PATH=`.
+
+**A live handoff does not fix it** — the replacement server inherits the old
+server's environment (verified 2026-10-11). Only a real restart from a good
+shell does: `,doctor-herdr --force-restart` (kills pane processes; plain
+`--restart` only acts on a protocol mismatch, which this is not).
+`dot_config/ghostty/executable_ghostty-herdr-cmd` prevents it by loading the
+login-shell PATH plus mise shims before exec'ing herdr.
+
+There is no "reload plugins" command. `herdr server reload-config` picks up
+keybindings; plugin startup hooks rerun only on server start or live handoff
+(`herdr server live-handoff --import-exe "$(command -v herdr)"`), not on
+enable/disable.
 
 ## Apply notes
 

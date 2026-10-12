@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# hash: {{ include "dot_config/herdr/config.toml" | sha256sum }}
+# hash: {{ include "dot_config/herdr/modify_config.toml" | sha256sum }}
 #
 # Keep the herdr trial wired up: ensure the vim-herdr-navigation plugin is
 # installed, then reload the running server's config after the keybindings in
@@ -11,10 +11,12 @@ command -v herdr >/dev/null 2>&1 || exit 0
 
 # Plugins to keep installed: "<plugin_id> <owner/repo>".
 #   vim-herdr-navigation   — <C-h/j/k/l> between herdr panes and Neovim splits
-#   acjackman.title-rename — tmux-style window title (`workspace | tab | ~/path`)
-#                            plus automatic tab/workspace renaming. Own repo;
-#                            `herdr plugin install` builds it with Cargo, so it
-#                            needs the same Rust toolchain as muster below.
+#   acjackman.title-rename — tmux-style window title (`workspace | tab | ~/path`),
+#                            which Timing attributes time from. Its tab/workspace
+#                            renaming is off (plugins/config/…/config.toml) —
+#                            herdr-bar names tabs. Own repo; `herdr plugin
+#                            install` builds it with Cargo, so it needs the same
+#                            Rust toolchain as muster below.
 #   worktrunk              — worktree switch/create/remove via worktrunk (`wt`);
 #                            needs wt >= 0.60, fzf, jq (already in the toolchain)
 #   kichel.muster          — agent-aware project switcher (the sesh analogue);
@@ -43,6 +45,20 @@ command -v herdr >/dev/null 2>&1 || exit 0
 #                            so focus never followed tab moves. The fork folds
 #                            `--focus` into the final move. Upstream has merged
 #                            no outside PRs and went quiet in 2026-08.
+#   hhdebb.herdr-radar     — readable Agents sidebar (vendor logos, activity
+#                            grouping, stale rows dimmed) + an icon font. Node
+#                            18+. Co-owns herdr's config.toml and ghostty's
+#                            config via marker-fenced blocks — see CLAUDE.md.
+#   herdr-bar              — Cmd+K-style fuzzy switcher over agents/tabs/panes
+#                            (prefix+k), plus automatic task titles for unnamed
+#                            tabs. Python 3 stdlib only; no build step.
+#   heeler                 — Odin only: pairs the Heeler iOS app for remote
+#                            access over SSH and pushes agent notifications.
+#                            Node 20+; needs macOS Remote Login on. Lives in a
+#                            repo subdirectory on `main`, hence the extra args.
+#                            Pair with `herdr plugin action invoke heeler.pair`.
+#
+# Entry format: "<plugin_id> <source> [extra install args…]".
 plugins=(
   "vim-herdr-navigation paulbkim-dev/vim-herdr-navigation"
   "acjackman.title-rename acjackman/herdr-title-rename"
@@ -51,6 +67,11 @@ plugins=(
   "rmarganti.herdr-pluck rmarganti/herdr-pluck"
   "jt.command-palette JanTvrdik/herdr-command-palette"
   "drovr applifaction/herdr-drovr"
+  "hhdebb.herdr-radar hhdebb/herdr-radar"
+  "herdr-bar jeffarese/herdr-bar"
+{{- if eq .hostname "Odin" }}
+  "heeler ZingerLittleBee/Heeler/plugin --ref main"
+{{- end }}
 )
 
 # A stale server (binary upgraded without a restart) rejects every CLI call with
@@ -77,9 +98,16 @@ if grep -q 'rjyo.window-title-sync' <<<"$installed"; then
     echo "warning: failed to uninstall rjyo.window-title-sync" >&2
 fi
 
+# acjackman.title-rename runs title-only (renaming is off in its config.toml),
+# but an earlier version of this script disabled it outright — re-enable it.
+if grep -q 'acjackman.title-rename.*disabled' <<<"$installed"; then
+  echo "Re-enabling acjackman.title-rename (title sync only)…"
+  herdr plugin enable acjackman.title-rename >/dev/null || \
+    echo "warning: failed to enable acjackman.title-rename" >&2
+fi
+
 for entry in "${plugins[@]}"; do
-  id="${entry%% *}"
-  repo="${entry##* }"
+  read -r id repo args <<<"$entry"
   # Installed from a different repo (e.g. switched to a fork under the same
   # plugin id): uninstall so the install below picks up the new source.
   # `herdr plugin list` shows the source as `[github:<owner/repo>@<sha>]`.
@@ -97,7 +125,9 @@ for entry in "${plugins[@]}"; do
   if [[ -z "$line" ]]; then
     echo "Installing $id plugin…"
     # Non-fatal: one plugin failing to build shouldn't abort the rest (set -e).
-    herdr plugin install "$repo" --yes || echo "warning: failed to install $id" >&2
+    # $args is intentionally unquoted: it word-splits into extra flags.
+    # shellcheck disable=SC2086
+    herdr plugin install "$repo" $args --yes || echo "warning: failed to install $id" >&2
   fi
 done
 

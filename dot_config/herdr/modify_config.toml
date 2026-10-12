@@ -1,4 +1,23 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- /*
+  A modify template, not a plain file, because herdr-radar co-owns this file:
+  on daemon start (and on every light/dark flip) it writes three marker-fenced
+  blocks — tab-bar (inside [ui]), theme and sidebar — that are large, carry
+  absolute paths, and change with appearance. Everything below is ours; those
+  three blocks are lifted verbatim from the live file (.chezmoi.stdin) and put
+  back where radar keeps them, so apply never strips them and radar never has
+  to rewrite. On a fresh machine they're simply absent until radar starts.
+*/ -}}
+{{- $radar := dict -}}
+{{- range list "tab-bar" "theme" "sidebar" -}}
+{{-   $re := printf "(?s)# >>> herdr-radar %s block\n.*?# <<< herdr-radar %s block" . . -}}
+{{-   $_ := set $radar (. | replace "-" "") (regexFind $re $.chezmoi.stdin) -}}
+{{- end -}}
 # herdr configuration — trialling herdr side-by-side with tmux (see CLAUDE.md).
+#
+# Managed as a chezmoi modify_ template: herdr-radar's marker-fenced blocks
+# (`# >>> herdr-radar … block`) are preserved from the live file, not stored
+# here — see the template header above.
 #
 # herdr ships built-in defaults and writes no default config.toml, but it DOES
 # write settings back into this file (`onboarding`, `[ui]` below) when you change
@@ -211,9 +230,45 @@ width = "90%"
 height = "90%"
 description = "navi: cheatsheet → paste into pane"
 
+# herdr-bar: Cmd+K-style fuzzy switcher over agents, tabs, panes and workspaces.
+# Upstream's key. RECLAIMS prefix+k from herdr's focus_pane_up — not relocated,
+# since ctrl+k (vim-herdr-navigation, above) already moves up a pane.
+[[keys.command]]
+key = "prefix+k"
+type = "plugin_action"
+command = "herdr-bar.open"
+description = "Command bar: jump to agent/tab/pane"
+
+# herdr-radar: upstream's two optional keys, both free in herdr's defaults.
+# prefix+a flips the Agents panel order (active-grouped <-> recent-flat);
+# prefix+comma opens radar's settings popup.
+[[keys.command]]
+key = "prefix+a"
+type = "plugin_action"
+command = "hhdebb.herdr-radar.view-flip"
+description = "Radar: flip agent order (active/recent)"
+
+[[keys.command]]
+key = "prefix+comma"
+type = "plugin_action"
+command = "hhdebb.herdr-radar.settings"
+description = "Radar: settings"
+
 # Set by herdr in-app (agent panel sort order); mirrored so apply preserves it.
 # herdr renamed the variants (`grouped` is gone); valid values are now
 # `spaces`, `workspaces`, `priority` — `priority` floats blocked/attention-needing
 # agents to the top, the closest match to the old grouped behaviour.
 [ui]
+{{- with $radar.tabbar }}
+
+{{ . }}
+{{ end }}
 agent_panel_sort = "priority"
+{{- with $radar.theme }}
+
+{{ . }}
+{{- end }}
+{{- with $radar.sidebar }}
+
+{{ . }}
+{{- end }}

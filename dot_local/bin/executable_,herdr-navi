@@ -5,7 +5,7 @@
 # 90%x90% popup running `navi --print` and pastes the chosen snippet into the
 # pane you came from — bracketed, no Enter. herdr has no navi plugin, so this
 # script IS the popup body: it runs from the `type = "popup"` keybinding on
-# prefix+. in dot_config/herdr/config.toml (tmux's key for navi, from the
+# prefix+. in dot_config/herdr/modify_config.toml (tmux's key for navi, from the
 # `prefix .` binding in tmux.reset.conf) and hands the snippet back over the CLI.
 #
 # Target pane: $HERDR_ACTIVE_PANE_ID, the keybinding-context var. herdr injects

@@ -1,0 +1,5 @@
+# acjackman.title-rename — title sync only. Its tab/workspace naming doesn't fit
+# herdr yet; herdr-bar's auto titles name tabs instead. The window title
+# (`workspace | tab | ~/path`) stays, since Timing attributes time from it.
+rename_tabs = false
+rename_workspaces = false
