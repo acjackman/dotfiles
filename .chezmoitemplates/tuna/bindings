@@ -220,9 +220,7 @@ label = 'UI Tweaks'
 
             [comboMode.bindings.destination.bindings.destination]
             type = 'url'
-
-                [comboMode.bindings.destination.bindings.destination.url]
-                relative = 'hammerspoon://rotate-wallpapers'
+            url = 'hammerspoon://rotate-wallpapers'
 
         [[comboMode.bindings.destination.bindings]]
         key = 'd'
