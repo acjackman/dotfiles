@@ -11,6 +11,18 @@ printf '\033c'
 
 export SHELL="${SHELL:-/bin/zsh}"
 
+# If this launch starts the herdr server, the server keeps this environment for
+# life — a live handoff copies it to the replacement — and runs every plugin
+# command (node, python3, fzf, …) with it. Launchers like Tuna start us with
+# launchd's bare PATH, which left plugins failing with "No such file or
+# directory" on node. So take the login shell's PATH (Homebrew, via zprofile)
+# and put mise's shims in front, matching an interactive shell.
+if login_path="$(/bin/zsh -lc 'print -rn -- $PATH' 2>/dev/null)" && [[ -n "$login_path" ]]; then
+  PATH="$login_path"
+fi
+[[ -d "$HOME/.local/share/mise/shims" ]] && PATH="$HOME/.local/share/mise/shims:$PATH"
+export PATH
+
 # Pick up a Homebrew-installed herdr even if PATH isn't fully set up yet.
 if ! command -v herdr &>/dev/null; then
   for dir in /opt/homebrew/bin /usr/local/bin; do
