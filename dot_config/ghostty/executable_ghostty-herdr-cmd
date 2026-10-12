@@ -23,15 +23,16 @@ fi
 [[ -d "$HOME/.local/share/mise/shims" ]] && PATH="$HOME/.local/share/mise/shims:$PATH"
 export PATH
 
-# Pick up a Homebrew-installed herdr even if PATH isn't fully set up yet.
+# Pick up herdr even if PATH isn't fully set up yet: ~/.local/bin is where
+# herdr's installer puts it; the Homebrew dirs cover a machine not yet switched.
 if ! command -v herdr &>/dev/null; then
-  for dir in /opt/homebrew/bin /usr/local/bin; do
+  for dir in "$HOME/.local/bin" /opt/homebrew/bin /usr/local/bin; do
     [[ -x "$dir/herdr" ]] && export PATH="$PATH:$dir" && break
   done
 fi
 
 if ! command -v herdr &>/dev/null; then
-  echo "herdr not found in PATH — install it with: brew install herdr" >&2
+  echo "herdr not found in PATH — install it with: curl -fsSL https://herdr.dev/install.sh | sh" >&2
   exec "$SHELL"
 fi
 

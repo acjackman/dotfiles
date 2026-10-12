@@ -1,0 +1,105 @@
+{{ if has "personal" .extras -}}
+#!/usr/bin/env bash
+#
+# Install herdr from its own releases into ~/.local/bin, and retire the
+# Homebrew copy. Runs on EVERY apply (run_after_, not run_onchange_): a switch
+# that has to wait (below) must be retried, and when there is nothing to do it
+# exits after two file tests.
+#
+# WHY NOT BREW. homebrew-core lags herdr's releases by weeks, and herdr's own
+# `herdr update --handoff` (install + live handoff in one step) refuses on
+# Homebrew installs. A direct install updates itself; topgrade runs it.
+#
+# WHY THIS IS SAFE IN A PLAIN APPLY. The running server must never be left on a
+# binary that the herdr first on PATH can't talk to: every plugin, agent hook
+# and `herdr` call would fail at once (see `,doctor-herdr`). So the new binary
+# is downloaded to a staging dir first and only moved into ~/.local/bin (ahead
+# of Homebrew on PATH) when no server is running, or when the running server is
+# protocol-compatible with it. Then `,doctor-herdr` live-hands the server over
+# to it, so pane processes survive. If the server is incompatible, nothing
+# changes and this tries again on the next apply. It never restarts a server.
+#
+# Homebrew's herdr is uninstalled only once no server is still executing it.
+# `brew bundle` would not remove it anyway (see homebrew/run_onchange_uninstall).
+#
+# MIGRATION ONLY — the brew half of this script can be deleted once every
+# machine has switched; the install-if-missing half stays.
+set -euo pipefail
+
+bin_dir="$HOME/.local/bin"
+herdr_bin="$bin_dir/herdr"
+
+# The Homebrew herdr, if it is still installed: its PATH symlink into the Cellar.
+brew_herdr=""
+for p in /opt/homebrew/bin/herdr /usr/local/bin/herdr; do
+  if [[ -L "$p" && "$(readlink "$p")" == *Cellar/herdr/* ]]; then
+    brew_herdr="$p"
+    break
+  fi
+done
+
+[[ -x "$herdr_bin" && -z "$brew_herdr" ]] && exit 0
+
+# Executables of every running herdr server, default and named sessions alike.
+# A server is `<exe> server …`; after a live handoff it is
+# `<exe> server --handoff-import …`, so match the word, not the line end.
+server_exes() {
+  ps -eo args= | awk '$1 ~ /\/herdr$/ && $2 == "server" { print $1 }
+                      $1 ~ /\/herdr$/ && $2 == "--session" && $4 == "server" { print $1 }'
+}
+
+server_running() {
+  local s
+  s="$("$1" status --json 2>/dev/null)" || return 1
+  [[ "$(jq -r '.server.running' <<<"$s")" == "true" ]]
+}
+
+if [[ ! -x "$herdr_bin" ]]; then
+  staging="$(mktemp -d "${TMPDIR:-/tmp}/herdr-install.XXXXXX")"
+  trap 'rm -rf "$staging"' EXIT
+
+  echo "herdr: downloading the latest release…"
+  new="$staging/herdr"
+  # Offline is not an apply failure: whatever herdr is installed keeps working.
+  if ! { curl -fsSL --retry 3 https://herdr.dev/install.sh |
+           HERDR_INSTALL_DIR="$staging" sh >/dev/null; } || ! "$new" --version >/dev/null; then
+    echo "warning: herdr download failed; will retry on the next apply" >&2
+    exit 0
+  fi
+
+  if server_running "$new"; then
+    status="$("$new" status --json)"
+    if [[ "$(jq -r '.server.compatible' <<<"$status")" != "true" ]]; then
+      echo "herdr: $("$new" --version) can't talk to the running server" \
+           "($(jq -r '.server.version' <<<"$status")); keeping Homebrew's herdr for now." >&2
+      echo "herdr: run \`,doctor-herdr --restart\` when the panes can go, then re-apply." >&2
+      exit 0
+    fi
+  fi
+
+  mkdir -p "$bin_dir"
+  mv "$new" "$herdr_bin"
+  echo "herdr: installed $("$herdr_bin" --version) to $herdr_bin"
+fi
+
+[[ -n "$brew_herdr" ]] || exit 0
+
+# Hand the default server over to the new binary (no-op when none is running or
+# it is already current). Named-session servers are left to their owner.
+if server_running "$herdr_bin"; then
+  PATH="$bin_dir:$PATH" "$bin_dir/,doctor-herdr" || true
+fi
+
+# Captured first, not piped into `grep -q`: grep exits on the first match, ps
+# and awk take SIGPIPE, and pipefail turns that into "no match" — which here
+# would uninstall the binary a live server runs from.
+exes="$(server_exes)"
+if grep -qE '/Cellar/herdr/|^(/opt/homebrew|/usr/local)/bin/herdr$' <<<"$exes"; then
+  echo "herdr: a server is still running Homebrew's binary; leaving it installed." >&2
+  echo "herdr: \`,doctor-herdr\` hands the default server over; re-apply after." >&2
+  exit 0
+fi
+
+echo "herdr: uninstalling Homebrew's copy (now updated by \`herdr update\`)"
+brew uninstall --formula herdr
+{{ end -}}

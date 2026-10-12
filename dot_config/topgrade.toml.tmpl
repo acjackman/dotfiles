@@ -69,6 +69,11 @@ no_retry = true
 #"Python Environment" = "~/dev/.env/bin/pip install -i https://pypi.python.org/simple -U --upgrade-strategy eager jupyter"
 # compinit trusts its dump (-C); rebuild it after upgrades so new tools complete
 "Rebuild Zsh Completions" = ",zsh-cleanup-completions"
+{{- if has "personal" .extras }}
+# herdr is installed from its own releases (not Homebrew); --handoff moves the
+# running server onto the new binary so pane processes survive. See ,doctor-herdr.
+"Herdr" = "herdr update --handoff"
+{{- end }}
 
 [brew]
 #greedy_cask = true

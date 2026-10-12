@@ -4,11 +4,11 @@
 # binary: adopt a freshly upgraded binary via live handoff, reload a stale
 # keybinding table, and report (or fix) a protocol mismatch.
 #
-# ONE ROOT CAUSE, THREE SYMPTOMS. `brew upgrade herdr` swaps the binary on disk
-# while the old server keeps running. Nothing in brew tells the server to pick
-# the new one up, and herdr's own `herdr update --handoff` — which would do it
-# atomically — refuses on Homebrew installs ("self-update is disabled for
-# Homebrew installs"). So the server drifts from the binary, and:
+# ONE ROOT CAUSE, THREE SYMPTOMS. Upgrading herdr swaps the binary on disk while
+# the old server keeps running. `herdr update --handoff` (what topgrade runs)
+# hands the server over in the same step, but a plain `herdr update`, a failed
+# handoff, or a Homebrew install (where self-update is refused) leaves the
+# server behind. So the server drifts from the binary, and:
 #
 # 1. STALE KEYBINDINGS (fixed by default). The running server keeps serving its
 #    old keybinding table, which can silently drop `[[keys.command]]` custom
@@ -58,8 +58,8 @@
 # new binary while `compatible` is still true and only `server_binary_stale`
 # has flipped. Handoff is still attempted on an existing mismatch (case 3),
 # because the capability flag stays readable and it costs nothing to try, but
-# do not rely on it: let the zsh hook run `--freshen` soon after an upgrade
-# rather than discovering this days later.
+# do not rely on it: the launchd timer runs `--freshen` soon after an upgrade
+# rather than leaving it to be discovered days later.
 #
 # `herdr status` keeps working during a mismatch — it is the one call that is
 # not rejected — so every field read below stays available in the broken state.

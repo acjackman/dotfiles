@@ -2,7 +2,12 @@
 
 [herdr](https://herdr.dev) is an agent-aware terminal multiplexer being trialled
 as a side-by-side alternative to tmux (it does **not** replace the tmux setup in
-`dot_config/tmux/`). Installed via `brew "herdr"` in `Brewfile-personal.tmpl`.
+`dot_config/tmux/`). Installed on personal machines into `~/.local/bin` by
+`run_after_install-herdr.sh.tmpl`, from herdr's own releases (not Homebrew, which
+lags them and blocks self-update); topgrade keeps it current with
+`herdr update --handoff`. That script also migrates a machine off Homebrew's herdr
+without killing panes: it only swaps binaries when the running server is
+protocol-compatible with the new one, then live-hands the server over.
 
 **Agent reference:** for concepts, commands, and troubleshooting beyond this
 repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
@@ -410,8 +415,9 @@ Two things went away with it rather than being ported:
 
 ## Upgrades break the running server (`,doctor-herdr`)
 
-The wire protocol churns pre-1.0 and `brew upgrade herdr` replaces the binary
-**in place**, leaving the running server on the old protocol. Every CLI call
+The wire protocol churns pre-1.0 and an upgrade replaces the binary
+**in place** (`herdr update --handoff` hands over in the same step; anything
+else does not), leaving the running server on the old protocol. Every CLI call
 from the new binary is then rejected with `protocol_mismatch` — and since every
 plugin drives the `herdr` CLI, **all the plugins stop working at once** while
 herdr itself keeps running fine. Agent surface control fails the same way, for

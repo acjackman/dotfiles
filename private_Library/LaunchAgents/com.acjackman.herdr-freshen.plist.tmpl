@@ -45,11 +45,12 @@
     <integer>1800</integer>
     <key>ProcessType</key>
     <string>Background</string>
-    <!-- launchd starts with a minimal PATH; the script needs herdr and jq. -->
+    <!-- launchd starts with a minimal PATH; the script needs herdr (~/.local/bin,
+         from herdr's installer) and jq (Homebrew). -->
     <key>EnvironmentVariables</key>
     <dict>
         <key>PATH</key>
-        <string>/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <string>{{ .chezmoi.homeDir }}/.local/bin:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
         <key>HOME</key>
         <string>{{ .chezmoi.homeDir }}</string>
     </dict>

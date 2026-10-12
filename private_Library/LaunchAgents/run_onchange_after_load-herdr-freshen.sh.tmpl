@@ -11,7 +11,9 @@ label="com.acjackman.herdr-freshen"
 plist="$HOME/Library/LaunchAgents/$label.plist"
 domain="gui/$(id -u)"
 
-# Clean no-op on machines without the herdr trial (`brew "herdr"` is personal).
+# Clean no-op on machines without the herdr trial (installed on personal
+# machines by dot_config/herdr/run_after_install-herdr.sh.tmpl).
+PATH="$HOME/.local/bin:$PATH"
 command -v herdr >/dev/null 2>&1 || exit 0
 [[ -f "$plist" ]] || exit 0
 
