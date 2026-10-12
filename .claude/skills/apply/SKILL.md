@@ -36,6 +36,7 @@ Apply chezmoi dotfile changes from the source repository to their target locatio
 
 - **Never reach for `chezmoi apply --force` to get past a problem** — it silently overwrites locally-diverged files
 - On a conflict, or on `could not open a new TTY: /dev/tty`: chezmoi wants an interactive answer it cannot get. Do **not** force. Diff the divergence (`chezmoi diff <path>`), copy the destination file aside if it holds real local edits, and show the user both sides. `--force` is theirs to authorize, per path, never a default
+- **Conflict on a target that doesn't exist on disk:** stale state from a file chezmoi once managed and that was later deleted. chezmoi compares against the recorded entry state and sees a divergence. Nothing local is at risk, so clear the record (`chezmoi state delete --bucket=entryState --key=<absolute target path>`) and apply again; no `--force` needed
 - **From worktrees: always use targeted applies** (specific target paths). Broad applies pollute global persistent state. See `.docs/chezmoi-worktrees.md`
 - **Unexpected diffs** may mean another agent applied from a different worktree — alert the user
 - **Target paths must be absolute.** A relative path resolves against the source dir and chezmoi reports "not managed".
