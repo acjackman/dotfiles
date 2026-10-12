@@ -16,6 +16,7 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
 | `run_onchange_after_setup-herdr.sh.tmpl` | Installs the herdr plugins (below) if missing, re-enables `acjackman.title-rename` if an earlier run disabled it, and reloads a running server after `modify_config.toml` changes. Guarded on herdr being installed. |
 | `run_after_ensure-herdr-integrations.sh` | Every apply: installs/upgrades herdr's agent integrations for claude, codex, pi, omp (and each `~/.config/claude/profiles/*`). Silent when all are current. See [Agent integrations](#agent-integrations). |
 | `plugins/config/acjackman.title-rename/config.toml` | Turns off title-rename's tab/workspace renaming (`rename_tabs`/`rename_workspaces = false`), leaving only the window title. |
+| `plugins/config/herdr-bar/config.json` | herdr-bar: task auto-titles on, **status prefixes in tab labels on** (`tab_status`). JSON, so no comments — the why lives here. herdr-bar only reads it. |
 | `plugins/config/kichel.muster/config.toml` | muster's own config (the projects it offers). herdr's plugin config dir lives under `~/.config/herdr/`, so chezmoi manages it here instead of hand-copying upstream's `config.toml.example`. |
 
 ## Plugins
@@ -33,9 +34,14 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
 - **herdr-bar** (`jeffarese/herdr-bar`) — Cmd+K-style fuzzy switcher over agents,
   tabs, named panes and workspaces, with live preview, on `prefix+k`. Its
   background watcher also auto-titles unnamed Claude/Codex tabs from the task
-  title (`auto_titles`, default on; config in `herdr plugin config-dir
-  herdr-bar`/`config.json`, not managed). Python 3 stdlib only. Shares radar's
-  icon font for agent logos.
+  title (`auto_titles`) and leads agent tabs with their logo + status glyph
+  (`tab_status`: `◉` needs you, `◐` working, `●` done, `✓` idle) — both on in
+  `plugins/config/herdr-bar/config.json`. The prefix is part of the label
+  itself, so anything reading tab names sees it; title-rename strips it from the
+  window title. herdr-bar **turns all of this off** if another enabled plugin's
+  name/description looks like a tab renamer (regex in its
+  `renaming_guard.py`) — why title-rename's manifest is worded the way it is.
+  Python 3 stdlib only. Shares radar's icon font for agent logos.
 - **heeler** (`ZingerLittleBee/Heeler/plugin`, `--ref main`) — **Odin only**
   (`eq .hostname "Odin"` in the `run_onchange` script). Server half of the
   [Heeler](https://github.com/ZingerLittleBee/Heeler) iOS app: remote access to
@@ -146,17 +152,16 @@ Labels it has never owned are adopted only while still at herdr's default (the
 tab/workspace number) — so the workspaces that existed before install keep
 their names for good, and only new ones get auto-named.
 
-**Known limitation: a bare `cd` does not refresh the title.** herdr's *plugin
-manifest* honours a narrower event set than its socket API. `pane.updated` — the
-event carrying a pane's cwd and terminal-title changes — is valid for
-`events.subscribe` over the socket but rejected in a manifest (`unknown event`
-at install, then silently never delivered). Verified on 0.7.5 by linking a probe
-manifest; `layout.updated`, `pane.cwd_changed`, `pane.output_changed`,
-`pane.renamed`, `pane.scroll_changed`, `pane.title_changed`, and
-`workspace.metadata_updated` are rejected too. So the title tracks focus and
-structure changes, not `cd` inside the pane you are already in — switch panes to
-catch up, or `herdr plugin action invoke acjackman.title-rename.refresh`. The
-fix is a startup watcher holding a socket subscription; not built yet.
+**A bare `cd` reaches it through a watcher.** herdr's *plugin manifest*
+honours a narrower event set than its socket API: `pane.updated` — the only
+event a `cd` raises — is valid for `events.subscribe` over the socket but
+rejected in a manifest (`unknown event` at install, then silently never
+delivered). So every run also keeps one `--watch` process (lock-file singleton)
+subscribed over the socket; it refreshes ~150 ms after a pane's cwd changes and
+ignores the status/scroll/title noise the same event carries. It survives
+server restarts and handoffs, exits when the plugin is disabled, and re-execs
+after a reinstall. Log: `~/.local/state/herdr/plugins/acjackman.title-rename/watcher.log`.
+`herdr plugin action invoke acjackman.title-rename.refresh` still forces one.
 
 **Config** (all optional, defaults reproduce the tmux format) lives in
 `herdr plugin config-dir acjackman.title-rename`: `separator`, `path_style`
