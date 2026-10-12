@@ -69,10 +69,18 @@
 # Losing those unprompted is worse than the mismatch, so `herdr server stop`
 # stays behind --restart. Every other action here preserves panes.
 #
+# --restart only AUTHORIZES a restart, and only when a mismatch leaves no other
+# fix. --force-restart restarts regardless of health — for problems this
+# doctor can't detect but a fresh server clears, e.g. a server started from a
+# GUI context with launchd's bare PATH, so plugins can't find node (a live
+# handoff carries the old environment across, so it doesn't help there).
+#
 # Usage:
 #   ,doctor-herdr             adopt a stale binary, reload config, report
 #   ,doctor-herdr --freshen   quiet: adopt a stale binary if safe, else no-op
 #   ,doctor-herdr --restart   stop a mismatched server (KILLS pane processes)
+#   ,doctor-herdr --force-restart
+#                             stop the server even if healthy (KILLS pane processes)
 #
 # --freshen is the automatic path, driven every 30 minutes by the launchd agent
 # com.acjackman.herdr-freshen (see its plist for why this is a timer and NOT a
@@ -87,15 +95,22 @@ set -euo pipefail
 
 freshen=0
 restart=0
+force_restart=0
 for arg in "$@"; do
   case "$arg" in
     --restart) restart=1 ;;
+    --force-restart) force_restart=1 ;;
     --freshen) freshen=1 ;;
     # Print the header block (line 2 through the last comment line before code).
     -h|--help) sed -n '2,/^# Exit codes/p' "$0" | sed 's/^# \{0,1\}//'; exit 0 ;;
     *) printf ',doctor-herdr: unknown argument: %s\n' "$arg" >&2; exit 2 ;;
   esac
 done
+
+if (( freshen && (restart || force_restart) )); then
+  echo ",doctor-herdr: --freshen never restarts; drop --restart/--force-restart" >&2
+  exit 2
+fi
 
 # Quiet in --freshen mode; chatty otherwise.
 say() { (( freshen )) && return 0; printf '%s\n' "$*"; }
@@ -176,6 +191,41 @@ do_handoff() {
   return 1
 }
 
+list_pane_processes() {
+  # macOS `pgrep -f` is unreliable here (it misses the server but matches unrelated
+  # processes whose long argv merely mentions herdr), so match on ps output.
+  # (No early `exit` in awk: closing the pipe early SIGPIPEs ps, which pipefail
+  # then turns into a spurious failure.)
+  local server_pid children
+  server_pid="$(ps -eo pid=,args= | awk '$0 ~ /herdr server$/ {print $1}' || true)"
+  server_pid="${server_pid%%$'\n'*}"
+  [[ -n "$server_pid" ]] || return 0
+  children="$(pgrep -P "$server_pid" 2>/dev/null || true)"
+  [[ -n "$children" ]] || return 0
+  loud ""
+  loud "Pane processes that a restart would kill (plus anything nested under them):"
+  # shellcheck disable=SC2046 # word splitting is the point: pid list -> ps
+  ps -o pid=,command= -p $(tr '\n' ' ' <<<"$children") 2>/dev/null | cut -c1-100 | sed 's/^/  /'
+}
+
+stop_server() {
+  loud ""
+  loud "Stopping the $1 server…"
+  HERDR_SOCKET_PATH="${socket:-$HOME/.config/herdr/herdr.sock}" herdr server stop
+  loud "Stopped. Relaunch herdr with ~/.config/ghostty/ghostty-herdr"
+  exit 0
+}
+
+# --- Forced restart --------------------------------------------------------
+# Explicit request: skip diagnosis. A live handoff would keep panes, but it also
+# keeps the server's environment, which is often the very thing being reset.
+if (( force_restart )); then
+  loud "Forced restart requested (server ${server_version:-?}, compatible: ${compatible:-?})."
+  loud "Session layout is persisted and restores; pane PROCESSES do not."
+  list_pane_processes
+  stop_server "running"
+fi
+
 # --- Case 3: protocol mismatch --------------------------------------------
 if [[ "$compatible" != "true" ]]; then
   loud "herdr PROTOCOL MISMATCH — plugins and agent surface control will not work."
@@ -206,21 +256,7 @@ if [[ "$compatible" != "true" ]]; then
   loud "Restarting the server clears it. Session layout is persisted and restores;"
   loud "pane PROCESSES do not."
 
-  # macOS `pgrep -f` is unreliable here (it misses the server but matches unrelated
-  # processes whose long argv merely mentions herdr), so match on ps output.
-  # (No early `exit` in awk: closing the pipe early SIGPIPEs ps, which pipefail
-  # then turns into a spurious failure.)
-  server_pid="$(ps -eo pid=,args= | awk '$0 ~ /herdr server$/ {print $1}' || true)"
-  server_pid="${server_pid%%$'\n'*}"
-  if [[ -n "$server_pid" ]]; then
-    children="$(pgrep -P "$server_pid" 2>/dev/null || true)"
-    if [[ -n "$children" ]]; then
-      loud ""
-      loud "Pane processes that a restart would kill (plus anything nested under them):"
-      # shellcheck disable=SC2086 # word splitting is the point: pid list -> ps
-      ps -o pid=,command= -p $(tr '\n' ' ' <<<"$children") 2>/dev/null | cut -c1-100 | sed 's/^/  /'
-    fi
-  fi
+  list_pane_processes
 
   if (( ! restart )); then
     cat <<EOF
@@ -235,11 +271,7 @@ EOF
     exit 1
   fi
 
-  loud ""
-  loud "Stopping the stale server…"
-  HERDR_SOCKET_PATH="${socket:-$HOME/.config/herdr/herdr.sock}" herdr server stop
-  loud "Stopped. Relaunch herdr with ~/.config/ghostty/ghostty-herdr"
-  exit 0
+  stop_server "stale"
 fi
 
 # --- Case 2: binary upgraded, server still compatible ----------------------
