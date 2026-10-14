@@ -1,6 +1,11 @@
 #!/bin/bash
-# hostname: {{ .hostname | lower }}
-# op-path: op://Private/Slack Computer App/webhooks/{{ .hostname | lower }}
+{{- if has "moov" .extras }}
+OP_ACCOUNT="moovfinancialinc.1password.com"
+OP_PATH="op://Employee/noti/slack-webhook-url"
+{{- else }}
+OP_ACCOUNT="jackman.1password.com"
+OP_PATH="op://Private/Slack Computer App/webhooks/{{ .hostname | lower }}"
+{{- end }}
 
 function show-header() {
   command -v gum &>/dev/null
@@ -12,7 +17,7 @@ function show-header() {
 }
 
 show-header "Noti Slack Webhook"
-TOKEN="$(op read --account jackman.1password.com "op://Private/Slack Computer App/webhooks/{{ .hostname | lower }}")"
+TOKEN="$(op read --account "$OP_ACCOUNT" "$OP_PATH")"
 if [ -n "$TOKEN" ]; then
   security add-generic-password -a "$USER" -s "NOTI_SLACK_WEBHOOK" -w "$TOKEN" -U
   echo "Stored NOTI_SLACK_WEBHOOK in Keychain"
