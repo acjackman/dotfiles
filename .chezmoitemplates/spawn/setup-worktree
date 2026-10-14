@@ -15,7 +15,8 @@ WT=/opt/homebrew/bin/wt
 
 ensure_trust() {
     # Delegate to the shared worktrunk hook script.
-    (cd "$1" && "$HOME/.config/worktrunk/hooks/ensure-claude-trust.sh")
+    (cd "$1" && "$HOME/.config/worktrunk/hooks/ensure-claude-trust.sh" >&2) ||
+        die "ensure-claude-trust failed for $1"
 }
 
 usage() {
@@ -63,10 +64,49 @@ die() {
 # Instant and stable, unlike `wt list --format=json` (schema changed in
 # worktrunk v0.77, and it collects status for every worktree: minutes in big repos).
 worktree_path_for() {
-    "${git_cmd[@]}" worktree list --porcelain | awk -v ref="refs/heads/$1" '
+    # Capture first, then parse: piping straight into an awk that `exit`s early
+    # SIGPIPEs git on big repos (141 under pipefail).
+    local listing
+    listing=$("${git_cmd[@]}" worktree list --porcelain) || die "git worktree list failed in ${repo:-$PWD}"
+    awk -v ref="refs/heads/$1" '
         /^worktree / { path = substr($0, 10) }
-        $0 == "branch " ref { print path; exit }
-    '
+        $0 == "branch " ref { print path }
+    ' <<<"$listing" | head -n1 || true
+}
+
+# Default branch name: origin/HEAD, else origin/main|master, else the bare
+# repo's HEAD. Empty if undeterminable.
+default_branch() {
+    local ref b
+    ref=$("${git_cmd[@]}" symbolic-ref --quiet refs/remotes/origin/HEAD 2>/dev/null) || ref=""
+    if [[ -n "$ref" ]]; then
+        echo "${ref#refs/remotes/origin/}"
+        return
+    fi
+    for b in main master; do
+        if "${git_cmd[@]}" show-ref --verify --quiet "refs/remotes/origin/$b" ||
+            "${git_cmd[@]}" show-ref --verify --quiet "refs/heads/$b"; then
+            echo "$b"
+            return
+        fi
+    done
+    if [[ "$("${git_cmd[@]}" rev-parse --is-bare-repository 2>/dev/null)" == true ]]; then
+        "${git_cmd[@]}" symbolic-ref --quiet --short HEAD 2>/dev/null || true
+    fi
+}
+
+# Fetch origin's default branch and echo origin/<default> if it's usable, so new
+# worktrees don't start on a stale local ref. Offline/no-origin: warn, echo nothing.
+fresh_default_base() {
+    local def
+    def=$(default_branch)
+    [[ -n "$def" ]] || return 0
+    "${git_cmd[@]}" remote get-url origin &>/dev/null || return 0
+    if ! "${git_cmd[@]}" fetch --quiet origin "+refs/heads/$def:refs/remotes/origin/$def" >&2; then
+        echo "setup-worktree: warning: fetch origin/$def failed; using local base" >&2
+        return 0
+    fi
+    echo "origin/$def"
 }
 
 emit() {
@@ -106,10 +146,13 @@ if [[ -n "$existing_path" ]]; then
         fi
     fi
 else
+    [[ -n "$base" ]] || base=$(fresh_default_base)
     create_args=(switch --no-cd --create "$branch")
     [[ -n "$base" ]] && create_args+=(--base "$base")
 
-    TMUX_PANE= "${wt_cmd[@]}" "${create_args[@]}" >&2
+    # stdin from /dev/null so hooks never block/consume the caller's stdin
+    TMUX_PANE= "${wt_cmd[@]}" "${create_args[@]}" >&2 </dev/null ||
+        die "wt switch --create failed for '$branch' (see output above)"
 
     worktree_path=$(worktree_path_for "$branch")
 fi

@@ -126,7 +126,7 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
 
    If the exit code is non-zero or `[ -d "$path" ]` fails, **stop and report** the error to the user. Never run `herdr tab create` / `tmux new-window` with an empty path — it silently falls back to `~` and the agent opens in the wrong directory.
 
-   If the worktree already exists it is reused (with `--base` compatibility check). When `--repo` targets a regular checkout, the script returns a synthetic JSON entry pointing to that directory.
+   With no `--base`, the script fetches origin's default branch and bases the new worktree on `origin/<default>` (no manual `git fetch` / `merge --ff-only` needed; offline falls back to the local ref with a stderr warning). If the worktree already exists it is reused (with `--base` compatibility check). On failure the reason is on stderr, prefixed `setup-worktree:`. When `--repo` targets a regular checkout, the script returns a synthetic JSON entry pointing to that directory.
 
 3. Write the prompt file using the **Write** tool (not Bash).
    Use the Write tool to create a file at `<cwd>/.tmp/prompt-<YYYY-MM-DD-HHMMSS>.md`
