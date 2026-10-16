@@ -11,8 +11,8 @@ label="com.acjackman.herdr-update"
 plist="$HOME/Library/LaunchAgents/$label.plist"
 domain="gui/$(id -u)"
 
-# Clean no-op on machines without the herdr trial (installed on personal
-# machines by dot_config/herdr/run_after_install-herdr.sh.tmpl).
+# Clean no-op where herdr isn't installed (it is on every Mac, by
+# dot_config/herdr/run_after_install-herdr.sh.tmpl).
 PATH="$HOME/.local/bin:$PATH"
 command -v herdr >/dev/null 2>&1 || exit 0
 [[ -f "$plist" ]] || exit 0

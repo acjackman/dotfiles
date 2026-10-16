@@ -1,4 +1,4 @@
-{{ if has "personal" .extras -}}
+{{ if eq .chezmoi.os "darwin" -}}
 #!/usr/bin/env bash
 #
 # Install herdr from its own releases into ~/.local/bin, and retire the

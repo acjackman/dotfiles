@@ -2,7 +2,7 @@
 
 [herdr](https://herdr.dev) is an agent-aware terminal multiplexer being trialled
 as a side-by-side alternative to tmux (it does **not** replace the tmux setup in
-`dot_config/tmux/`). Installed on personal machines into `~/.local/bin` by
+`dot_config/tmux/`). Installed on every Mac into `~/.local/bin` by
 `run_after_install-herdr.sh.tmpl`, from herdr's own releases (not Homebrew, which
 lags them and blocks self-update); topgrade keeps it current with
 `herdr update --handoff`, run by the on-demand `com.acjackman.herdr-update`

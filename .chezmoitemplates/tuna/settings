@@ -21,6 +21,7 @@ id = 'F73C9531-A7CB-4B84-9D47-3ACE0DD97201'
     carbonModifiers = 6912
 
 [settings]
+appPresentationMode = 'both'
 comboModeThemeStyle = 'cheatsheet'
 screenPreference = 'activeWindow'
 themeIdentifier = 'com.brnbw.tuna.themes.NormieBar'
