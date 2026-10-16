@@ -272,6 +272,9 @@ description = "Radar: settings"
 {{ . }}
 {{ end }}
 agent_panel_sort = "priority"
+# Sidebar fully hidden by default (not the compact strip); prefix+b reveals it.
+sidebar_start_collapsed = true
+sidebar_collapsed_mode = "hidden"
 {{- with $radar.theme }}
 
 {{ . }}
