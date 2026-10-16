@@ -59,6 +59,7 @@ zinit wait lucid for \
   pick"kubectl-completion.plugin.zsh" ~/.config/zsh/plugins \
   pick"k9s.plugin.zsh" ~/.config/zsh/plugins \
   pick"sesh-completion.plugin.zsh" ~/.config/zsh/plugins \
+  pick"herdr-completion.plugin.zsh" ~/.config/zsh/plugins \
   atload'zicdreplay' pick"homebrew-token.plugin.zsh" ~/.config/zsh/plugins
 
 # must be loaded after syntax highlighting
