@@ -1,0 +1,9 @@
+# Linear → local repo map for ,linear-start.
+# Keys: Linear team prefix (the "INFRA" in INFRA-123) or project name.
+# Values: repo root (worktrunk bare repo or plain clone). [projects] beats [teams].
+# Picker choices are remembered in ~/.local/state/linear-start/repos.toml, not here.
+
+[teams]
+INFRA = "~/dev/moov/infra"
+
+[projects]

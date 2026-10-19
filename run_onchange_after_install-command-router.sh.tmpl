@@ -1,7 +1,7 @@
 {{ if eq .chezmoi.os "darwin" -}}
 #!/bin/bash
 # Install CommandRouter.app — a macOS app that handles .command files
-# by routing them to the correct tmux session in Ghostty.
+# by routing them to a new herdr workspace (or a tmux window) in Ghostty.
 #
 # Re-runs when the router script changes:
 # {{ include "dot_local/bin/executable_command-file-router" | sha256sum }}

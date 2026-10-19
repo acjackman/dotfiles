@@ -1,0 +1,280 @@
+#!/usr/bin/env bash
+# Start work on a Linear issue: worktree + herdr workspace + Claude Code.
+#
+# Called by Linear's "Custom script" (~/.linear/coding-tools.json) or by hand.
+# Linear runs it detached with no TTY, so it only orchestrates; anything
+# interactive (the repo picker) re-runs this script inside a herdr pane.
+#
+# Usage: ,linear-start --issue ENG-123 [--branch <name>] [--repo <path>]
+#                      [--mode refine|ship] [--model <model>] [--dry-run]
+#
+# Linear env (used when the matching flag is absent): LINEAR_ISSUE_IDENTIFIER,
+# LINEAR_ISSUE_BRANCH_NAME, LINEAR_PROMPT, LINEAR_WORK_DIR, LINEAR_PROJECT_NAME.
+#
+# Repo resolution: --repo, LINEAR_WORK_DIR (if inside a repo), remembered picks
+# ($XDG_STATE_HOME/linear-start/repos.toml), the hand-written map
+# (~/.config/linear-start/repos.toml; [projects] beats [teams]), then a picker.
+
+set -euo pipefail
+
+for p in /opt/homebrew/bin /usr/local/bin "$HOME/.local/bin"; do
+  [[ -d "$p" ]] && [[ ":$PATH:" != *":$p:"* ]] && export PATH="$p:$PATH"
+done
+
+state_dir="${XDG_STATE_HOME:-$HOME/.local/state}/linear-start"
+config_map="${XDG_CONFIG_HOME:-$HOME/.config}/linear-start/repos.toml"
+state_map="$state_dir/repos.toml"
+log_file="$state_dir/log.jsonl"
+
+usage() {
+  sed -n 's/^# \{0,1\}//; 8,9p' "$0" >&2
+  exit 2
+}
+
+issue="${LINEAR_ISSUE_IDENTIFIER:-}"
+branch="${LINEAR_ISSUE_BRANCH_NAME:-}"
+repo=""
+mode="refine"
+model=""
+prompt_file=""
+dry_run=false
+interactive=false
+picker_ws=""
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --issue)       issue="$2"; shift 2 ;;
+    --branch)      branch="$2"; shift 2 ;;
+    --repo)        repo="$2"; shift 2 ;;
+    --mode)        mode="$2"; shift 2 ;;
+    --model)       model="$2"; shift 2 ;;
+    --prompt-file) prompt_file="$2"; shift 2 ;;
+    --dry-run)     dry_run=true; shift ;;
+    --interactive) interactive=true; shift ;;
+    --picker-ws)   picker_ws="$2"; shift 2 ;;
+    -h|--help)     usage ;;
+    *) echo ",linear-start: unknown argument: $1" >&2; usage ;;
+  esac
+done
+
+[[ -n "$issue" ]] || usage
+[[ "$mode" == refine || "$mode" == ship ]] || { echo ",linear-start: --mode must be refine or ship" >&2; exit 2; }
+issue="$(tr '[:lower:]' '[:upper:]' <<<"$issue")"
+branch="${branch:-$(tr '[:upper:]' '[:lower:]' <<<"$issue")}"
+team="${issue%-*}"
+project="${LINEAR_PROJECT_NAME:-}"
+
+worktree="" workspace="" outcome="started"
+
+log_run() {
+  mkdir -p "$state_dir"
+  jq -cn --arg ts "$(date +%Y-%m-%dT%H:%M:%S%z)" --arg issue "$issue" --arg branch "$branch" \
+    --arg repo "$repo" --arg worktree "$worktree" --arg workspace "$workspace" \
+    --arg mode "$mode" --arg outcome "$1" --argjson exit "$2" \
+    '{ts: $ts, issue: $issue, branch: $branch, repo: $repo, worktree: $worktree,
+      workspace: $workspace, mode: $mode, outcome: $outcome, exit: $exit}' >>"$log_file"
+}
+
+on_exit() {
+  local rc=$?
+  $dry_run && return
+  if [[ $rc -ne 0 ]]; then
+    log_run failed "$rc"
+    noti -t ",linear-start $issue failed" -m "exit $rc, see $log_file" &>/dev/null || true
+  else
+    log_run "$outcome" 0
+  fi
+}
+trap on_exit EXIT
+
+die() {
+  echo ",linear-start: $*" >&2
+  exit 1
+}
+
+# Log before closing the picker workspace: when we run inside it, closing it
+# kills this script.
+finish() {
+  trap - EXIT
+  log_run "$outcome" 0
+  [[ -n "$picker_ws" ]] && herdr workspace close "$picker_ws" >/dev/null
+  exit 0
+}
+
+sq() { printf "'%s'" "${1//\'/\'\\\'\'}"; }
+
+expand_home() { printf '%s\n' "${1/#\~/$HOME}"; }
+
+# Repo root for a path inside any checkout: the parent of the shared git dir
+# (.bare/ for worktrunk repos, .git/ for plain clones).
+repo_root_of() {
+  local common
+  [[ -d "$1" ]] || return 1
+  common=$(git -C "$1" rev-parse --path-format=absolute --git-common-dir 2>/dev/null) || return 1
+  dirname "$common"
+}
+
+toml_get() {
+  [[ -f "$1" ]] || return 0
+  T="$2" K="$3" yq -p toml -o yaml '.[strenv(T)][strenv(K)] // ""' "$1"
+}
+
+lookup_map() {
+  local file="$1" hit=""
+  [[ -n "$project" ]] && hit=$(toml_get "$file" projects "$project")
+  [[ -n "$hit" ]] || hit=$(toml_get "$file" teams "$team")
+  [[ -n "$hit" ]] && expand_home "$hit"
+  return 0
+}
+
+resolve_repo() {
+  local hit
+  if [[ -n "$repo" ]]; then
+    repo_root_of "$(expand_home "$repo")" || die "--repo is not a git repo: $repo"
+    return
+  fi
+  if [[ -n "${LINEAR_WORK_DIR:-}" ]] && hit=$(repo_root_of "$LINEAR_WORK_DIR"); then
+    echo "$hit"
+    return
+  fi
+  hit=$(lookup_map "$state_map")
+  [[ -n "$hit" ]] || hit=$(lookup_map "$config_map")
+  [[ -n "$hit" ]] && repo_root_of "$hit"
+  return 0
+}
+
+pick_repo() {
+  local d choice
+  choice=$(
+    for d in "$HOME"/dev/*/*/; do
+      d="${d%/}"
+      [[ -e "$d/.git" ]] && echo "${d/#$HOME/~}"
+    done | fzf --prompt="repo for $issue ($team${project:+, $project})> "
+  ) || die "no repo picked"
+  mkdir -p "$state_dir"
+  touch "$state_map"
+  K="$team" V="$choice" yq -i -p toml -o toml '.teams[strenv(K)] = strenv(V)' "$state_map"
+  expand_home "$choice"
+}
+
+prompt_text() {
+  if [[ -n "$prompt_file" ]]; then
+    cat "$prompt_file"
+  else
+    printf '%s' "${LINEAR_PROMPT:-}"
+  fi
+}
+
+# Picker needs a TTY: hand off to a herdr pane running this script with
+# --interactive, passing the prompt via a file (env doesn't cross the pane).
+handoff_to_picker() {
+  local pf out ws pane cmd
+  pf=$(mktemp "${TMPDIR:-/tmp}/linear-start-$issue.XXXXXX")
+  prompt_text >"$pf"
+  out=$(herdr workspace create --cwd "$HOME" --label "$issue pick repo" --no-focus)
+  ws=$(jq -r '.result.workspace.workspace_id' <<<"$out")
+  pane=$(jq -r '.result.root_pane.pane_id' <<<"$out")
+  cmd="$(sq "$0") --interactive --picker-ws $(sq "$ws") --issue $(sq "$issue") --branch $(sq "$branch")"
+  cmd+=" --mode $(sq "$mode") --prompt-file $(sq "$pf")"
+  [[ -n "$model" ]] && cmd+=" --model $(sq "$model")"
+  [[ -n "$project" ]] && cmd="LINEAR_PROJECT_NAME=$(sq "$project") $cmd"
+  herdr pane run "$pane" "$cmd"
+  workspace="$ws"
+  outcome="picker"
+  herdr-reveal "$ws"
+}
+
+existing_workspace_for() {
+  herdr pane list | jq -r --arg p "$1" \
+    '[.result.panes[] | select(.cwd == $p or (.cwd | startswith($p + "/")))][0].workspace_id // empty'
+}
+
+# Label: issue ID plus the branch slug with any user/ prefix and the ID stripped.
+workspace_label() {
+  local slug="${branch##*/}" lower
+  lower=$(tr '[:upper:]' '[:lower:]' <<<"$issue")
+  slug="${slug#"$lower"}"
+  slug="${slug#-}"
+  local label="$issue${slug:+ $slug}"
+  printf '%s\n' "${label:0:40}"
+}
+
+wait_for_agent() {
+  local pane="$1" status i
+  for ((i = 0; i < 60; i++)); do
+    status=$(herdr agent get "$pane" 2>/dev/null | jq -r '.result.agent.agent_status // empty') || status=""
+    case "$status" in
+      idle|done) return 0 ;;
+      blocked) return 1 ;;
+    esac
+    sleep 1
+  done
+  return 1
+}
+
+repo=$(resolve_repo)
+
+if [[ -z "$repo" ]]; then
+  if $interactive; then
+    repo=$(pick_repo)
+  elif $dry_run; then
+    echo "repo:      <unresolved, would open picker>"
+    exit 0
+  else
+    handoff_to_picker
+    exit 0
+  fi
+fi
+
+label=$(workspace_label)
+brief_rel=".tmp/linear-$issue.md"
+case "$mode" in
+  refine) line="Refine $issue (brief: $brief_rel): grill me on the design before writing code." ;;
+  ship)   line="Ship $issue (brief: $brief_rel): implement, test, open a draft PR." ;;
+esac
+launch="unset TMUX TMUX_PANE; claude --permission-mode=auto --name $(sq "$branch")"
+launch+=" --settings '{\"enableAllProjectMcpServers\":true}'"
+[[ -n "$model" ]] && launch+=" --model $(sq "$model")"
+
+if $dry_run; then
+  printf 'repo:      %s\nbranch:    %s\nlabel:     %s\nmode:      %s\nlaunch:    %s\nprompt:    %s\n' \
+    "$repo" "$branch" "$label" "$mode" "$launch" "$line"
+  exit 0
+fi
+
+worktree=$(spawn-setup-worktree "$branch" --repo "$repo" | jq -r .path)
+[[ -d "$worktree" ]] || die "spawn-setup-worktree returned no directory"
+
+existing=$(existing_workspace_for "$worktree")
+if [[ -n "$existing" ]]; then
+  workspace="$existing"
+  outcome="focused-existing"
+  herdr-reveal "$existing"
+  finish
+fi
+
+{
+  prompt_text
+  printf '\n\n---\nLinear issue: %s (branch `%s`). Use the Linear MCP for anything missing above.\n' "$issue" "$branch"
+} >"$worktree/$brief_rel"
+
+out=$(herdr workspace create --cwd "$worktree" --label "$label" --no-focus)
+workspace=$(jq -r '.result.workspace.workspace_id' <<<"$out")
+pane=$(jq -r '.result.root_pane.pane_id' <<<"$out")
+[[ -n "$workspace" && -n "$pane" ]] || die "herdr workspace create returned no ids: $out"
+
+herdr pane run "$pane" "$launch" >/dev/null
+herdr-reveal "$workspace"
+
+if wait_for_agent "$pane"; then
+  if [[ "$mode" == ship ]]; then
+    herdr agent prompt "$pane" "$line" >/dev/null
+  else
+    herdr pane send-text "$pane" "$line" >/dev/null
+  fi
+else
+  outcome="agent-not-ready"
+  noti -t ",linear-start $issue" -m "Claude not ready (blocked or slow); prompt not sent. Brief: $brief_rel" &>/dev/null || true
+fi
+
+finish

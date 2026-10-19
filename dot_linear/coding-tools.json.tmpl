@@ -1,0 +1,12 @@
+{
+  "openIssue": {
+    "path": "{{ .chezmoi.homeDir }}/.local/bin/,linear-start",
+    "args": ["--issue", "{{"{{"}}issue.identifier{{"}}"}}", "--branch", "{{"{{"}}issue.branchName{{"}}"}}"],
+    "env": [
+      "LINEAR_PROMPT",
+      "LINEAR_WORK_DIR",
+      "LINEAR_PROJECT_NAME",
+      "LINEAR_ISSUE_BRANCH_NAME"
+    ]
+  }
+}

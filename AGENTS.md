@@ -68,6 +68,16 @@ Skills (slash commands like `/spawn`, `/commit`, `/apply`) are defined in `dot_c
 - **`,doctor-zsh`** — rebuilds the zsh completion dump via the `,zsh-cleanup-completions` helper. `compinit` runs with `-C` (trust the dump, rebuild only when missing or older than a day) because three uncached rebuilds per shell were costing ~1 s per new pane, so a freshly installed tool otherwise waits up to a day for Tab completion. The same helper runs from topgrade (`Rebuild Zsh Completions`) and from the chezmoi `run_onchange` hooks for `dot_config/zsh/` and `data/mise/`.
 - **`,doctor-tuna`** — warns when the Tuna config fragments (`.chezmoitemplates/tuna/`) have gone stale. Tuna rewrites `~/.config/tuna/config.toml` from in-memory state on quit, on UI edits, and after a version migration, so every rewrite puts the chezmoi source behind the app and the next apply silently reverts it — which across a schema bump has failed Tuna's migration and silently dropped every leaf binding. Checks two independent signals: installed version vs `tuna_synced_version` in `.chezmoidata.yaml` (the early warning; the version moves before Tuna next saves) and deployed content vs what chezmoi would write. **Exception to the "applies fixes by default" rule:** it reports and exits 1 without fixing, because re-syncing means deciding per hunk which side is authoritative and splitting the result across three fragments. The non-lossy half of the guard is `dot_config/tuna/run_before_backup-tuna-config.sh.tmpl`, which snapshots the deployed file to `~/.local/state/tuna-config-backups/` before any apply can overwrite it (one backup per distinct content).
 
+## Linear → worktree → herdr
+
+Linear's "Work on issue → Custom script" runs `,linear-start` via `dot_linear/coding-tools.json.tmpl` (deploys to `~/.linear/coding-tools.json`). It resolves the repo, creates or reuses the worktree through `spawn-setup-worktree`, writes the issue prompt to `<worktree>/.tmp/linear-<ID>.md`, opens a herdr workspace, and starts Claude. In refine mode (the default) it types a one-line prompt without submitting; `--mode ship` submits. Re-running for the same issue focuses the existing workspace.
+
+- **Repo resolution order:** `--repo`, `LINEAR_WORK_DIR` if it's inside a repo, picks remembered in `~/.local/state/linear-start/repos.toml`, the hand-written map `dot_config/linear-start/repos.toml` (`[projects]` beats `[teams]`), then an fzf picker. Linear runs the script with no TTY, so the picker re-runs the script inside a herdr pane.
+- **State lives in XDG state:** `~/.local/state/linear-start/` holds `log.jsonl` (one line per run) and the remembered picks. Failures also go to `noti`.
+- **`--dry-run`** prints the resolved repo, branch, label and launch command without creating anything.
+- **CommandRouter** (`command-file-router`) handles `.command` files from Linear's built-in tools separately. It opens each one in a new herdr workspace, falls back to tmux, and never parses the file beyond its `cd` line.
+- **`herdr-reveal <workspace_id>`** focuses a workspace and raises Ghostty, opening a herdr window if Ghostty isn't running. Both entry points use it.
+
 ## Key Conventions
 
 - Prefer standalone scripts in `dot_local/bin/` over shell functions (unless the command must modify shell state)

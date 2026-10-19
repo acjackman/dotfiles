@@ -1,0 +1,21 @@
+#!/usr/bin/env bash
+# Focus a herdr workspace and bring a herdr client to the front.
+# Raises Ghostty when it's running, otherwise opens a new herdr window.
+#
+# Usage: herdr-reveal <workspace_id>
+
+set -euo pipefail
+
+for p in /opt/homebrew/bin /usr/local/bin "$HOME/.local/bin"; do
+  [[ -d "$p" ]] && [[ ":$PATH:" != *":$p:"* ]] && export PATH="$p:$PATH"
+done
+
+ws="${1:?Usage: herdr-reveal <workspace_id>}"
+
+herdr workspace focus "$ws" >/dev/null
+
+if [[ "$(osascript -e 'application "Ghostty" is running')" == true ]]; then
+  open -a Ghostty
+else
+  "$HOME/.config/ghostty/ghostty-herdr"
+fi
