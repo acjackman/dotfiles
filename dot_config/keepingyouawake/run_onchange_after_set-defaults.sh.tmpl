@@ -1,0 +1,34 @@
+{{ if and (eq .chezmoi.os "darwin") (has "moov" .extras) -}}
+#!/usr/bin/env bash
+
+###############################################################################
+# KeepingYouAwake (replaces Amphetamine)                                      #
+# Bundle ID: info.marcel-dierkes.KeepingYouAwake                              #
+###############################################################################
+
+DOMAIN="info.marcel-dierkes.KeepingYouAwake"
+P="$DOMAIN"  # keys are prefixed with the bundle ID
+
+# Activate when the app launches
+defaults write "$DOMAIN" "$P.ActivateOnLaunch" -bool true
+
+# Activate when an external display is connected
+defaults write "$DOMAIN" "$P.ActivateOnExternalDisplayConnectedEnabled" -bool true
+
+# Keep the system awake but let the display sleep
+defaults write "$DOMAIN" "$P.AllowDisplaySleep" -bool true
+
+# Deactivate below 50% battery
+defaults write "$DOMAIN" "$P.BatteryCapacityThresholdEnabled" -bool true
+defaults write "$DOMAIN" "$P.BatteryCapacityThreshold" -float 50
+
+# Deactivate when Low Power Mode turns on
+defaults write "$DOMAIN" "$P.LowPowerModeMonitoringEnabled" -bool true
+
+# Duration menu (seconds): 5m 10m 15m 30m 1h 2h 5h
+defaults write "$DOMAIN" "$P.Durations" -array \
+  -int 300 -int 600 -int 900 -int 1800 -int 3600 -int 7200 -int 18000
+
+# Start at login is a macOS Login Item (SMAppService), not a default — enable
+# it once in the app's Preferences or System Settings > General > Login Items.
+{{ end -}}
