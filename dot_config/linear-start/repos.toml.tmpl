@@ -4,6 +4,8 @@
 # Picker choices are remembered in ~/.local/state/linear-start/repos.toml, not here.
 
 [teams]
+{{- if has "moov" .extras }}
 INFRA = "~/dev/moov/infra"
+{{- end }}
 
 [projects]
