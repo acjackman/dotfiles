@@ -180,7 +180,7 @@ brew "topgrade"
 ######################################
 # Controls
 cask "nikitabobko/tap/aerospace"           # Tiling window manager
-brew "FelixKratz/formulae/borders"         # Active window indicator
+brew "FelixKratz/formulae/borders", restart_service: :changed # Active window indicator
 cask "karabiner-elements"                  # Rebind capslock -> hyper
 brew "yqrashawn/goku/goku"                 # Karabiner EDN compiler
 cask "hammerspoon"                         # Automation
