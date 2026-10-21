@@ -3,5 +3,6 @@
   "effortLevel": "medium",
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true,
-  "terminal.viMode": true
+  "terminal.viMode": true,
+  "cleanupPeriodDays": 365
 }
