@@ -128,3 +128,6 @@ Library/Application Support/ovim
 .config/herdr/ghostty-herdr-cmd
 # forgit was dropped from the zinit plugin list on 2026-09-15 (unused).
 .config/zsh/forgit.zsh
+# safe-rg/safe-fd wrapper skills dropped (2026-10-21): rg/fd are used directly.
+.claude/skills/safe-fd
+.claude/skills/safe-rg

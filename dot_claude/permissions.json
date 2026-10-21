@@ -53,8 +53,6 @@
     "Skill(spawn)",
     "Skill(worktree)",
     "Skill(create-pr)",
-    "Skill(safe-fd)",
-    "Skill(safe-rg)",
     "mcp__productivity",
     "mcp__incident_io__*",
     "Skill(incident)"

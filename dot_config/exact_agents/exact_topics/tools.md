@@ -6,9 +6,8 @@ Prefer modern tools for interactive and exploratory work. Standard tools are fin
 
 | Task | Tool | Notes |
 |------|------|-------|
-| Content search | `/safe-rg` | **Never** run `grep` or `rg` directly via Bash |
-| File finding | `/safe-fd` | **Never** run `find` or `fd` directly via Bash |
-| Find + search | `/safe-fd ... --grep -- <pattern>` | Replaces `find -exec grep` |
+| Content search | `rg` | Prefer over `grep` |
+| File finding | `fd` | Prefer over `find` |
 | File listing | `eza --group-directories-first` | Prefer over `ls` |
 | Directory trees | `tre --limit 3` | Prefer over `tree` |
 
