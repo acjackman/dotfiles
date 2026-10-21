@@ -32,6 +32,17 @@
         }
       ],
       "match_key": "claude-trunk-guard"
+    },
+    {
+      "matcher": "Bash",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "~/.local/bin/claude-bash-lint",
+          "timeout": 5
+        }
+      ],
+      "match_key": "claude-bash-lint"
     }
   ]
 }

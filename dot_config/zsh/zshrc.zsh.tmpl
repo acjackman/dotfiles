@@ -200,6 +200,8 @@ setopt extended_glob            # Allow extended matchers like ^file, etc
 setopt long_list_jobs
 setopt auto_cd
 setopt menu_complete            # Auto pick a menu match
+# Agents pass globs/refs unquoted (HEAD^, -o custom-columns=…); let them through literally
+[[ -n $CLAUDECODE ]] && unsetopt nomatch
 
 # Set history behavior
 # setopt share_history            # Share history across session

@@ -1,0 +1,18 @@
+#!/usr/bin/env bash
+# PreToolUse(Bash) lint — deny a leading `cd <dir> &&`. The permission allowlist
+# matches by prefix, so a `cd` prefix makes otherwise-allowed commands prompt.
+set -uo pipefail
+
+deny() {
+  jq -n --arg r "$1" '{hookSpecificOutput:{hookEventName:"PreToolUse",permissionDecision:"deny",permissionDecisionReason:$r}}'
+  exit 0
+}
+
+CMD=$(jq -r '.tool_input.command // ""')
+[[ -z "$CMD" ]] && exit 0
+
+if [[ "$CMD" =~ ^[[:space:]]*cd[[:space:]]+[^\&\;\|]+[[:space:]]*(\&\&|\;) ]]; then
+  deny 'Drop the leading `cd <dir> &&`: it stops the command matching the permission allowlist. Use absolute paths or the tool'"'"'s dir flag (`git -C <dir>`, `make -C <dir>`, `npm --prefix <dir>`). If you need a different cwd, run `cd <dir>` as its own call (cwd persists), then the command.'
+fi
+
+exit 0

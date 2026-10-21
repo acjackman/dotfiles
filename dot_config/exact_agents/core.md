@@ -12,6 +12,8 @@ When reporting information to me, be extremely concise and sacrifice grammar for
 - Prefer modern CLI tools for interactive/exploratory work: `eza` over `ls`
 - Use `rg` for content search and `fd` for file finding directly via Bash (scope to the worktree, see Git)
 - Standard tools are fine in scripts and CI
+- Don't prefix commands with `cd <dir> &&` — use absolute paths or `-C`-style flags
+- To wait on something use `run_in_background`/Monitor, never `sleep`
 - See `topics/tools.md` for the full catalog
 
 ## Git
