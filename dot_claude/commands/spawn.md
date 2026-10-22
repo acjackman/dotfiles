@@ -120,11 +120,13 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
 
    ```bash
    out=$(spawn-setup-worktree <name> [--base <ref>] [--repo <path>]) || { echo "setup failed"; exit 1; }
-   path=$(jq -r '.path // empty' <<<"$out")
-   [ -n "$path" ] && [ -d "$path" ] || { echo "bad worktree path: '$path'"; exit 1; }
+   wt_path=$(jq -r '.path // empty' <<<"$out")
+   [ -n "$wt_path" ] && [ -d "$wt_path" ] || { echo "bad worktree path: '$wt_path'"; exit 1; }
    ```
 
-   If the exit code is non-zero or `[ -d "$path" ]` fails, **stop and report** the error to the user. Never run `herdr tab create` / `tmux new-window` with an empty path — it silently falls back to `~` and the agent opens in the wrong directory.
+   If the exit code is non-zero or `[ -d "$wt_path" ]` fails, **stop and report** the error to the user. Never run `herdr tab create` / `tmux new-window` with an empty path — it silently falls back to `~` and the agent opens in the wrong directory.
+
+   Name the variable `wt_path`, never `path`: in zsh, `path` is tied to `$PATH`, so assigning it wipes `PATH` and every later command (`herdr`, `jq`, `tmux`) fails with `command not found`.
 
    With no `--base`, the script fetches origin's default branch and bases the new worktree on `origin/<default>` (no manual `git fetch` / `merge --ff-only` needed; offline falls back to the local ref with a stderr warning). If the worktree already exists it is reused (with `--base` compatibility check). On failure the reason is on stderr, prefixed `setup-worktree:`. When `--repo` targets a regular checkout, the script returns a synthetic JSON entry pointing to that directory.
 
@@ -158,7 +160,7 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
 
    ```bash
    ws=$(herdr pane current | jq -r .result.pane.workspace_id)
-   tab_json=$(herdr tab create --workspace "$ws" --cwd "$path" --label <branch-name> --no-focus)
+   tab_json=$(herdr tab create --workspace "$ws" --cwd "$wt_path" --label <branch-name> --no-focus)
    tab=$(jq -r '.result.tab.tab_id' <<<"$tab_json")
    pane=$(jq -r '.result.root_pane.pane_id' <<<"$tab_json")
    herdr pane run "$pane" "unset TMUX TMUX_PANE; $LAUNCH"
@@ -169,9 +171,9 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
    **On tmux** — a background window, or a session if the user passed `--session`:
 
    ```bash
-   pane=$(tmux new-window -n <branch-name> -c "$path" -d -P -F '#{pane_id}')
+   pane=$(tmux new-window -n <branch-name> -c "$wt_path" -d -P -F '#{pane_id}')
    # ...or, with --session:
-   pane=$(tmux new-session -d -s <branch-name> -c "$path" -P -F '#{pane_id}')
+   pane=$(tmux new-session -d -s <branch-name> -c "$wt_path" -P -F '#{pane_id}')
    tmux set-option -t "$pane" automatic-rename off
    tmux set-option -p -t "$pane" @agent_label <branch-name>   # -p, or it leaks session-wide
    tmux send-keys -t "$pane" "$LAUNCH" Enter
