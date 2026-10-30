@@ -40,7 +40,7 @@ Some configs require extra steps or alternative apply methods (especially from w
 
 ## Claude Code Skills
 
-Skills (slash commands like `/spawn`, `/commit`, `/apply`) are defined in `dot_claude/skills/`. Each skill directory contains a `SKILL.md` and optional helper scripts. These deploy to `~/.claude/skills/` via chezmoi.
+Skills (slash commands like `/spawn`, `/apply`) are defined in `dot_claude/skills/`. Each skill directory contains a `SKILL.md` and optional helper scripts. These deploy to `~/.claude/skills/` via chezmoi.
 
 **Always edit the chezmoi source in `dot_claude/skills/`, not the deployed files in `~/.claude/skills/`.**
 

@@ -131,3 +131,6 @@ Library/Application Support/ovim
 # safe-rg/safe-fd wrapper skills dropped (2026-10-21): rg/fd are used directly.
 .claude/skills/safe-fd
 .claude/skills/safe-rg
+# commit skill dropped (2026-10-30): its haiku sub-agent got the trailer wrong
+# and hid the commit from view; commit directly in the main session instead.
+.claude/skills/commit
