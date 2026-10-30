@@ -81,6 +81,7 @@ Linear's "Work on issue → Custom script" runs `,linear-start` via `dot_linear/
 ## Key Conventions
 
 - Prefer standalone scripts in `dot_local/bin/` over shell functions (unless the command must modify shell state)
+- Env vars and PATH shared by zsh and bash live in `dot_config/shell/{env,path}.sh` (POSIX sh). zsh sources them from `.zshenv`/`.zprofile`; `dot_bashrc` sources them for bash, which Claude Code uses as its shell via `CLAUDE_CODE_SHELL`. Don't add exports to the zsh files directly
 - Use `run_onchange_` scripts for auto-reload on config changes
 - Store reusable data in `.chezmoidata/` or `data/`
 - Use chezmoi template syntax (`{{ .variable }}`) for platform-specific configs

@@ -1,0 +1,16 @@
+# bash is the agents' shell (Claude Code's CLAUDE_CODE_SHELL); zsh stays the
+# interactive one. Keep this minimal: shared env + PATH + mise, no aliases or
+# functions, so agents get stock behavior.
+
+source "$HOME/.config/shell/env.sh"
+source "$HOME/.config/shell/path.sh"
+
+# Agent shells are non-interactive and never fire PROMPT_COMMAND, so mise's
+# hook would freeze tool versions at startup. Shims resolve per-cwd at exec.
+if command -v mise >/dev/null; then
+  if [[ $- == *i* && -z ${CLAUDECODE-} ]]; then
+    eval "$(mise activate bash)"
+  else
+    eval "$(mise activate bash --shims)"
+  fi
+fi

@@ -15,14 +15,11 @@ fi
 # Ensure login-shell PATH is available in interactive non-login shells (e.g. Tuna)
 [[ -o login ]] || source ~/.zprofile
 {{ end -}}
-# =============
-# Homebrew Settings
-# =============
+# Env vars shared with bash live in ~/.config/shell/env.sh (sourced from .zshenv).
 
-# See https://docs.brew.sh/Manpage#environment
-export HOMEBREW_NO_ENV_HINTS=1
-export HOMEBREW_NO_AUTO_UPDATE=1
-export HOMEBREW_BUNDLE_FILE_GLOBAL="${XDG_CONFIG_HOME:-${HOME}/.config}/homebrew/Brewfile-machine"
+# =============
+# zinit
+# =============
 
 # avoid installation via brew, this is not a supported installation method and breaks
 # some directory structure assumptions that exist across the plugin ecosystem.
@@ -102,28 +99,12 @@ autoload -Uz compinit
 }
 
 
-# Mise for pinned binaries, env vars, and tasks
-zinit as="command" lucid from="gh-r" for \
-    id-as="usage" \
-    atpull="%atclone" \
-    jdx/usage
-
-zinit as="command" lucid from="gh-r" for \
-    id-as="mise" mv="mise* -> mise" \
-    atclone="./mise* completion zsh > _mise" \
-    atpull="%atclone" \
-    atload='eval "$(mise activate zsh)"' \
-    jdx/mise
+# Mise for pinned binaries, env vars, and tasks. Installed via Homebrew (with
+# usage, for completions) so bash gets the same binary; brew's _mise is already
+# on fpath via site-functions.
+command -v mise >/dev/null && eval "$(mise activate zsh)"
 
 autoload -Uz add-zsh-hook
-
-# =============
-# ENV Vairables & App Settings
-# =============
-
-export SPACECTL_SKIP_STACK_PROMPT='true'
-
-export NOTI_DEFAULT="slack"
 
 # =============
 # Agent early return
@@ -252,34 +233,6 @@ done
 # =============
 
 source "${XDG_CONFIG_HOME:-$HOME/.config}/zsh/zsh_plugins.zsh"
-
-# ===========
-# hk per-worktree log file
-# ===========
-# hk reads HK_LOG_FILE from env. Point it at the current repo's gitdir so
-# each worktree gets its own log (per-worktree gitdirs live under .bare/worktrees).
-# Covers interactive `hk` runs and git-hook-invoked runs, which inherit this env.
-function _hk_log_file_chpwd {
-  local gitdir desired
-  if gitdir=$(git rev-parse --absolute-git-dir 2>/dev/null); then
-    desired="$gitdir/hk.log"
-    # Defer to anything else (e.g. mise env) that already set HK_LOG_FILE,
-    # unless it's a value we previously set ourselves.
-    if [[ -z "${HK_LOG_FILE-}" || "${HK_LOG_FILE-}" == "${_HK_LOG_FILE_OWNED-}" ]]; then
-      export HK_LOG_FILE="$desired"
-      _HK_LOG_FILE_OWNED="$desired"
-    fi
-  else
-    # Leaving a repo: only clear if we own the current value.
-    if [[ -n "${_HK_LOG_FILE_OWNED-}" && "${HK_LOG_FILE-}" == "$_HK_LOG_FILE_OWNED" ]]; then
-      unset HK_LOG_FILE
-    fi
-    unset _HK_LOG_FILE_OWNED
-  fi
-}
-autoload -Uz add-zsh-hook
-add-zsh-hook chpwd _hk_log_file_chpwd
-_hk_log_file_chpwd
 
 # ===========
 # Proxy Icon (OSC 7)

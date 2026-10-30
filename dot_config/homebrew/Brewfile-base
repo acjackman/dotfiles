@@ -131,6 +131,9 @@ cask "tad"  # CSV + sqlite + duckdb viewer
 cask "modern-csv"  # CSV Viewer with dark mode
 
 # Shell
+brew "bash"        # Claude Code's shell (CLAUDE_CODE_SHELL); /bin/bash is 3.2
+brew "mise"        # runtimes/tasks; brew (not zinit) so bash and zsh share it
+brew "usage"       # mise completions
 brew "shfmt"
 brew "shellcheck"
 

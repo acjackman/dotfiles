@@ -1,0 +1,2 @@
+# Login bash: same setup as non-login.
+[ -r "$HOME/.bashrc" ] && source "$HOME/.bashrc"
