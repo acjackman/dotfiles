@@ -22,7 +22,7 @@ repo's setup, see the upstream agent guide at <https://herdr.dev/agent-guide.md>
 |------|---------|
 | `modify_config.toml` | Additive config (keybindings, a few in-app settings). A chezmoi **modify template**, not a plain file — herdr-radar co-owns `config.toml`; see [herdr-radar](#herdr-radar-co-owns-configtoml). |
 | `run_onchange_after_setup-herdr.sh.tmpl` | Installs the herdr plugins (below) if missing, re-enables `acjackman.title-rename` if an earlier run disabled it, and reloads a running server after `modify_config.toml` changes. Guarded on herdr being installed. |
-| `run_after_ensure-herdr-integrations.sh` | Every apply: installs/upgrades herdr's agent integrations for claude, codex, pi, omp (and each `~/.config/claude/profiles/*`). Silent when all are current. See [Agent integrations](#agent-integrations). |
+| `run_after_ensure-herdr-integrations.sh` | Every apply: installs/upgrades herdr's agent integrations for claude, codex, pi, omp, opencode, cursor (when installed; claude for `~/.claude` and each `~/.config/claude/profiles/*`). Silent when all are current. See [Agent integrations](#agent-integrations). |
 | `plugins/config/acjackman.title-rename/config.toml` | Turns off title-rename's tab/workspace renaming (`rename_tabs`/`rename_workspaces = false`), leaving only the window title. |
 | `plugins/config/herdr-bar/config.json` | herdr-bar: task auto-titles on, **status prefixes in tab labels on** (`tab_status`). JSON, so no comments — the why lives here. herdr-bar only reads it. |
 | `plugins/config/kichel.muster/config.toml` | muster's own config (the projects it offers). herdr's plugin config dir lives under `~/.config/herdr/`, so chezmoi manages it here instead of hand-copying upstream's `config.toml.example`. |
@@ -474,18 +474,24 @@ source change here). It checks `herdr integration status` — local files only,
 no server — and reinstalls anything not `current`. Where each one writes:
 
 - **pi / omp** — an extension file under `~/.pi/agent/extensions/`,
-  `~/.omp/agent/extensions/`. omp's installer refuses until omp has created that
-  dir on first run, so the script skips omp until then.
+  `~/.omp/agent/extensions/`. The script skips omp until omp has created
+  `~/.omp/agent` on first run.
 - **claude** — `hooks/herdr-agent-state.sh` + a `SessionStart` entry in
   `settings.json`. `dot_claude/run_onchange_after_generate_settings.sh.tmpl`
-  preserves hooks it doesn't own (verified). Repeated per Claude profile via
-  `CLAUDE_CONFIG_DIR`, which herdr honours for both status and install.
+  preserves hooks it doesn't own (verified). Done for `~/.claude` and again per
+  Claude profile via `CLAUDE_CONFIG_DIR`, which herdr honours for both status and
+  install. The script unsets `CLAUDE_CONFIG_DIR` first — an apply from inside a
+  Claude session inherits it, and the default pass would otherwise check the
+  profile, see `current`, and leave `~/.claude` stale.
 - **codex** — `herdr-agent-state.sh` + `hooks.json` in `$CODEX_HOME`
   (`~/.config/codex`), plus `[features] hooks = true` in `config.toml`. That file
   is **generated** from `config.d/`, and `integration status` only checks the
   hook script — so the flag lives in
   `dot_config/codex/exact_config.d/10-features.toml`, or a config rebuild would
   silently disable the integration while status still says `current`.
+- **opencode** — a plugin in `~/.config/opencode/plugins/`.
+- **cursor** — `herdr-agent-state.sh` + hooks under `~/.cursor/`; gated on the
+  `cursor-agent` CLI.
 
 ## Plugins need the server's PATH
 

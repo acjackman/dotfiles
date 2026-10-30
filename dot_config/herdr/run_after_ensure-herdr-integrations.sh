@@ -15,16 +15,19 @@
 #   pi/omp  — an extension file under ~/.pi / ~/.omp (unmanaged).
 #   claude  — hooks/herdr-agent-state.sh plus a SessionStart entry in
 #             settings.json; the settings generator keeps hooks it doesn't own.
-#             Repeated for each ~/.config/claude/profiles/* (CLAUDE_CONFIG_DIR).
+#             Done for ~/.claude AND each ~/.config/claude/profiles/*.
 #   codex   — herdr-agent-state.sh + hooks.json in $CODEX_HOME (unmanaged), and
 #             `[features] hooks = true` in config.toml, which is GENERATED — so
 #             that flag lives in dot_config/codex/exact_config.d/10-features.toml.
+#   opencode — a plugin under ~/.config/opencode/plugins (unmanaged).
+#   cursor  — herdr-agent-state.sh + hooks.json under ~/.cursor (unmanaged).
 set -euo pipefail
 
 command -v herdr >/dev/null 2>&1 || exit 0
 
-# Agents to integrate, when installed. Each maps to its CLI name on PATH.
-agents=(claude codex pi omp)
+# "<herdr integration target>:<CLI that must be on PATH for it to matter>".
+# Plain list, not an associative array: stays bash-3.2 safe.
+agents=(claude:claude codex:codex pi:pi omp:omp opencode:opencode cursor:cursor-agent)
 
 # `herdr integration status` prints "<agent>: current (vN) (path)" when
 # installed and up to date; anything else (not installed, outdated) needs an
@@ -38,15 +41,20 @@ ensure() {
     echo "warning: herdr integration install ${agent} failed${where:+ ($where)}" >&2
 }
 
-for agent in "${agents[@]}"; do
-  command -v "$agent" >/dev/null 2>&1 || continue
-  # omp's installer refuses until omp has created its own extensions dir (first
-  # run), so wait for it rather than warning on every apply until then.
-  [[ "$agent" == omp && ! -d "$HOME/.omp/agent/extensions" ]] && continue
+# Clear CLAUDE_CONFIG_DIR so the default pass targets ~/.claude even when apply
+# runs from inside a Claude session (which exports it pointing at a profile —
+# the default would then be skipped as "current" and silently rot).
+unset CLAUDE_CONFIG_DIR
+
+for pair in "${agents[@]}"; do
+  agent="${pair%%:*}"
+  command -v "${pair#*:}" >/dev/null 2>&1 || continue
+  # omp's installer needs omp's own agent dir (created on first run).
+  [[ "$agent" == omp && ! -d "$HOME/.omp/agent" ]] && continue
   ensure "$agent" ""
 done
 
-# Extra Claude config dirs (profiles) each carry their own hooks + settings.json.
+# Each Claude profile (CLAUDE_CONFIG_DIR) carries its own hooks + settings.json.
 if command -v claude >/dev/null 2>&1; then
   for dir in "$HOME/.config/claude/profiles"/*/; do
     [[ -d "$dir" ]] || continue
