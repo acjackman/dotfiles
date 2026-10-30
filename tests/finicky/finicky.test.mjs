@@ -164,6 +164,33 @@ for (const { name, data } of fixtures) {
       }
     });
 
+    describe("AWS console (moov)", () => {
+      const consoleUrls = [
+        "https://console.aws.amazon.com/",
+        "https://us-east-2.console.aws.amazon.com/directconnect/v2/home?region=us-east-2",
+        "https://signin.aws.amazon.com/switchrole?account=469628882242&roleName=admin",
+        "https://392555106407.signin.aws.amazon.com/console",
+      ];
+      for (const url of consoleUrls) {
+        if (data.aws_console_browser) {
+          it(`routes ${new URL(url).host} to fixture-specified browser/profile`, () => {
+            const h = resolveHandler(config, url);
+            assert.ok(h, "expected a handler match");
+            assert.equal(h.browser.name, data.aws_console_browser.name);
+            assert.equal(h.browser.profile, data.aws_console_browser.profile);
+          });
+        } else {
+          it(`${new URL(url).host} falls through to default browser`, () => {
+            assert.equal(routesTo(config, url), null);
+          });
+        }
+      }
+      it("leaves non-console aws.amazon.com pages alone", () => {
+        assert.equal(routesTo(config, "https://docs.aws.amazon.com/cli/latest/"), null);
+        assert.equal(routesTo(config, "https://aws.amazon.com/directconnect/"), null);
+      });
+    });
+
     // -- Variant-agnostic assertions, exercised against every variant -------
 
     describe("Linear", () => {

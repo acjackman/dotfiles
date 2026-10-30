@@ -3,5 +3,6 @@
   "default_browser_name": "Firefox",
   "default_browser_profile": null,
   "github_browser": null,
-  "spacelift_browser": null
+  "spacelift_browser": null,
+  "aws_console_browser": null
 }

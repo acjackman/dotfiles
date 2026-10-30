@@ -70,6 +70,14 @@ export function buildConfig(extras) {
     });
   }
 
+  if (extras.aws_console_browser) {
+    // Console and sign-in hosts only (incl. regional and account-alias subdomains); docs/marketing stay in the default browser.
+    handlers.push({
+      match: (url) => /(^|\.)(console|signin)\.aws\.amazon\.com$/.test(url.host),
+      browser: extras.aws_console_browser,
+    });
+  }
+
   handlers.push({
     match: (url) => url.protocol === "slack",
     browser: "/Applications/Slack.app",
