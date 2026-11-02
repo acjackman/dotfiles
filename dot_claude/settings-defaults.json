@@ -4,5 +4,7 @@
   "alwaysThinkingEnabled": true,
   "skipDangerousModePermissionPrompt": true,
   "terminal.viMode": true,
-  "cleanupPeriodDays": 365
+  "cleanupPeriodDays": 365,
+  "promptCacheTtl": "1h",
+  "subagentPromptCacheTtl": "1h"
 }
