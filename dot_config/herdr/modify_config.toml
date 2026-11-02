@@ -1,15 +1,16 @@
 {{- /* chezmoi:modify-template */ -}}
 {{- /*
   A modify template, not a plain file, because herdr-radar co-owns this file:
-  on daemon start (and on every light/dark flip) it writes three marker-fenced
-  blocks — tab-bar (inside [ui]), theme and sidebar — that are large, carry
-  absolute paths, and change with appearance. Everything below is ours; those
-  three blocks are lifted verbatim from the live file (.chezmoi.stdin) and put
-  back where radar keeps them, so apply never strips them and radar never has
-  to rewrite. On a fresh machine they're simply absent until radar starts.
+  on daemon start (and on every light/dark flip) it writes marker-fenced
+  blocks — theme and sidebar — that are large, carry absolute paths, and
+  change with appearance. Everything below is ours; those blocks are lifted
+  verbatim from the live file (.chezmoi.stdin) and put back where radar keeps
+  them, so apply never strips them and radar never has to rewrite. On a fresh
+  machine they're simply absent until radar starts. Radar's third block
+  (tab-bar) is deliberately dropped — see [ui] below.
 */ -}}
 {{- $radar := dict -}}
-{{- range list "tab-bar" "theme" "sidebar" -}}
+{{- range list "theme" "sidebar" -}}
 {{-   $re := printf "(?s)# >>> herdr-radar %s block\n.*?# <<< herdr-radar %s block" . . -}}
 {{-   $_ := set $radar (. | replace "-" "") (regexFind $re $.chezmoi.stdin) -}}
 {{- end -}}
@@ -267,10 +268,12 @@ description = "Radar: settings"
 # `spaces`, `workspaces`, `priority` — `priority` floats blocked/attention-needing
 # agents to the top, the closest match to the old grouped behaviour.
 [ui]
-{{- with $radar.tabbar }}
-
-{{ . }}
-{{ end }}
+# No path/branch in the tab bar. herdr-radar's tab-bar block (the only thing
+# that put it there) is not carried over from the live file, and claiming
+# tab_bar_right ourselves makes radar read the slot as user-owned
+# ("foreign-entry"), so neither its daemon nor setup writes the block back.
+# Delete this line to hand the slot back to radar (re-run its configure action).
+tab_bar_right = []
 agent_panel_sort = "priority"
 # Sidebar fully hidden by default (not the compact strip); prefix+b reveals it.
 sidebar_start_collapsed = true
