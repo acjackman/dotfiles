@@ -3,3 +3,5 @@ model = "o3"
 reasoning_effort = "medium"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
+# Updates come via Homebrew (topgrade); skip codex's own startup check/prompt
+check_for_update_on_startup = false
