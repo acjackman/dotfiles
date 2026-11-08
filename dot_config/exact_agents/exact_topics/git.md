@@ -25,6 +25,9 @@ wt merge                          # Merge current branch into target
 
 ## The Trunk Checkout Is Read-Only For Branch Work
 
+Applies to bare-repo layouts (`.bare/` + `main/` + feature worktrees). In a normal
+clone, the main checkout is fine to work in.
+
 The `main/` worktree exists so it can always be fast-forwarded and diffed against.
 Other sessions share the clone and rely on it being clean and on trunk.
 
@@ -36,9 +39,8 @@ Other sessions share the clone and rely on it being clean and on trunk.
 - Already on a feature branch inside the trunk checkout? Move the work out: create the
   worktree, `git switch main` in the trunk checkout, continue in the worktree.
 - Read-only git and `git worktree add` are always fine.
-- Escape hatch: a repo that must commit on trunk from a fixed path (chezmoi's source
-  dir, `~/.local/share/chezmoi`) is exempt. Any other repo can opt out with a
-  `.claude-trunk-guard-allow` file at its worktree root.
+- Escape hatch: opt a repo out with a `.commit-trunk-allow` file at its trunk
+  worktree root (globally gitignored).
 
 ## Branch Naming
 

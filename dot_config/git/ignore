@@ -102,6 +102,9 @@ mise.local.toml
 .claude/worktrees
 .scheduled_tasks.lock
 
+# claude-trunk-guard opt-out marker
+.commit-trunk-allow
+
 # open-linear script
 .linear-issue
 
