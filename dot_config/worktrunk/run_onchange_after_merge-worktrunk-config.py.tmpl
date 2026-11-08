@@ -7,6 +7,9 @@ Merge chezmoi-managed worktrunk settings with machine-local [projects] section.
 from __future__ import annotations
 
 import os
+import re
+import shutil
+import subprocess
 from pathlib import Path
 from typing import Any
 
@@ -19,6 +22,30 @@ try:
     import tomli
 except ImportError:
     tomli = None
+
+# Oldest wt the managed config below works with. Bump when the config starts
+# relying on newer behaviour (0.81.0: hooks get context via template args,
+# not stdin JSON).
+MIN_WT_VERSION = (0, 81, 0)
+
+def warn_if_wt_outdated() -> None:
+    wt = shutil.which("wt")
+    if wt is None:
+        return
+    try:
+        out = subprocess.run([wt, "--version"], capture_output=True, text=True, timeout=5).stdout
+    except (OSError, subprocess.SubprocessError):
+        return
+    m = re.search(r"(\d+)\.(\d+)\.(\d+)", out)
+    if not m:
+        return
+    installed = tuple(int(x) for x in m.groups())
+    if installed < MIN_WT_VERSION:
+        fmt = lambda v: ".".join(map(str, v))
+        print(
+            f"⚠ worktrunk {fmt(installed)} < {fmt(MIN_WT_VERSION)}; config may not work. "
+            "Run: brew upgrade max-sixty/worktrunk/wt"
+        )
 
 def load_toml(path: Path) -> dict[str, Any]:
     data = path.read_bytes()
@@ -62,6 +89,7 @@ def main() -> int:
         "╚═══════════════════════════════════════════════════════════════════════════╝"
     )
     print(header_text)
+    warn_if_wt_outdated()
 
     config_path = Path(os.path.expanduser("~/.config/worktrunk/config.toml"))
 
@@ -90,12 +118,12 @@ tmux = "[ -n \\"$TMUX_PANE\\" ] && [ $(tmux list-panes 2>/dev/null | wc -l) -eq 
 claude-trust = "~/.config/worktrunk/hooks/ensure-claude-trust.sh"
 
 [pre-remove]
-tmux = "~/.config/worktrunk/hooks/wt-tmux-hook.sh"
-herdr = "~/.config/worktrunk/hooks/wt-herdr-hook.sh"
+tmux = "~/.config/worktrunk/hooks/wt-tmux-hook.sh {{ "{{" }} worktree_path {{ "}}" }} {{ "{{" }} primary_worktree_path {{ "}}" }}"
+herdr = "~/.config/worktrunk/hooks/wt-herdr-hook.sh {{ "{{" }} worktree_path {{ "}}" }}"
 
 [pre-merge]
-tmux = "~/.config/worktrunk/hooks/wt-tmux-hook.sh"
-herdr = "~/.config/worktrunk/hooks/wt-herdr-hook.sh"
+tmux = "~/.config/worktrunk/hooks/wt-tmux-hook.sh {{ "{{" }} worktree_path {{ "}}" }} {{ "{{" }} primary_worktree_path {{ "}}" }}"
+herdr = "~/.config/worktrunk/hooks/wt-herdr-hook.sh {{ "{{" }} worktree_path {{ "}}" }}"
 
 [projects."github.com/acjackman/dotfiles"]
 worktree-path = "~/dev/jackman/dotfiles/{{ "{{" }} branch | sanitize {{ "}}" }}"

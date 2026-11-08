@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 # wt-tmux-hook.sh - Pre-remove/merge hook: clean up tmux panes in the worktree
 #
-# Reads worktree_path and primary_worktree_path from stdin JSON (worktrunk hook context).
+# Usage: wt-tmux-hook.sh <worktree_path> <primary_worktree_path>
+# (passed as {{ worktree_path }} {{ primary_worktree_path }} template args).
 # Idle shell panes are killed; busy panes cause an error that aborts the operation.
 # After cleanup, switches to the primary worktree's tmux session.
 
@@ -9,9 +10,8 @@ set -euo pipefail
 
 IDLE_SHELLS="^(zsh|bash|fish|sh)$"
 
-ctx=$(cat)
-worktree_path=$(printf '%s' "$ctx" | jq -r '.worktree_path')
-primary_worktree_path=$(printf '%s' "$ctx" | jq -r '.primary_worktree_path')
+worktree_path=${1:?usage: wt-tmux-hook.sh <worktree_path> <primary_worktree_path>}
+primary_worktree_path=${2:?usage: wt-tmux-hook.sh <worktree_path> <primary_worktree_path>}
 
 [[ -z "${TMUX:-}" ]] && exit 0
 

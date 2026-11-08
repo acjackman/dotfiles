@@ -2,7 +2,7 @@
 # wt-herdr-hook.sh - Pre-remove/merge hook: clean up herdr panes in the worktree
 #
 # Herdr counterpart to wt-tmux-hook.sh.
-# Reads worktree_path from stdin JSON (worktrunk hook context).
+# Usage: wt-herdr-hook.sh <worktree_path> (passed as a {{ worktree_path }} template arg).
 # Idle shell panes are closed; busy panes (an attached agent, or any non-shell
 # foreground process) cause an error that aborts the operation.
 # The pane that ran `wt remove` is left alone: worktrunk's shell integration cds it
@@ -12,8 +12,7 @@ set -euo pipefail
 
 IDLE_SHELLS="^-?(zsh|bash|fish|sh)$"
 
-ctx=$(cat)
-worktree_path=$(printf '%s' "$ctx" | jq -r '.worktree_path')
+worktree_path=${1:?usage: wt-herdr-hook.sh <worktree_path>}
 
 command -v herdr >/dev/null 2>&1 || exit 0
 [[ -S "${HERDR_SOCKET_PATH:-$HOME/.config/herdr/herdr.sock}" ]] || exit 0
