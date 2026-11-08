@@ -40,7 +40,7 @@ deny() {
   exit 0
 }
 
-TRUNK_MSG="This is the trunk checkout of a bare-repo worktree layout ($DIR, on $BRANCH). Do not move it off $BRANCH. Create a worktree instead: \`wt start <branch-name>\` (or the /worktree skill), then run the work from that path. Leave this checkout clean on $BRANCH so other sessions can pull into it."
+TRUNK_MSG="This is the trunk checkout of a bare-repo worktree layout ($DIR, on $BRANCH). Do not move it off $BRANCH. Create a worktree instead: \`wt switch --create <branch-name>\` (or the /worktree skill), then run the work from that path. Leave this checkout clean on $BRANCH so other sessions can pull into it."
 
 # Strip quoted strings so commit messages / greps don't false-positive.
 SCAN=$(sed -E "s/'[^']*'//g; s/\"[^\"]*\"//g" <<<"$CMD")
@@ -61,7 +61,7 @@ fi
 
 # 3. Committing directly onto trunk
 if grep -qE '\bgit( +-C +[^ ]+)? +commit\b' <<<"$SCAN"; then
-  deny "Refusing to commit onto $BRANCH in the trunk checkout ($DIR). Create a worktree first: \`wt start <branch-name>\` (or the /worktree skill), and commit there."
+  deny "Refusing to commit onto $BRANCH in the trunk checkout ($DIR). Create a worktree first: \`wt switch --create <branch-name>\` (or the /worktree skill), and commit there."
 fi
 
 exit 0
