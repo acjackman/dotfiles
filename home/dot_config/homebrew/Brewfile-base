@@ -115,6 +115,7 @@ cask "claude-code"
 brew "umputun/apps/revdiff"                # Interactive diff review with annotations
 brew "rtk"                                 # Token-optimized CLI proxy for LLMs
 cask "codex"                               # OpenAI Codex coding agent
+cask "t3-code"                             # Minimal GUI for AI code agents
 
 ######################################
 # Dev tools
