@@ -37,6 +37,7 @@ export PATH="$PATH:$HOME/.local/share/jackman/bin" # personal scripts
 export PATH="$PATH:$HOME/.config/emacs/bin" # doom emacs
 [ -d "/Applications/Antigravity.app/" ] && export PATH="$PATH:$HOME/.antigravity/antigravity/bin"
 [ -d "/Applications/Obsidian.app" ] && export PATH="$PATH:/Applications/Obsidian.app/Contents/MacOS"
+[ -d "$HOME/.t3/bin" ] && export PATH="$PATH:$HOME/.t3/bin" # T3 Code CLI
 
 # Drop duplicates (first occurrence wins) — a shell started from another
 # shell inherits PATH and re-runs everything above.
