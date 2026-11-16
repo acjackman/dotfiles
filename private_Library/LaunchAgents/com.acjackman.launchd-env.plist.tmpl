@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Push env vars into the GUI launchd domain at login, for apps launched from
+  the Dock/Spotlight that never source dot_config/shell/env.sh.
+
+  PLANNOTATOR_DATA_DIR: the Claude app, Cursor and Antigravity spawn
+  `plannotator inbox mcp` themselves. Without this they resolve
+  ~/.plannotator instead of the XDG path shells use, can't find the running
+  Inbox, and start a second one. Keep in sync with env.sh.
+
+  Already-running apps keep their old env; quit and reopen them after a change.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.acjackman.launchd-env</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>/bin/launchctl</string>
+        <string>setenv</string>
+        <string>PLANNOTATOR_DATA_DIR</string>
+        <string>{{ .chezmoi.homeDir }}/.local/share/plannotator</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+</dict>
+</plist>

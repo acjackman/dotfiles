@@ -1,0 +1,18 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Load (or reload) the launchd-env LaunchAgent. Re-runs when the plist
+# changes: {{ include "private_Library/LaunchAgents/com.acjackman.launchd-env.plist.tmpl" | sha256sum }}
+set -euo pipefail
+
+label="com.acjackman.launchd-env"
+plist="$HOME/Library/LaunchAgents/$label.plist"
+domain="gui/$(id -u)"
+
+[[ -f "$plist" ]] || exit 0
+
+# bootout first so an edited plist is actually re-read; ignore "not loaded".
+launchctl bootout "$domain/$label" 2>/dev/null || true
+launchctl bootstrap "$domain" "$plist"
+
+echo "Loaded $label (GUI launchd env)"
+{{ end -}}

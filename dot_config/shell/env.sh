@@ -9,6 +9,10 @@ export XDG_CACHE_HOME="$HOME/.cache"
 export COOKIECUTTER_CONFIG="${XDG_CONFIG_HOME}/cookiecutter/cookiecutter.yaml"
 export GOKU_EDN_CONFIG_FILE="${XDG_CONFIG_HOME}/karabiner/karabiner.edn"
 export CODEX_HOME="${XDG_CONFIG_HOME}/codex"
+# Explicit, not derived from XDG_DATA_HOME: an existing ~/.plannotator would
+# otherwise win over XDG and split the Inbox. GUI apps and the launchd server
+# get the same value from private_Library/LaunchAgents/com.acjackman.launchd-env.
+export PLANNOTATOR_DATA_DIR="${XDG_DATA_HOME}/plannotator"
 
 # Homebrew — see https://docs.brew.sh/Manpage#environment
 export HOMEBREW_NO_ENV_HINTS=1

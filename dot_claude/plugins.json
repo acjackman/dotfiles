@@ -4,7 +4,8 @@
     "max-sixty/worktrunk",
     "acjackman/claude-productivity",
     "honeycombio/agent-skill",
-    "umputun/revdiff"
+    "umputun/revdiff",
+    "backnotprop/plannotator"
   ],
   "plugins": [
     "pyright-lsp@claude-plugins-official",
@@ -20,10 +21,12 @@
     "moov": [
       "moov@claude-productivity",
       "honeycomb@honeycomb-plugins",
-      "slack@claude-plugins-official"
+      "slack@claude-plugins-official",
+      "plannotator@plannotator"
     ],
     "personal": [
-      "skill-creator@claude-plugins-official"
+      "skill-creator@claude-plugins-official",
+      "plannotator@plannotator"
     ],
     "odin": []
   },

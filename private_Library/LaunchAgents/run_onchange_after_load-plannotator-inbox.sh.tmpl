@@ -1,0 +1,27 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Load (or reload) the Plannotator Inbox LaunchAgent. Re-runs when the plist
+# changes: {{ include "private_Library/LaunchAgents/com.acjackman.plannotator-inbox.plist.tmpl" | sha256sum }}
+#
+# Does not stop an Inbox that an agent already started outside launchd: other
+# sessions are connected to it. The launchd job exits 0 in that case and takes
+# over at next login, or now after `plannotator inbox stop` + kickstart.
+set -euo pipefail
+
+label="com.acjackman.plannotator-inbox"
+plist="$HOME/Library/LaunchAgents/$label.plist"
+domain="gui/$(id -u)"
+
+# No-op where Plannotator isn't installed (curl installer -> ~/.local/bin).
+[[ -x "$HOME/.local/bin/plannotator" ]] || exit 0
+[[ -f "$plist" ]] || exit 0
+
+# launchd won't create the log dir; a missing one fails the spawn silently.
+mkdir -p "$HOME/.local/state/plannotator-inbox"
+
+# bootout first so an edited plist is actually re-read; ignore "not loaded".
+launchctl bootout "$domain/$label" 2>/dev/null || true
+launchctl bootstrap "$domain" "$plist"
+
+echo "Loaded $label (Plannotator Inbox server)"
+{{ end -}}

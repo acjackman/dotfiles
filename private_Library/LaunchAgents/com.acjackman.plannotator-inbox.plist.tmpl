@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Run the Plannotator Inbox server under launchd so no single agent session
+  owns it. Without this, whichever agent first writes to a stopped Inbox
+  spawns it detached (`plannotator inbox --background`), and nothing restarts
+  it after a crash or reboot.
+
+  `inbox --no-open` serves in the foreground, which is what launchd wants.
+  If an Inbox is already running (an agent got there first) it prints the URL
+  and exits 0; KeepAlive/SuccessfulExit=false means launchd only restarts on a
+  crash, so that case doesn't spin.
+
+  PLANNOTATOR_INBOX_CONNECT=0: a foreground `plannotator inbox` otherwise
+  auto-registers MCP entries in every agent it finds (Codex, Gemini, Cursor,
+  ...). Several of those configs are chezmoi-managed, so connections are done
+  in source instead of by the server on every start.
+
+  PATH / CODEX_HOME: replies to Codex/Qwen are delivered by shelling out
+  (`codex queue`), so the server needs the same tools and Codex home an
+  interactive shell has. launchd's bare env would silently break those wakes.
+
+  PLANNOTATOR_DATA_DIR: must match dot_config/shell/env.sh. launchd has no
+  XDG_DATA_HOME, so without it the server falls back to ~/.plannotator and
+  agents and server end up on different Inboxes.
+-->
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.acjackman.plannotator-inbox</string>
+    <key>ProgramArguments</key>
+    <array>
+        <string>{{ .chezmoi.homeDir }}/.local/bin/plannotator</string>
+        <string>inbox</string>
+        <string>--no-open</string>
+    </array>
+    <key>RunAtLoad</key>
+    <true/>
+    <key>KeepAlive</key>
+    <dict>
+        <key>SuccessfulExit</key>
+        <false/>
+    </dict>
+    <key>ThrottleInterval</key>
+    <integer>30</integer>
+    <key>ProcessType</key>
+    <string>Background</string>
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>PATH</key>
+        <string>{{ .chezmoi.homeDir }}/.local/bin:{{ .chezmoi.homeDir }}/.local/share/mise/shims:/opt/homebrew/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+        <key>HOME</key>
+        <string>{{ .chezmoi.homeDir }}</string>
+        <key>PLANNOTATOR_DATA_DIR</key>
+        <string>{{ .chezmoi.homeDir }}/.local/share/plannotator</string>
+        <key>CODEX_HOME</key>
+        <string>{{ .chezmoi.homeDir }}/.config/codex</string>
+        <key>PLANNOTATOR_INBOX_CONNECT</key>
+        <string>0</string>
+    </dict>
+    <key>StandardOutPath</key>
+    <string>{{ .chezmoi.homeDir }}/.local/state/plannotator-inbox/stdout.log</string>
+    <key>StandardErrorPath</key>
+    <string>{{ .chezmoi.homeDir }}/.local/state/plannotator-inbox/stderr.log</string>
+</dict>
+</plist>
