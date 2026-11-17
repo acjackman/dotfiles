@@ -1,0 +1,6 @@
+# MCP server definitions
+
+# Plannotator Inbox: lets Codex send/read Inbox threads (installed in 60cf7ac)
+[mcp_servers.plannotator-inbox]
+command = "{{ .chezmoi.homeDir }}/.local/bin/plannotator"
+args = ["inbox", "mcp"]

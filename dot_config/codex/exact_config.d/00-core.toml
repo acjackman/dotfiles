@@ -1,6 +1,6 @@
 # Core Codex settings
-model = "o3"
-reasoning_effort = "medium"
+model = "gpt-6.1-sol"
+model_reasoning_effort = "low"
 approval_policy = "on-request"
 sandbox_mode = "workspace-write"
 # Updates come via Homebrew (topgrade); skip codex's own startup check/prompt
