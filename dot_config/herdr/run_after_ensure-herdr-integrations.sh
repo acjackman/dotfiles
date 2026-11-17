@@ -17,8 +17,9 @@
 #             settings.json; the settings generator keeps hooks it doesn't own.
 #             Done for ~/.claude AND each ~/.config/claude/profiles/*.
 #   codex   — herdr-agent-state.sh + hooks.json in $CODEX_HOME (unmanaged), and
-#             `[features] hooks = true` in config.toml, which is GENERATED — so
-#             that flag lives in dot_config/codex/exact_config.d/10-features.toml.
+#             `[features] hooks = true` in config.toml, whose managed keys come
+#             from fragments — so the flag lives in
+#             .chezmoitemplates/codex/10-features.toml.
 #   opencode — a plugin under ~/.config/opencode/plugins (unmanaged).
 #   cursor  — herdr-agent-state.sh + hooks.json under ~/.cursor (unmanaged).
 set -euo pipefail

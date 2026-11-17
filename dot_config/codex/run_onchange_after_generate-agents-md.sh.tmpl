@@ -1,0 +1,32 @@
+#!/bin/sh
+# Generate AGENTS.md (Codex has no @ imports, so it's assembled at deploy time).
+# config.toml is not generated here — see modify_private_config.toml.
+# Agent core: {{ include "dot_config/exact_agents/core.md" | sha256sum }}
+# Agent codex: {{ include "dot_config/codex/agents-codex.md" | sha256sum }}
+
+CODEX_DIR="${CODEX_HOME:-$HOME/.config/codex}"
+AGENTS_CORE="$HOME/.config/agents/core.md"
+AGENTS_CODEX="$CODEX_DIR/agents-codex.md"
+AGENTS_OUT="$CODEX_DIR/AGENTS.md"
+
+mkdir -p "$CODEX_DIR"
+
+AGENTS_CONTENT=""
+if [ -f "$AGENTS_CORE" ]; then
+  AGENTS_CONTENT="$(cat "$AGENTS_CORE")"
+fi
+if [ -f "$AGENTS_CODEX" ]; then
+  [ -n "$AGENTS_CONTENT" ] && AGENTS_CONTENT="$AGENTS_CONTENT
+
+"
+  AGENTS_CONTENT="$AGENTS_CONTENT$(cat "$AGENTS_CODEX")"
+fi
+
+if [ -n "$AGENTS_CONTENT" ]; then
+  if [ -f "$AGENTS_OUT" ] && [ "$(cat "$AGENTS_OUT")" = "$AGENTS_CONTENT" ]; then
+    echo "AGENTS.md: no changes"
+  else
+    echo "$AGENTS_CONTENT" >"$AGENTS_OUT"
+    echo "AGENTS.md: generated from core.md + agents-codex.md"
+  fi
+fi

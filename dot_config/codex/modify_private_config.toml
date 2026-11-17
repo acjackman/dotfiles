@@ -1,0 +1,37 @@
+{{- /* chezmoi:modify-template */ -}}
+{{- /*
+  A modify template, not a plain file, because Codex co-owns config.toml: it
+  writes runtime state back into it (per-project trust, hook trust hashes, TUI
+  nux counters, dismissed notices). Managed keys are rendered from the
+  fragments in .chezmoitemplates/codex/ (sorted by name, so numeric prefixes
+  control order). The runtime-owned tables listed in $runtime are lifted
+  verbatim from the live file (.chezmoi.stdin) and appended, so apply never
+  wipes them. Anything else Codex writes (e.g. `model` via /model, a new
+  [mcp_servers.*] via `codex mcp add`) is NOT carried over: it shows up in
+  `chezmoi diff` as drift — adopt it into a fragment or let apply revert it.
+
+  Lifting is text-based: a block is a `[header]` line whose name starts with a
+  runtime table, plus every following line up to the next line starting with
+  `[`. Comment-only lines are dropped from lifted blocks because Codex
+  (toml_edit) leaves the next table's leading comments attached to the
+  previous table, and keeping them would duplicate fragment comments on every
+  apply. Keep runtime tables out of the fragments — TOML allows each table
+  once. The final fromToml call fails the render (and the apply) on invalid
+  TOML instead of handing Codex a file it can't load.
+*/ -}}
+{{- $runtime := "projects|hooks\\.state|tui|notice" -}}
+{{- $fragments := list -}}
+{{- range glob (joinPath .chezmoi.sourceDir ".chezmoitemplates/codex/*.toml") -}}
+{{-   $fragments = append $fragments (includeTemplate (printf "codex/%s" (base .)) $ | trim) -}}
+{{- end -}}
+{{- $blocks := list -}}
+{{- $re := printf "(?m)^\\[(?:%s)[.\\]][^\\n]*\\n(?:[^\\[\\n][^\\n]*\\n|\\n)*" $runtime -}}
+{{- range regexFindAll $re (printf "%s\n" .chezmoi.stdin) -1 -}}
+{{-   $blocks = append $blocks (regexReplaceAll "(?m)^[ \\t]*#[^\\n]*\\n" . "" | trim) -}}
+{{- end -}}
+{{- $out := join "\n\n" $fragments -}}
+{{- if $blocks -}}
+{{-   $out = printf "%s\n\n# --- Codex runtime state: lifted from the live file by modify_private_config.toml ---\n\n%s" $out (join "\n\n" $blocks) -}}
+{{- end -}}
+{{- $_ := fromToml $out -}}
+{{ $out }}

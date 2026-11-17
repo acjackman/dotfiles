@@ -132,3 +132,6 @@ Library/Application Support/ovim
 # commit skill dropped (2026-10-30): its haiku sub-agent got the trailer wrong
 # and hid the commit from view; commit directly in the main session instead.
 .claude/skills/commit
+# Codex config fragments moved from the deployed config.d/ to
+# .chezmoitemplates/codex/ (2026-11-16): config.toml is now a modify_ template.
+.config/codex/config.d

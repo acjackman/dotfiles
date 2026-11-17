@@ -484,11 +484,11 @@ no server — and reinstalls anything not `current`. Where each one writes:
   Claude session inherits it, and the default pass would otherwise check the
   profile, see `current`, and leave `~/.claude` stale.
 - **codex** — `herdr-agent-state.sh` + `hooks.json` in `$CODEX_HOME`
-  (`~/.config/codex`), plus `[features] hooks = true` in `config.toml`. That file
-  is **generated** from `config.d/`, and `integration status` only checks the
-  hook script — so the flag lives in
-  `dot_config/codex/exact_config.d/10-features.toml`, or a config rebuild would
-  silently disable the integration while status still says `current`.
+  (`~/.config/codex`), plus `[features] hooks = true` in `config.toml`. That
+  file's managed keys come from fragments (a chezmoi modify template), and
+  `integration status` only checks the hook script — so the flag lives in
+  `.chezmoitemplates/codex/10-features.toml`, or an apply would silently
+  disable the integration while status still says `current`.
 - **opencode** — a plugin in `~/.config/opencode/plugins/`.
 - **cursor** — `herdr-agent-state.sh` + hooks under `~/.cursor/`; gated on the
   `cursor-agent` CLI.
