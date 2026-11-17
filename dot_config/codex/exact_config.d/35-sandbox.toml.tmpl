@@ -1,0 +1,5 @@
+# Sandbox: let workspace-write commands use uv's cache. Without it, `uv run`
+# scripts (e.g. moovfinancial/infra .agents/skills) fail with "Failed to
+# initialize cache ... Operation not permitted".
+[sandbox_workspace_write]
+writable_roots = ["{{ .chezmoi.homeDir }}/.cache/uv"]
