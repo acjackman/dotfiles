@@ -39,3 +39,16 @@ pull = { args = ["--ff-only"] }
 # [".config/hammerspoon/Spoons/Rcmd.spoon"]
 #     type = "git-repo"
 #     url = "https://github.com/gnudad/Rcmd.spoon.git"
+
+# Agent skills — list and pinned refs live in .chezmoidata/agent-skills.yaml.
+# Lands inside dot_config/exact_agents, so unlisted skills are removed on apply.
+{{ range $repo, $src := .agentSkills -}}
+{{ range $name, $path := $src.skills }}
+[".config/agents/skills/{{ $name }}"]
+type = "archive"
+url = "https://github.com/{{ $repo }}/archive/{{ $src.ref }}.tar.gz"
+exact = true
+stripComponents = {{ add 1 (len (splitList "/" $path)) }}
+include = ["*/{{ $path }}", "*/{{ $path }}/**"]
+{{ end -}}
+{{ end -}}

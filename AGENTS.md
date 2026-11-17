@@ -44,6 +44,8 @@ Skills (slash commands like `/spawn`, `/apply`) are defined in `dot_claude/skill
 
 **Always edit the chezmoi source in `dot_claude/skills/`, not the deployed files in `~/.claude/skills/`.**
 
+**Third-party skills** (e.g. `t3dotgg/tstack`, `mattpocock/skills`) are listed in `.chezmoidata/agent-skills.yaml` with one pinned commit per repo. `.chezmoiexternal.toml` extracts each into `~/.config/agents/skills/<name>` (an exact dir, so unlisted skills are removed); `~/.agents/skills` symlinks there for Codex and other agents, and `dot_claude/run_after_link-agent-skills.sh.tmpl` links them into `~/.claude/skills`. Add, remove or bump skills in the data file — never with `npx skills add -g`, which writes into the managed dir and is wiped on apply. Bump a repo as a whole after reviewing the upstream diff, since skills in a suite call each other.
+
 ## Doctor Scripts
 
 `,doctor-*` scripts in `dot_local/bin/` apply common fixes for a specific subsystem. The comma prefix follows the convention used by other user-facing utility commands in this repo (sorts early in tab-completion, no clash with system binaries).

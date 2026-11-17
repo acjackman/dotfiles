@@ -1,0 +1,50 @@
+#!/bin/bash
+# Link each skill from .chezmoidata/agent-skills.yaml into Claude's user-level
+# skills dir(s), and prune links we made for skills no longer listed.
+# Only touches symlinks that point into ~/.config/agents/skills — real dirs
+# and other links (chezmoi's own skills, synced/, plugins) are left alone.
+set -euo pipefail
+
+src="$HOME/.config/agents/skills"
+wanted=(
+{{- range $repo, $s := .agentSkills }}{{ range $name, $_ := $s.skills }}
+  {{ $name | quote }}
+{{- end }}{{ end }}
+)
+
+dirs=("$HOME/.claude/skills")
+for p in "$HOME/.config/claude/profiles"/*/; do
+  [ -d "$p" ] && dirs+=("${p%/}/skills")
+done
+
+seen=""
+for d in "${dirs[@]}"; do
+  mkdir -p "$d"
+  real="$(cd "$d" && pwd -P)"
+  case " $seen " in *" $real "*) continue ;; esac
+  seen="$seen $real"
+
+  for name in "${wanted[@]}"; do
+    link="$real/$name"
+    if [ -L "$link" ]; then
+      [ "$(readlink "$link")" = "$src/$name" ] && continue
+      ln -sfn "$src/$name" "$link"
+    elif [ -e "$link" ]; then
+      echo "agent-skills: $link exists and isn't a symlink, skipping" >&2
+    else
+      ln -s "$src/$name" "$link"
+    fi
+  done
+
+  for link in "$real"/*; do
+    [ -L "$link" ] || continue
+    target="$(readlink "$link")"
+    case "$target" in
+      "$src"/* | */.agents/skills/*) ;;
+      *) continue ;;
+    esac
+    name="$(basename "$link")"
+    case " ${wanted[*]} " in *" $name "*) [ "$target" = "$src/$name" ] && continue ;; esac
+    rm "$link"
+  done
+done

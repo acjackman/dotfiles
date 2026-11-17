@@ -79,6 +79,7 @@ Library/Application Support/ovim
 # user-level set on 2026-07-13 — parked on the `eng-skills` branch (commit
 # 2f0db08) to be re-added on an individual-project basis as needed, not globally.
 # Remove the relevant line(s) if any of these ever come back at user level.
+# (grilling, grill-me, handoff came back 2026-11-16 via .chezmoidata/agent-skills.yaml.)
 .claude/skills/ask
 .claude/skills/eng-setup
 .claude/skills/triage
@@ -92,10 +93,7 @@ Library/Application Support/ovim
 .claude/skills/prototype
 .claude/skills/tdd
 .claude/skills/improve-codebase-architecture
-.claude/skills/grilling
-.claude/skills/grill-me
 .claude/skills/grill-with-docs
-.claude/skills/handoff
 .claude/skills/resolving-merge-conflicts
 # Custom async revdiff skill dropped (2026-07-21) in favour of the upstream
 # umputun/revdiff plugin (re-enabled in dot_claude/plugins.json). Reverts to the

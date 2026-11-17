@@ -1,0 +1,29 @@
+# Third-party agent skills, deployed by .chezmoiexternal.toml into
+# ~/.config/agents/skills/<name> (exact dir; ~/.agents/skills symlinks to it)
+# and linked into ~/.claude/skills by dot_claude/run_onchange_after_link-agent-skills.sh.tmpl.
+#
+# One pinned `ref` per repo: skills in a suite call each other, so a repo is
+# reviewed and bumped as a whole. To bump: read the upstream diff, change `ref`.
+# Map is <installed name>: <skill folder path inside the repo>.
+# Don't `npx skills add -g` — it writes into the managed dir and apply wipes it.
+agentSkills:
+  t3dotgg/tstack:
+    ref: 11e37a74d0a6868c121cd0910ab2b3bd9873b92a
+    skills:
+      babysit-pr: skills/babysit-pr
+      council: skills/council
+      file-pr: skills/file-pr
+      full-send: skills/full-send
+      full-stop: skills/full-stop
+      leaving-pr-comments: skills/leaving-pr-comments
+      modernize: skills/modernize
+      sol-loop: skills/sol-loop
+      takeover: skills/takeover
+  mattpocock/skills:
+    ref: 5863806dd4e15c63174bee4e7515a4256792ecfa
+    skills:
+      grill-me: skills/productivity/grill-me
+      grilling: skills/productivity/grilling
+      handoff: skills/productivity/handoff
+      wizard: skills/engineering/wizard
+      writing-for-agents: skills/productivity/writing-for-agents
