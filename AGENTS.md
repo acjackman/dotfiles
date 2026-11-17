@@ -83,6 +83,15 @@ Linear's "Work on issue → Custom script" runs `,linear-start` via `dot_linear/
 - **CommandRouter** (`command-file-router`) handles `.command` files from Linear's built-in tools separately. It opens each one in a new herdr workspace, falls back to tmux, and never parses the file beyond its `cd` line.
 - **`herdr-reveal <workspace_id>`** focuses a workspace and raises Ghostty, opening a herdr window if Ghostty isn't running. Both entry points use it.
 
+## Plannotator Inbox
+
+One Inbox server per machine, run by launchd (`com.acjackman.plannotator-inbox`); agents only connect to it. The binary is installed `--minimal`, so the installer never touches agent configs; connections live in source: the Claude plugin in `dot_claude/plugins.json`, Codex in `.chezmoitemplates/codex/40-mcp-servers.toml`.
+
+- **Supervisor, not a plain job:** the Upgrade button and `inbox restart` replace the server with a *detached* process and exit 0, which launchd loses track of. The job runs `plannotator-inbox-supervise`, which adopts whichever Inbox is running and starts one only when none is. Stopping the job (`launchctl bootout`) leaves an adopted server running.
+- **One data dir:** an existing `~/.plannotator` beats `XDG_DATA_HOME` for any process without `PLANNOTATOR_DATA_DIR`, and that process silently gets its own Inbox. Three layers keep everything on `~/.local/share/plannotator`: the export in `dot_config/shell/env.sh`, `launchctl setenv` from `com.acjackman.launchd-env` for GUI apps, and the managed symlink `~/.plannotator` → `~/.local/share/plannotator` for anything that still misses both (e.g. an agent started from an old herdr pane).
+- **`PLANNOTATOR_INBOX_CONNECT=0`** in the plist: a foreground `plannotator inbox` otherwise writes MCP entries into every agent it finds, including chezmoi-managed configs. Set it on any manual foreground run too.
+- **Upgrades** go through topgrade's `Plannotator` step (`plannotator-upgrade`): binary update, Inbox restart when it lags the CLI, then the Claude plugin, which is versioned separately, in every config dir that has it.
+
 ## Key Conventions
 
 - Prefer standalone scripts in `dot_local/bin/` over shell functions (unless the command must modify shell state)
