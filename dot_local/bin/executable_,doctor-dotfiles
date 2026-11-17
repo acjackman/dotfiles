@@ -1,0 +1,107 @@
+#!/bin/bash
+# ,doctor-dotfiles — Report anything that leaves ~ out of step with the chezmoi source.
+#
+# Checks:
+#   1. Replaced copies — files a generator or pre-apply guard saved to
+#      ~/.local/state/dotfiles/replaced/<subsystem>/ before overwriting them.
+#      They wait there until reviewed; delete an entry once you have.
+#   2. Drift — `chezmoi status` (scripts excluded): deployed files that differ
+#      from the source, i.e. an unapplied change or an app rewriting its config.
+#   3. Source repo — uncommitted changes, and commits ahead of/behind upstream
+#      (as of the last fetch; no network).
+#   4. `chezmoi doctor` — warnings and failures only, minus what 3 already
+#      covers and the newer-version notice (topgrade's job).
+#
+# Report-only, like ,doctor-tuna: each finding needs a judgement call, so
+# nothing is fixed. Exits 1 if any check has a finding.
+#
+# Don't call from a chezmoi script: chezmoi holds its state lock during apply.
+# The apply-time reminder (run_after_zz-warn-replaced.sh) checks 1 directly.
+
+set -uo pipefail
+
+replaced_root="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/replaced"
+findings=0
+
+section() { printf '\n== %s\n' "$1"; }
+ok() { printf '  ok: %s\n' "$1"; }
+flag() {
+  printf '  ! %s\n' "$1"
+  findings=$((findings + 1))
+}
+tilde() { printf '%s' "${1/#$HOME/~}"; }
+
+age() {
+  local days=$((($(date +%s) - $1) / 86400))
+  if ((days == 0)); then printf 'today'; else printf '%sd ago' "$days"; fi
+}
+
+# --- 1. Replaced copies ------------------------------------------------------
+section "Replaced copies ($(tilde "$replaced_root"))"
+any=0
+if [[ -d "$replaced_root" ]]; then
+  for sub in "$replaced_root"/*/; do
+    [[ -d "$sub" ]] || continue
+    entries=("$sub"*)
+    [[ -e "${entries[0]}" ]] || continue
+    newest="$(stat -f '%m' "${entries[@]}" | sort -rn | head -1)"
+    flag "$(basename "$sub"): ${#entries[@]} entr$( ((${#entries[@]} == 1)) && echo y || echo ies), newest $(age "$newest")"
+    any=1
+  done
+fi
+if ((any)); then
+  echo "  Review each against what's deployed now, then delete it:"
+  echo "    ls $(tilde "$replaced_root")/<subsystem>/"
+else
+  ok "nothing waiting"
+fi
+
+# --- 2. Drift ----------------------------------------------------------------
+section "Drift (chezmoi status, scripts excluded)"
+if status="$(chezmoi status --exclude scripts 2>&1)"; then
+  if [[ -n "$status" ]]; then
+    flag "$(printf '%s\n' "$status" | wc -l | tr -d ' ') target(s) differ from the source:"
+    printf '%s\n' "$status" | sed 's/^/      /'
+    echo "  Inspect with: chezmoi diff <target>"
+  else
+    ok "deployed files match the source"
+  fi
+else
+  flag "chezmoi status failed:"
+  printf '%s\n' "$status" | sed 's/^/      /'
+fi
+
+# --- 3. Source repo ----------------------------------------------------------
+src="$(chezmoi source-path)"
+section "Source repo ($(tilde "$src"))"
+dirty="$(git -C "$src" status --porcelain)"
+if [[ -n "$dirty" ]]; then
+  flag "$(printf '%s\n' "$dirty" | wc -l | tr -d ' ') uncommitted change(s):"
+  printf '%s\n' "$dirty" | sed 's/^/      /'
+else
+  ok "working tree clean"
+fi
+if upstream="$(git -C "$src" rev-parse --abbrev-ref '@{u}' 2>/dev/null)"; then
+  read -r behind ahead < <(git -C "$src" rev-list --left-right --count '@{u}...HEAD')
+  ((ahead > 0)) && flag "$ahead commit(s) not pushed to $upstream"
+  ((behind > 0)) && flag "$behind commit(s) behind $upstream (as of last fetch)"
+  ((ahead == 0 && behind == 0)) && ok "in sync with $upstream (as of last fetch)"
+else
+  flag "branch $(git -C "$src" branch --show-current) has no upstream"
+fi
+
+# --- 4. chezmoi doctor -------------------------------------------------------
+section "chezmoi doctor (warnings and failures)"
+problems="$(chezmoi doctor 2>&1 | awk 'NR > 1 && $1 != "ok" && $1 != "info" && $2 != "latest-version" && $2 != "source-dir" && $2 != "working-tree"')"
+if [[ -n "$problems" ]]; then
+  while IFS= read -r line; do flag "$line"; done <<<"$problems"
+else
+  ok "no warnings"
+fi
+
+echo
+if ((findings)); then
+  echo "$findings finding(s)."
+  exit 1
+fi
+echo "All clear."

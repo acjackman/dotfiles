@@ -50,7 +50,7 @@ discarded by the next `chezmoi apply`. Two guards cover that:
   fixes: re-syncing is a per-hunk judgement call about which side is
   authoritative. **Bump `tuna_synced_version` whenever you re-sync.**
 - **`run_before_backup-tuna-config.sh.tmpl`** snapshots the deployed file into
-  `~/.local/state/tuna-config-backups/` before any apply can overwrite it, so
+  `~/.local/state/dotfiles/replaced/tuna/` before any apply can overwrite it, so
   a stale source is never lossy. It keeps one backup per distinct deployed
   content, so repeated applies don't litter. It is `run_before_` rather than
   `run_onchange_` because the drift originates in the app, not in the source

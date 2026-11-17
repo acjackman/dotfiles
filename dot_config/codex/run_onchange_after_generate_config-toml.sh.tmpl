@@ -44,7 +44,11 @@ else
     if [ -f "$CONFIG" ] && [ "$(cat "$CONFIG")" = "$NEW_CONTENT" ]; then
       echo "config.toml: no changes"
     else
-      [ -f "$CONFIG" ] && cp "$CONFIG" "$CODEX_DIR/config.toml.$(date +%Y%m%d-%H%M%S).bak"
+      if [ -f "$CONFIG" ]; then
+        replaced="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/replaced/codex"
+        mkdir -p "$replaced"
+        cp "$CONFIG" "$replaced/config.toml.$(date +%Y%m%d-%H%M%S)"
+      fi
       echo "$NEW_CONTENT" >"$CONFIG"
       echo "config.toml: merged $(wc -l < "$TMPFILE" | tr -d ' ') files"
     fi

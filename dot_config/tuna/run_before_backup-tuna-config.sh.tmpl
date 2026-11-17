@@ -31,7 +31,7 @@ have_sha="$(shasum -a 256 "$target" | cut -d' ' -f1)"
 # Diverged. Keep one backup per distinct deployed content: re-applying the same
 # stale source repeatedly should not litter, but each genuinely new rewrite
 # Tuna makes is worth its own copy.
-backup_dir="$HOME/.local/state/tuna-config-backups"
+backup_dir="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/replaced/tuna"
 mkdir -p "$backup_dir"
 short="${have_sha:0:12}"
 backup="$backup_dir/config.toml.$(date +%Y%m%d-%H%M%S).$short"

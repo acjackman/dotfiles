@@ -39,7 +39,7 @@ set -uo pipefail
 app="/Applications/Tuna.app"
 target="$HOME/.config/tuna/config.toml"
 synced_version='{{ .tuna_synced_version }}'
-backup_dir="$HOME/.local/state/tuna-config-backups"
+backup_dir="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/replaced/tuna"
 
 # Not every machine runs Tuna; `brew "tuna"` is personal-only.
 if [[ ! -d "$app" ]]; then

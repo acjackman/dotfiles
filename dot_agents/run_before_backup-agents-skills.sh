@@ -8,8 +8,8 @@ set -euo pipefail
 dir="$HOME/.agents/skills"
 [ -d "$dir" ] && [ ! -L "$dir" ] || exit 0
 
-backup="$HOME/.local/state/agent-skills-backups/$(date +%Y%m%d-%H%M%S)"
+backup="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/replaced/agent-skills/$(date +%Y%m%d-%H%M%S)"
 mkdir -p "$backup"
 mv "$dir" "$backup/skills"
 [ -f "$HOME/.agents/.skill-lock.json" ] && mv "$HOME/.agents/.skill-lock.json" "$backup/"
-echo "agent-skills: moved unmanaged ~/.agents/skills to $backup" >&2
+echo "agent-skills: moved unmanaged ~/.agents/skills to $backup (review: ,doctor-dotfiles)" >&2
