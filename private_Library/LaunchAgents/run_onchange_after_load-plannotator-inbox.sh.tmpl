@@ -1,11 +1,11 @@
 {{ if eq .chezmoi.os "darwin" -}}
 #!/usr/bin/env bash
 # Load (or reload) the Plannotator Inbox LaunchAgent. Re-runs when the plist
-# changes: {{ include "private_Library/LaunchAgents/com.acjackman.plannotator-inbox.plist.tmpl" | sha256sum }}
+# or its supervisor changes:
+#   {{ include "private_Library/LaunchAgents/com.acjackman.plannotator-inbox.plist.tmpl" | sha256sum }}
+#   {{ include "dot_local/bin/executable_plannotator-inbox-supervise" | sha256sum }}
 #
-# Does not stop an Inbox that an agent already started outside launchd: other
-# sessions are connected to it. The launchd job exits 0 in that case and takes
-# over at next login, or now after `plannotator inbox stop` + kickstart.
+# Never stops a running Inbox: the supervisor adopts it.
 set -euo pipefail
 
 label="com.acjackman.plannotator-inbox"

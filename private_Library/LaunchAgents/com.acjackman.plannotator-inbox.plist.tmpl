@@ -6,10 +6,11 @@
   spawns it detached (`plannotator inbox --background`), and nothing restarts
   it after a crash or reboot.
 
-  `inbox --no-open` serves in the foreground, which is what launchd wants.
-  If an Inbox is already running (an agent got there first) it prints the URL
-  and exits 0; KeepAlive/SuccessfulExit=false means launchd only restarts on a
-  crash, so that case doesn't spin.
+  Runs plannotator-inbox-supervise rather than `inbox --no-open` directly:
+  the Inbox's Upgrade button (and `inbox restart`) swaps in a DETACHED
+  replacement and exits 0, which a plain job loses track of. The supervisor
+  adopts whichever Inbox is running and starts one when none is. KeepAlive
+  covers the supervisor itself.
 
   PLANNOTATOR_INBOX_CONNECT=0: a foreground `plannotator inbox` otherwise
   auto-registers MCP entries in every agent it finds (Codex, Gemini, Cursor,
@@ -30,17 +31,12 @@
     <string>com.acjackman.plannotator-inbox</string>
     <key>ProgramArguments</key>
     <array>
-        <string>{{ .chezmoi.homeDir }}/.local/bin/plannotator</string>
-        <string>inbox</string>
-        <string>--no-open</string>
+        <string>{{ .chezmoi.homeDir }}/.local/bin/plannotator-inbox-supervise</string>
     </array>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
-    <dict>
-        <key>SuccessfulExit</key>
-        <false/>
-    </dict>
+    <true/>
     <key>ThrottleInterval</key>
     <integer>30</integer>
     <key>ProcessType</key>

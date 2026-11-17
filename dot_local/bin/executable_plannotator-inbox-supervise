@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# launchd entry point for the Plannotator Inbox
+# (private_Library/LaunchAgents/com.acjackman.plannotator-inbox.plist).
+#
+# Supervises "an Inbox is up", not one pid. The Inbox replaces itself with a
+# DETACHED process and exits 0 on the UI's Upgrade button (and on
+# `plannotator inbox restart`), and agents start one detached when they find
+# none. Running `plannotator inbox --no-open` directly under launchd loses
+# supervision on every one of those. So: if an Inbox is already running, wait
+# on its pid; otherwise run one in the foreground; then loop.
+#
+# Caveat: an adopted (detached) Inbox is not in this job's process group, so
+# `launchctl bootout` stops supervision but leaves that server running.
+set -uo pipefail
+
+bin="$HOME/.local/bin/plannotator"
+
+while :; do
+    if pid="$("$bin" inbox status --json 2>/dev/null | jq -er 'select(.running) | .pid')"; then
+        while kill -0 "$pid" 2>/dev/null; do sleep 15; done
+    else
+        # Returns 0 on a self-restart handoff, or at once when another start
+        # won the race; the next pass adopts whichever server is now up.
+        "$bin" inbox --no-open
+        sleep 2
+    fi
+done
