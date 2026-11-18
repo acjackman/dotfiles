@@ -11,7 +11,8 @@ git_toplevel="$(git rev-parse --show-toplevel 2>/dev/null)" || {
 }
 
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-chezmoi_default_source="$(chezmoi source-path)"
+# source-path is <repo>/home (.chezmoiroot); compare repo roots.
+chezmoi_default_source="$(git -C "$(chezmoi source-path)" rev-parse --show-toplevel)"
 target_paths=("$@")
 
 # --- Worktree detection ---
