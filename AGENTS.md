@@ -8,7 +8,7 @@ This repository manages dotfiles using [chezmoi](https://www.chezmoi.io/). Sourc
 
 ## Repo Layout
 
-`.chezmoiroot` points chezmoi at `home/`, so **only `home/` is the chezmoi source**. Everything at the repo root (`AGENTS.md`, `README.md`, `.docs/`, `.github/`, `tests/`, `data/`, `bootstrap.sh`, `.claude/`, `.mise.toml`) is repo tooling and never deploys. Special files (`.chezmoiignore`, `.chezmoiremove`, `.chezmoidata/`, `.chezmoitemplates/`, `.chezmoiexternal.toml`, `.chezmoi.toml.tmpl`, `.chezmoiversion`) live in `home/`.
+`.chezmoiroot` points chezmoi at `home/`, so **only `home/` is the chezmoi source**. Everything at the repo root (`AGENTS.md`, `README.md`, `docs/`, `.github/`, `tests/`, `data/`, `bootstrap.sh`, `.claude/`, `.mise.toml`) is repo tooling and never deploys. Special files (`.chezmoiignore`, `.chezmoiremove`, `.chezmoidata/`, `.chezmoitemplates/`, `.chezmoiexternal.toml`, `.chezmoi.toml.tmpl`, `.chezmoiversion`) live in `home/`.
 
 **Source paths in these docs (`dot_config/`, `.chezmoitemplates/`, `dot_claude/skills/`, ...) are relative to `home/`.** `data/` stays at the repo root; templates reach it with `{{ dir .chezmoi.sourceDir }}/data/...` (and `include "../data/..."`), because `.chezmoi.sourceDir` is `home/`. Per-directory `CLAUDE.md` files inside `home/` stay in `.chezmoiignore` (`**/CLAUDE.md`).
 
@@ -23,13 +23,13 @@ This repository manages dotfiles using [chezmoi](https://www.chezmoi.io/). Sourc
 
 ## Detailed Documentation
 
-For in-depth guidance, see the `.docs/` directory:
+For in-depth guidance, see the `docs/` directory:
 
-- **`.docs/chezmoi.md`** — Chezmoi workflow, file name mapping, finding files, special files (`.chezmoiignore`, `.chezmoiremove`, `.chezmoiexternal`, etc.), and commands
-- **`.docs/code-style.md`** — Shell, Python, Lua, and template conventions; functions vs scripts; chezmoi naming conventions
-- **`.docs/git-workflows.md`** — Bare repository structure, worktrees, and worktrunk (`wt`) usage
-- **`.docs/chezmoi-worktrees.md`** — How chezmoi interacts with git worktrees; applying from non-default worktrees
-- **`.docs/docs-guide.md`** — How this documentation is structured and maintained
+- **`docs/chezmoi.md`** — Chezmoi workflow, file name mapping, finding files, special files (`.chezmoiignore`, `.chezmoiremove`, `.chezmoiexternal`, etc.), and commands
+- **`docs/code-style.md`** — Shell, Python, Lua, and template conventions; functions vs scripts; chezmoi naming conventions
+- **`docs/git-workflows.md`** — Bare repository structure, worktrees, and worktrunk (`wt`) usage
+- **`docs/chezmoi-worktrees.md`** — How chezmoi interacts with git worktrees; applying from non-default worktrees
+- **`docs/docs-guide.md`** — How this documentation is structured and maintained
 
 ## Directory-Specific Docs
 

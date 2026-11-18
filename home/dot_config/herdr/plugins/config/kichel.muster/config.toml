@@ -14,7 +14,7 @@
 #
 # That rule makes a roots scan blind to the worktrunk bare repos this machine
 # leans on (`,gr-bare` layout: a `.bare/` dir plus a `.git` *file*, with each
-# checkout a linked worktree — see .docs/git-workflows.md). ~/dev/moov/infra and
+# checkout a linked worktree — see docs/git-workflows.md). ~/dev/moov/infra and
 # ~/dev/moov/bumper are exactly the repos with agents running in them, so losing
 # them would gut the switcher.
 #

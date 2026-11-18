@@ -38,7 +38,7 @@ echo ""
 # permanently, so they carry no information. chezmoi diff also renders scripts as
 # "new file mode 100755" against /dev/null, which reads exactly like a genuinely
 # new managed file and has caused agents to try to execute the target path.
-# See .docs/chezmoi.md for how run_ scripts work.
+# See docs/chezmoi.md for how run_ scripts work.
 echo "=== STATUS ==="
 status_output="$(chezmoi status -x scripts "${source_flag[@]}" "${target_paths[@]}" 2>&1)" || true
 # Scripts that would actually do something: run_onchange_/run_once_ that are
@@ -99,7 +99,7 @@ if [[ "$in_worktree" == true ]]; then
   echo "run_onchange_ scripts record their state globally"
   echo "(~/.config/chezmoi/chezmoistate.boltdb), not per-worktree. Applying broadly"
   echo "from a worktree can leave that state inconsistent with the default source."
-  echo "Prefer targeted applies. See .docs/chezmoi-worktrees.md."
+  echo "Prefer targeted applies. See docs/chezmoi-worktrees.md."
   echo ""
 fi
 

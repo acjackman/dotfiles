@@ -151,7 +151,7 @@ This repo sets it to `home/`; see "Repo Layout" in `AGENTS.md`. Specifies a subd
 - Edit file: `chezmoi edit <file>`
 - Update from remote: `chezmoi update`
 - Re-run scripts: `chezmoi apply --force` (**manual use only** — agents must never use `--force`)
-- Working in a git worktree? See `.docs/chezmoi-worktrees.md` for how to apply from non-default worktrees
+- Working in a git worktree? See `docs/chezmoi-worktrees.md` for how to apply from non-default worktrees
 
 ### Testing & Validation
 
