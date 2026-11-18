@@ -10,7 +10,7 @@ This repository manages dotfiles using [chezmoi](https://www.chezmoi.io/). Sourc
 
 `.chezmoiroot` points chezmoi at `home/`, so **only `home/` is the chezmoi source**. Everything at the repo root (`AGENTS.md`, `README.md`, `docs/`, `.github/`, `tests/`, `data/`, `bootstrap.sh`, `.claude/`, `.mise.toml`) is repo tooling and never deploys. Special files (`.chezmoiignore`, `.chezmoiremove`, `.chezmoidata/`, `.chezmoitemplates/`, `.chezmoiexternal.toml`, `.chezmoi.toml.tmpl`, `.chezmoiversion`) live in `home/`.
 
-**Source paths in these docs are written from the repo root (`home/dot_config/...`).** `data/` stays at the repo root; templates reach it with `{{ dir .chezmoi.sourceDir }}/data/...` (and `include "../data/..."`), because `.chezmoi.sourceDir` is `home/`. Per-directory `CLAUDE.md` files inside `home/` stay in `.chezmoiignore` (`**/CLAUDE.md`).
+**Source paths in these docs are written from the repo root (`home/dot_config/...`).** `data/` stays at the repo root; templates reach it with `{{ dir .chezmoi.sourceDir }}/data/...` (and `include "../data/..."`), because `.chezmoi.sourceDir` is `home/`. Per-directory `CLAUDE.md` files inside `home/` stay in `home/.chezmoiignore` (`**/CLAUDE.md`); the paths they mention (`dot_config/...`, `.chezmoitemplates/...`) are relative to `home/`.
 
 ## Quick Reference
 
@@ -81,7 +81,7 @@ Skills (slash commands like `/spawn`, `/apply`) are defined in `home/dot_claude/
 
 ## Linear → worktree → herdr
 
-Linear's "Work on issue → Custom script" runs `,linear-start` via `dot_linear/coding-tools.json.tmpl` (deploys to `~/.linear/coding-tools.json`). It resolves the repo, creates or reuses the worktree through `spawn-setup-worktree`, writes the issue prompt to `<worktree>/.tmp/linear-<ID>.md`, opens a herdr workspace, and starts Claude. In refine mode (the default) it types a one-line prompt without submitting; `--mode ship` submits. Re-running for the same issue focuses the existing workspace.
+Linear's "Work on issue → Custom script" runs `,linear-start` via `home/dot_linear/coding-tools.json.tmpl` (deploys to `~/.linear/coding-tools.json`). It resolves the repo, creates or reuses the worktree through `spawn-setup-worktree`, writes the issue prompt to `<worktree>/.tmp/linear-<ID>.md`, opens a herdr workspace, and starts Claude. In refine mode (the default) it types a one-line prompt without submitting; `--mode ship` submits. Re-running for the same issue focuses the existing workspace.
 
 - **Repo resolution order:** `--repo`, `LINEAR_WORK_DIR` if it's inside a repo, picks remembered in `~/.local/state/linear-start/repos.toml`, the hand-written map `home/dot_config/linear-start/repos.toml` (`[projects]` beats `[teams]`), then an fzf picker. Linear runs the script with no TTY, so the picker re-runs the script inside a herdr pane.
 - **State lives in XDG state:** `~/.local/state/linear-start/` holds `log.jsonl` (one line per run) and the remembered picks. Failures also go to `noti`.

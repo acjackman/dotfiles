@@ -108,7 +108,7 @@ main branch is applied later.
    fine regardless of which worktree is used as source.
 
 3. **`chezmoi cd`**: This always opens a shell in the default source directory,
-   not the current worktree. It's not useful in a worktree context.
+   not the current worktree. It's not useful in a worktree context. With `.chezmoiroot` it lands in `<repo>/home`, one level below the repo root where `data/`, `docs/` and `AGENTS.md` live (`,jc` goes to the root).
 
 4. **`chezmoi edit`**: Similarly uses the default source directory. When
    working in worktrees, edit files directly in the worktree instead.

@@ -4,7 +4,7 @@ Codex config is redirected from `~/.codex/` to `~/.config/codex/` via `CODEX_HOM
 
 ## Managed Files
 
-- `config.toml` — **co-owned with Codex**, rendered by `modify_private_config.toml`. Edit the fragments in `.chezmoitemplates/codex/` (repo root), not this directory. See [config.toml](#configtoml).
+- `config.toml` — **co-owned with Codex**, rendered by `modify_private_config.toml`. Edit the fragments in `.chezmoitemplates/codex/` (at the chezmoi source root, `home/`), not this directory. See [config.toml](#configtoml).
 - `AGENTS.md` — **GENERATED, do not edit directly.** Edit `agents-codex.md` for codex-specific instructions. Shared instructions come from `~/.config/agents/core.md`.
 - `agents-codex.md` — Codex-specific global instructions (edit directly)
 - `rules/*.md` — Execution policy rules (edit directly)
