@@ -43,20 +43,13 @@ rex.bind("ctrl+space>shift+r", "session.rename")    -- herdr config.toml:57
 -- Config
 rex.bind("ctrl+space>shift+c", "client.config.reload")  -- herdr config.toml:65
 
--- Resize: tmux `bind -r` (repeat mode) — tmux.reset.conf:45-48
+-- Resize: tmux `bind -r` — tmux.reset.conf:45-48. Single press only: the
+-- migration's repeat mode was entered with ctrl+space>alt+r, which AeroSpace
+-- grabs globally (workspace R), so it was dropped.
 rex.bind("ctrl+space>j", "pane.resize", { amount = 5, direction = "down" })
 rex.bind("ctrl+space>k", "pane.resize", { amount = 5, direction = "up" })
 rex.bind("ctrl+space>l", "pane.resize", { amount = 5, direction = "right" })
 rex.bind("ctrl+space>h", "pane.resize", { amount = 5, direction = "left" })
-
-rex.mode("repeat", { exclusive = true })
-rex.bind("ctrl+space>alt+r", "client.mode.enter", { name = "repeat" })
-rex.bind("repeat/enter", "client.mode.exit")
-rex.bind("repeat/escape", "client.mode.exit")
-rex.bind("repeat/j", "pane.resize", { amount = 5, direction = "down" })
-rex.bind("repeat/k", "pane.resize", { amount = 5, direction = "up" })
-rex.bind("repeat/l", "pane.resize", { amount = 5, direction = "right" })
-rex.bind("repeat/h", "pane.resize", { amount = 5, direction = "left" })
 
 -- Resize: Herdr resize mode — config.toml:64
 rex.mode("resize", { exclusive = true })
