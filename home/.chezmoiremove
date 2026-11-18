@@ -135,3 +135,6 @@ Library/Application Support/ovim
 # Codex config fragments moved from the deployed config.d/ to
 # .chezmoitemplates/codex/ (2026-11-16): config.toml is now a modify_ template.
 .config/codex/config.d
+# Stray copy of the repo-root AGENTS.md, deployed 2025-10-04 before it was ignored.
+# Anchored at ~, so ~/.config/codex/AGENTS.md is untouched.
+AGENTS.md

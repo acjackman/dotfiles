@@ -11,7 +11,7 @@ function show-header() {
 
 {{ $config := "data/karabiner/karabiner.edn" }}
 
-# karabiner.edn Checksum {{ include $config | sha256sum }}
+# karabiner.edn Checksum {{ include (printf "../%s" $config) | sha256sum }}
 
 show-header "Karabiner-Elements (Goku)"
 
@@ -20,7 +20,7 @@ command -v goku &>/dev/null || {
   exit 1
 }
 
-config="{{ .chezmoi.sourceDir }}/{{ $config }}"
+config="{{ dir .chezmoi.sourceDir }}/{{ $config }}"
 [ -f "$config" ] || {
   echo "Skipping goku: $config not found"
   exit 1

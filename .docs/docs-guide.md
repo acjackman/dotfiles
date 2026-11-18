@@ -46,4 +46,4 @@ AGENTS.md              → Focused overview with pointers to .docs/
 
 The `.docs/` directory is automatically ignored by chezmoi because it starts with a literal `.` in the source directory (chezmoi only maps `dot_` prefixed entries to `.`). No `.chezmoiignore` entry is needed.
 
-Similarly, `AGENTS.md` and `**/CLAUDE.md` are listed in `.chezmoiignore` to prevent deployment.
+Repo-root files (`AGENTS.md`, `README.md`, ...) sit outside the chezmoi source (`.chezmoiroot` → `home/`), so they never deploy. Per-directory `CLAUDE.md` files inside `home/` are covered by `**/CLAUDE.md` in `home/.chezmoiignore`.

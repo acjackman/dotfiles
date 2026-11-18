@@ -139,7 +139,7 @@ Contains a semantic version specifying the minimum chezmoi version required. Che
 
 ### `.chezmoiroot`
 
-If present, specifies a subdirectory (relative path) to use as the actual source state root. Read before all other files. All other special files must be moved into the new root.
+This repo sets it to `home/`; see "Repo Layout" in `AGENTS.md`. Specifies a subdirectory (relative path) to use as the actual source state root. Read before all other files; all other special files live inside the new root.
 
 ## Commands
 

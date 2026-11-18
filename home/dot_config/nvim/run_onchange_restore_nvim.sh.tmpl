@@ -9,7 +9,7 @@ function show-header() {
   fi
 }
 
-# Lockfile: {{- include "data/nvim/lazy-lock.json" | sha256sum }}
+# Lockfile: {{- include "../data/nvim/lazy-lock.json" | sha256sum }}
 command -v nvim &>/dev/null
 if [ $? -eq 0 ]; then
   show-header "Neovim"

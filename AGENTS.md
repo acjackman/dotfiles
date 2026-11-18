@@ -6,12 +6,18 @@ This repository manages dotfiles using [chezmoi](https://www.chezmoi.io/). Sourc
 
 **Golden rule: ALWAYS edit chezmoi source files, never deployed files.** Changes to deployed files are overwritten on next `chezmoi apply`.
 
+## Repo Layout
+
+`.chezmoiroot` points chezmoi at `home/`, so **only `home/` is the chezmoi source**. Everything at the repo root (`AGENTS.md`, `README.md`, `.docs/`, `.github/`, `tests/`, `data/`, `bootstrap.sh`, `.claude/`, `.mise.toml`) is repo tooling and never deploys. Special files (`.chezmoiignore`, `.chezmoiremove`, `.chezmoidata/`, `.chezmoitemplates/`, `.chezmoiexternal.toml`, `.chezmoi.toml.tmpl`, `.chezmoiversion`) live in `home/`.
+
+**Source paths in these docs (`dot_config/`, `.chezmoitemplates/`, `dot_claude/skills/`, ...) are relative to `home/`.** `data/` stays at the repo root; templates reach it with `{{ dir .chezmoi.sourceDir }}/data/...` (and `include "../data/..."`), because `.chezmoi.sourceDir` is `home/`. Per-directory `CLAUDE.md` files inside `home/` stay in `.chezmoiignore` (`**/CLAUDE.md`).
+
 ## Quick Reference
 
 - **Apply changes:** use the `/apply` skill (never `chezmoi apply --force`)
 - **Preview changes:** `chezmoi diff`
 - **File mapping:** `dot_` → `.`, `private_` → mode 0600, `executable_` → mode 0755
-- **Find a config:** look in `dot_config/` (e.g., `~/.config/zsh/` → `dot_config/zsh/`)
+- **Find a config:** look in `home/dot_config/` (e.g., `~/.config/zsh/` → `home/dot_config/zsh/`)
 - **Check for generators:** look for `run_onchange_*` scripts before editing config files
 - **Removing/renaming files:** add old target path to `.chezmoiremove`
 

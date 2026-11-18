@@ -19,7 +19,7 @@ globalThis.finicky = {
   log() {},
 };
 
-import { buildConfig } from "../../dot_config/finicky/buildConfig.js";
+import { buildConfig } from "../../home/dot_config/finicky/buildConfig.js";
 
 // Machine-derived defaults: filled in by chezmoi at render time. Tests use
 // stable stub values so fixtures don't need to spell out paths derived from
