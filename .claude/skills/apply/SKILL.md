@@ -44,8 +44,8 @@ Apply chezmoi dotfile changes from the source repository to their target locatio
 - Never modify deployed files directly — always edit the chezmoi source
 - **Some configs have special apply instructions** (especially for worktrees). Check the directory's `CLAUDE.md` before applying. Known configs with `data/`-sourced `run_onchange_` scripts that pollute state from worktrees:
   - `data/karabiner/` — run `goku` directly
-  - `dot_config/nvim/` — run `nvim --headless "+Lazy! restore" +qa`
-  - `private_Library/.../Cursor/User/` — run `cursor --install-extension` directly
+  - `home/dot_config/nvim/` — run `nvim --headless "+Lazy! restore" +qa`
+  - `home/private_Library/.../Cursor/User/` — run `cursor --install-extension` directly
   - `data/mise/` — run `mise upgrade` directly
 
 ## Secret Redaction

@@ -17,9 +17,9 @@ Work through each phase in order. Commit after completing each phase. Skip phase
 
 ### Phase 1: Installation
 
-1. **Add to Brewfile** — determine if the app belongs in `dot_config/homebrew/Brewfile-base` (all machines) or a machine-specific Brewfile. Add the `cask`, `brew`, or `mas` entry. Add any needed `tap` lines.
+1. **Add to Brewfile** — determine if the app belongs in `home/dot_config/homebrew/Brewfile-base` (all machines) or a machine-specific Brewfile. Add the `cask`, `brew`, or `mas` entry. Add any needed `tap` lines.
 
-2. **Check removal lists** — search `.chezmoiremove` and any uninstall/cleanup scripts for references to the app. Remove entries that would conflict with the new installation.
+2. **Check removal lists** — search `home/.chezmoiremove` and any uninstall/cleanup scripts for references to the app. Remove entries that would conflict with the new installation.
 
 3. **Install** — run `brew install` or `brew install --cask` to install the app immediately.
 
@@ -28,9 +28,9 @@ Work through each phase in order. Commit after completing each phase. Skip phase
 ### Phase 2: Configuration
 
 1. **Find config location** — check where the app stores its configuration:
-   - `~/.config/<app>/` — manage directly via chezmoi in `dot_config/`
-   - `~/Library/Application Support/<app>/` — use chezmoi's `private_Library/` or a `run_onchange_` deploy script
-   - `~/Library/Preferences/` (plist) — manage via `defaults write` in `dot_config/macos/run_onchange_darwin-defaults.sh.tmpl` (system-wide bits) or a dedicated per-app `dot_config/<app>/run_onchange_after_set-defaults.sh.tmpl`
+   - `~/.config/<app>/` — manage directly via chezmoi in `home/dot_config/`
+   - `~/Library/Application Support/<app>/` — use chezmoi's `home/private_Library/` or a `run_onchange_` deploy script
+   - `~/Library/Preferences/` (plist) — manage via `defaults write` in `home/dot_config/macos/run_onchange_darwin-defaults.sh.tmpl` (system-wide bits) or a dedicated per-app `home/dot_config/<app>/run_onchange_after_set-defaults.sh.tmpl`
    - Custom location — create a symlink or deploy script as needed
 
 2. **Create chezmoi source files** — add config files under the appropriate chezmoi source directory. Use correct prefixes: `dot_`, `private_`, `executable_`, `symlink_`.
@@ -49,12 +49,12 @@ Work through each phase in order. Commit after completing each phase. Skip phase
 
 Check each integration point and add config where relevant:
 
-- **Aerospace** (`dot_config/aerospace/`): Add `on-window-detected` rules for window management (floating, workspace assignment, etc.). Check the app's `app-id` with: `mdls -name kMDItemCFBundleIdentifier /Applications/<App>.app`
-- **Sketchybar** (`dot_config/sketchybar/`): Add status bar items or plugins if the app has state worth displaying
-- **Tuna** (`.chezmoitemplates/tuna/bindings`): Add launch/toggle keybindings as a new `[[comboMode.bindings]]` block (or a `[[comboMode.bindings.children]]` under an existing group). Easiest authoring path: add the binding in Tuna's UI first, then copy the rendered line(s) out of `~/.config/tuna/config.toml`.
-- **Karabiner/Goku** (`dot_config/karabiner/`): Add keyboard shortcuts or modifier rules
-- **PATH** (`dot_local/bin/`): If the app bundles a CLI tool, create a symlink so it's on PATH: `symlink_toolname` pointing to the app's binary
-- **Shell** (`dot_config/zsh/`): Add aliases, completions, or environment variables if needed
+- **Aerospace** (`home/dot_config/aerospace/`): Add `on-window-detected` rules for window management (floating, workspace assignment, etc.). Check the app's `app-id` with: `mdls -name kMDItemCFBundleIdentifier /Applications/<App>.app`
+- **Sketchybar** (`home/dot_config/sketchybar/`): Add status bar items or plugins if the app has state worth displaying
+- **Tuna** (`home/.chezmoitemplates/tuna/bindings`): Add launch/toggle keybindings as a new `[[comboMode.bindings]]` block (or a `[[comboMode.bindings.children]]` under an existing group). Easiest authoring path: add the binding in Tuna's UI first, then copy the rendered line(s) out of `~/.config/tuna/config.toml`.
+- **Karabiner/Goku** (`home/dot_config/karabiner/`): Add keyboard shortcuts or modifier rules
+- **PATH** (`home/dot_local/bin/`): If the app bundles a CLI tool, create a symlink so it's on PATH: `symlink_toolname` pointing to the app's binary
+- **Shell** (`home/dot_config/zsh/`): Add aliases, completions, or environment variables if needed
 
 Apply each integration change with `/apply` targeting the specific config.
 
@@ -62,13 +62,13 @@ Apply each integration change with `/apply` targeting the specific config.
 
 If the app benefits from helper scripts for common operations:
 
-1. Create scripts in `dot_local/bin/` with the `,` prefix convention (e.g., `,app-do-thing`)
+1. Create scripts in `home/dot_local/bin/` with the `,` prefix convention (e.g., `,app-do-thing`)
 2. Use the `executable_` chezmoi prefix so they're deployed with execute permissions
 3. Apply with `/apply`
 
 ### Phase 5: Documentation
 
-Create a `CLAUDE.md` in the app's config directory (e.g., `dot_config/<app>/CLAUDE.md`) covering:
+Create a `CLAUDE.md` in the app's config directory (e.g., `home/dot_config/<app>/CLAUDE.md`) covering:
 
 - What the app does and where config files live
 - Key settings and what they control
@@ -81,8 +81,8 @@ Create a `CLAUDE.md` in the app's config directory (e.g., `dot_config/<app>/CLAU
 Check if the app needs `defaults write` commands:
 
 1. Search for existing defaults: `defaults read <app-bundle-id>` or `defaults find <app-name>`
-2. Add needed defaults to `dot_config/macos/run_onchange_darwin-defaults.sh.tmpl` (for system-wide bits) or a per-app `dot_config/<app>/run_onchange_after_set-defaults.sh.tmpl` (preferred when the keys are app-specific)
-3. Check for conflicts with existing system shortcuts. Symbolic-hotkey overrides live in `dot_config/macos/run_onchange_after_set-hotkeys.sh.tmpl`
+2. Add needed defaults to `home/dot_config/macos/run_onchange_darwin-defaults.sh.tmpl` (for system-wide bits) or a per-app `home/dot_config/<app>/run_onchange_after_set-defaults.sh.tmpl` (preferred when the keys are app-specific)
+3. Check for conflicts with existing system shortcuts. Symbolic-hotkey overrides live in `home/dot_config/macos/run_onchange_after_set-hotkeys.sh.tmpl`
 4. Apply with `/apply`
 
 ## Important
@@ -92,5 +92,5 @@ Check if the app needs `defaults write` commands:
 - Test each phase before moving to the next — launch the app, verify config is loaded
 - Follow chezmoi naming conventions: `dot_`, `private_`, `executable_`, `symlink_`, `run_onchange_`
 - Store reusable data in `data/`, not inline in config files
-- Check `.chezmoiexternal.toml` for patterns on managing external dependencies (themes, plugins)
+- Check `home/.chezmoiexternal.toml` for patterns on managing external dependencies (themes, plugins)
 - Read existing `CLAUDE.md` files in related config directories before modifying those configs

@@ -9,7 +9,7 @@
 
 ## Functions vs Scripts
 
-Prefer standalone scripts in `dot_local/bin/` unless the command must modify the caller's shell state:
+Prefer standalone scripts in `home/dot_local/bin/` unless the command must modify the caller's shell state:
 - **Working directory** — `cd`, `pushd`, `popd`
 - **Environment variables** — `export`, `unset`
 - **Shell execution context** — `eval`, `source`
@@ -22,7 +22,7 @@ If none of these apply, make it a script. Scripts are shell-agnostic, independen
 - Use type hints (from `typing` import)
 - Prefer `pathlib.Path` over string paths
 - Use `tomllib` (3.11+) or `tomli` for TOML parsing
-- Follow existing patterns: see `dot_config/tuna/run_onchange_after_generate_config.py.tmpl`
+- Follow existing patterns: see `home/dot_config/tuna/run_onchange_after_generate_config.py.tmpl`
 
 ## Lua (Neovim)
 
@@ -44,4 +44,4 @@ If none of these apply, make it a script. Scripts are shell-agnostic, independen
 - Use `executable_` prefix for executable files
 - Use `symlink_` for symlinks
 - Use `private_` for sensitive files (mode 0600)
-- Store reusable data in `.chezmoidata/` or `data/`
+- Store reusable data in `home/.chezmoidata/` or `data/`
