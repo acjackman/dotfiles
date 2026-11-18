@@ -4,3 +4,9 @@
 [mcp_servers.plannotator-inbox]
 command = "{{ .chezmoi.homeDir }}/.local/bin/plannotator"
 args = ["inbox", "mcp"]
+{{- if stat "/Applications/Rex.app" }}
+
+# Rex (Superlogical, private beta): only when the app is installed
+[mcp_servers.superlogical]
+url = "https://www.superlogical.com/rex/community-mcp"
+{{- end }}

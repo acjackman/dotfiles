@@ -1,21 +1,38 @@
 #!/bin/bash
 # mcp-servers hash: {{ include "dot_claude/mcp-servers.json" | sha256sum }}
 # claude.json hash: {{ output "sh" "-c" (print "sha256sum " (joinPath .chezmoi.homeDir ".claude/.claude.json") " 2>/dev/null || echo none") | trim | splitList " " | first }}
+# profiles hash: {{ output "sh" "-c" (print "ls -d " (joinPath .chezmoi.homeDir ".config/claude/profiles/*/") " 2>/dev/null | sort | sha256sum || echo none") | trim | splitList " " | first }}
+{{- $rex := stat "/Applications/Rex.app" }}
+# rex installed: {{ if $rex }}yes{{ else }}no{{ end }}
 
-CLAUDE_JSON="$HOME/.claude/.claude.json"
-MCP_SERVERS_FILE="{{ .chezmoi.sourceDir }}/dot_claude/mcp-servers.json"
+# Writes the MCP servers in mcp-servers.json (plus conditional ones below) into
+# user-scope Claude config. Default ~/.claude owns its whole .mcpServers map
+# (replaced). Profiles under ~/.config/claude/profiles/*/ keep their own
+# servers: ours are merged in, overwriting only same-named entries.
 
-# Create .claude.json if it doesn't exist
-if [ ! -f "$CLAUDE_JSON" ]; then
-    echo '{}' > "$CLAUDE_JSON"
-fi
-
-# Use jq to merge MCP servers into .claude.json
-if command -v jq &> /dev/null; then
-    MCP_SERVERS=$(cat "$MCP_SERVERS_FILE")
-    jq --argjson servers "$MCP_SERVERS" '.mcpServers = $servers' "$CLAUDE_JSON" > "$CLAUDE_JSON.tmp" && \
-        mv "$CLAUDE_JSON.tmp" "$CLAUDE_JSON"
-else
+if ! command -v jq &> /dev/null; then
     echo "Warning: jq not found. Cannot update Claude MCP servers automatically."
     exit 1
 fi
+
+MCP_SERVERS=$(cat "{{ .chezmoi.sourceDir }}/dot_claude/mcp-servers.json")
+{{- if $rex }}
+
+# Rex (Superlogical, private beta): only when the app is installed
+MCP_SERVERS=$(jq '. + {superlogical: {type: "http", url: "https://www.superlogical.com/rex/community-mcp"}}' <<<"$MCP_SERVERS")
+{{- end }}
+
+update() { # update <claude.json> <jq filter>
+    local f="$1"
+    [ -f "$f" ] || echo '{}' > "$f"
+    # cat over the original (not mv) so the file keeps its mode (profiles are 0600)
+    jq --argjson servers "$MCP_SERVERS" "$2" "$f" > "$f.tmp" && cat "$f.tmp" > "$f"
+    rm -f "$f.tmp"
+}
+
+update "$HOME/.claude/.claude.json" '.mcpServers = $servers'
+
+for profile_dir in "$HOME/.config/claude/profiles"/*/; do
+    [ -f "${profile_dir}.claude.json" ] || continue
+    update "${profile_dir}.claude.json" '.mcpServers = ((.mcpServers // {}) + $servers)'
+done
