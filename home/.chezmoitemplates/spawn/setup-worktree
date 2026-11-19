@@ -49,9 +49,14 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-# Build the wt command — prefix with -C when targeting another repo
+# Build the wt command — prefix with -C when targeting another repo.
+# WORKTRUNK_WORKTREE_PATH overrides all worktrunk config, and a caller started
+# in a bare repo inherits that repo's relative "../<branch>" value from mise.
+# Resolved against another repo it escapes it (chezmoi worktrees landed in
+# ~/.local/share/<branch>). Drop it so the target's own config decides: its
+# [projects] pin for bare repos, the global .worktrees/ otherwise.
 wt_cmd=("$WT")
-[[ -n "$repo" ]] && wt_cmd+=(-C "$repo")
+[[ -n "$repo" ]] && wt_cmd=(env -u WORKTRUNK_WORKTREE_PATH "$WT" -C "$repo")
 
 git_cmd=(git -C "${repo:-.}")
 
