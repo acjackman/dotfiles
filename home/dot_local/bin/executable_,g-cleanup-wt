@@ -59,12 +59,59 @@ fi
 # Refresh remote state so PR/branch lookups are accurate; best-effort.
 git fetch origin --prune --quiet 2>/dev/null || true
 
+# --- Prefetch PR state for every branch that local ancestry can't clear ---
+# One `gh pr list` per branch took 20+ minutes on a repo with ~400 local
+# branches. Instead, batch the lookups into aliased GraphQL queries (50
+# branches per request) and cache "branch<TAB>STATE<TAB>OID" lines in a file.
+pr_cache="$(mktemp)"
+trap 'rm -f "$pr_cache"' EXIT
+pr_cache_ok=false
+if [[ -n "$gh_repo" ]]; then
+  pr_candidates=()
+  while IFS= read -r b; do
+    [[ "$b" == "$default_branch" ]] && continue
+    git merge-base --is-ancestor "$b" "$default_branch" 2>/dev/null && continue
+    pr_candidates+=("$b")
+  done < <(git for-each-ref --format='%(refname:short)' refs/heads)
+
+  pr_cache_ok=true
+  batch=50
+  for ((i = 0; i < ${#pr_candidates[@]}; i += batch)); do
+    # jq's tojson emits a JSON string literal, which is also a valid GraphQL
+    # string literal, so branch names are escaped safely.
+    query="$(printf '%s\n' "${pr_candidates[@]:i:batch}" | jq -Rrs --arg repo "$gh_repo" '
+      split("\n") | map(select(length > 0)) |
+      ($repo | split("/")) as [$owner, $name] |
+      "query { repository(owner: \($owner | tojson), name: \($name | tojson)) {" +
+      ([to_entries[] |
+        "b\(.key): pullRequests(headRefName: \(.value | tojson), first: 1, " +
+        "orderBy: {field: CREATED_AT, direction: DESC}) " +
+        "{ nodes { headRefName state headRefOid } }"] | join(" ")) +
+      " } }"')"
+    # headRefName comes back from the API, so map entries are keyed by the
+    # real branch; branches with no PR simply get no line (→ empty state).
+    if ! gh api graphql -f query="$query" --jq '
+        .data.repository | to_entries[] | .value.nodes[0] // empty |
+        "\(.headRefName)\t\(.state)\t\(.headRefOid)"' >> "$pr_cache" 2>/dev/null; then
+      pr_cache_ok=false
+      break
+    fi
+  done
+fi
+
 # Returns a branch's PR state and head commit as "STATE<TAB>OID".
 # STATE is MERGED, CLOSED, OPEN, NOT_FOUND, or empty when no PR exists.
 # The head OID matters for the ahead-of-PR guard in check_merged below.
+# Reads the prefetch cache; falls back to a per-branch `gh pr list` only if
+# the batched prefetch failed.
 check_pr_state() {
   local branch="$1"
   [[ -z "$gh_repo" ]] && { printf 'NOT_FOUND\t\n'; return; }
+  if $pr_cache_ok; then
+    awk -F'\t' -v b="$branch" '$1 == b { print $2 "\t" $3; found = 1; exit }
+      END { if (!found) print "\t" }' "$pr_cache"
+    return
+  fi
   gh pr list --repo "$gh_repo" --head "$branch" --state all \
     --json state,headRefOid \
     --jq '.[0] // {} | "\(.state // "")\t\(.headRefOid // "")"' 2>/dev/null \
@@ -177,42 +224,8 @@ for entry in ${worktrees[@]+"${worktrees[@]}"}; do
       ;;
   esac
 
-  # 2. Uncommitted work — staged or unstaged changes to tracked files
-  dirty="$(git -C "$wt_path" status --porcelain --untracked-files=no 2>/dev/null || true)"
-  if [[ -n "$dirty" ]]; then
-    dirty_count="$(printf '%s\n' "$dirty" | wc -l | tr -d ' ')"
-    warnings+=("uncommitted: $dirty_count tracked file(s) modified")
-  fi
-
-  # 3. Untracked files — flag everything, minus a denylist of disposables.
-  # This is inverted from the old "only worry about scratch paths" rule, which
-  # assumed untracked == build output and would have destroyed a runbook and a
-  # set of hand-written Claude skills that existed nowhere else. The inversion
-  # is only safe because `status` honours .gitignore: build output, caches and
-  # tool state are ignored here and so never appear, leaving only files a human
-  # deliberately created. .xo-brief.md is *not* gitignored, hence the explicit
-  # denylist entry.
-  untracked=()
-  while IFS= read -r f; do
-    [[ -z "$f" ]] && continue
-    case "$f" in
-      .xo-brief.md|*.tmp|tmp/*|.tmp/*) continue ;;
-    esac
-    untracked+=("$f")
-  done < <(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null |
-    sed -n 's/^?? //p' || true)
-  if [[ ${#untracked[@]} -gt 0 ]]; then
-    n_untracked=${#untracked[@]}
-    # Preview only the first few: a worktree can hold a dozen untracked files
-    # and the point is to show what's at stake, not to dump a file listing.
-    preview="${untracked[0]}"
-    [[ $n_untracked -gt 1 ]] && preview="$preview, ${untracked[1]}"
-    [[ $n_untracked -gt 2 ]] && preview="$preview, ${untracked[2]}"
-    [[ $n_untracked -gt 3 ]] && preview="$preview, +$((n_untracked - 3)) more"
-    warnings+=("untracked: $n_untracked file(s) not in git — $preview")
-  fi
-
-  # 4. Scratch artifacts
+  # 4. Scratch artifacts (runs before 2 and 3: it's cheap, and a hit here
+  # lets the expensive `git status` below be skipped)
   # Scratch dirs (tmp/, .tmp/) are conventional and gitignored in many repos —
   # an *empty* one carries nothing worth saving, so only a populated one counts.
   # -type f on the find keeps those same dirs from being double-reported as
@@ -233,6 +246,59 @@ for entry in ${worktrees[@]+"${worktrees[@]}"}; do
   if [[ ${#artifacts[@]} -gt 0 ]]; then
     warnings+=("artifacts found: ${artifacts[*]}")
   fi
+
+  # Checks 2 and 3 cost one `git status` per worktree (seconds each in a
+  # large repo). When an earlier check has already decided to skip and nobody
+  # will be asked "remove anyway?", their extra warnings change nothing.
+  deep_check=true
+  if ! $interactive && [[ ${#warnings[@]} -gt 0 ]]; then
+    deep_check=false
+    warnings+=("(uncommitted/untracked checks skipped; use --interactive for detail)")
+  fi
+
+  # One status call feeds both checks 2 and 3.
+  status_out=""
+  if $deep_check; then
+    status_out="$(git -C "$wt_path" status --porcelain --untracked-files=all 2>/dev/null || true)"
+  fi
+
+  # 2. Uncommitted work — staged or unstaged changes to tracked files
+  dirty="$(printf '%s\n' "$status_out" | grep -v -e '^??' -e '^$' || true)"
+  if [[ -n "$dirty" ]]; then
+    dirty_count="$(printf '%s\n' "$dirty" | wc -l | tr -d ' ')"
+    warnings+=("uncommitted: $dirty_count tracked file(s) modified")
+  fi
+
+  # 3. Untracked files — flag everything, minus a denylist of disposables.
+  # This is inverted from the old "only worry about scratch paths" rule, which
+  # assumed untracked == build output and would have destroyed a runbook and a
+  # set of hand-written Claude skills that existed nowhere else. The inversion
+  # is only safe because `status` honours .gitignore: build output, caches and
+  # tool state are ignored here and so never appear, leaving only files a human
+  # deliberately created. .xo-brief.md is *not* gitignored, hence the explicit
+  # denylist entry.
+  untracked=()
+  # Disposable untracked files still make `wt remove` refuse, so their presence
+  # is tracked separately and answered with --force at removal time.
+  has_disposable=false
+  while IFS= read -r f; do
+    [[ -z "$f" ]] && continue
+    case "$f" in
+      .xo-brief.md|*.tmp|tmp/*|.tmp/*) has_disposable=true; continue ;;
+    esac
+    untracked+=("$f")
+  done < <(printf '%s\n' "$status_out" | sed -n 's/^?? //p')
+  if [[ ${#untracked[@]} -gt 0 ]]; then
+    n_untracked=${#untracked[@]}
+    # Preview only the first few: a worktree can hold a dozen untracked files
+    # and the point is to show what's at stake, not to dump a file listing.
+    preview="${untracked[0]}"
+    [[ $n_untracked -gt 1 ]] && preview="$preview, ${untracked[1]}"
+    [[ $n_untracked -gt 2 ]] && preview="$preview, ${untracked[2]}"
+    [[ $n_untracked -gt 3 ]] && preview="$preview, +$((n_untracked - 3)) more"
+    warnings+=("untracked: $n_untracked file(s) not in git — $preview")
+  fi
+
 
   # --- Decision ---
   if [[ ${#warnings[@]} -gt 0 ]]; then
@@ -270,6 +336,9 @@ for entry in ${worktrees[@]+"${worktrees[@]}"}; do
   # confirmed a squash merge above (wt's own merge check would miss it).
   remove_args=(--foreground)
   $force_delete && remove_args+=(--force-delete)
+  # Only reached with no tracked changes and no non-disposable untracked files,
+  # so --force can only discard denylisted files like .xo-brief.md.
+  $has_disposable && remove_args+=(--force)
   if ! wt -C "$primary_wt" remove "${remove_args[@]}" "$branch"; then
     echo "  error: wt remove failed (busy pane or hook abort?)" >&2
     skipped=$((skipped + 1))
