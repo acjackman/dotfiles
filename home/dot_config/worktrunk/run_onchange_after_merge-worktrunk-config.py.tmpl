@@ -124,12 +124,11 @@ herdr = "~/.config/worktrunk/hooks/wt-herdr-hook.sh {{ "{{" }} worktree_path {{ 
 [pre-merge]
 tmux = "~/.config/worktrunk/hooks/wt-tmux-hook.sh {{ "{{" }} worktree_path {{ "}}" }} {{ "{{" }} primary_worktree_path {{ "}}" }}"
 herdr = "~/.config/worktrunk/hooks/wt-herdr-hook.sh {{ "{{" }} worktree_path {{ "}}" }}"
-
-[projects."github.com/acjackman/dotfiles"]
-worktree-path = "~/dev/jackman/dotfiles/{{ "{{" }} branch | sanitize {{ "}}" }}"
 """
 
-    # Keys managed in managed_config above — don't duplicate in preserved section
+    # Project keys chezmoi once managed; strip them so a stale override isn't preserved.
+    # dotfiles used to pin worktrees outside the repo; with .chezmoiroot = home,
+    # the default .worktrees/ sits outside the chezmoi source and is safe.
     managed_project_keys = {"github.com/acjackman/dotfiles"}
 
     # Combine managed config with preserved local-only projects
