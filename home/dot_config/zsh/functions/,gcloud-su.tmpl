@@ -1,0 +1,49 @@
+{{- if has "moov" .extras -}}
+# -*- mode: zsh -*- vim: ft=zsh
+
+function ,gcloud-su() {
+    # Switch this shell to the moov SU identity (gcloud, ADC, kubectl).
+    # Logs in only if the SU token expired; -f re-auths anyway.
+    # `,gcloud-login` switches back to your own account.
+    #
+    # Separate dirs rather than a gcloud configuration, because configurations
+    # share one ADC file and one kubeconfig, so Terraform and client libraries
+    # would run as whoever logged in last.
+    local su_root="${XDG_CONFIG_HOME:-${HOME}/.config}/su"
+    local account="${CHROME_MOOV_SU_ACCOUNT:-adam.jackman.su@moov.io}"
+    local force=0
+
+    case "${1-}" in
+        -f | --force) force=1 ;;
+        "") ;;
+        *)
+            print -u2 "usage: ,gcloud-su [-f|--force]"
+            return 2
+            ;;
+    esac
+
+    export CLOUDSDK_CONFIG="${su_root}/gcloud"
+    # CLOUDSDK_CONFIG should cover ADC, but the Terraform provider ignores it.
+    export GOOGLE_APPLICATION_CREDENTIALS="${CLOUDSDK_CONFIG}/application_default_credentials.json"
+    export KUBECONFIG="${su_root}/kube/config"
+    export GCLOUD_SU=1
+    mkdir -p "${CLOUDSDK_CONFIG}" "${KUBECONFIG:h}"
+
+    # First run: give the fresh dir's default configuration the SU account.
+    if [[ -z "$(gcloud config get-value account 2>/dev/null)" ]]; then
+        gcloud config set account "${account}" --quiet || return
+    fi
+
+    if (( ! force )) && gcloud auth print-access-token "${account}" >/dev/null 2>&1; then
+        return 0
+    fi
+
+    # chrome-moov-su opens the consent screen in the SU Chrome profile.
+    # gcloud auth login refuses to run with GOOGLE_APPLICATION_CREDENTIALS set;
+    # env -u drops it (and sets BROWSER) for this command only.
+    # Naming the account makes gcloud refuse a consent for any other account;
+    # --update-adc writes the same credentials to ADC: one consent, not two.
+    env -u GOOGLE_APPLICATION_CREDENTIALS BROWSER="${HOME}/.local/bin/chrome-moov-su" \
+        gcloud auth login "${account}" --update-adc
+}
+{{ end -}}

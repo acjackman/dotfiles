@@ -138,3 +138,4 @@ Library/Application Support/ovim
 # Stray copy of the repo-root AGENTS.md, deployed 2025-10-04 before it was ignored.
 # Anchored at ~, so ~/.config/codex/AGENTS.md is untouched.
 AGENTS.md
+.local/bin/,gcloud-su-login

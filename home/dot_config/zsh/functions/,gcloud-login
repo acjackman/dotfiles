@@ -1,0 +1,29 @@
+# -*- mode: zsh -*- vim: ft=zsh
+
+function ,gcloud-login() {
+    # Switch this shell to your own gcloud identity (leaving `,gcloud-su` mode)
+    # and log in, user + ADC, only if the active account's token expired.
+    # -f re-auths anyway.
+    local force=0
+
+    case "${1-}" in
+        -f | --force) force=1 ;;
+        "") ;;
+        *)
+            print -u2 "usage: ,gcloud-login [-f|--force]"
+            return 2
+            ;;
+    esac
+
+    if [[ -n ${GCLOUD_SU-} ]]; then
+        unset CLOUDSDK_CONFIG GOOGLE_APPLICATION_CREDENTIALS KUBECONFIG GCLOUD_SU
+    fi
+
+    if (( ! force )) && gcloud auth print-access-token >/dev/null 2>&1; then
+        return 0
+    fi
+
+    # gcloud auth login refuses to run with GOOGLE_APPLICATION_CREDENTIALS set.
+    # --update-adc writes the same credentials to ADC: one consent, not two.
+    env -u GOOGLE_APPLICATION_CREDENTIALS gcloud auth login --update-adc
+}
