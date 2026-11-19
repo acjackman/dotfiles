@@ -1,0 +1,12 @@
+{
+  "enabled": true,
+  "autoAllowBashIfSandboxed": true,
+  "allowUnsandboxedCommands": true,
+  "filesystem": {
+    "allowWrite": [
+      "~/.cache",
+      "~/Library/Caches",
+      "~/Library/Application Support/rtk"
+    ]
+  }
+}
