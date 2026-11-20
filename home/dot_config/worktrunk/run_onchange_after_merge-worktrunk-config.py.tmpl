@@ -44,7 +44,7 @@ def warn_if_wt_outdated() -> None:
         fmt = lambda v: ".".join(map(str, v))
         print(
             f"⚠ worktrunk {fmt(installed)} < {fmt(MIN_WT_VERSION)}; config may not work. "
-            "Run: brew upgrade max-sixty/worktrunk/wt"
+            "Run: brew upgrade worktrunk"
         )
 
 def load_toml(path: Path) -> dict[str, Any]:

@@ -11,8 +11,9 @@ tap "FelixKratz/formulae"
 tap "yqrashawn/goku"
 tap "manaflow-ai/cmux"
 tap "mikker/tap"
+tap "alienxp03/tap"
+tap "nicosuave/tap"
 tap "raine/workmux"
-tap "max-sixty/worktrunk"
 tap "steipete/tap"
 tap "tonisives/tap"
 tap "umputun/apps"
@@ -59,7 +60,9 @@ brew "fzf"
 brew "tmux"
 brew "sesh"
 brew "raine/workmux/workmux"
-brew "max-sixty/worktrunk/wt"
+brew "worktrunk"                    # wt (homebrew-core; was the max-sixty tap)
+brew "alienxp03/tap/raptor"          # Rex picker: sessions, projects, worktrunk worktrees
+brew "nicosuave/tap/rex-launch"      # Rex composer: prompt -> worktree + agent tab
 
 # Terminal Emulator
 cask "ghostty"

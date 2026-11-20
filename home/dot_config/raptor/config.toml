@@ -1,0 +1,4 @@
+# Raptor (alienxp03/raptor), the Rex picker on shift+cmd+o. Flat TOML subset.
+# Its agents are pi and codex only, so it starts none; new Claude worktrees go
+# through rex-launch (shift+cmd+n) instead.
+agent = "none"

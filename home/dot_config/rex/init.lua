@@ -108,6 +108,24 @@ rex.action({
 })
 rex.bind("ctrl+space>.", "navi")
 
+-- Pickers (trial, 2026-11-19). Written by hand from what `raptor init` and
+-- `rex-launch setup` would add: both installers edit this file in place, so
+-- don't run them. After `brew upgrade rex-launch`, diff rex-launch.lua against
+-- the one `HOME=$(mktemp -d) rex-launch setup` writes.
+--   Raptor (alienxp03/raptor): sessions, projects, worktrunk worktrees, PRs.
+--   Its agent is off (~/.config/raptor/config.toml), so its instant-agent
+--   action (cmd+opt+n, starts pi) is left unbound.
+dofile("/opt/homebrew/opt/raptor/share/raptor/init.lua").setup{}
+rex.bind("shift+cmd+o", "raptor")
+rex.bind("shift+cmd+c", "raptor_pr_open")
+rex.bind("ctrl+cmd+n", "raptor_worktree_new") -- moved off shift+cmd+n, which rex-launch takes
+for i = 1, 9 do
+  rex.bind("ctrl+cmd+" .. i, "raptor_pin_" .. i)
+end
+--   rex-launch (nicosuave/rex-launch): prompt + project -> worktree + agent tab.
+require("rex-launch").setup{ bin = "/opt/homebrew/bin/rex-launch", key = false }
+rex.bind("shift+cmd+n", "new_task")
+
 -- Sessions
 rex.bind("ctrl+space>shift+'", "session.switch")    -- tmux.reset.conf:81
 rex.bind("ctrl+space>shift+r", "session.rename")    -- herdr config.toml:57
