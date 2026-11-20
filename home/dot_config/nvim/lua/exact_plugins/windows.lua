@@ -38,21 +38,25 @@ return {
         end,
       },
     },
-    config = function(_, opts)
-      local ss = require("smart-splits")
-      ss.setup(opts)
-
-      local function map(lhs, fn, desc)
-        vim.keymap.set("n", lhs, fn, { silent = true, desc = desc })
+    -- As lazy.nvim `keys`, not vim.keymap.set in config: LazyVim's default
+    -- keymaps (<C-h> = <C-w>h, …) load later and override plain mappings, but
+    -- skip any key a plugin spec claims here.
+    keys = function()
+      local function ss(fn)
+        return function()
+          require("smart-splits")[fn]()
+        end
       end
-      map("<C-h>", ss.move_cursor_left, "Move left (split/pane)")
-      map("<C-j>", ss.move_cursor_down, "Move down (split/pane)")
-      map("<C-k>", ss.move_cursor_up, "Move up (split/pane)")
-      map("<C-l>", ss.move_cursor_right, "Move right (split/pane)")
-      map("<C-M-h>", ss.resize_left, "Resize left (split/pane)")
-      map("<C-M-j>", ss.resize_down, "Resize down (split/pane)")
-      map("<C-M-k>", ss.resize_up, "Resize up (split/pane)")
-      map("<C-M-l>", ss.resize_right, "Resize right (split/pane)")
+      return {
+        { "<C-h>", ss("move_cursor_left"), desc = "Move left (split/pane)" },
+        { "<C-j>", ss("move_cursor_down"), desc = "Move down (split/pane)" },
+        { "<C-k>", ss("move_cursor_up"), desc = "Move up (split/pane)" },
+        { "<C-l>", ss("move_cursor_right"), desc = "Move right (split/pane)" },
+        { "<C-M-h>", ss("resize_left"), desc = "Resize left (split/pane)" },
+        { "<C-M-j>", ss("resize_down"), desc = "Resize down (split/pane)" },
+        { "<C-M-k>", ss("resize_up"), desc = "Resize up (split/pane)" },
+        { "<C-M-l>", ss("resize_right"), desc = "Resize right (split/pane)" },
+      }
     end,
   },
 }
