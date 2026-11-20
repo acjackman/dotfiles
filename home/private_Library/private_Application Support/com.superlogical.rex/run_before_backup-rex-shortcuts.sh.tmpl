@@ -1,0 +1,33 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/usr/bin/env bash
+# Snapshot Rex's shortcuts.json before chezmoi overwrites it with something
+# different.
+#
+# Rex rewrites this file whenever a shortcut is changed in Settings > Keyboard,
+# so the source goes stale and the next apply would silently revert the
+# change. `chezmoi diff`/`,doctor-dotfiles` show the drift; this keeps a copy
+# in case an apply runs first. Copy a wanted change back into
+# home/private_Library/private_Application Support/com.superlogical.rex/Shortcuts/.
+# run_before_ (not run_onchange_): the drift starts in the app, not the source.
+set -euo pipefail
+
+target="$HOME/Library/Application Support/com.superlogical.rex/Shortcuts/shortcuts.json"
+[[ -f "$target" ]] || exit 0
+
+want_sha={{ include "private_Library/private_Application Support/com.superlogical.rex/Shortcuts/shortcuts.json" | sha256sum }}
+have_sha="$(shasum -a 256 "$target" | cut -d' ' -f1)"
+[[ "$want_sha" == "$have_sha" ]] && exit 0
+
+# One backup per distinct deployed content.
+backup_dir="${XDG_STATE_HOME:-$HOME/.local/state}/dotfiles/replaced/rex"
+short="${have_sha:0:12}"
+compgen -G "$backup_dir/shortcuts.json.*.$short" >/dev/null && exit 0
+mkdir -p "$backup_dir"
+backup="$backup_dir/shortcuts.json.$(date +%Y%m%d-%H%M%S).$short"
+cp -p "$target" "$backup"
+cat >&2 <<MSG
+rex: shortcuts.json differs from the chezmoi source (a Settings > Keyboard
+change?); saved a copy to ${backup/#$HOME/~}
+chezmoi is about to overwrite it. To keep the change, copy it into the source.
+MSG
+{{ end -}}

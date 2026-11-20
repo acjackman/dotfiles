@@ -1,0 +1,39 @@
+{
+  "layer" : {
+    "bindings" : [
+      {
+        "action" : "client.window.new",
+        "keys" : [
+          "shift+cmd+n"
+        ],
+        "source" : "settings"
+      },
+      {
+        "action" : "session.new",
+        "keys" : [
+          "cmd+n"
+        ],
+        "source" : "settings"
+      }
+    ],
+    "name" : "settings",
+    "removals" : [
+      {
+        "action" : "client.window.new",
+        "keys" : [
+          "cmd+n"
+        ]
+      },
+      {
+        "action" : "session.new",
+        "keys" : [
+          "shift+cmd+n"
+        ]
+      }
+    ]
+  },
+  "migrations" : [
+    "bracket-characters"
+  ],
+  "version" : 1
+}

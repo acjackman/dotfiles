@@ -114,17 +114,19 @@ rex.bind("ctrl+space>.", "navi")
 -- the one `HOME=$(mktemp -d) rex-launch setup` writes.
 --   Raptor (alienxp03/raptor): sessions, projects, worktrunk worktrees, PRs.
 --   Its agent is off (~/.config/raptor/config.toml), so its instant-agent
---   action (cmd+opt+n, starts pi) is left unbound.
+--   action (cmd+opt+n, starts pi) is left unbound; rex-launch has that key.
 dofile("/opt/homebrew/opt/raptor/share/raptor/init.lua").setup{}
 rex.bind("shift+cmd+o", "raptor")
 rex.bind("ctrl+cmd+c", "raptor_pr_open") -- Raptor's default is shift+cmd+c: Rex's copy mode
-rex.bind("ctrl+cmd+n", "raptor_worktree_new") -- moved off shift+cmd+n, which rex-launch takes
+rex.bind("ctrl+cmd+n", "raptor_worktree_new") -- Raptor's shift+cmd+n is Rex's new window here
 for i = 1, 9 do
   rex.bind("ctrl+cmd+" .. i, "raptor_pin_" .. i)
 end
 --   rex-launch (nicosuave/rex-launch): prompt + project -> worktree + agent tab.
 require("rex-launch").setup{ bin = "/opt/homebrew/bin/rex-launch", key = false }
-rex.bind("shift+cmd+n", "new_task") -- replaces Rex's new session; Raptor and the palette still make one
+-- Not its default shift+cmd+n: Settings > Keyboard (Shortcuts/shortcuts.json,
+-- which beats init.lua) has that as new window and cmd+n as new session.
+rex.bind("alt+cmd+n", "new_task")
 
 -- Sessions
 rex.bind("ctrl+space>shift+'", "session.switch")    -- tmux.reset.conf:81
