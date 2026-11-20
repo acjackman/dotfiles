@@ -124,11 +124,13 @@ rex.bind("shift+cmd+g", "raptor")
 -- PR checkout takes Raptor's default shift+cmd+c; copy mode moves to ctrl+cmd+c.
 rex.bind("shift+cmd+c", "raptor_pr_open")
 rex.bind("ctrl+cmd+c", "pane.copy_mode.enter")
-rex.bind("ctrl+cmd+n", "raptor_worktree_new") -- Raptor's shift+cmd+n is Rex's new window here
+-- New worktree on Raptor's default shift+cmd+n. Rex's cmd+n/shift+cmd+n
+-- (new window/session) are removed in Settings > Keyboard (Shortcuts/
+-- shortcuts.json, which beats init.lua); both are still in the palette.
+rex.bind("shift+cmd+n", "raptor_worktree_new")
 --   rex-launch (nicosuave/rex-launch): prompt + project -> worktree + agent tab.
+--   Not its default shift+cmd+n, which Raptor has.
 require("rex-launch").setup{ bin = "/opt/homebrew/bin/rex-launch", key = false }
--- Not its default shift+cmd+n: Settings > Keyboard (Shortcuts/shortcuts.json,
--- which beats init.lua) has that as new window and cmd+n as new session.
 rex.bind("alt+cmd+n", "new_task")
 
 -- Sessions
