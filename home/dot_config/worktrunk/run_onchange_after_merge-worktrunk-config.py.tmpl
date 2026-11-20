@@ -120,10 +120,12 @@ claude-trust = "~/.config/worktrunk/hooks/ensure-claude-trust.sh"
 [pre-remove]
 tmux = "~/.config/worktrunk/hooks/wt-tmux-hook.sh {{ "{{" }} worktree_path {{ "}}" }} {{ "{{" }} primary_worktree_path {{ "}}" }}"
 herdr = "~/.config/worktrunk/hooks/wt-herdr-hook.sh {{ "{{" }} worktree_path {{ "}}" }}"
+rex = "~/.config/worktrunk/hooks/wt-rex-hook.sh {{ "{{" }} worktree_path {{ "}}" }}"
 
 [pre-merge]
 tmux = "~/.config/worktrunk/hooks/wt-tmux-hook.sh {{ "{{" }} worktree_path {{ "}}" }} {{ "{{" }} primary_worktree_path {{ "}}" }}"
 herdr = "~/.config/worktrunk/hooks/wt-herdr-hook.sh {{ "{{" }} worktree_path {{ "}}" }}"
+rex = "~/.config/worktrunk/hooks/wt-rex-hook.sh {{ "{{" }} worktree_path {{ "}}" }}"
 """
 
     # Project keys chezmoi once managed; strip them so a stale override isn't preserved.

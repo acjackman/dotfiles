@@ -48,7 +48,8 @@ target: INFRA-4592        # optional
 files: []                 # optional
 working-dir: /Users/...   # optional
 close-surface: w1S        # optional — tells XO to close this surface after ingest.
-                          # Prefer the herdr workspace id (unambiguous); a label
+                          # Prefer an id (unambiguous): rex:<window_id> for a Rex
+                          # tab, or the herdr workspace id; a label
                           # is accepted but XO must re-resolve and refuse to act
                           # if it matches more than one live workspace.
 ---

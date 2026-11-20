@@ -3,13 +3,15 @@ set -euo pipefail
 
 # ,spawn — CLI spawn with optional AI pre-processing
 # Collects a prompt, optionally uses AI to propose branch/mode/improved prompt,
-# opens $EDITOR for review, then spawns a Claude agent in a worktree via tmux.
+# opens $EDITOR for review, then spawns a Claude agent in a worktree in a new
+# Rex window (when run in a Rex pane) or tmux window/session.
 
 usage() {
     cat >&2 <<'EOF'
 Usage: ,spawn [options] [file ...]
 
-Spawn a Claude agent in an isolated worktree via tmux.
+Spawn a Claude agent in an isolated worktree, in a background Rex window when
+run inside Rex, otherwise a tmux window (or session, with --mode session).
 
 Input methods (combined in order):
   -p, --prompt TEXT    Inline prompt text
@@ -85,8 +87,13 @@ while [[ $# -gt 0 ]]; do
 done
 
 # --- Validate environment ---
-if [[ -z "${TMUX:-}" ]]; then
-    echo "Error: must be inside a tmux session" >&2
+# Probe Rex through the server: $REX_BLOCK alone can be inherited from another pane.
+rex_session=""
+if command -v rex >/dev/null 2>&1; then
+    rex_session=$(rex whoami --json 2>/dev/null | jq -r '.session_id // empty' 2>/dev/null) || rex_session=""
+fi
+if [[ -z "$rex_session" && -z "${TMUX:-}" ]]; then
+    echo "Error: must be inside a Rex pane or a tmux session" >&2
     exit 1
 fi
 
@@ -248,5 +255,19 @@ prompt_file=$(echo "$final_prompt" | spawn-write-prompt "$worktree_path")
 
 echo "Prompt: $prompt_file"
 
-# Step 3: Spawn tmux
-spawn-tmux "--$mode" --name "$branch" --dir "$worktree_path" --prompt "$prompt_file"
+# Step 3: Spawn
+if [[ -n "$rex_session" ]]; then
+    # Rex: one background window (tab) per agent in the current session.
+    sq() { printf "'%s'" "${1//\'/\'\\\'\'}"; }
+    launch="unset TMUX TMUX_PANE; cat $(sq "$prompt_file") | claude --permission-mode=auto --name $(sq "$branch")"
+    mcp_settings=${SPAWN_MCP_SETTINGS-'{"enableAllProjectMcpServers":true}'}
+    [[ -n "$mcp_settings" ]] && launch+=" --settings $(sq "$mcp_settings")"
+    win_json=$(rex window new -s "$rex_session" "$branch" -c "$worktree_path" --focus=false --json)
+    pane=$(jq -r '.block_ids[0]' <<<"$win_json")
+    rex send -s "$rex_session" -b "$pane" "$launch"
+    rex send-key -s "$rex_session" -b "$pane" enter
+    printf 'substrate: rex\nlabel: %s\nwindow_id: %s\nblock_id: %s\n' \
+        "$branch" "$(jq -r .window_id <<<"$win_json")" "$pane"
+else
+    spawn-tmux "--$mode" --name "$branch" --dir "$worktree_path" --prompt "$prompt_file"
+fi

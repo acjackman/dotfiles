@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Router for .command files — a "Finicky for .command files"
 # Parses .command files (e.g. from Linear's "open in coding tools") for their
-# working directory and runs them in a new herdr workspace, falling back to a
-# tmux window when no herdr server is running.
+# working directory and runs them in a new Rex session, else a herdr
+# workspace, else a tmux window (see preferred-mux).
 #
 # Usage: command-file-router <path-to-.command-file>
 
@@ -46,7 +46,17 @@ done < "$command_file"
 
 work_dir="${work_dir:-$HOME}"
 
-if herdr status --json 2>/dev/null | jq -e '.server.running' >/dev/null; then
+mux=$(preferred-mux || echo tmux)
+
+if [[ "$mux" == rex ]]; then
+  out=$(rex new "linear $(basename "$work_dir")" -c "$work_dir" --json)
+  session=$(jq -r '.session_id' <<<"$out")
+  block=$(jq -r '.initial_windows[0].block_ids[0]' <<<"$out")
+  rex send -s "$session" -b "$block" "bash $(printf '%q' "$command_file")"
+  rex send-key -s "$session" -b "$block" enter
+  rex-open "$session"
+  target="rex:$session"
+elif [[ "$mux" == herdr ]]; then
   out=$(herdr workspace create --cwd "$work_dir" --label "linear $(basename "$work_dir")" --no-focus)
   ws=$(jq -r '.result.workspace.workspace_id' <<<"$out")
   pane=$(jq -r '.result.root_pane.pane_id' <<<"$out")

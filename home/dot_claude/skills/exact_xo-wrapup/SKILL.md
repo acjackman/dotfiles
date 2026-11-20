@@ -27,11 +27,11 @@ Gather everything XO needs to reconstruct this thread. Pull from the conversatio
 - **PR / CI** — if a PR exists: `gh pr view` and `gh pr checks` (PR number, red/green).
 - **Location** — cwd / worktree (`pwd`).
 - **The effort / ticket** — from the branch name, the spawn brief, or the conversation. This becomes `-t <effort-or-ticket>`.
-- **Your surface's identity** — discover it agent-agnostically, and report **both** the workspace id and the label:
-  1. `herdr pane current` → read `.result.pane.workspace_id` (e.g. `w1S`). This is the unambiguous handle.
-  2. `herdr workspace get <workspace_id>` → `.result.workspace.label` — the human-readable label. Labels are **not unique**, which is exactly why the id goes in the handoff alongside it.
+- **Your surface's identity** — discover it agent-agnostically, and report **both** the id and the label:
+  1. On Rex: `rex whoami --json` → `.window_id` and `.session_id` (verified against the server, unlike `$REX_BLOCK`). Report the surface as `rex:<window_id>` — the tab this agent runs in, unambiguous. For the label: `rex window ls -s <session_id> --json | jq -r --arg w <window_id> '.windows[] | select(.window_id == $w) | .label'`, plus the session's `.label` from the same output.
+  2. On herdr: `herdr pane current` → read `.result.pane.workspace_id` (e.g. `w1S`). This is the unambiguous handle. Then `herdr workspace get <workspace_id>` → `.result.workspace.label` — the human-readable label. Labels are **not unique**, which is exactly why the id goes in the handoff alongside it.
   3. On tmux instead: `tmux display-message -p '#{pane_id} #{@agent_label}'`.
-  4. If neither resolves, **ask Adam** — do not guess, and do not pass `--safe-to-close` without a verified identity (a wrong one would close the wrong surface).
+  4. If none resolves, **ask Adam** — do not guess, and do not pass `--safe-to-close` without a verified identity (a wrong one would close the wrong surface).
 
 ### 2. Synthesize the XO-ready handoff
 
@@ -73,7 +73,7 @@ It prints the path of the file it wrote and exits 0. **Echo that path** in your 
 
 ### 5. No self-close — report to Adam
 
-**Never close your own surface** (`herdr workspace close` / `tmux kill-window` on yourself). Closing the surface you're running in mid-turn kills you before you can report; teardown is XO's job on its next reconcile (it re-resolves the `close-surface:` identity, confirms it's live and not XO's own workspace, then closes it). Your job ends at the handoff.
+**Never close your own surface** (`rex window close` / `herdr workspace close` / `tmux kill-window` on yourself). Closing the surface you're running in mid-turn kills you before you can report; teardown is XO's job on its next reconcile (it re-resolves the `close-surface:` identity, confirms it's live and not XO's own workspace, then closes it). Your job ends at the handoff.
 
 Report to Adam:
 

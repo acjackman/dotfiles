@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+# Print the multiplexer that launchers should open new work in: the first of
+# $PREFERRED_MUX (default "rex herdr tmux") that is usable right now.
+#
+#   rex    Rex.app is installed (rex-open launches it if it isn't running)
+#   herdr  a herdr server is running
+#   tmux   tmux is installed
+#
+# Used by ,linear-start and command-file-router. herdr and tmux stay as
+# fallbacks while Rex is on trial; set PREFERRED_MUX="herdr tmux" to go back.
+set -uo pipefail
+
+PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
+
+for m in ${PREFERRED_MUX:-rex herdr tmux}; do
+  case "$m" in
+    rex)
+      rex --help >/dev/null 2>&1 && { echo rex; exit 0; } ;;
+    herdr)
+      herdr status --json 2>/dev/null | jq -e '.server.running' >/dev/null 2>&1 &&
+        { echo herdr; exit 0; } ;;
+    tmux)
+      command -v tmux >/dev/null && { echo tmux; exit 0; } ;;
+  esac
+done
+echo "preferred-mux: none of ${PREFERRED_MUX:-rex herdr tmux} is available" >&2
+exit 1

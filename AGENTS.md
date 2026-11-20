@@ -81,15 +81,17 @@ Skills (slash commands like `/spawn`, `/apply`) are defined in `home/dot_claude/
 
 **Replaced copies convention:** any script that overwrites or moves aside something chezmoi doesn't own (a generator rewriting a merged config, a pre-apply guard) saves the old version to `${XDG_STATE_HOME:-~/.local/state}/dotfiles/replaced/<subsystem>/` rather than a `.bak` beside the file. Copies wait there until reviewed and deleted. `run_after_zz-warn-replaced.sh` prints a one-line reminder on every apply while any exist. Current writers: agent-skills, tuna, sesh. (codex wrote them until its `config.toml` became a modify_ template; the old ones are in `replaced/codex/`.)
 
-## Linear → worktree → herdr
+## Linear → worktree → Rex
 
-Linear's "Work on issue → Custom script" runs `,linear-start` via `home/dot_linear/coding-tools.json.tmpl` (deploys to `~/.linear/coding-tools.json`). It resolves the repo, creates or reuses the worktree through `spawn-setup-worktree`, writes the issue prompt to `<worktree>/.tmp/linear-<ID>.md`, opens a herdr workspace, and starts Claude. In refine mode (the default) it types a one-line prompt without submitting; `--mode ship` submits. Re-running for the same issue focuses the existing workspace.
+Linear's "Work on issue → Custom script" runs `,linear-start` via `home/dot_linear/coding-tools.json.tmpl` (deploys to `~/.linear/coding-tools.json`). It resolves the repo, creates or reuses the worktree through `spawn-setup-worktree`, writes the issue prompt to `<worktree>/.tmp/linear-<ID>.md`, opens a Rex session (herdr workspace as fallback), and starts Claude. In refine mode (the default) it types a one-line prompt without submitting; `--mode ship` submits. Re-running for the same issue focuses the existing session.
+
+- **Multiplexer choice:** `preferred-mux` prints the first usable of `$PREFERRED_MUX` (default `rex herdr tmux`). Rex is on trial; herdr and Ghostty stay installed, so `PREFERRED_MUX="herdr tmux"` switches every launcher back.
 
 - **Repo resolution order:** `--repo`, `LINEAR_WORK_DIR` if it's inside a repo, picks remembered in `~/.local/state/linear-start/repos.toml`, the hand-written map `home/dot_config/linear-start/repos.toml` (`[projects]` beats `[teams]`), then an fzf picker. Linear runs the script with no TTY, so the picker re-runs the script inside a herdr pane.
 - **State lives in XDG state:** `~/.local/state/linear-start/` holds `log.jsonl` (one line per run) and the remembered picks. Failures also go to `noti`.
 - **`--dry-run`** prints the resolved repo, branch, label and launch command without creating anything.
-- **CommandRouter** (`command-file-router`) handles `.command` files from Linear's built-in tools separately. It opens each one in a new herdr workspace, falls back to tmux, and never parses the file beyond its `cd` line.
-- **`herdr-reveal <workspace_id>`** focuses a workspace and raises Ghostty, opening a herdr window if Ghostty isn't running. Both entry points use it.
+- **CommandRouter** (`command-file-router`) handles `.command` files from Linear's built-in tools separately. It opens each one in a new Rex session (else herdr workspace, else tmux window), and never parses the file beyond its `cd` line.
+- **`rex-open <label|session_id> [dir]`** shows a Rex session (creating it in `dir` if missing) and raises Rex; switching the app to the session needs Rex's Remote Control on. `herdr-reveal <workspace_id>` is the herdr equivalent. Both entry points use whichever matches the multiplexer.
 
 ## Plannotator Inbox
 

@@ -1,11 +1,11 @@
 ---
-description: Spawn a new Claude agent in an isolated worktree on a herdr (or tmux) surface
+description: Spawn a new Claude agent in an isolated worktree on a Rex, herdr or tmux surface
 argument-hint: [--base <ref>] [--repo <path>] [--model <model>] [--session] <task description>
 ---
 
 # Spawn Claude Agent
 
-Spawn a new Claude agent in an isolated worktree on a new interactive surface. You open that surface by driving **herdr** directly — or **tmux**, if that's the multiplexer you're actually running inside. Detect which; don't assume (see step 0f).
+Spawn a new Claude agent in an isolated worktree on a new interactive surface. You open that surface by driving the multiplexer you're running inside: **Rex** (preferred), **herdr**, or **tmux**. Detect which; don't assume (see step 0f).
 
 Each agent gets its own worktree created by worktrunk, so it can work without conflicting with the current session.
 
@@ -18,7 +18,7 @@ $ARGUMENTS contains the task description and optional flags for the new Claude a
 - `--base <ref>` — Pass through to `spawn-setup-worktree` to create the worktree from a specific git ref
 - `--repo <path>` — Target a different repository (see Cross-Repo Tasks below)
 - `--model <model>` — Override the automatic model selection
-- `--session` — On tmux, create a session instead of a window (default: window). Ignored on herdr, which always opens a tab in the current workspace.
+- `--session` — On tmux, create a session instead of a window (default: window). Ignored on Rex and herdr, which always open a tab (Rex: window) in the current session/workspace.
 
 Everything remaining after extracting flags is the task description.
 
@@ -36,10 +36,11 @@ Pass `--repo <path>` to `spawn-setup-worktree` to target the other repo. If it's
 These are on PATH:
 
 - **`spawn-setup-worktree`** — Creates or reuses a worktrunk-managed worktree. Returns JSON `{branch, path}`.
-- **`herdr`** — The multiplexer. `herdr tab create` opens a tab in the current workspace, `herdr pane run` launches a command in it, `herdr agent list` reports semantic agent state, `herdr tab close` tears it down. Most commands return JSON — read IDs out of the response with `jq` rather than predicting them.
+- **`rex`** — The preferred multiplexer, when you're in a Rex pane. `rex window new` opens a tab (Rex calls it a window) in the current session, `rex send` types into it, the block's `program_status` reports semantic agent state, `rex window close` tears it down. `--json` output carries the IDs.
+- **`herdr`** — The previous multiplexer, still installed. `herdr tab create` opens a tab in the current workspace, `herdr pane run` launches a command in it, `herdr agent list` reports semantic agent state, `herdr tab close` tears it down. Most commands return JSON — read IDs out of the response with `jq` rather than predicting them.
 - **`tmux`** — The fallback, used only when you're actually running inside tmux (or herdr's server is down).
 
-> The `clank` adapter was **removed** on 2026-08-04. Drive `herdr`/`tmux` directly as described below.
+> The `clank` adapter was **removed** on 2026-08-04. Drive `rex`/`herdr`/`tmux` directly as described below.
 
 ## Pre-flight Checks
 
@@ -92,12 +93,13 @@ If there are uncommitted changes, warn the user: "The working tree has uncommitt
 Detect it, in this order. Never cross multiplexers — a surface opened from inside tmux stays in tmux, and vice versa.
 
 ```bash
+rex whoami --json 2>/dev/null | jq -e .block_id >/dev/null && echo rex   # inside a Rex pane
 herdr pane current >/dev/null 2>&1 && echo herdr        # inside a herdr pane
 [ -n "$TMUX" ] && echo tmux                             # inside tmux
-herdr status server >/dev/null 2>&1 && echo herdr || echo tmux   # no host context
+preferred-mux                                           # no host context: rex, herdr or tmux
 ```
 
-Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those are ordinary env vars that a child process can inherit from a *different* live pane, so they lie. If neither multiplexer is available, stop and tell the user.
+Probe with `rex whoami` / `herdr pane current`, **not** `$REX_BLOCK` / `$HERDR_ENV` alone — those are ordinary env vars that a child process can inherit from a *different* live pane, so they lie; the probe checks them against the server. If no multiplexer is available, stop and tell the user.
 
 ## Instructions
 
@@ -124,9 +126,9 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
    [ -n "$wt_path" ] && [ -d "$wt_path" ] || { echo "bad worktree path: '$wt_path'"; exit 1; }
    ```
 
-   If the exit code is non-zero or `[ -d "$wt_path" ]` fails, **stop and report** the error to the user. Never run `herdr tab create` / `tmux new-window` with an empty path — it silently falls back to `~` and the agent opens in the wrong directory.
+   If the exit code is non-zero or `[ -d "$wt_path" ]` fails, **stop and report** the error to the user. Never run `rex window new` / `herdr tab create` / `tmux new-window` with an empty path — it silently falls back to `~` and the agent opens in the wrong directory.
 
-   Name the variable `wt_path`, never `path`: in zsh, `path` is tied to `$PATH`, so assigning it wipes `PATH` and every later command (`herdr`, `jq`, `tmux`) fails with `command not found`.
+   Name the variable `wt_path`, never `path`: in zsh, `path` is tied to `$PATH`, so assigning it wipes `PATH` and every later command (`rex`, `herdr`, `jq`, `tmux`) fails with `command not found`.
 
    With no `--base`, the script fetches origin's default branch and bases the new worktree on `origin/<default>` (no manual `git fetch` / `merge --ff-only` needed; offline falls back to the local ref with a stderr warning). If the worktree already exists it is reused (with `--base` compatibility check). On failure the reason is on stderr, prefixed `setup-worktree:`. When `--repo` targets a regular checkout, the script returns a synthetic JSON entry pointing to that directory.
 
@@ -146,7 +148,7 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
 
 4. Spawn a full interactive Claude session on a new surface. Never use `claude -p`/`--print`.
 
-   Use the **branch name** as the label throughout — the herdr tab label, the tmux window name, and `claude --name` — so all three identifiers line up and a human can find the agent by one name. (Don't name it after the worktree basename: most doers spawn in `.../infra/main`, which collapses every session to `main`.)
+   Use the **branch name** as the label throughout — the Rex window label, the herdr tab label, the tmux window name, and `claude --name` — so all three identifiers line up and a human can find the agent by one name. (Don't name it after the worktree basename: most doers spawn in `.../infra/main`, which collapses every session to `main`.)
 
    Build the launch line once:
 
@@ -155,6 +157,19 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
    ```
 
    `enableAllProjectMcpServers` stops the agent stalling on the "N new MCP servers found — enable?" prompt for an unapproved project `.mcp.json`. It auto-approves *project*-scoped servers only, leaving global/user MCP intact.
+
+   **On Rex** — one window (tab) per agent in the *current* session, opened in the background:
+
+   ```bash
+   session=$(rex whoami --json | jq -r .session_id)
+   win_json=$(rex window new -s "$session" <branch-name> -c "$wt_path" --focus=false --json)
+   win=$(jq -r '.window_id' <<<"$win_json")
+   pane=$(jq -r '.block_ids[0]' <<<"$win_json")
+   rex send -s "$session" -b "$pane" "unset TMUX TMUX_PANE; $LAUNCH"
+   rex send-key -s "$session" -b "$pane" enter
+   ```
+
+   `rex send` types the line into the window's shell (no Enter; `send-key enter` submits it), so that shell evaluates the pipe.
 
    **On herdr** — one tab per agent in the *current* workspace, opened in the background:
 
@@ -179,10 +194,20 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
    tmux send-keys -t "$pane" "$LAUNCH" Enter
    ```
 
-   Record the substrate and the ids (`ws` / `tab` / `pane`) for the next steps.
+   Record the substrate and the ids (Rex: `session` / `win` / `pane`; herdr: `ws` / `tab` / `pane`) for the next steps.
 
 5. **Verify the agent actually started** (don't trust the spawn step blindly).
    Wait ~3 seconds for shell init + claude startup, then ask for the agent's state.
+
+   **On Rex** — semantic state from the block (fed by the hook `rex skill setup` installs):
+
+   ```bash
+   sleep 3
+   rex api call block.method -- "{\"session_id\":\"$session\",\"block_id\":\"$pane\",\"method\":\"program_status\"}" \
+     | jq -c '.records[] | {app, state, kind, msg}'
+   ```
+
+   `state` is `working`, `idle` or `blocked` (with `kind`/`msg` saying why, e.g. `permission` / `trust this folder`) once Claude is up. No `claude-code` record means it hasn't started or has exited; read the screen with `rex capture -s "$session" -b "$pane" | tail -30`.
 
    **On herdr** — semantic state, joined through the pane id:
 
@@ -221,9 +246,11 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
 
 6. Confirm to the user:
    - The branch/worktree that was created (or target repo for cross-repo tasks)
-   - The **substrate** the agent was spawned on (herdr or tmux) and its label
+   - The **substrate** the agent was spawned on (Rex, herdr or tmux) and its label
    - The prompt file path
    - How to switch to it:
+     - **Rex**: `rex focus -s <session> <window_id>` (or pick the tab by its
+       `<branch-name>` label)
      - **herdr**: `herdr tab focus <tab_id>` (or pick the tab by its
        `<branch-name>` label)
      - **tmux window**: `tmux select-window -t '=<branch-name>'`
@@ -231,6 +258,15 @@ Probe with `herdr pane current`, **not** `$HERDR_ENV`/`$HERDR_SESSION` — those
 
 7. When the agent's work has been merged/handled and the surface is no longer
    needed, tear it down.
+
+   **On Rex** — close by **window id**, re-resolved right now (labels are not unique):
+
+   ```bash
+   rex window ls -s "$session" --json | jq -r --arg l '<branch-name>' '.windows[] | select(.label == $l) | .window_id'
+   rex window close -s "$session" <window_id>
+   ```
+
+   Same rule as herdr below: more than one id is a stop-and-ask; none means it's already gone.
 
    **On herdr** — close by **tab id**, re-resolved right now. Labels are
    not unique, so closing by label can tear down the wrong surface:

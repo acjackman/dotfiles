@@ -1,12 +1,16 @@
 #!/usr/bin/env bash
-# Start work on a Linear issue: worktree + herdr workspace + Claude Code.
+# Start work on a Linear issue: worktree + Rex session (or herdr workspace) +
+# Claude Code.
 #
 # Called by Linear's "Custom script" (~/.linear/coding-tools.json) or by hand.
 # Linear runs it detached with no TTY, so it only orchestrates; anything
-# interactive (the repo picker) re-runs this script inside a herdr pane.
+# interactive (the repo picker) re-runs this script inside a terminal pane.
 #
 # Usage: ,linear-start --issue ENG-123 [--branch <name>] [--repo <path>]
 #                      [--mode refine|ship] [--model <model>] [--dry-run]
+#
+# Multiplexer: Rex, else herdr (see preferred-mux; PREFERRED_MUX overrides).
+# A Rex "workspace" below is a session, and a "pane" is a block.
 #
 # Linear env (used when the matching flag is absent): LINEAR_ISSUE_IDENTIFIER,
 # LINEAR_ISSUE_BRANCH_NAME, LINEAR_PROMPT, LINEAR_WORK_DIR, LINEAR_PROJECT_NAME.
@@ -27,7 +31,7 @@ state_map="$state_dir/repos.toml"
 log_file="$state_dir/log.jsonl"
 
 usage() {
-  sed -n 's/^# \{0,1\}//; 8,9p' "$0" >&2
+  sed -n 's/^# \{0,1\}//; 9,10p' "$0" >&2
   exit 2
 }
 
@@ -92,12 +96,74 @@ die() {
   exit 1
 }
 
+# --- Multiplexer layer: Rex sessions/blocks or herdr workspaces/panes ---
+# The picker re-run inherits the parent's choice via PREFERRED_MUX, so a
+# picker session it opened is closed with the same tool.
+mux=$(preferred-mux) || exit 1
+[[ "$mux" == rex || "$mux" == herdr ]] || { echo ",linear-start: needs Rex or herdr, found $mux" >&2; exit 1; }
+
+# mux_create LABEL DIR: sets ws and pane.
+mux_create() {
+  local out
+  if [[ "$mux" == rex ]]; then
+    out=$(rex new "$1" -c "$2" --json)
+    ws=$(jq -r '.session_id // empty' <<<"$out")
+    pane=$(jq -r '.initial_windows[0].block_ids[0] // empty' <<<"$out")
+  else
+    out=$(herdr workspace create --cwd "$2" --label "$1" --no-focus)
+    ws=$(jq -r '.result.workspace.workspace_id // empty' <<<"$out")
+    pane=$(jq -r '.result.root_pane.pane_id // empty' <<<"$out")
+  fi
+  [[ -n "$ws" && -n "$pane" ]] || die "$mux returned no ids: $out"
+}
+
+# mux_type WS PANE TEXT [submit]: type TEXT into the pane, pressing Enter
+# when the fourth argument is "submit".
+mux_type() {
+  if [[ "$mux" == rex ]]; then
+    rex send -s "$1" -b "$2" "$3"
+    if [[ "${4:-}" == submit ]]; then rex send-key -s "$1" -b "$2" enter; fi
+  elif [[ "${4:-}" == submit ]]; then
+    herdr agent prompt "$2" "$3"
+  else
+    herdr pane send-text "$2" "$3"
+  fi >/dev/null
+}
+
+# mux_run WS PANE CMD: run CMD in the pane's shell.
+mux_run() {
+  if [[ "$mux" == rex ]]; then
+    mux_type "$1" "$2" "$3" submit
+  else
+    herdr pane run "$2" "$3" >/dev/null
+  fi
+}
+
+mux_reveal() {
+  if [[ "$mux" == rex ]]; then rex-open "$1"; else herdr-reveal "$1"; fi
+}
+
+mux_close() {
+  if [[ "$mux" == rex ]]; then rex kill "$1"; else herdr workspace close "$1"; fi >/dev/null
+}
+
+# Agent state, normalised to herdr's words: idle, done, working, blocked.
+mux_agent_status() {
+  if [[ "$mux" == rex ]]; then
+    rex api call block.method -- "$(jq -cn --arg s "$1" --arg b "$2" \
+      '{session_id: $s, block_id: $b, method: "program_status"}')" 2>/dev/null |
+      jq -r '[.records[]? | select(.app == "claude-code")][0].state // empty'
+  else
+    herdr agent get "$2" 2>/dev/null | jq -r '.result.agent.agent_status // empty'
+  fi
+}
+
 # Log before closing the picker workspace: when we run inside it, closing it
 # kills this script.
 finish() {
   trap - EXIT
   log_run "$outcome" 0
-  [[ -n "$picker_ws" ]] && herdr workspace close "$picker_ws" >/dev/null
+  [[ -n "$picker_ws" ]] && mux_close "$picker_ws"
   exit 0
 }
 
@@ -165,28 +231,34 @@ prompt_text() {
   fi
 }
 
-# Picker needs a TTY: hand off to a herdr pane running this script with
+# Picker needs a TTY: hand off to a terminal pane running this script with
 # --interactive, passing the prompt via a file (env doesn't cross the pane).
 handoff_to_picker() {
-  local pf out ws pane cmd
+  local pf ws pane cmd
   pf=$(mktemp "${TMPDIR:-/tmp}/linear-start-$issue.XXXXXX")
   prompt_text >"$pf"
-  out=$(herdr workspace create --cwd "$HOME" --label "$issue pick repo" --no-focus)
-  ws=$(jq -r '.result.workspace.workspace_id' <<<"$out")
-  pane=$(jq -r '.result.root_pane.pane_id' <<<"$out")
+  mux_create "$issue pick repo" "$HOME"
   cmd="$(sq "$0") --interactive --picker-ws $(sq "$ws") --issue $(sq "$issue") --branch $(sq "$branch")"
   cmd+=" --mode $(sq "$mode") --prompt-file $(sq "$pf")"
   [[ -n "$model" ]] && cmd+=" --model $(sq "$model")"
+  cmd="PREFERRED_MUX=$mux $cmd"
   [[ -n "$project" ]] && cmd="LINEAR_PROJECT_NAME=$(sq "$project") $cmd"
-  herdr pane run "$pane" "$cmd"
+  mux_run "$ws" "$pane" "$cmd"
   workspace="$ws"
   outcome="picker"
-  herdr-reveal "$ws"
+  mux_reveal "$ws"
 }
 
+# A workspace already working on this worktree. herdr: any pane inside it.
+# Rex: a session labelled for this issue (labels start with the issue ID).
 existing_workspace_for() {
-  herdr pane list | jq -r --arg p "$1" \
-    '[.result.panes[] | select(.cwd == $p or (.cwd | startswith($p + "/")))][0].workspace_id // empty'
+  if [[ "$mux" == rex ]]; then
+    rex ls --json | jq -r --arg i "$issue" \
+      'first(.sessions[] | select(.label == $i or (.label | startswith($i + " "))) | .session_id) // empty'
+  else
+    herdr pane list | jq -r --arg p "$1" \
+      '[.result.panes[] | select(.cwd == $p or (.cwd | startswith($p + "/")))][0].workspace_id // empty'
+  fi
 }
 
 # Label: issue ID plus the branch slug with any user/ prefix and the ID stripped.
@@ -200,9 +272,9 @@ workspace_label() {
 }
 
 wait_for_agent() {
-  local pane="$1" status i
+  local status i
   for ((i = 0; i < 60; i++)); do
-    status=$(herdr agent get "$pane" 2>/dev/null | jq -r '.result.agent.agent_status // empty') || status=""
+    status=$(mux_agent_status "$1" "$2") || status=""
     case "$status" in
       idle|done) return 0 ;;
       blocked) return 1 ;;
@@ -237,8 +309,8 @@ launch+=" --settings '{\"enableAllProjectMcpServers\":true}'"
 [[ -n "$model" ]] && launch+=" --model $(sq "$model")"
 
 if $dry_run; then
-  printf 'repo:      %s\nbranch:    %s\nlabel:     %s\nmode:      %s\nlaunch:    %s\nprompt:    %s\n' \
-    "$repo" "$branch" "$label" "$mode" "$launch" "$line"
+  printf 'mux:       %s\nrepo:      %s\nbranch:    %s\nlabel:     %s\nmode:      %s\nlaunch:    %s\nprompt:    %s\n' \
+    "$mux" "$repo" "$branch" "$label" "$mode" "$launch" "$line"
   exit 0
 fi
 
@@ -249,7 +321,7 @@ existing=$(existing_workspace_for "$worktree")
 if [[ -n "$existing" ]]; then
   workspace="$existing"
   outcome="focused-existing"
-  herdr-reveal "$existing"
+  mux_reveal "$existing"
   finish
 fi
 
@@ -258,19 +330,17 @@ fi
   printf '\n\n---\nLinear issue: %s (branch `%s`). Use the Linear MCP for anything missing above.\n' "$issue" "$branch"
 } >"$worktree/$brief_rel"
 
-out=$(herdr workspace create --cwd "$worktree" --label "$label" --no-focus)
-workspace=$(jq -r '.result.workspace.workspace_id' <<<"$out")
-pane=$(jq -r '.result.root_pane.pane_id' <<<"$out")
-[[ -n "$workspace" && -n "$pane" ]] || die "herdr workspace create returned no ids: $out"
+mux_create "$label" "$worktree"
+workspace="$ws"
 
-herdr pane run "$pane" "$launch" >/dev/null
-herdr-reveal "$workspace"
+mux_run "$ws" "$pane" "$launch"
+mux_reveal "$ws"
 
-if wait_for_agent "$pane"; then
+if wait_for_agent "$ws" "$pane"; then
   if [[ "$mode" == ship ]]; then
-    herdr agent prompt "$pane" "$line" >/dev/null
+    mux_type "$ws" "$pane" "$line" submit
   else
-    herdr pane send-text "$pane" "$line" >/dev/null
+    mux_type "$ws" "$pane" "$line"
   fi
 else
   outcome="agent-not-ready"

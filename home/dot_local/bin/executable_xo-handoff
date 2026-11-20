@@ -60,8 +60,8 @@ def render_handoff(
     When `safe_to_close` is set, `close-surface: {source}` is appended — a
     signal to the xo-skill reader that the surface named by `source` may be
     torn down once XO has ingested this handoff. This ties source==surface, so
-    `--source` must identify the live surface in that case. Prefer the herdr
-    workspace id (`w1S`) over a label: labels are not unique, and the reader is
+    `--source` must identify the live surface in that case. Prefer an id
+    (`rex:<window_id>` for a Rex tab, or the herdr workspace id `w1S`) over a label: labels are not unique, and the reader is
     required to re-resolve and refuse to close an ambiguous match.
     """
     created_at = datetime.now().astimezone().isoformat(timespec="seconds")
