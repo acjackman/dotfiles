@@ -5,3 +5,9 @@ python = "3.12"
 
 "npm:@google/gemini-cli" = "latest"
 aws-cli = { version = "latest", symlink_bins = "true" }
+
+[env]
+# Default Claude profile on moov machines: the Moov API org. Repos pinned by
+# `claude-team` / `claude-profile` (.mise.local.toml) override this, as do the
+# personal repos. Nothing starts a session in the root ~/.claude any more.
+CLAUDE_CONFIG_DIR = "{{env.HOME}}/.config/claude/profiles/moov-api"

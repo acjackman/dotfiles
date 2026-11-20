@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# claude-team: claude on the Moov Claude Team seat (moov-team profile, pinned
+# to the repo). See claude-profile.
+CLAUDE_PROFILE_CALLER=claude-team exec claude-profile moov-team "$@"

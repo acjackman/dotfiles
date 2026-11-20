@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+# claude-profile: run claude under a named profile and pin it to the repo.
+#
+#   claude-profile <name> [claude args...]
+#
+# Profiles are config dirs under ~/.config/claude/profiles/<name>; each has its
+# own login, sessions and history (`--resume` only sees that profile's).
+# Inside a git repo it also pins the profile in <worktree root>/.mise.local.toml
+# (globally gitignored), so plain `claude` there keeps using it once mise
+# reloads the env at the next prompt. Undo with:
+#   mise unset --file "$(git rev-parse --show-toplevel)/.mise.local.toml" CLAUDE_CONFIG_DIR
+#
+# New profile: `claude-profile <name> auth login [--console|--claudeai]`, then
+# apply chezmoi so the generators (settings, plugins, MCP servers, CLAUDE.md)
+# pick it up. Wrappers: claude-team (moov-team), claude-api (moov-api).
+set -euo pipefail
+
+if [ $# -lt 1 ] || [ -z "$1" ] || [[ "$1" == -* ]]; then
+    echo "usage: claude-profile <name> [claude args...]" >&2
+    exit 2
+fi
+name="$1"; shift
+me="${CLAUDE_PROFILE_CALLER:-claude-profile}"
+
+profile_dir="$HOME/.config/claude/profiles/$name"
+mkdir -p "$profile_dir"
+
+# mise's local config names, highest precedence first (verified with
+# `mise config ls` / `mise env`).
+local_configs=(
+    .mise.local.toml
+    mise.local.toml
+    mise/config.local.toml
+    .mise/config.local.toml
+    .config/mise.local.toml
+    .config/mise/config.local.toml
+)
+
+# CLAUDE_CONFIG_DIR value in a file, with $HOME / ${HOME} / ~ expanded.
+pinned_in() {
+    sed -n 's/^[[:space:]]*CLAUDE_CONFIG_DIR[[:space:]]*=[[:space:]]*["'"'"']\(.*\)["'"'"'].*/\1/p' "$1" |
+        head -n1 | sed -e "s|^\\\$HOME|$HOME|" -e "s|^\\\${HOME}|$HOME|" -e "s|^~|$HOME|"
+}
+
+if root="$(git rev-parse --show-toplevel 2>/dev/null)"; then
+    # Edit the file that already pins a profile, else add to the existing local
+    # file mise ranks highest, else create .mise.local.toml (globally ignored).
+    file="" existing=""
+    for f in "${local_configs[@]}"; do
+        [ -f "$root/$f" ] || continue
+        [ -n "$existing" ] || existing="$root/$f"
+        if grep -Eq '^[[:space:]]*CLAUDE_CONFIG_DIR[[:space:]]*=' "$root/$f"; then
+            file="$root/$f"
+            break
+        fi
+    done
+    file="${file:-${existing:-$root/.mise.local.toml}}"
+    current=""
+    [ -f "$file" ] && current="$(pinned_in "$file")"
+    if [ "$current" != "$profile_dir" ]; then
+        [ -f "$file" ] || : >"$file"
+        mise trust --quiet "$file"
+        mise set --file "$file" CLAUDE_CONFIG_DIR="$profile_dir"
+        echo "$me: pinned $name in ${file/#$HOME/\~}${current:+ (was ${current/#$HOME/\~})}" >&2
+    fi
+fi
+
+export CLAUDE_CONFIG_DIR="$profile_dir"
+exec claude "$@"

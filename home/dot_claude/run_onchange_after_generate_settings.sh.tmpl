@@ -159,14 +159,35 @@ apply_honeycomb_env() {
     echo "Merged Honeycomb OTEL env: $settings_file"
 }
 {{ end }}
+# Pin how a config dir may sign in: "console" (API usage billing) or "claudeai"
+# (subscription). Keeps a dir from drifting onto the other billing on re-login.
+set_login_method() {
+    local settings_file="$1" method="$2"
+    jq --arg m "$method" '.forceLoginMethod = $m' \
+        "$settings_file" > "$settings_file.tmp" && mv "$settings_file.tmp" "$settings_file"
+}
+
 apply_settings "$HOME/.claude/settings.json"
 {{ if has "moov" .extras -}}
 apply_honeycomb_env "$HOME/.claude/settings.json"
+# Work default bills to the Moov API org, like the moov-api profile; the Team
+# seat lives in moov-team (`claude-team`), keeping its credit balance for
+# Claude Duet.
+set_login_method "$HOME/.claude/settings.json" console
 {{- end }}
 
 for profile_dir in "$HOME/.config/claude/profiles"/*/; do
     [ -d "$profile_dir" ] || continue
     apply_settings "${profile_dir}settings.json"
+{{- if has "moov" .extras }}
+    case "$(basename "$profile_dir")" in
+        moov-*) apply_honeycomb_env "${profile_dir}settings.json" ;;
+    esac
+    case "$(basename "$profile_dir")" in
+        moov-api) set_login_method "${profile_dir}settings.json" console ;;
+        moov-team) set_login_method "${profile_dir}settings.json" claudeai ;;
+    esac
+{{- end }}
 
     # Symlink skills from global ~/.claude/skills/ into each profile
     if [ -d "$HOME/.claude/skills" ]; then

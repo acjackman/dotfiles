@@ -174,14 +174,20 @@ default_extras=("base")
 reconcile "$HOME/.claude" "${default_extras[@]}"
 
 # --- Named profiles: base + namesake extras (when declared) -----------------
+# A dashed name also takes its prefix's extras: `moov-team` gets `moov` (and
+# `moov-team`, if declared).
 if [ -d "$HOME/.config/claude/profiles" ]; then
     for profile_dir in "$HOME/.config/claude/profiles"/*/; do
         [ -d "$profile_dir" ] || continue
         name="$(basename "$profile_dir")"
         extras=("base")
-        if [ "$(jq --arg n "$name" '(.extras // {}) | has($n)' "$PLUGINS_FILE")" = "true" ]; then
-            extras+=("$name")
-        fi
+        candidates=("$name")
+        [ "${name%%-*}" != "$name" ] && candidates=("${name%%-*}" "$name")
+        for n in "${candidates[@]}"; do
+            if [ "$(jq --arg n "$n" '(.extras // {}) | has($n)' "$PLUGINS_FILE")" = "true" ]; then
+                extras+=("$n")
+            fi
+        done
         reconcile "${profile_dir%/}" "${extras[@]}"
     done
 fi

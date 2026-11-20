@@ -14,7 +14,7 @@ if [[ -n "$CLAUDE_CONFIG_DIR" ]]; then
 fi
 
 case "$profile" in
-    billing|moov)
+    billing|moov|moov-*)
         exec claude --permission-mode auto "$@"
         ;;
     personal|*)

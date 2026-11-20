@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+# claude-api: claude billed to the Moov API org (moov-api profile, pinned to
+# the repo). See claude-profile.
+CLAUDE_PROFILE_CALLER=claude-api exec claude-profile moov-api "$@"

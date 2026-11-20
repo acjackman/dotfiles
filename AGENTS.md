@@ -54,6 +54,19 @@ Skills (slash commands like `/spawn`, `/apply`) are defined in `home/dot_claude/
 
 **Third-party skills** (e.g. `t3dotgg/tstack`, `mattpocock/skills`) are listed in `home/.chezmoidata/agent-skills.yaml` with one pinned commit per repo. `home/.chezmoiexternal.toml` extracts each into `~/.config/agents/skills/<name>` (an exact dir, so unlisted skills are removed); `~/.agents/skills` symlinks there for Codex and other agents, and `home/dot_claude/run_after_link-agent-skills.sh.tmpl` links them into `~/.claude/skills`. Add, remove or bump skills in the data file — never with `npx skills add -g`, which writes into the managed dir and is wiped on apply. Bump a repo as a whole after reviewing the upstream diff, since skills in a suite call each other.
 
+## Claude Code profiles
+
+A profile is a config dir under `~/.config/claude/profiles/<name>/`, selected with `CLAUDE_CONFIG_DIR`. The dirs aren't chezmoi-managed; every generator in `home/dot_claude/` (settings, plugins, MCP servers, CLAUDE.md, skills) and the Rex/herdr/Plannotator scripts loop over whichever exist, so a new dir is picked up on the next apply. Each has its own login, sessions and history.
+
+- **`~/.claude`**: no session uses it on moov machines, where `data/mise/moov.toml` sets `CLAUDE_CONFIG_DIR` to `moov-api` globally. It stays as the shared source the profiles link to (skills, mods, statusline), and keeps `forceLoginMethod: console` so anything that still lands there bills to the API, not the Team seat.
+- **`personal`**: personal subscription. Personal repos set it in `.mise.local.toml`.
+- **`moov-api`**: the Moov API org (`forceLoginMethod: console`). The default on moov machines; `claude-api` pins it to a repo.
+- **`moov-team`**: the Moov Claude Team seat (`forceLoginMethod: claudeai`), launched with `claude-team`. Keeping everyday work on the API saves the Team credit balance for Claude Duet.
+
+`claude-team` and `claude-api` wrap `claude-profile <name> [claude args]`, which starts claude on the profile and, inside a git repo, writes `CLAUDE_CONFIG_DIR` to the worktree root's local mise config (whichever file already sets it, else the existing local file mise ranks highest, else a new `.mise.local.toml`), so plain `claude` there stays on that profile.
+
+Plugins come from `home/dot_claude/plugins.json` `.extras` for the profile's name, and for its prefix before a dash (`moov-team` and `moov-api` get `moov`). `moov-*` profiles also get the Honeycomb OTEL env and `auto` permission mode in `claude-yolo`. Hand-edited settings such as `autoMode` aren't generated, so a new profile starts with a copy of them from `~/.claude/settings.json`.
+
 ## Doctor Scripts
 
 `,doctor-*` scripts in `home/dot_local/bin/` apply common fixes for a specific subsystem. The comma prefix follows the convention used by other user-facing utility commands in this repo (sorts early in tab-completion, no clash with system binaries).
