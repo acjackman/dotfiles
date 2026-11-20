@@ -1,0 +1,37 @@
+#!/usr/bin/env bash
+# ,rex-navi — Rex port of the tmux/herdr navi popup.
+#
+# Runs as the body of a floating Rex pane that the `navi` action in
+# dot_config/rex/init.lua opens on prefix+. (tmux's key for navi). Shows
+# `navi --print`, then types the chosen snippet into the pane the popup was
+# opened over, bracketed and without Enter, like tmux `paste-buffer -p`. The
+# floating pane closes when this exits.
+#
+# Usage: ,rex-navi <session_id> <block_id>
+#
+# Bracketed paste: the terminal `write` method types raw bytes, so a
+# multi-line snippet would otherwise run its intermediate lines. REX_NAVI_NO_BRACKET=1
+# sends raw (single-line snippets only).
+
+set -uo pipefail
+
+PATH="$HOME/.local/bin:/opt/homebrew/bin:$PATH"
+
+session="${1:?usage: ,rex-navi <session_id> <block_id>}"
+block="${2:?usage: ,rex-navi <session_id> <block_id>}"
+
+command -v navi >/dev/null || {
+  echo ",rex-navi: navi not found — it's brew \"navi\" in Brewfile-base" >&2
+  read -r -n1 -p "press a key"
+  exit 1
+}
+
+# Esc/cancel prints nothing. Command substitution strips the trailing newline,
+# so the snippet can't run itself.
+snippet="$(navi --print)" || exit 0
+[[ -n "$snippet" ]] || exit 0
+
+[[ -n "${REX_NAVI_NO_BRACKET:-}" ]] || snippet=$'\e[200~'"$snippet"$'\e[201~'
+
+rex api call block.method -- "$(jq -cn --arg s "$session" --arg b "$block" --arg d "$snippet" \
+  '{session_id: $s, block_id: $b, method: "write", args: {data: $d}}')" >/dev/null

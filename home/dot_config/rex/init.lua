@@ -55,7 +55,6 @@ end
 rex.bind("ctrl+space>x", "pane.close")                                   -- tmux.reset.conf:19
 rex.bind("ctrl+space>shift+\\", "pane.split", { direction = "right" })   -- herdr config.toml:38
 rex.bind("ctrl+space>-", "pane.split", { direction = "down" })           -- herdr config.toml:39
-rex.bind("ctrl+space>.", "pane.split", { direction = "down" })           -- tmux.reset.conf:128
 rex.bind("ctrl+space>ctrl+left", "pane.focus", { direction = "left" })   -- tmux.reset.conf:38
 rex.bind("ctrl+space>ctrl+down", "pane.focus", { direction = "down" })   -- tmux.reset.conf:39
 rex.bind("ctrl+space>ctrl+up", "pane.focus", { direction = "up" })       -- tmux.reset.conf:40
@@ -80,6 +79,34 @@ rex.bind("ctrl+space>7", "client.tab.goto", { index = 7 })   -- tmux.reset.conf:
 rex.bind("ctrl+space>8", "client.tab.goto", { index = 8 })   -- tmux.reset.conf:74
 rex.bind("ctrl+space>9", "client.tab.goto", { index = 9 })   -- tmux.reset.conf:75
 rex.bind("ctrl+space>0", "client.tab.goto", { index = 10 })  -- tmux.reset.conf:76
+
+-- Move panes and tabs (herdr: drovr + break-pane commands, same keys)
+rex.bind("ctrl+space>m", "pane.move_to_tab")                  -- pick a tab to move this pane to
+rex.bind("ctrl+space>shift+m", "client.tab.move_to_new_window") -- herdr: tab to another workspace
+rex.bind("ctrl+space>t", "pane.move_to_new_tab")              -- break pane into a new tab
+rex.bind("ctrl+space>shift+t", "client.tab.move_to_new_window") -- break tab out into its own window
+
+-- navi cheatsheet (tmux/herdr prefix+.): a floating pane runs ,rex-navi, which
+-- types the picked snippet into the pane it was opened over.
+rex.action({
+  name = "navi",
+  title = "navi: Cheatsheet",
+  run = function(ctx)
+    rex.session.new_layer({
+      session_id = ctx.session_id,
+      bounds = { 0.05, 0.05, 0.9, 0.9 },
+      focus = true,
+      layout = {
+        block = {
+          flavor = "com.superlogical.terminal.shell",
+          label = "navi",
+          options = { command = { os.getenv("HOME") .. "/.local/bin/,rex-navi", ctx.session_id, ctx.block_id } },
+        },
+      },
+    })
+  end,
+})
+rex.bind("ctrl+space>.", "navi")
 
 -- Sessions
 rex.bind("ctrl+space>shift+'", "session.switch")    -- tmux.reset.conf:81
