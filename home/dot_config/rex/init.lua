@@ -107,6 +107,7 @@ rex.action({
   end,
 })
 rex.bind("ctrl+space>.", "navi")
+rex.bind("shift+cmd+.", "navi") -- replaces Rex's dismiss-notice key
 
 -- Pickers (trial, 2026-11-19). Written by hand from what `raptor init` and
 -- `rex-launch setup` would add: both installers edit this file in place, so
