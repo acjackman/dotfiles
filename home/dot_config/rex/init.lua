@@ -6,6 +6,51 @@
 -- Prefix passthrough (tmux.reset.conf:13)
 rex.bind("ctrl+space>ctrl+space", "pane.send_key", { key = "ctrl+space" })
 
+-- Move (ctrl+hjkl) and resize (ctrl+alt+hjkl) across Neovim splits and Rex
+-- panes. The Neovim half is smart-splits.nvim + rawnly/smart-splits-backend-rex
+-- (nvim/lua/exact_plugins/windows.lua): when Neovim is in front the key goes
+-- to it, and it hands off to Rex at its edge. Not alt+hjkl: AeroSpace owns it.
+-- In other panes these keys no longer reach the program (same as under herdr).
+local function is_vim(block_id)
+  local proc = rex.block.call("com.superlogical.terminal", "process", { block_id = block_id })
+  local fg = proc and proc.foreground
+  if not fg then
+    return false
+  end
+  -- `name` can be a version string (e.g. claude's), so check argv0 too
+  for _, s in ipairs({ fg.name or "", (fg.argv0 or ""):match("[^/]*$") }) do
+    if s:match("^n?vim") then
+      return true
+    end
+  end
+  return false
+end
+
+-- rex.client.queue only works inside actions, so resize is an action that
+-- forwards the key itself when Neovim is in front.
+rex.action({
+  name = "smart_splits_resize",
+  title = "Smart Splits: Resize Pane",
+  run = function(ctx, args)
+    if is_vim(ctx.block_id) then
+      rex.client.queue("pane.send_key", { key = args.key })
+    else
+      rex.client.queue("pane.resize", { direction = args.direction, amount = 3 })
+    end
+  end,
+})
+
+for key, direction in pairs({ h = "left", j = "down", k = "up", l = "right" }) do
+  rex.bind("ctrl+" .. key, function(ctx)
+    if is_vim(ctx.block_id) then
+      return false -- fall through to Neovim
+    end
+    rex.session.focus_direction({ direction = direction, wrap = true })
+    return true
+  end)
+  rex.bind("ctrl+alt+" .. key, "smart_splits_resize", { key = "ctrl+alt+" .. key, direction = direction })
+end
+
 -- Panes
 rex.bind("ctrl+space>x", "pane.close")                                   -- tmux.reset.conf:19
 rex.bind("ctrl+space>shift+\\", "pane.split", { direction = "right" })   -- herdr config.toml:38
