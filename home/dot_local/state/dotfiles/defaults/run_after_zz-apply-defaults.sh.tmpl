@@ -1,0 +1,7 @@
+{{ if eq .chezmoi.os "darwin" -}}
+#!/bin/sh
+# Make each app's plist match the defaults TOML chezmoi just deployed beside
+# this script. Every apply, silent unless it changes something; see
+# .chezmoi-hooks/defaults-sync.py at the repo root.
+exec python3 -I "$CHEZMOI_SOURCE_DIR/../.chezmoi-hooks/defaults-sync.py" apply
+{{ end -}}

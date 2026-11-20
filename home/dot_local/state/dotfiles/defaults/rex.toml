@@ -1,0 +1,61 @@
+# Rex GUI settings: the com.superlogical.rex plist, i.e. everything in Rex's
+# Settings window except Keyboard (Shortcuts/shortcuts.json, managed beside it).
+# init.lua can't set these. Rex reads most at launch: quit and reopen it after
+# a change. How this file syncs with the plist: .chezmoi-hooks/defaults-sync.py
+# (`chezmoi diff` shows app-side changes; `chezmoi re-add` keeps them).
+domain = "com.superlogical.rex"
+
+[values]
+# Appearance
+"Workspace.appearance" = "system"
+"Workspace.darkThemeID" = "merino-dark"
+"Workspace.lightThemeID" = "merino-light"
+"Workspace.interfaceStyle" = "useTheme"
+"Workspace.usesPaneGlass" = false
+"Workspace.usesStandardInactiveWindowPaneStyles" = true
+"Workspace.inactivePaneFadeMode" = "both"
+"Workspace.tabIconTintMode" = "off"
+"Workspace.shellIconTheme" = "default"
+"Workspace.appIconVisibility" = "dockAndMenuBar"
+
+# Layout
+"Workspace.tabStyle" = "horizontal"
+"Workspace.tabBarEdge" = "top"
+"Workspace.sidebarPosition" = "left"
+"Workspace.sidebarCollapsed" = false
+"Workspace.sidebarShowsActivity" = false
+"Workspace.sidebarSwipe" = "swipe"
+"Workspace.toolbarBehavior" = "alwaysShow"
+"Workspace.showsPaneHeaders" = false
+"Workspace.paneHeaderVisibility" = "never"
+"Workspace.paneDensity" = "compact"
+"Workspace.notificationPosition" = "bottom-center"
+"Workspace.activityGrouping" = "priority"
+
+# Terminal
+"Workspace.terminalFontPointSize" = 13.5
+"Workspace.terminalCursorStyle" = "block"
+"Workspace.terminalCursorBlinkUsesCustomInterval" = false
+"Workspace.terminalCursorBlinkIntervalMilliseconds" = 500
+"Workspace.cursorShadersEnabled" = true
+"Workspace.cursorShader" = "warp"
+"Workspace.terminalCopyOnSelect" = true
+"Workspace.terminalImproveTextContrast" = true
+"Workspace.terminalSmoothScrolling" = true
+"Workspace.terminalUsesDisplayP3" = false
+
+# Agents, SSH, server
+"Workspace.sshAgentChoice" = "system"
+# Remote Control (Settings > Server > Client Info): lets `rex do` run app
+# actions such as session.select and client.window.new, which rex-open,
+# ,linear-start and command-file-router use to bring a session to the front.
+"rex.client.remoteControl" = true
+"rex.agents.names-sessions" = false
+"rex.server.automatic-restart-enabled" = true
+"rex.server.block-plugin-reload-enabled" = false
+# bundled: the server inside Rex.app, which the ~/.local/bin/rex shim falls back to
+"rex.server.run-mode" = "bundled"
+
+# Updates
+"SUEnableAutomaticChecks" = true
+"SUAutomaticallyUpdate" = true
