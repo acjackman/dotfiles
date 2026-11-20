@@ -3,6 +3,12 @@
 # is a file, which is every bare-layout repo here (.git -> .bare). Those are
 # listed below from ~/dev/*/*/.bare at apply time: re-apply after cloning one.
 code_folders = ["~/dev"]
+
+# The chezmoi source repo: outside ~/dev (its worktrees go under
+# ~/dev/jackman/dotfiles). Named like rex-open's "dotfiles" session.
+[[project]]
+name = "dotfiles"
+path = {{ .chezmoi.workingTree | quote }}
 {{- range glob (joinPath .chezmoi.homeDir "dev/*/*/.bare") }}
 {{- $root := dir . }}
 {{- $main := joinPath $root "main" }}
