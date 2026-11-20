@@ -299,3 +299,43 @@ for (const { name, data } of fixtures) {
     });
   });
 }
+
+// ---------------------------------------------------------------------------
+// Plannotator Inbox: machine-derived (present only where the Safari web app is
+// installed), so it's exercised here instead of through the fixtures.
+// ---------------------------------------------------------------------------
+
+describe("Plannotator Inbox web app", () => {
+  const base = fixtures.find((f) => f.name === "base").data;
+  const appPath = "/test-home/Applications/Plannotator.app";
+
+  describe("when the web app is installed", () => {
+    const config = buildConfig({ ...base, plannotator_inbox: { app_path: appPath, port: 64866 } });
+
+    for (const url of [
+      "http://localhost:64866/",
+      "http://localhost:64866/t/abc123?m=1#r",
+      "http://127.0.0.1:64866/",
+    ]) {
+      it(`opens ${url} in the web app`, () => {
+        assert.equal(routesTo(config, url), appPath);
+      });
+    }
+
+    for (const url of [
+      "http://localhost:5173/",
+      "http://localhost:6486/",
+      "http://example.com:64866/",
+      "http://localhost/",
+    ]) {
+      it(`leaves ${url} alone`, () => {
+        assert.notEqual(routesTo(config, url), appPath);
+      });
+    }
+  });
+
+  it("adds no handler when the web app isn't installed", () => {
+    const config = buildConfig({ ...base, plannotator_inbox: null });
+    assert.equal(routesTo(config, "http://localhost:64866/"), null);
+  });
+});

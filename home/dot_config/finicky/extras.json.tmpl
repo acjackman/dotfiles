@@ -1,5 +1,14 @@
 {{- $isChrome := eq .default_browser "Google Chrome" -}}
 {{- $isMoov := has "moov" .extras -}}
+{{- /* Plannotator Inbox Safari web app (File > Add to Dock): route its origin
+       there. The port comes from the app's own manifest, since that's the
+       origin it's pinned to. Null where the app isn't installed (or
+       isn't a web app). */ -}}
+{{- $plannotatorApp := joinPath .chezmoi.homeDir "Applications/Plannotator.app" -}}
+{{- $plannotatorPort := "" -}}
+{{- if and (eq .chezmoi.os "darwin") (stat (joinPath $plannotatorApp "Contents/Info.plist")) -}}
+{{-   $plannotatorPort = output "sh" "-c" "plutil -extract Manifest.start_url raw \"$1\" 2>/dev/null || true" "sh" (joinPath $plannotatorApp "Contents/Info.plist") | trim | regexFind ":[0-9]+" | trimPrefix ":" -}}
+{{- end -}}
 {
   "extras": {{ .extras | toJson }},
   "default_browser_name": {{ .default_browser | toJson }},
@@ -7,5 +16,6 @@
   "github_browser": {{ if $isMoov }}{ "name": "Google Chrome", "profile": "Moov" }{{ else }}null{{ end }},
   "spacelift_browser": {{ if $isMoov }}{ "name": "Google Chrome", "profile": "Moov" }{{ else }}null{{ end }},
   "aws_console_browser": {{ if $isMoov }}{ "name": "Google Chrome", "profile": "SU" }{{ else }}null{{ end }},
+  "plannotator_inbox": {{ if $plannotatorPort }}{ "app_path": {{ $plannotatorApp | toJson }}, "port": {{ $plannotatorPort }} }{{ else }}null{{ end }},
   "meet_app_path": {{ printf "%s/Applications/OpenMeetInChrome.app" .chezmoi.homeDir | toJson }}
 }

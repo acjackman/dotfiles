@@ -78,6 +78,16 @@ export function buildConfig(extras) {
     });
   }
 
+  if (extras.plannotator_inbox) {
+    // The Inbox's Safari web app is pinned to the origin it was installed
+    // from, so only that port routes there (either loopback name).
+    const { app_path, port } = extras.plannotator_inbox;
+    handlers.push({
+      match: new RegExp(`^http://(localhost|127\\.0\\.0\\.1):${port}(/|$)`),
+      browser: app_path,
+    });
+  }
+
   handlers.push({
     match: (url) => url.protocol === "slack",
     browser: "/Applications/Slack.app",
