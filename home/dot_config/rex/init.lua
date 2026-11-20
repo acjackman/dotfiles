@@ -116,12 +116,14 @@ rex.bind("ctrl+space>.", "navi")
 --   Its agent is off (~/.config/raptor/config.toml), so its instant-agent
 --   action (cmd+opt+n, starts pi) is left unbound; rex-launch has that key.
 dofile("/opt/homebrew/opt/raptor/share/raptor/init.lua").setup{}
-rex.bind("shift+cmd+o", "raptor")
-rex.bind("ctrl+cmd+c", "raptor_pr_open") -- Raptor's default is shift+cmd+c: Rex's copy mode
+-- init.lua beats Rex's built-in keys, so these replace them without unbinds.
+-- Picker on shift+cmd+g (over Rex's Go to Anything, still in the palette).
+-- Pinned-session jumps (raptor_pin_1..9) are left unbound.
+rex.bind("shift+cmd+g", "raptor")
+-- PR checkout takes Raptor's default shift+cmd+c; copy mode moves to ctrl+cmd+c.
+rex.bind("shift+cmd+c", "raptor_pr_open")
+rex.bind("ctrl+cmd+c", "pane.copy_mode.enter")
 rex.bind("ctrl+cmd+n", "raptor_worktree_new") -- Raptor's shift+cmd+n is Rex's new window here
-for i = 1, 9 do
-  rex.bind("ctrl+cmd+" .. i, "raptor_pin_" .. i)
-end
 --   rex-launch (nicosuave/rex-launch): prompt + project -> worktree + agent tab.
 require("rex-launch").setup{ bin = "/opt/homebrew/bin/rex-launch", key = false }
 -- Not its default shift+cmd+n: Settings > Keyboard (Shortcuts/shortcuts.json,
