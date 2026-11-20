@@ -47,6 +47,10 @@ defaults write $d Workspace.terminalUsesDisplayP3 -bool false
 
 # Agents, SSH, server
 defaults write $d Workspace.sshAgentChoice -string system
+# Remote Control (Settings > Server > Client Info): lets `rex do` run app
+# actions such as session.select and client.window.new, which rex-open,
+# ,linear-start and command-file-router use to bring a session to the front.
+defaults write $d rex.client.remoteControl -bool true
 defaults write $d rex.agents.names-sessions -bool false
 defaults write $d rex.server.automatic-restart-enabled -bool true
 defaults write $d rex.server.block-plugin-reload-enabled -bool false
