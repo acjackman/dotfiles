@@ -11,7 +11,7 @@ d=com.superlogical.rex
 defaults write $d Workspace.appearance -string system
 defaults write $d Workspace.darkThemeID -string merino-dark
 defaults write $d Workspace.lightThemeID -string merino-light
-defaults write $d Workspace.interfaceStyle -string blendTheme
+defaults write $d Workspace.interfaceStyle -string useTheme
 defaults write $d Workspace.usesPaneGlass -bool false
 defaults write $d Workspace.usesStandardInactiveWindowPaneStyles -bool true
 defaults write $d Workspace.inactivePaneFadeMode -string both
@@ -20,14 +20,16 @@ defaults write $d Workspace.shellIconTheme -string default
 defaults write $d Workspace.appIconVisibility -string dockAndMenuBar
 
 # Layout
-defaults write $d Workspace.tabStyle -string vertical
+defaults write $d Workspace.tabStyle -string horizontal
+defaults write $d Workspace.tabBarEdge -string top
 defaults write $d Workspace.sidebarPosition -string left
 defaults write $d Workspace.sidebarCollapsed -bool false
 defaults write $d Workspace.sidebarShowsActivity -bool false
 defaults write $d Workspace.sidebarSwipe -string swipe
 defaults write $d Workspace.toolbarBehavior -string alwaysShow
-defaults write $d Workspace.showsPaneHeaders -bool true
-defaults write $d Workspace.paneHeaderVisibility -string always
+defaults write $d Workspace.showsPaneHeaders -bool false
+defaults write $d Workspace.paneHeaderVisibility -string never
+defaults write $d Workspace.paneDensity -string compact
 defaults write $d Workspace.notificationPosition -string bottom-center
 defaults write $d Workspace.activityGrouping -string priority
 
