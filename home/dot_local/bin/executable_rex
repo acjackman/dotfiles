@@ -1,0 +1,11 @@
+#!/bin/sh
+# Stable `rex` for callers outside a Rex pane (Hammerspoon, Tuna, Linear,
+# launchd). Rex only puts its CLI on PATH inside its own terminals; this finds
+# the current server's CLI, falling back to the one bundled in the app.
+for b in \
+  "$HOME/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex" \
+  "/Applications/Rex.app/Contents/Helpers/Rex Server.rex/Contents/MacOS/rex"; do
+  [ -x "$b" ] && exec "$b" "$@"
+done
+echo "rex: Rex.app is not installed" >&2
+exit 127

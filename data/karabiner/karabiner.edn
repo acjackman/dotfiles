@@ -143,6 +143,7 @@
                                                "^org\\.alacritty$"
                                                "^com\\.apple\\.Terminal$"
                                                "^com\\.googlecode\\.iterm2$"
-                                               "^com\\.cmuxterm\\.app$"]}]}
+                                               "^com\\.cmuxterm\\.app$"
+                                               "^com\\.superlogical\\.rex$"]}]}
            ]}
  ]}

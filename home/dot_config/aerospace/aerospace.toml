@@ -290,6 +290,10 @@ run = 'move-node-to-workspace T'
 if.app-id = 'com.cmuxterm.app'
 run = 'move-node-to-workspace T'
 
+[[on-window-detected]]
+if.app-id = 'com.superlogical.rex'
+run = 'move-node-to-workspace T'
+
 # [[on-window-detected]]
 # if.app-name-regex-substring = "^Cursor$"
 # run = 'move-node-to-workspace E'

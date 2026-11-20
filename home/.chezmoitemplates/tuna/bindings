@@ -14,7 +14,7 @@ key = 't'
                 actionIdentifier = 'tuna.common-actions/open'
                 behavior = 'run'
                 presentation = 'automatic'
-                subjectIdentifiers = [ 'tuna.applications//Applications/Ghostty.app' ]
+                subjectIdentifiers = [ 'tuna.applications//Applications/Rex.app' ]
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
@@ -32,7 +32,21 @@ key = 't'
 
         [[comboMode.bindings.destination.bindings]]
         key = 'n'
-        label = 'New Window + Herdr'
+        label = 'New Rex Window'
+
+            [comboMode.bindings.destination.bindings.destination]
+            type = 'command'
+
+                [comboMode.bindings.destination.bindings.destination.command]
+                actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
+                behavior = 'run'
+                presentation = 'automatic'
+                subjectIdentifiers = [ 'text:~/.local/bin/rex-open --new-window' ]
+                type = 'savedCommand'
+
+        [[comboMode.bindings.destination.bindings]]
+        key = 'g'
+        label = 'Ghostty + Herdr'
 
             [comboMode.bindings.destination.bindings.destination]
             type = 'command'
@@ -69,7 +83,7 @@ key = 't'
                 actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
                 behavior = 'run'
                 presentation = 'automatic'
-                subjectIdentifiers = [ 'text:~/.config/tmux/activate-or-open-ghostty.sh dotfiles ~/.local/share/chezmoi' ]
+                subjectIdentifiers = [ 'text:~/.local/bin/rex-open dotfiles ~/.local/share/chezmoi' ]
                 type = 'savedCommand'
 
         [[comboMode.bindings.destination.bindings]]
@@ -83,7 +97,7 @@ key = 't'
                 actionIdentifier = 'tuna.common-actions/run-text-as-shell-command'
                 behavior = 'run'
                 presentation = 'automatic'
-                subjectIdentifiers = [ 'text:~/.config/tmux/activate-or-open-ghostty.sh infra ~/dev/moov/infra' ]
+                subjectIdentifiers = [ 'text:~/.local/bin/rex-open infra ~/dev/moov/infra' ]
                 type = 'savedCommand'
 
 [[comboMode.bindings]]
