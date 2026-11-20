@@ -5,7 +5,7 @@ AI agent terminal built on Ghostty. Manages multiple coding agents with vertical
 ## Config Location
 
 - **Terminal settings**: Inherited from Ghostty config (`dot_config/ghostty/`)
-- **App shortcuts**: Stored in macOS defaults (`com.cmuxterm.app`), managed via `run_onchange_after_set-defaults.sh.tmpl`
+- **App shortcuts**: Stored in macOS defaults (`com.cmuxterm.app`), managed in `home/dot_local/state/dotfiles/defaults/cmux.toml`
 
 ## Keyboard Shortcuts
 

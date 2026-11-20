@@ -2,6 +2,8 @@
 # chezmoi hooks.read-source-state.pre (home/.chezmoi.toml.tmpl): runs before
 # every command that reads the source state (apply, diff, status, re-add, ...).
 set -e
+# defaults-sync renders .tmpl files with a nested chezmoi; skip the hook there.
+[ -n "$DEFAULTS_SYNC_RENDERING" ] && exit 0
 here=$(dirname "$0")
 
 "$here/../.install-password-manager.sh"

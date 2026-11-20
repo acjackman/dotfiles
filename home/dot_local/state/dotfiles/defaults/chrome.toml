@@ -1,0 +1,15 @@
+# Google Chrome. Restart Chrome to pick up changes. Canary: chrome-canary.toml.
+domain = "com.google.Chrome"
+
+[values]
+# Disable the all too sensitive backswipe on trackpads
+"AppleEnableSwipeNavigateWithScrolls" = false
+
+# Disable the all too sensitive backswipe on Magic Mouse
+"AppleEnableMouseSwipeNavigateWithScrolls" = false
+
+# Use the system-native print preview dialog
+"DisablePrintPreview" = true
+
+# Expand the print dialog by default
+"PMPrintingExpandedStateForPrint2" = true

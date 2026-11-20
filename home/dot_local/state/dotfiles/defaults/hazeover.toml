@@ -1,0 +1,14 @@
+# HazeOver. Launch at login is a macOS Login Item (SMAppService), not a
+# default: enable it once in System Settings > General > Login Items.
+domain = "com.pointum.hazeover"
+
+[values]
+"Intensity" = 39.56933611230443
+"Color" = "000000"
+"Animation" = 0.1
+"AnimationCurve" = 0
+# "Enabled" is left out: it is the on/off switch, flipped at runtime.
+"MultiFocus" = false
+"IndependentScreens" = false
+"UsingAX" = true
+"SUAutomaticallyUpdate" = true

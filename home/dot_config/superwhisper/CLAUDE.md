@@ -4,7 +4,7 @@ Voice-to-text dictation tool with LLM reformatting. Bundle ID: `com.superduper.s
 
 ## Config Location
 
-All config is stored in macOS defaults (`com.superduper.superwhisper`). No file-based config.
+All config is stored in macOS defaults (`com.superduper.superwhisper`), managed in `home/dot_local/state/dotfiles/defaults/superwhisper.toml`.
 Read current values: `defaults read com.superduper.superwhisper`
 
 ## Key Settings

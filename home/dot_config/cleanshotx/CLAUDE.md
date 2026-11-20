@@ -6,7 +6,7 @@ Screenshot and screen recording utility for macOS.
 
 All settings are stored in macOS defaults: `defaults read pl.maketheweb.cleanshotx`
 
-Managed via `run_onchange_after_set-defaults.sh.tmpl` in this directory.
+Managed in `home/dot_local/state/dotfiles/defaults/cleanshotx.toml` (save folder: `cleanshotx-paths.toml.tmpl`); see "App preferences" in the repo AGENTS.md. `chezmoi diff` shows settings changed in the app.
 
 ## Keyboard Shortcuts
 
@@ -26,7 +26,7 @@ Shortcuts are stored as binary-encoded JSON in defaults (`LAVA*` keys) with `car
 
 ## Shortcut Data Format
 
-To add/modify shortcuts in the defaults script, encode the JSON as hex:
+To add/modify shortcuts in `cleanshotx.toml` (`"LAVA…" = { data = "<hex>" }`), encode the JSON as hex:
 
 ```bash
 echo -n '{"carbonModifiers":768,"carbonKey":21}' | xxd -p | tr -d '\n'
@@ -42,4 +42,4 @@ Key codes use macOS virtual key codes (18=1, 19=2, 20=3, 21=4, 22=5, 23=6, 26=7)
 - **Aerospace**: `dot_config/aerospace/aerospace.toml` — floating window rule for annotation editor
 ## Applying from Worktrees
 
-No special instructions — the defaults script runs normally via chezmoi apply.
+No special instructions — `chezmoi apply ~/.local/state/dotfiles/defaults` applies it.

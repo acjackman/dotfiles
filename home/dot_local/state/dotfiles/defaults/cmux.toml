@@ -1,0 +1,10 @@
+# cmux. Restart it to pick up changes.
+# Shortcuts are data: hex of JSON {"shift","key","command","control","option"}.
+domain = "com.cmuxterm.app"
+
+[values]
+# Split Down — Ctrl+-  (matches tmux prefix -)
+"shortcut.splitDown" = { data = "7b227368696674223a66616c73652c226b6579223a222d222c22636f6d6d616e64223a66616c73652c22636f6e74726f6c223a747275652c226f7074696f6e223a66616c73657d" }
+
+# Split Right — Ctrl+Shift+\  (matches tmux prefix |)
+"shortcut.splitRight" = { data = "7b227368696674223a747275652c226b6579223a225c5c222c22636f6d6d616e64223a66616c73652c22636f6e74726f6c223a747275652c226f7074696f6e223a66616c73657d" }

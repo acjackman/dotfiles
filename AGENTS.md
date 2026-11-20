@@ -83,11 +83,13 @@ Skills (slash commands like `/spawn`, `/apply`) are defined in `home/dot_claude/
 
 ## App preferences (plist defaults)
 
-App settings that live in a `defaults` domain are moving from per-app `run_onchange_after_set-defaults.sh` scripts to one TOML file per app in `home/dot_local/state/dotfiles/defaults/<app>.toml` (Rex is first; the others still use scripts). The file is `domain = "..."` plus a `[values]` table:
+App settings that live in a `defaults` domain are one TOML file per app (or per domain) in `home/dot_local/state/dotfiles/defaults/<app>.toml`, not `defaults write` scripts. (`home/dot_config/macos/run_onchange_darwin-defaults.sh.tmpl` stays a script: it has logic, dicts and `killall`s.) The file is `domain = "..."` plus a `[values]` table:
 
-- **listed** `"key" = value`: managed, set by apply
+- **listed** `"key" = value`: managed, set by apply. Values: strings (`"…"` or `'…'`), bools, ints, floats, one-line arrays of those, `{ data = "<hex>" }` for raw bytes
 - **`"key" = { unset = true }`**: managed, deleted by apply
-- **not listed**: ignored (window frames, app state)
+- **not listed**: ignored (window frames, runtime toggles, app state)
+
+Use `<app>.toml.tmpl` only for values that differ per machine; a template that renders empty means "not on this machine" (e.g. `keepingyouawake`, work only). Keep the rest of the app in a plain file (`cleanshotx.toml` + `cleanshotx-paths.toml.tmpl`): `chezmoi re-add` never writes into templates. Floats compare at 32-bit precision, because that's what `defaults write -float` stores.
 
 The target `~/.local/state/dotfiles/defaults/<app>.toml` holds the **live** values, not the desired ones: `.chezmoi-hooks/defaults-sync.py snapshot` rewrites it from the plist before every chezmoi command (`hooks.read-source-state.pre`). So `chezmoi diff`/`status` show settings changed in the app, `chezmoi re-add <target>` takes them into the source, and `run_after_zz-apply-defaults.sh` pushes the deployed file into the plist. A setting changed in the app makes apply ask "has changed since chezmoi last wrote it?" like any edited file; without a TTY it stops there. Show the user `chezmoi diff` and let them choose re-add or overwrite. Never `--force`. The script is `zz-` because chezmoi ran an earlier-sorting `run_after_` script before writing the TOML beside it.
 

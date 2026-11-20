@@ -1,0 +1,8 @@
+# Google Chrome Canary: same settings as chrome.toml.
+domain = "com.google.Chrome.canary"
+
+[values]
+"AppleEnableSwipeNavigateWithScrolls" = false
+"AppleEnableMouseSwipeNavigateWithScrolls" = false
+"DisablePrintPreview" = true
+"PMPrintingExpandedStateForPrint2" = true

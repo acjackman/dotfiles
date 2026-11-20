@@ -1,0 +1,27 @@
+{{ if has "moov" .extras -}}
+# KeepingYouAwake (replaces Amphetamine), work machines only. Keys are
+# prefixed with the bundle ID. Start at login is a macOS Login Item
+# (SMAppService), not a default: enable it once in the app's Preferences or
+# System Settings > General > Login Items.
+domain = "info.marcel-dierkes.KeepingYouAwake"
+
+[values]
+# Activate when the app launches
+"info.marcel-dierkes.KeepingYouAwake.ActivateOnLaunch" = true
+
+# Activate when an external display is connected
+"info.marcel-dierkes.KeepingYouAwake.ActivateOnExternalDisplayConnectedEnabled" = true
+
+# Keep the system awake but let the display sleep
+"info.marcel-dierkes.KeepingYouAwake.AllowDisplaySleep" = true
+
+# Deactivate below 50% battery
+"info.marcel-dierkes.KeepingYouAwake.BatteryCapacityThresholdEnabled" = true
+"info.marcel-dierkes.KeepingYouAwake.BatteryCapacityThreshold" = 50.0
+
+# Deactivate when Low Power Mode turns on
+"info.marcel-dierkes.KeepingYouAwake.LowPowerModeMonitoringEnabled" = true
+
+# Duration menu (seconds): 5m 10m 15m 30m 1h 2h 5h
+"info.marcel-dierkes.KeepingYouAwake.Durations" = [300, 600, 900, 1800, 3600, 7200, 18000]
+{{ end -}}

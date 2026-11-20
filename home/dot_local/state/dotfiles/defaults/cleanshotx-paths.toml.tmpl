@@ -1,0 +1,6 @@
+# CleanShot X settings that depend on the machine; the rest is in cleanshotx.toml.
+domain = "pl.maketheweb.cleanshotx"
+
+[values]
+# Save screenshots to Downloads
+"exportPath" = {{ joinPath .chezmoi.homeDir "Downloads" | quote }}

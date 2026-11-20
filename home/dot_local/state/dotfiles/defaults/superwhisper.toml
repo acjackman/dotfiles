@@ -1,0 +1,24 @@
+# superwhisper. Restart it to pick up changes.
+domain = "com.superduper.superwhisper"
+
+[values]
+# Launch on login
+"launchOnLogin" = true
+
+# Enable silence removal for cleaner transcriptions
+"enableSilenceRemoval" = true
+
+# Always show mini recorder overlay
+"alwaysShowMiniRecorder" = true
+
+# Show recording view
+"recordingViewEnabled" = true
+
+# Toggle recording: Hyper + F17
+"KeyboardShortcuts_toggleRecording" = '{"mouseButtonNumbers":[],"carbonModifiers":6912,"carbonKeyCode":64}'
+
+# Change mode: Ctrl + Cmd + Option + F17
+"KeyboardShortcuts_changeMode" = '{"carbonModifiers":6400,"mouseButtonNumbers":[],"carbonKeyCode":64}'
+
+# Push to talk: Right Command
+"KeyboardShortcuts_pushToTalk" = '{"mouseButtonNumbers":[],"carbonKeyCode":54,"carbonModifiers":256}'
