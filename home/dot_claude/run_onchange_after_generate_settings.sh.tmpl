@@ -6,6 +6,7 @@
 # defaults hash: {{ include "dot_claude/settings-defaults.json" | sha256sum }}
 # settings hash: {{ output "sh" "-c" (print "cat " (joinPath .chezmoi.homeDir ".claude/settings.json") " " (joinPath .chezmoi.homeDir ".config/claude/profiles/*/settings.json") " 2>/dev/null | sha256sum || echo none") | trim | splitList " " | first }}
 # profiles hash: {{ output "sh" "-c" (print "ls -d " (joinPath .chezmoi.homeDir ".config/claude/profiles/*/") " 2>/dev/null | sort | sha256sum || echo none") | trim | splitList " " | first }}
+# mods: {{ glob (joinPath .chezmoi.sourceDir "dot_claude/mods/*") | join " " }}
 
 SOURCE_DIR="{{ .chezmoi.sourceDir }}/dot_claude"
 PERMISSIONS_FILE="$SOURCE_DIR/permissions.json"
@@ -29,6 +30,15 @@ SANDBOX=$(cat "$SANDBOX_FILE")
 DECLARED_HOOKS=$(cat "$HOOKS_FILE")
 STATUSLINE=$(jq '.statusLine' "$STATUSLINE_FILE")
 DEFAULTS=$(cat "$DEFAULTS_FILE")
+
+# Every mod under dot_claude/mods/ loads in every session via
+# CLAUDE_CODE_PLUGIN_DIRS (same as --plugin-dir, desktop-app sessions included).
+# Claude only reads it from user settings' env, never project settings.
+MOD_DIRS=""
+for mod in "$SOURCE_DIR"/mods/*/; do
+    [ -d "$mod" ] || continue
+    MOD_DIRS="${MOD_DIRS:+$MOD_DIRS:}$HOME/.claude/mods/$(basename "$mod")"
+done
 
 # Sync declared hooks into settings, identified by "match_key" (a substring
 # present in the command). For each declared hook, drop any existing entry
@@ -97,16 +107,23 @@ apply_settings() {
     # 1. Start with defaults (lowest priority)
     # 2. Overlay existing settings (preserves Claude-managed values, incl.
     #    enabledPlugins / extraKnownMarketplaces owned by install-plugins)
-    # 3. Force-set managed fields (permissions, sandbox, statusline)
+    # 3. Force-set managed fields (permissions, sandbox, statusline, mod dirs)
     jq --argjson defaults "$DEFAULTS" \
        --argjson perms "$PERMISSIONS" \
        --argjson sandbox "$SANDBOX" \
        --argjson statusline "$STATUSLINE" \
+       --arg mods "$MOD_DIRS" \
        '$defaults + . |
         .permissions = $perms |
         .sandbox = $sandbox |
         .statusLine = $statusline |
-        .autoUpdaterStatus = "disabled"' \
+        .autoUpdaterStatus = "disabled" |
+        if $mods != "" then
+            .env = ((.env // {}) + {CLAUDE_CODE_PLUGIN_DIRS: $mods})
+        elif .env then
+            (.env |= del(.CLAUDE_CODE_PLUGIN_DIRS)) |
+            (if .env == {} then del(.env) else . end)
+        else . end' \
         <<< "$existing" > "$settings_file.tmp" && \
         mv "$settings_file.tmp" "$settings_file"
 

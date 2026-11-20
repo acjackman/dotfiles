@@ -50,6 +50,8 @@ Skills (slash commands like `/spawn`, `/apply`) are defined in `home/dot_claude/
 
 **Always edit the chezmoi source in `home/dot_claude/skills/`, not the deployed files in `~/.claude/skills/`.**
 
+**Mods** (Claude Code plugins with a hooks module, e.g. `/bye`) live in `home/dot_claude/mods/<name>/` and deploy to `~/.claude/mods/<name>/`. The settings generator puts every mod dir in `env.CLAUDE_CODE_PLUGIN_DIRS` of each config dir's `settings.json`, so adding a folder there is all it takes to load a mod everywhere.
+
 **Third-party skills** (e.g. `t3dotgg/tstack`, `mattpocock/skills`) are listed in `home/.chezmoidata/agent-skills.yaml` with one pinned commit per repo. `home/.chezmoiexternal.toml` extracts each into `~/.config/agents/skills/<name>` (an exact dir, so unlisted skills are removed); `~/.agents/skills` symlinks there for Codex and other agents, and `home/dot_claude/run_after_link-agent-skills.sh.tmpl` links them into `~/.claude/skills`. Add, remove or bump skills in the data file — never with `npx skills add -g`, which writes into the managed dir and is wiped on apply. Bump a repo as a whole after reviewing the upstream diff, since skills in a suite call each other.
 
 ## Doctor Scripts
