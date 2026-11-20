@@ -9,6 +9,8 @@
 # in case an apply runs first. Copy a wanted change back into
 # home/private_Library/private_Application Support/com.superlogical.rex/Shortcuts/.
 # run_before_ (not run_onchange_): the drift starts in the app, not the source.
+# 00-: chezmoi runs scripts in name order with the files beside them, so it
+# must sort before Shortcuts/ (uppercase sorts first) to run before the write.
 set -euo pipefail
 
 target="$HOME/Library/Application Support/com.superlogical.rex/Shortcuts/shortcuts.json"

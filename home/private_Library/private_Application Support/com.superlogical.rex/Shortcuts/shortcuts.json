@@ -1,21 +1,6 @@
 {
   "layer" : {
-    "bindings" : [
-      {
-        "action" : "client.window.new",
-        "keys" : [
-          "shift+cmd+n"
-        ],
-        "source" : "settings"
-      },
-      {
-        "action" : "session.new",
-        "keys" : [
-          "cmd+n"
-        ],
-        "source" : "settings"
-      }
-    ],
+    "bindings" : [],
     "name" : "settings",
     "removals" : [
       {
