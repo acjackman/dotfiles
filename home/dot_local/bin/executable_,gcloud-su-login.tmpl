@@ -63,5 +63,8 @@ unset GOOGLE_APPLICATION_CREDENTIALS
 
 # Naming the account makes gcloud refuse a consent for any other account.
 # --update-adc writes the same credentials to ADC: one consent screen, not two.
-gcloud auth login "$ACCOUNT" --update-adc
+# --force: with a named account, gcloud otherwise refreshes the stored
+# credential (a tty password prompt on reauth) and reuses it, skipping the
+# browser and the ADC update. We only get here when that credential won't do.
+gcloud auth login "$ACCOUNT" --update-adc --force
 {{ end -}}
