@@ -192,11 +192,14 @@ for profile_dir in "$HOME/.config/claude/profiles"/*/; do
     case "$(basename "$profile_dir")" in
         moov-*) apply_honeycomb_env "${profile_dir}settings.json" ;;
     esac
+{{- end }}
     case "$(basename "$profile_dir")" in
+        personal) set_login_method "${profile_dir}settings.json" claudeai ;;
+{{- if has "moov" .extras }}
         moov-api) set_login_method "${profile_dir}settings.json" console ;;
         moov-team) set_login_method "${profile_dir}settings.json" claudeai ;;
-    esac
 {{- end }}
+    esac
 {{- $orgs := dict }}
 {{- if hasKey . "claude_org_uuids" }}{{ $orgs = .claude_org_uuids }}{{ end }}
 {{- if $orgs }}

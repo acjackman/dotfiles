@@ -59,11 +59,11 @@ Skills (slash commands like `/spawn`, `/apply`) are defined in `home/dot_claude/
 A profile is a config dir under `~/.config/claude/profiles/<name>/`, selected with `CLAUDE_CONFIG_DIR`. The dirs aren't chezmoi-managed; every generator in `home/dot_claude/` (settings, plugins, MCP servers, CLAUDE.md, skills) and the Rex/herdr/Plannotator scripts loop over whichever exist, so a new dir is picked up on the next apply. Each has its own login, sessions and history.
 
 - **`~/.claude`**: no session uses it on moov machines, where `data/mise/moov.toml` sets `CLAUDE_CONFIG_DIR` to `moov-api` globally. It stays as the shared source the profiles link to (skills, mods, statusline), and keeps `forceLoginMethod: console` so anything that still lands there bills to the API, not the Team seat.
-- **`personal`**: personal subscription. Personal repos set it in `.mise.local.toml`.
+- **`personal`**: personal subscription (`forceLoginMethod: claudeai`). Personal repos set it in `.mise.local.toml`.
 - **`moov-api`**: the Moov API org (`forceLoginMethod: console`). The default on moov machines; `claude-api` pins it to a repo.
 - **`moov-team`**: the Moov Claude Team seat (`forceLoginMethod: claudeai`), launched with `claude-team`. Keeping everyday work on the API saves the Team credit balance for Claude Duet.
 
-`forceLoginOrgUUID` pins a profile's sign-in to one organization (`personal` and `moov-team` here). The UUIDs live in the machine-local chezmoi config as `[data.claude_org_uuids]` (profile name → UUID), which `home/.chezmoi.toml.tmpl` carries across `chezmoi init`; they stay out of this public repo.
+`forceLoginOrgUUID` pins a profile's sign-in to one organization (all three here; the Console and Team orgs are different orgs, both named Moov). The UUIDs live in the machine-local chezmoi config as `[data.claude_org_uuids]` (profile name → UUID), which `home/.chezmoi.toml.tmpl` carries across `chezmoi init`; they stay out of this public repo.
 
 `claude-team` and `claude-api` wrap `claude-profile <name> [claude args]`, which starts claude on the profile and, inside a git repo, writes `CLAUDE_CONFIG_DIR` to the worktree root's local mise config (whichever file already sets it, else the existing local file mise ranks highest, else a new `.mise.local.toml`), so plain `claude` there stays on that profile.
 
