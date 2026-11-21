@@ -8,11 +8,14 @@ set -euo pipefail
 # superuser Chrome profile so the flow lands on the right Google account instead
 # of whichever profile Chrome happens to have open.
 #
-# Skips the login while the current token still works; -f/--force re-auths anyway.
+# Skips the login while both the SU token and ADC still work as the SU account;
+# -f/--force re-auths anyway.
+
+ACCOUNT="${CHROME_MOOV_SU_ACCOUNT:-adam.jackman.su@moov.io}"
 
 # Pin the SU configuration for this script only. `gcloud auth login` writes the
-# account into whichever configuration is active, and the token check reads it,
-# so running against `moov` would check (and overwrite) the wrong account.
+# account into whichever configuration is active, so a plain login run where
+# moov-su is active (infra's mise env) leaves it pointing at your own account.
 export CLOUDSDK_ACTIVE_CONFIG_NAME="${GCLOUD_SU_CONFIG:-moov-su}"
 
 force=0
@@ -25,9 +28,26 @@ case "${1-}" in
         ;;
 esac
 
-if ((!force)) && gcloud auth print-access-token >/dev/null 2>&1; then
-    echo "gcloud token still valid; skipping login (use --force to re-auth)."
-    exit 0
+if [[ "$(gcloud config get-value account 2>/dev/null)" != "$ACCOUNT" ]]; then
+    gcloud config set account "$ACCOUNT" --quiet
+fi
+
+# ADC is one file shared by every configuration and doesn't record its account,
+# so ask Google whose it is. Terraform runs on ADC, not the gcloud CLI token.
+adc_account() {
+    local token
+    token="$(gcloud auth application-default print-access-token 2>/dev/null)" || return 0
+    curl -fsS --data-urlencode "access_token=$token" \
+        https://oauth2.googleapis.com/tokeninfo 2>/dev/null | jq -r '.email // empty'
+}
+
+if ((!force)) && gcloud auth print-access-token "$ACCOUNT" >/dev/null 2>&1; then
+    adc="$(adc_account)"
+    if [[ "$adc" == "$ACCOUNT" ]]; then
+        echo "SU token and ADC still valid; skipping login (use --force to re-auth)."
+        exit 0
+    fi
+    echo "ADC is ${adc:-not usable}, not $ACCOUNT; logging in."
 fi
 
 export BROWSER="$HOME/.local/bin/chrome-moov-su"
@@ -36,6 +56,7 @@ export BROWSER="$HOME/.local/bin/chrome-moov-su"
 # Unsetting it here only affects this script, not the calling shell.
 unset GOOGLE_APPLICATION_CREDENTIALS
 
+# Naming the account makes gcloud refuse a consent for any other account.
 # --update-adc writes the same credentials to ADC: one consent screen, not two.
-gcloud auth login --update-adc
+gcloud auth login "$ACCOUNT" --update-adc
 {{ end -}}
