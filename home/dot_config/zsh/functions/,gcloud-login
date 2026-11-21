@@ -14,7 +14,9 @@ function ,gcloud-login() {
             ;;
     esac
 
-    if (( ! force )) && gcloud auth print-access-token >/dev/null 2>&1; then
+    # </dev/null: a reauth fails here instead of asking for the password on the
+    # tty, so it falls through to the browser login, where autofill works.
+    if (( ! force )) && CLOUDSDK_CORE_DISABLE_PROMPTS=1 gcloud auth print-access-token </dev/null >/dev/null 2>&1; then
         return 0
     fi
 

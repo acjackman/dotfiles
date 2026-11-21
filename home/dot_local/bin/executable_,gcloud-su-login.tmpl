@@ -32,16 +32,21 @@ if [[ "$(gcloud config get-value account 2>/dev/null)" != "$ACCOUNT" ]]; then
     gcloud config set account "$ACCOUNT" --quiet
 fi
 
+# Token checks must never prompt: when Google wants a reauth, gcloud asks for
+# the password on the tty. Failing instead falls through to the browser login,
+# where password autofill works.
+quiet() { CLOUDSDK_CORE_DISABLE_PROMPTS=1 "$@" </dev/null 2>/dev/null; }
+
 # ADC is one file shared by every configuration and doesn't record its account,
 # so ask Google whose it is. Terraform runs on ADC, not the gcloud CLI token.
 adc_account() {
     local token
-    token="$(gcloud auth application-default print-access-token 2>/dev/null)" || return 0
+    token="$(quiet gcloud auth application-default print-access-token)" || return 0
     curl -fsS --data-urlencode "access_token=$token" \
         https://oauth2.googleapis.com/tokeninfo 2>/dev/null | jq -r '.email // empty'
 }
 
-if ((!force)) && gcloud auth print-access-token "$ACCOUNT" >/dev/null 2>&1; then
+if ((!force)) && quiet gcloud auth print-access-token "$ACCOUNT" >/dev/null; then
     adc="$(adc_account)"
     if [[ "$adc" == "$ACCOUNT" ]]; then
         echo "SU token and ADC still valid; skipping login (use --force to re-auth)."
