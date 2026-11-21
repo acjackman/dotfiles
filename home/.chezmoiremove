@@ -138,7 +138,7 @@ Library/Application Support/ovim
 # Stray copy of the repo-root AGENTS.md, deployed 2025-10-04 before it was ignored.
 # Anchored at ~, so ~/.config/codex/AGENTS.md is untouched.
 AGENTS.md
-.local/bin/,gcloud-su-login
+.config/zsh/functions/,gcloud-su
 # brain vault left Obsidian (→ org-roam on Forgejo, AJ-286); ttrpg/moov vaults still use the app
 .config/tuna/shims/brain-atlas
 .config/tuna/shims/brain-capture

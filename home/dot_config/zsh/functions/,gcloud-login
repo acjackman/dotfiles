@@ -1,9 +1,8 @@
 # -*- mode: zsh -*- vim: ft=zsh
 
 function ,gcloud-login() {
-    # Switch this shell to your own gcloud identity (leaving `,gcloud-su` mode)
-    # and log in, user + ADC, only if the active account's token expired.
-    # -f re-auths anyway.
+    # Log in to gcloud, user + ADC, only if the active account's token expired.
+    # -f re-auths anyway. `,gcloud-su-login` does the same for the moov SU account.
     local force=0
 
     case "${1-}" in
@@ -14,10 +13,6 @@ function ,gcloud-login() {
             return 2
             ;;
     esac
-
-    if [[ -n ${GCLOUD_SU-} ]]; then
-        unset CLOUDSDK_CONFIG GOOGLE_APPLICATION_CREDENTIALS KUBECONFIG GCLOUD_SU
-    fi
 
     if (( ! force )) && gcloud auth print-access-token >/dev/null 2>&1; then
         return 0

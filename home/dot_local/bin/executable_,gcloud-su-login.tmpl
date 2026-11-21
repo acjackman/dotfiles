@@ -1,0 +1,41 @@
+{{- if has "moov" .extras -}}
+#!/usr/bin/env bash
+set -euo pipefail
+
+# ,gcloud-su-login - Re-auth gcloud (user + ADC) through the moov SU Chrome profile.
+#
+# gcloud opens $BROWSER for the OAuth consent screen; chrome-moov-su forces the
+# superuser Chrome profile so the flow lands on the right Google account instead
+# of whichever profile Chrome happens to have open.
+#
+# Skips the login while the current token still works; -f/--force re-auths anyway.
+
+# Pin the SU configuration for this script only. `gcloud auth login` writes the
+# account into whichever configuration is active, and the token check reads it,
+# so running against `moov` would check (and overwrite) the wrong account.
+export CLOUDSDK_ACTIVE_CONFIG_NAME="${GCLOUD_SU_CONFIG:-moov-su}"
+
+force=0
+case "${1-}" in
+    -f | --force) force=1 ;;
+    "") ;;
+    *)
+        printf 'usage: %s [-f|--force]\n' "${0##*/}" >&2
+        exit 2
+        ;;
+esac
+
+if ((!force)) && gcloud auth print-access-token >/dev/null 2>&1; then
+    echo "gcloud token still valid; skipping login (use --force to re-auth)."
+    exit 0
+fi
+
+export BROWSER="$HOME/.local/bin/chrome-moov-su"
+
+# gcloud auth login complains when GOOGLE_APPLICATION_CREDENTIALS is set.
+# Unsetting it here only affects this script, not the calling shell.
+unset GOOGLE_APPLICATION_CREDENTIALS
+
+# --update-adc writes the same credentials to ADC: one consent screen, not two.
+gcloud auth login --update-adc
+{{ end -}}
