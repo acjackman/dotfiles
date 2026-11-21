@@ -26,5 +26,15 @@
     forgejo_host = {{ .forgejo_host | quote }} # git: rewrite SSH → HTTPS (set locally; not in repo)
 {{- end }}
 
+# Claude profile -> org UUID that its OAuth sign-in must belong to
+# (forceLoginOrgUUID). Machine-local: set by hand here, kept across re-init,
+# never committed. e.g. "moov-team" = "<uuid>"
+[data.claude_org_uuids]
+{{- if hasKey . "claude_org_uuids" }}
+{{- range $profile, $uuid := .claude_org_uuids }}
+    {{ $profile | quote }} = {{ $uuid | quote }}
+{{- end }}
+{{- end }}
+
 [hooks.read-source-state.pre]
     command = ".local/share/chezmoi/.chezmoi-hooks/read-source-state-pre.sh"

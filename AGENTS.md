@@ -63,6 +63,8 @@ A profile is a config dir under `~/.config/claude/profiles/<name>/`, selected wi
 - **`moov-api`**: the Moov API org (`forceLoginMethod: console`). The default on moov machines; `claude-api` pins it to a repo.
 - **`moov-team`**: the Moov Claude Team seat (`forceLoginMethod: claudeai`), launched with `claude-team`. Keeping everyday work on the API saves the Team credit balance for Claude Duet.
 
+`forceLoginOrgUUID` pins a profile's sign-in to one organization (`personal` and `moov-team` here). The UUIDs live in the machine-local chezmoi config as `[data.claude_org_uuids]` (profile name → UUID), which `home/.chezmoi.toml.tmpl` carries across `chezmoi init`; they stay out of this public repo.
+
 `claude-team` and `claude-api` wrap `claude-profile <name> [claude args]`, which starts claude on the profile and, inside a git repo, writes `CLAUDE_CONFIG_DIR` to the worktree root's local mise config (whichever file already sets it, else the existing local file mise ranks highest, else a new `.mise.local.toml`), so plain `claude` there stays on that profile.
 
 Plugins come from `home/dot_claude/plugins.json` `.extras` for the profile's name, and for its prefix before a dash (`moov-team` and `moov-api` get `moov`). `moov-*` profiles also get the Honeycomb OTEL env and `auto` permission mode in `claude-yolo`. Hand-edited settings such as `autoMode` aren't generated, so a new profile starts with a copy of them from `~/.claude/settings.json`.
