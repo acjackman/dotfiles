@@ -197,3 +197,9 @@
 
 [github]
 	user = acjackman
+
+# Rewrite SSH GitHub URLs to HTTPS so gh's credential helper handles auth —
+# agents can push/fetch unattended without an SSH key prompt.
+[url "https://github.com/"]
+    insteadOf = git@github.com:
+    insteadOf = ssh://git@github.com/
