@@ -5,3 +5,5 @@
 vim.g.lazyvim_python_lsp = "pyright"
 vim.g.lazyvim_python_ruff = "ruff"
 vim.opt.relativenumber = false -- no line numbers
+-- per-repo .nvim.lua (e.g. ~/notes/brain sets up org.nvim); nvim asks to :trust each one
+vim.o.exrc = true
