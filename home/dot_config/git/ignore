@@ -120,3 +120,5 @@ mise.local.toml
 
 # humanlayer
 .humanlayer/
+
+**/.claude/.cc-writes/
