@@ -1,0 +1,34 @@
+#!/usr/bin/env bash
+#
+# Reload Rex's config after apply changes init.lua or a module it loads, so
+# new actions and keys work without ctrl+space>shift+c. `after_` so the new
+# files are on disk first.
+#
+# init.lua: {{ include "dot_config/rex/init.lua" | sha256sum }}
+# rex-launch.lua: {{ include "dot_config/rex/rex-launch.lua" | sha256sum }}
+#
+# Only this Mac's Rex apps (unix transport): apps attached from other machines
+# over tailscale have their own config. client.config.reload is a client
+# action, so it needs Remote Control on; a refusal is a warning, not a failure.
+set -euo pipefail
+
+rex=""
+for b in \
+  "$HOME/Library/Application Support/com.superlogical.rex/RexServer/Versions/Current/Rex Server.app/Contents/MacOS/rex" \
+  "/Applications/Rex.app/Contents/Helpers/Rex Server.rex/Contents/MacOS/rex"; do
+  [[ -x "$b" ]] && { rex="$b"; break; }
+done
+[[ -n "$rex" ]] || exit 0
+
+# No server running → nothing to reload; it reads the new config on start.
+clients="$("$rex" client ls --json 2>/dev/null |
+  jq -r '.clients[] | select(.info.kind == "app" and .principal.transport == "unix")
+         | .client_id' 2>/dev/null)" || exit 0
+
+for id in $clients; do
+  if "$rex" -C "$id" do client.config.reload >/dev/null 2>&1; then
+    echo "rex: reloaded config (${id##*-})"
+  else
+    echo "warning: rex couldn't reload config for ${id##*-} (is Remote Control on?) — press ctrl+space>shift+c" >&2
+  fi
+done
