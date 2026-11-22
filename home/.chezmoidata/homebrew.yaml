@@ -15,14 +15,15 @@
 homebrew:
   trusted_taps:
     base:
+      - alienxp03/tap
       - caarlos0/tap
       - derailed/k9s
       - felixkratz/formulae
       - github/gh
       - goreleaser/tap
       - manaflow-ai/cmux
-      - max-sixty/worktrunk
       - mikker/tap
+      - nicosuave/tap
       - nikitabobko/tap
       - noahgorstein/tap
       - raine/workmux
