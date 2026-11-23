@@ -22,6 +22,9 @@
     # atuin
     atuin_history_filter = {{with  $filter := .atuin_history_filter}}{{$filter | toToml}}{{else}}[]{{end}}
     atuin_cwd_filter = {{with $filter := .atuin_cwd_filter}}{{$filter | toToml}}{{else}}[]{{end}}
+{{- if hasKey . "forgejo_host" }}
+    forgejo_host = {{ .forgejo_host | quote }} # git: rewrite SSH → HTTPS (set locally; not in repo)
+{{- end }}
 
 [hooks.read-source-state.pre]
     command = ".local/share/chezmoi/.chezmoi-hooks/read-source-state-pre.sh"

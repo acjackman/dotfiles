@@ -203,3 +203,11 @@
 [url "https://github.com/"]
     insteadOf = git@github.com:
     insteadOf = ssh://git@github.com/
+{{- if hasKey . "forgejo_host" }}
+
+# Same for Forgejo: HTTPS with a PAT from the keychain, no SSH agent prompt.
+# Host comes from local chezmoi data (kept out of this public repo).
+[url "https://{{ .forgejo_host }}/"]
+    insteadOf = git@{{ .forgejo_host }}:
+    insteadOf = ssh://git@{{ .forgejo_host }}/
+{{- end }}
