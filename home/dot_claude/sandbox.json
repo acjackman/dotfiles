@@ -2,6 +2,7 @@
   "enabled": true,
   "autoAllowBashIfSandboxed": true,
   "allowUnsandboxedCommands": true,
+  "enableWeakerNetworkIsolation": true,
   "filesystem": {
     "allowWrite": [
       "~/.cache",
