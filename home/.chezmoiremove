@@ -139,3 +139,14 @@ Library/Application Support/ovim
 # Anchored at ~, so ~/.config/codex/AGENTS.md is untouched.
 AGENTS.md
 .local/bin/,gcloud-su-login
+# brain vault left Obsidian (→ org-roam on Forgejo, AJ-286); ttrpg/moov vaults still use the app
+.config/tuna/shims/brain-atlas
+.config/tuna/shims/brain-capture
+.config/tuna/shims/brain-launchpad
+.config/tuna/shims/brain-log
+.config/tuna/shims/brain-today
+.local/bin/,obsidian-gui-log
+.local/bin/,obsidian-gui-capture
+.config/nvim/lua/plugins/notes.lua
+notes/+
+Library/Application Support/obsidian-cli/preferences.json

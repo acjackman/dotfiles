@@ -45,12 +45,10 @@ jobs:
           email = "ci@example.com"
           default_browser = "Google Chrome"
           set_hostname = false
-          default_vault = "brain"
           webdav_port = 56726
           google_meet_app_id = ""
           atuin_history_filter = []
           atuin_cwd_filter = []
-          extra_obsidian_vaults = []
           extras = ${{ matrix.extras }}
           TOML
 
