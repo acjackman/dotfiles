@@ -4,15 +4,13 @@
     "max-sixty/worktrunk",
     "acjackman/claude-productivity",
     "honeycombio/agent-skill",
-    "umputun/revdiff",
     "backnotprop/plannotator"
   ],
   "plugins": [
     "pyright-lsp@claude-plugins-official",
     "gopls-lsp@claude-plugins-official",
     "worktrunk@worktrunk",
-    "code-review@claude-plugins-official",
-    "revdiff@revdiff"
+    "code-review@claude-plugins-official"
   ],
   "extras": {
     "base": [
@@ -31,9 +29,12 @@
     "odin": []
   },
   "remove": [
-    "swift-lsp@claude-plugins-official"
+    "swift-lsp@claude-plugins-official",
+    "revdiff@revdiff"
   ],
-  "removeMarketplaces": [],
+  "removeMarketplaces": [
+    "umputun/revdiff"
+  ],
   "prune": false,
   "extraKnownMarketplaces": {
     "worktrunk": {
@@ -53,12 +54,6 @@
       "source": {
         "source": "github",
         "repo": "honeycombio/agent-skill"
-      }
-    },
-    "revdiff": {
-      "source": {
-        "source": "github",
-        "repo": "umputun/revdiff"
       }
     }
   }

@@ -27,3 +27,11 @@ agentSkills:
       handoff: skills/productivity/handoff
       wizard: skills/engineering/wizard
       writing-for-agents: skills/productivity/writing-for-agents
+  # Skill only, not the revdiff@revdiff plugin: the plugin is just this skill,
+  # and marketplace installs are cached by version, so unreleased changes never
+  # arrive. Claude-only (uses CLAUDE_SKILL_DIR); Codex has its own variant.
+  umputun/revdiff:
+    # master 2026-11-23: Rex launcher backend (unreleased after v1.15.0)
+    ref: 1625ff8e11d7bf452a83e0d2bff63bbd5a4accd6
+    skills:
+      revdiff: .claude-plugin/skills/revdiff
