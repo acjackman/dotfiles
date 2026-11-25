@@ -38,6 +38,7 @@ homebrew:
       - acjackman/lab
       - confluentinc/tap
       - homeport/tap
+      - incident-io/tap
       - moovfinancial/moovbrew
       - redpanda-data/tap
       - spacelift-io/spacelift
