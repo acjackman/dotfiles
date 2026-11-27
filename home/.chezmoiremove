@@ -95,10 +95,6 @@ Library/Application Support/ovim
 .claude/skills/improve-codebase-architecture
 .claude/skills/grill-with-docs
 .claude/skills/resolving-merge-conflicts
-# Custom async revdiff skill dropped (2026-07-21) in favour of the upstream
-# umputun/revdiff plugin (re-enabled in dot_claude/plugins.json). Reverts to the
-# blocking display-popup review; the plugin is invoked as /revdiff:revdiff.
-.claude/skills/revdiff
 
 # run.bak: orphaned pre-chezmoi script (unused, imports uninstalled docopt);
 # source removed in #14, stale copy deleted manually 2026-08-12.
