@@ -33,7 +33,7 @@ domain = "com.superlogical.rex"
 "Workspace.activityGrouping" = "priority"
 
 # Terminal
-"Workspace.terminalFontPointSize" = 13.5
+"Workspace.terminalFontPointSize" = 14.0
 "Workspace.terminalCursorStyle" = "block"
 "Workspace.terminalCursorBlinkUsesCustomInterval" = false
 "Workspace.terminalCursorBlinkIntervalMilliseconds" = 500
