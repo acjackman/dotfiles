@@ -7,7 +7,9 @@
     "allowWrite": [
       "~/.cache",
       "~/Library/Caches",
-      "~/Library/Application Support/rtk"
+      "~/Library/Application Support/rtk",
+      "~/.local/state/nvim",
+      "~/.local/state/nvim-roam"
     ]
   }
 }
