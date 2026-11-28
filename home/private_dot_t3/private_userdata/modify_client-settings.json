@@ -1,0 +1,75 @@
+#!/bin/sh
+# T3 Code client (UI) preferences. A modify_ script, not a plain file: T3 owns
+# this file and stores device/state keys in it too (onboardingCompletedAt,
+# voiceMicrophones, favorites, browserProfiles, overrides maps), so we merge
+# only the keys below into whatever is live. `. * $m` keeps T3's key order and
+# compact output, so apply doesn't churn on formatting when T3 rewrites it.
+# Change a setting in-app → `chezmoi diff` shows it → update the value here.
+set -eu
+managed='{
+  "sendShortcut": "mod-enter",
+  "followUpBehavior": "steer",
+  "composerRichTextEnabled": true,
+  "persistComposerContextStrip": false,
+  "showSkillsInSlashMenu": true,
+  "sideThreadOpenTarget": "panel",
+  "proactivePanelsEnabled": false,
+
+  "notificationMode": "off",
+  "inAppNotificationsEnabled": false,
+  "confirmQuit": "hold",
+  "confirmThreadArchive": false,
+  "confirmTerminalClose": true,
+  "confirmThreadDelete": true,
+  "confirmThreadUnpin": false,
+
+  "chatWidth": "comfortable",
+  "htmlPreviewWidth": "chat",
+  "effortDisplay": "label",
+  "toolCallVisibility": "showAll",
+  "appearanceContrast": 100,
+  "panelAnimationDurationMs": 0,
+  "glassOpacity": 80,
+  "environmentIdentificationMode": "artwork",
+  "fontSizeInterface": 16,
+  "fontSizePrompt": 14,
+  "fontSizeCode": 13,
+  "fontSizeTerminal": 12,
+  "fontSmoothing": true,
+  "wordWrap": true,
+  "mathRenderingEnabled": false,
+  "timestampFormat": "locale",
+  "language": "en",
+
+  "diffColorScheme": "red-green",
+  "diffFilesCollapsed": true,
+  "diffIgnoreWhitespace": true,
+  "diffLayout": "stacked",
+
+  "sidebarWorkingShelfEnabled": true,
+  "sidebarProjectGroupingMode": "repository",
+  "sidebarProjectSortOrder": "updated_at",
+  "sidebarThreadSortOrder": "updated_at",
+  "boringSidebarEnabled": false,
+  "threadDetailsUsageEnabled": false,
+
+  "pullRequestLinksOpenInApp": true,
+  "loadBalancingEnabled": false,
+
+  "browserLinkTarget": "system",
+  "browserSearchEngine": "duckduckgo",
+  "browserDefaultAppearance": "system",
+  "browserAutoShowFloatingPreview": true,
+
+  "voiceShortcutMode": "auto",
+  "speechLanguage": "auto",
+  "speechStreaming": true,
+  "speechSilenceFiltering": true,
+  "speechRemoveFillerWords": true,
+  "speechCorrectionWord": "scratch that",
+
+  "snapShotEnabled": false
+}'
+live=$(cat)
+[ -n "$live" ] || live='{}'
+printf '%s\n' "$live" | jq -c --argjson m "$managed" '. * $m'

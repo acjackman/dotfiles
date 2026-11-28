@@ -1,0 +1,19 @@
+#!/bin/sh
+# T3 Code server settings. Merged into the live file (see
+# modify_client-settings.json for why); UI state like projectSettingsFolded
+# is left to T3. T3 writes this one pretty-printed with 2-space indent.
+set -eu
+managed='{
+  "idleCompaction": "onReturn",
+  "speechPostProcessingModelSelection": {
+    "instanceId": "codex",
+    "model": "gpt-6-luna",
+    "options": [{ "id": "reasoningEffort", "value": "low" }]
+  },
+  "providerInstances": {
+    "codex": { "driver": "codex", "enabled": true, "config": { "setupMode": "managed" } }
+  }
+}'
+live=$(cat)
+[ -n "$live" ] || live='{}'
+printf '%s\n' "$live" | jq --argjson m "$managed" '. * $m'
